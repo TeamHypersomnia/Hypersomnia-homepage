@@ -12,21 +12,28 @@ if(isset($_FILES['artifact'])){
 
 	$version = $_POST["version"];
 	$signature = $_POST["signature"];
-	$is_updater = $_POST["is_updater"];
+	$artifact_type = $_POST["artifact_type"];
 	$platform = $_POST["platform"];
-	$commit_message  = $_POST["commit_message"];
 	$BUILDS_DIR = "builds";
 	$target_folder = $BUILDS_DIR."/".$version;
 	$target_artifact_path = $target_folder."/".$file_name;
 	$signature_file_name = $file_name.".signature.txt";
 	$signature_file_path = $target_folder."/".$signature_file_name;
 
-	if (strstr($commit_message, "[TEST]")) {
-		$staging_folder_name = "test";
-	}
-
 	if (!isset($_POST["version"])) {
 		$errors[]="Version is not set!";
+	}
+
+	if (!isset($_POST["signature"])) {
+		$errors[]="Signature is not set!";
+	}
+
+	if (!isset($_POST["platform"])) {
+		$errors[]="Platform is not set!";
+	}
+
+	if (!isset($_POST["artifact_type"])) {
+		$errors[]="Artifact type is not set!";
 	}
 
 	if ($_POST["version"] == "_") {
@@ -56,7 +63,7 @@ if(isset($_FILES['artifact'])){
 		return;
 	}
 
-	if ($is_updater == "true") {
+	if ($artifact_type == "updater") {
 		// Only signal the newest version if we're uploading an updater archive.
 
 		$version_file_name = "version-".$platform.".txt";
@@ -83,7 +90,8 @@ if(isset($_FILES['artifact'])){
 		 Key: <input type="text" name="key"><br>
 		 Version: <input type="text" name="version"><br>
 		 Platform: <input type="text" name="platform"><br>
-		 Commit message: <input type="text" name="commit_message"><br>
+		 Artifact type: <input type="text" name="artifact_type"><br>
+		 Signature: <input type="text" name="signature"><br>
 
 		 <input type = "submit" name="submit" value="Submit"/>
 	  </form>
