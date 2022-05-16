@@ -4,6 +4,8 @@ if(isset($_FILES['artifact'])){
 	$errors= array();
 	$file_name = $_FILES['artifact']['name'];
 	$file_tmp = $_FILES['artifact']['tmp_name'];
+	$sig_file_name = $_FILES['signature']['name'];
+	$sig_file_tmp = $_FILES['signature']['tmp_name'];
 
 	require_once __DIR__.'/vendor/autoload.php';
 
@@ -11,21 +13,15 @@ if(isset($_FILES['artifact'])){
 	$dotenv->load();
 
 	$version = $_POST["version"];
-	$signature = $_POST["signature"];
 	$artifact_type = $_POST["artifact_type"];
 	$platform = $_POST["platform"];
 	$BUILDS_DIR = "builds";
 	$target_folder = $BUILDS_DIR."/".$version;
 	$target_artifact_path = $target_folder."/".$file_name;
-	$signature_file_name = $file_name.".signature.txt";
-	$signature_file_path = $target_folder."/".$signature_file_name;
+	$target_signature_path = $target_folder."/".$sig_file_name;
 
 	if (!isset($_POST["version"])) {
 		$errors[]="Version is not set!";
-	}
-
-	if (!isset($_POST["signature"])) {
-		$errors[]="Signature is not set!";
 	}
 
 	if (!isset($_POST["platform"])) {
@@ -50,13 +46,22 @@ if(isset($_FILES['artifact'])){
 		$move_result = move_uploaded_file($file_tmp, $target_artifact_path);
 		chmod($target_artifact_path, 0755);
 
-		echo "move_uploaded_file(".$file_tmp.", ".$target_artifact_path.")";
+		#echo "move_uploaded_file(".$file_tmp.", ".$target_artifact_path.")";
 
 		if ($move_result == false) {
-			echo "Returned false. ";
+			echo "Failed to move the artifact: ".$target_artifact_path."\n";
 		}
 		else {
-			echo "Success.";
+			echo "Successfully moved the artifact: ".$target_artifact_path."\n";
+		}
+
+		$move_result = move_uploaded_file($sig_file_tmp, $target_signature_path);
+
+		if ($move_result == false) {
+			echo "Failed to move the artifact signature: ".$target_signature_path."\n";
+		}
+		else {
+			echo "Successfully moved the artifact signature: ".$target_signature_path."\n";
 		}
 	} else {
 		print_r($errors);
@@ -68,6 +73,8 @@ if(isset($_FILES['artifact'])){
 
 		$version_file_name = "version-".$platform.".txt";
 		$version_file_path = $target_folder."/".$version_file_name;
+
+		$signature = file_get_contents($target_signature_path);
 		$version_file_contents = $version."\nUpdate archive signature:\n".$signature;
 
 		file_put_contents($version_file_path, $version_file_contents);
@@ -77,9 +84,6 @@ if(isset($_FILES['artifact'])){
 
 		file_put_contents($last_uploaded_version_path, $last_uploaded_version_contents);
 	}
-
-
-	file_put_contents($signature_file_path, $signature);
 }
 ?>
 <html>
@@ -87,11 +91,11 @@ if(isset($_FILES['artifact'])){
 
 	  <form action = "" method = "POST" enctype = "multipart/form-data">
 		 <input type = "file" name = "artifact" /> <br>
+		 <input type = "file" name = "signature" /> <br>
 		 Key: <input type="text" name="key"><br>
 		 Version: <input type="text" name="version"><br>
 		 Platform: <input type="text" name="platform"><br>
 		 Artifact type: <input type="text" name="artifact_type"><br>
-		 Signature: <input type="text" name="signature"><br>
 
 		 <input type = "submit" name="submit" value="Submit"/>
 	  </form>
