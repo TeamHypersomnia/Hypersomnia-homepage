@@ -11,11 +11,15 @@ if(isset($_FILES['artifact'])){
 	$dotenv->load();
 
 	$version = $_POST["version"];
+	$signature = $_POST["signature"];
+	$is_updater = $_POST["is_updater"];
 	$platform = $_POST["platform"];
 	$commit_message  = $_POST["commit_message"];
 	$BUILDS_DIR = "builds";
 	$target_folder = $BUILDS_DIR."/".$version;
 	$target_artifact_path = $target_folder."/".$file_name;
+	$signature_file_name = $file_name.".signature.txt";
+	$signature_file_path = $target_folder."/".$signature_file_name;
 
 	if (strstr($commit_message, "[TEST]")) {
 		$staging_folder_name = "test";
@@ -52,18 +56,23 @@ if(isset($_FILES['artifact'])){
 		return;
 	}
 
-	$commit_hash = $_POST["commit_hash"];
+	if ($is_updater == "true") {
+		// Only signal the newest version if we're uploading an updater archive.
 
-	$version_file_name = "version-".$platform.".txt";
-	$version_file_path = $target_folder."/".$version_file_name;
-	$version_file_contents = $version."\n".$commit_hash;
+		$version_file_name = "version-".$platform.".txt";
+		$version_file_path = $target_folder."/".$version_file_name;
+		$version_file_contents = $version."\nUpdate archive signature:\n".$signature;
 
-	file_put_contents($version_file_path, $version_file_contents);
+		file_put_contents($version_file_path, $version_file_contents);
 
-	$last_uploaded_version_path = $BUILDS_DIR."/last_uploaded_version.txt";
-	$last_uploaded_version_contents = $version;
+		$last_uploaded_version_path = $BUILDS_DIR."/last_uploaded_version.txt";
+		$last_uploaded_version_contents = $version;
 
-	file_put_contents($last_uploaded_version_path, $last_uploaded_version_contents);
+		file_put_contents($last_uploaded_version_path, $last_uploaded_version_contents);
+	}
+
+
+	file_put_contents($signature_file_path, $signature);
 }
 ?>
 <html>
@@ -74,7 +83,6 @@ if(isset($_FILES['artifact'])){
 		 Key: <input type="text" name="key"><br>
 		 Version: <input type="text" name="version"><br>
 		 Platform: <input type="text" name="platform"><br>
-		 Commit hash: <input type="text" name="commit_hash"><br>
 		 Commit message: <input type="text" name="commit_message"><br>
 
 		 <input type = "submit" name="submit" value="Submit"/>
