@@ -2,6 +2,7 @@
     "lewsii": {
         "id": "lewsii",
         "display_name": "Lews II",
+        "pic_filename": "lewsii.png",
         "pellets_per_shot": 1,
         "damage": 33.0,
         "headshot_damage": 99.0,
@@ -25,6 +26,7 @@
     "datum_gun": {
         "id": "datum_gun",
         "display_name": "Datum gun",
+        "pic_filename": "datum_gun.png",
         "pellets_per_shot": 1,
         "damage": 33.0,
         "headshot_damage": 99.0,
@@ -48,6 +50,7 @@
     "bulwark": {
         "id": "bulwark",
         "display_name": "Bulwark",
+        "pic_filename": "bulwark.png",
         "pellets_per_shot": 1,
         "damage": 47.0,
         "headshot_damage": 141.0,
@@ -71,6 +74,7 @@
     "gradobicie": {
         "id": "gradobicie",
         "display_name": "Gradobicie",
+        "pic_filename": "gradobicie.png",
         "pellets_per_shot": 12,
         "damage": 12.0,
         "headshot_damage": 36.0,
@@ -94,6 +98,7 @@
     "blunaz": {
         "id": "blunaz",
         "display_name": "Blunaz",
+        "pic_filename": "blunaz.png",
         "pellets_per_shot": 1,
         "damage": 10.0,
         "headshot_damage": 30.0,
@@ -117,6 +122,7 @@
     "elon_hrl": {
         "id": "elon_hrl",
         "display_name": "Elon hrl",
+        "pic_filename": "elon_hrl.png",
         "pellets_per_shot": 1,
         "damage": 10.0,
         "headshot_damage": 30.0,
@@ -140,6 +146,7 @@
     "amplifier_arm": {
         "id": "amplifier_arm",
         "display_name": "Amplifier arm",
+        "pic_filename": "amplifier_arm.png",
         "pellets_per_shot": 1,
         "damage": 10.0,
         "headshot_damage": 20.0,
@@ -163,6 +170,7 @@
     "galilea": {
         "id": "galilea",
         "display_name": "Galilea",
+        "pic_filename": "galilea.png",
         "pellets_per_shot": 1,
         "damage": 33.0,
         "headshot_damage": 99.0,
@@ -186,6 +194,7 @@
     "cyberspray": {
         "id": "cyberspray",
         "display_name": "Cyberspray",
+        "pic_filename": "cyberspray.png",
         "pellets_per_shot": 1,
         "damage": 12.0,
         "headshot_damage": 36.0,
@@ -209,6 +218,7 @@
     "hpsr": {
         "id": "hpsr",
         "display_name": "Hpsr",
+        "pic_filename": "hpsr.png",
         "pellets_per_shot": 1,
         "damage": 177.0,
         "headshot_damage": 531.0,
@@ -232,6 +242,7 @@
     "warx_fq12": {
         "id": "warx_fq12",
         "display_name": "Warx fq12",
+        "pic_filename": "warx_fq12.png",
         "pellets_per_shot": 12,
         "damage": 8.0,
         "headshot_damage": 24.0,
@@ -255,6 +266,7 @@
     "ao44": {
         "id": "ao44",
         "display_name": "Ao44",
+        "pic_filename": "ao44.png",
         "pellets_per_shot": 1,
         "damage": 60.0,
         "headshot_damage": 180.0,
@@ -278,6 +290,7 @@
     "sn69": {
         "id": "sn69",
         "display_name": "Sn69",
+        "pic_filename": "sn69.png",
         "pellets_per_shot": 1,
         "damage": 18.0,
         "headshot_damage": 45.0,
@@ -301,6 +314,7 @@
     "deagle": {
         "id": "deagle",
         "display_name": "Deagle",
+        "pic_filename": "deagle.png",
         "pellets_per_shot": 1,
         "damage": 92.0,
         "headshot_damage": 276.0,
@@ -324,6 +338,7 @@
     "bulldup2000": {
         "id": "bulldup2000",
         "display_name": "BullDup 2000",
+        "pic_filename": "bulldup2000.png",
         "pellets_per_shot": 1,
         "damage": 84.0,
         "headshot_damage": 252.0,
@@ -347,6 +362,7 @@
     "zamiec": {
         "id": "zamiec",
         "display_name": "Zamieć",
+        "pic_filename": "zamiec.png",
         "pellets_per_shot": 1,
         "damage": 24.0,
         "headshot_damage": 60.0,
@@ -370,6 +386,7 @@
     "hunter": {
         "id": "hunter",
         "display_name": "Hunter",
+        "pic_filename": "hunter.png",
         "pellets_per_shot": 1,
         "damage": 96.0,
         "headshot_damage": 288.0,
@@ -393,6 +410,7 @@
     "baka47": {
         "id": "baka47",
         "display_name": "Baka47",
+        "pic_filename": "baka47.png",
         "pellets_per_shot": 1,
         "damage": 40.0,
         "headshot_damage": 120.0,
@@ -416,6 +434,7 @@
     "kek9": {
         "id": "kek9",
         "display_name": "Kek9",
+        "pic_filename": "kek9.png",
         "pellets_per_shot": 1,
         "damage": 20.0,
         "headshot_damage": 50.0,
@@ -439,6 +458,7 @@
     "pro90": {
         "id": "pro90",
         "display_name": "Pro90",
+        "pic_filename": "pro90.png",
         "pellets_per_shot": 2,
         "damage": 11.0,
         "headshot_damage": 33.0,
@@ -462,6 +482,7 @@
     "szturm": {
         "id": "szturm",
         "display_name": "Szturm",
+        "pic_filename": "szturm.png",
         "pellets_per_shot": 1,
         "damage": 33.0,
         "headshot_damage": 99.0,
@@ -485,6 +506,7 @@
     "covert": {
         "id": "covert",
         "display_name": "Covert",
+        "pic_filename": "covert.png",
         "pellets_per_shot": 1,
         "damage": 35.0,
         "headshot_damage": 105.0,
@@ -508,6 +530,7 @@
     "calico": {
         "id": "calico",
         "display_name": "Calico",
+        "pic_filename": "calico.png",
         "pellets_per_shot": 1,
         "damage": 40.0,
         "headshot_damage": 120.0,
@@ -531,6 +554,7 @@
     "bilmer2000": {
         "id": "bilmer2000",
         "display_name": "Bilmer2000",
+        "pic_filename": "bilmer2000.png",
         "pellets_per_shot": 1,
         "damage": 33.0,
         "headshot_damage": 99.0,

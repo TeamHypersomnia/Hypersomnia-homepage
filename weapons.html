@@ -26,20 +26,66 @@
 	</div>
 	<div class="container">
 		<div class="content">
-			<h2>Weapons</h2>
-			<p>This is a list of all weapons in Hypersomnia.</p>
+			<h2>Firearms</h2>
 			<div class="table-responsive">
-				<table id="weapons" class="sortable">
+				<table id="firearms" class="sortable">
 					<thead>
 						<tr>
 							<th>Name</th>
 							<th>Weapon</th>
-							<th>Damage</th>
-							<th>HS Damage</th>
-							<th>Shots per second</th>
+							<th>DMG</th>
+							<th>HS DMG</th>
+							<th>Shots/sec</th>
 							<th>Avg bullet speed</th>
 							<th>Price</th>
 							<th>Kill award</th>
+							<th>Weight</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<h2>Melee weapons</h2>
+			<div class="radio">
+				<input onclick="fast()" id="fast" type="radio" name="radio1" checked>
+				<label for="fast">Fast attack</label>
+				<input onclick="strong()" id="strong" type="radio" name="radio1">
+				<label for="strong">Strong attack</label>
+			</div>
+			<div class="table-responsive">
+				<table id="melees" class="sortable">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Weapon</th>
+							<th>Swings/sec</th>
+							<th>DMG</th>
+							<th>HS DMG</th>
+							<th>Stamina</th>
+							<th>Throw DMG</th>
+							<th>Throw HS DMG</th>
+							<th>Price</th>
+							<th>Kill award</th>
+							<th>Weight</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<h2>Explosives</h2>
+			<div class="table-responsive">
+				<table id="explosives" class="sortable">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Weapon</th>
+							<th>Fuse delay</th>
+							<th>Base DMG</th>
+							<th>Price</th>
+							<th>Kill award</th>
+							<th>Weight</th>
 						</tr>
 					</thead>
 					<tbody>
