@@ -1,5 +1,4 @@
-alias rsync_git="rsync --exclude='/.git' --filter='dir-merge,- .gitignore'"
 . ./ADDRESS
 TARGET_FOLDER=page
 
-rsync_git -avzP . $ADDRESS:/var/www/html --delete-after
+rsync --exclude='builds' --exclude='/.git' -avzP . $ADDRESS:/var/www/html --delete-after

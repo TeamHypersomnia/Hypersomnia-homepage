@@ -1,5 +1,0 @@
-builds
-vendor
-composer.json
-composer.lock
-.env
