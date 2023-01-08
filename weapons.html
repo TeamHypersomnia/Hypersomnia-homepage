@@ -4,11 +4,12 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="theme-color" content="#1d1d1d">
-	<title>Hypersomnia - Maps</title>
+	<title>Hypersomnia - Weapons</title>
 	<link rel="icon" type="image/x-icon" href="favicon.ico">
 	<link href="https://fonts.cdnfonts.com/css/roboto" rel="stylesheet">
 	<link href="styles/main.css?v=6" rel="stylesheet">
 	<script src="https://kit.fontawesome.com/24be0de9ff.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/gh/tofsjonas/sortable/sortable.min.js"></script>
 	<script src="scripts/main.js"></script>
 </head>
 <body>
@@ -16,8 +17,8 @@
 		<div class="container">
 			<a href="index.html">Hypersomnia</a>
 			<a href="guide.html">Guide</a>
-			<a href="maps.html" class="active">Maps</a>
-			<a href="weapons.html">Weapons</a>
+			<a href="maps.html">Maps</a>
+			<a href="weapons.html" class="active">Weapons</a>
 			<a href="javascript:void(0);" class="icon" onclick="topnav()">
 				<i class="fa fa-bars"></i>
 			</a>
@@ -25,15 +26,27 @@
 	</div>
 	<div class="container">
 		<div class="content">
-			<h2>de_cyberaqua</h2>
-			<p>An experimental underwater biotech laboratory is under attack by a bombing squad.<br>Don't let them lay hands on any expensive equipment.</p>
-			<img class="responsive" src="images/de_cyberaqua.png">
-			<h2>fy_minilab</h2>
-			<p>A timeless 2017 classic and the first map ever created.</p>
-			<img class="responsive" src="images/fy_minilab.png">
-			<h2>de_labs2</h2>
-			<p>Resistance has been tipped about sensitive information<br>sitting in the depths of an abandoned rocket silo.</p>
-			<img class="responsive" src="images/de_labs2.png">
+			<h2>Weapons</h2>
+			<p>This is a list of all weapons in Hypersomnia.</p>
+			<div class="table-responsive">
+				<table id="weapons" class="sortable">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Weapon</th>
+							<th>Damage</th>
+							<th>HS Damage</th>
+							<th>Shots per second</th>
+							<th>Avg bullet speed</th>
+							<th>Price</th>
+							<th>Kill award</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<script>loadwpns()</script>
 		</div>
 		<div class="footer">
 			<p>Hypersomnia is released under the <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/LICENSE.md" target="_blank">GNU AGPL 3.0 license</a> and <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank">source code is available on GitHub</a>.</p>

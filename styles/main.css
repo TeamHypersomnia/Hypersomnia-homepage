@@ -7,9 +7,44 @@ ul {
 	padding: 0;
 }
 
-strong {
+strong, th {
 	font-family: 'Roboto Medium', sans-serif;
 	font-weight: 500;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 20px;
+}
+
+.table-responsive {
+	overflow-x: auto;
+}
+
+tr:nth-child(even) {
+	background-color: #1e1e1e;
+}
+
+th, td {
+	padding: 15px 10px;
+	height: 20px;
+	white-space: nowrap;
+	width: 12.5%;
+    margin-right: 10px;
+    font-size: 15px;
+}
+
+td {
+	border: 1px solid rgb(100 100 111 / 20%);
+}
+
+th {
+	text-align: left;
+	background-color: #1e1e1e;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 * {
@@ -209,4 +244,44 @@ body {
 
 ::-webkit-scrollbar-corner {
 	background: #222;
+}
+
+.sortable {
+	border-spacing: 0;
+}
+
+.sortable td:first-child,
+.sortable th:first-child {
+	border-top-left-radius: 4px;
+}
+
+.sortable td:last-child,
+.sortable th:last-child {
+	border-top-right-radius: 4px;
+}
+
+.sortable th {
+	cursor: pointer;
+	vertical-align: baseline;
+	white-space: nowrap;
+}
+
+.sortable th:hover::after {
+	color: inherit;
+	content: " \025B8";
+}
+
+.sortable th::after {
+	color: transparent;
+	content: " \025B8";
+}
+
+.sortable th.dir-d::after {
+	color: inherit;
+	content: " \025BE";
+}
+
+.sortable th.dir-u::after {
+	color: inherit;
+	content: " \025B4";
 }
