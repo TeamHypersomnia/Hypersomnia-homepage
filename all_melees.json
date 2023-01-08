@@ -111,18 +111,18 @@
         "id": "fury_thrower",
         "display_name": "Fury thrower",
         "pic_filename": "fury_thrower.png",
-        "fast_swings_per_second": 5.55555534362793,
-        "strong_swings_per_second": 2.222222328186035,
+        "fast_swings_per_second": 4.34782600402832,
+        "strong_swings_per_second": 1.7391303777694702,
         "fast_damage": 30.0,
-        "strong_damage": 55.0,
+        "strong_damage": 56.0,
         "fast_hs_damage": 90.0,
-        "strong_hs_damage": 165.0,
-        "fast_stamina_required": 2.0,
-        "strong_stamina_required": 5.0,
-        "throw_damage": 98.0,
-        "throw_hs_damage": 294.0,
+        "strong_hs_damage": 168.0,
+        "fast_stamina_required": 3.0,
+        "strong_stamina_required": 6.0,
+        "throw_damage": 99.0,
+        "throw_hs_damage": 297.0,
         "price": 1000.0,
         "kill_award": 3500.0,
-        "weight": 1.0728906393051147
+        "weight": 1.1921007633209229
     }
 }
