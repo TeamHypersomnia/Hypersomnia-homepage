@@ -143,7 +143,7 @@ function parse_spells(json) {
 
 function loadwpns() {
 	var raw = new XMLHttpRequest();
-	raw.open("GET", "./all_weapons.json", false);
+	raw.open("GET", "./all_firearms.json", false);
 	raw.onreadystatechange = function() {
 		if (raw.readyState === 4) {
 			if (raw.status === 200 || raw.status == 0) {
