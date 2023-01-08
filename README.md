@@ -1,4 +1,4 @@
-# Hypersomnia downloads page
+# Hypersomnia homepage
 
 Currently hosted at https://hypersomnia.xyz/
 
