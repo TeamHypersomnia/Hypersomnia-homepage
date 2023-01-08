@@ -13,7 +13,11 @@ jobs:
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }} 
-          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          known_hosts: unnecessary
+          
+      - name: Adding Known Hosts
+        run: ssh-keyscan -H 51.38.132.173 >> ~/.ssh/known_hosts
+
       - name: Deploy with rsync
-        run: rsync --exclude='builds' --exclude='/.git' -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
+        run: rsync --exclude='builds' --exclude='/.git' -avzP . ubuntu@51.38.132.173:/var/www/html --delete-after
         
