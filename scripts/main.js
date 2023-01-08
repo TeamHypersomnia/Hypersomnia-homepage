@@ -86,24 +86,26 @@ function parse_explosives(json) {
 		var c5 = row.insertCell(4);
 		var c6 = row.insertCell(5);
 		var c7 = row.insertCell(6);
+		var c8 = row.insertCell(7);
 		c1.innerHTML = v.display_name;
-		c2.innerHTML = `<img class="notes" title="${v.notes}" src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/${v.pic_filename}">`;
-		c3.innerHTML = v.fuse_delay.toFixed(2);
+		c2.innerHTML = `<img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/${v.pic_filename}">`;
+		c3.innerHTML = v.notes;
+		c4.innerHTML = v.fuse_delay.toFixed(2);
 		if (v.base_damage <= 0) {
 			v.base_damage = "N/A";
 		}
-		c4.innerHTML = v.base_damage;
+		c5.innerHTML = v.base_damage;
 		if (v.price <= 0) {
 			v.price = "N/A";
 		}
-		c5.innerHTML = v.price;
+		c6.innerHTML = v.price;
 		if (v.kill_award <= 0) {
 			v.kill_award = "N/A";
 		}
-		c6.innerHTML = v.kill_award;
-		c7.innerHTML = v.weight.toFixed(2);
+		c7.innerHTML = v.kill_award;
+		c8.innerHTML = v.weight.toFixed(2);
 	});
-	const el = document.querySelector("#explosives > thead > tr > th:nth-child(5)");
+	const el = document.querySelector("#explosives > thead > tr > th:nth-child(6)");
 	if (el) {
 		el.click();
 		el.click();
