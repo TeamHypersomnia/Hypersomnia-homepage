@@ -1,3 +1,9 @@
+name: Deploy to hypersomnia.xyz
+
+on:
+  push:
+    branches: [ master ]
+
 runs-on: ubuntu-latest
 steps:
   - name: Install SSH Key
