@@ -14,7 +14,7 @@
         "cooldown": 2.0,
         "mana_required": 27.0,
         "price": 1100.0,
-        "kill_award": 700.0
+        "kill_award": -1.0
     },
     "exaltation": {
         "id": "exaltation",
@@ -31,7 +31,7 @@
         "cooldown": 5.0,
         "mana_required": 40.0,
         "price": 2800.0,
-        "kill_award": 700.0
+        "kill_award": -1.0
     },
     "ultimate_wrath_of_the_aeons": {
         "id": "ultimate_wrath_of_the_aeons",
@@ -65,7 +65,7 @@
         "cooldown": 5.0,
         "mana_required": 36.0,
         "price": 2000.0,
-        "kill_award": 700.0
+        "kill_award": -1.0
     },
     "fury_of_the_aeons": {
         "id": "fury_of_the_aeons",
