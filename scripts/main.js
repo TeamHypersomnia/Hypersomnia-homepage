@@ -93,6 +93,9 @@ function parse_explosives(json) {
 			v.base_damage = "N/A";
 		}
 		c4.innerHTML = v.base_damage;
+		if (v.price <= 0) {
+			v.price = "N/A";
+		}
 		c5.innerHTML = v.price;
 		if (v.kill_award <= 0) {
 			v.kill_award = "N/A";
@@ -119,8 +122,8 @@ function parse_spells(json) {
 		var c6 = row.insertCell(5);
 		var c7 = row.insertCell(6);
 		c1.innerHTML = v.display_name;
-		c2.innerHTML = `<img class="notes" title="${v.notes}" src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/${v.pic_filename}">`;
-		c3.innerHTML = v.incantation;
+		c2.innerHTML = `<img class="notes" title="${v.incantation}" src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/${v.pic_filename}">`;
+		c3.innerHTML = v.notes;
 		c4.innerHTML = v.cooldown;
 		c5.innerHTML = v.mana_required;
 		c6.innerHTML = v.price;
