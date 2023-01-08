@@ -18,7 +18,7 @@ label {
 	user-select: none;
 }
 
-strong, th {
+strong, th, td:nth-child(1) {
 	font-family: 'Roboto Medium', sans-serif;
 	font-weight: 500;
 }
@@ -70,6 +70,7 @@ thead > tr {
 }
 
 th {
+	color: #fff;
 	text-align: left;
 	background-color: #1e1e1e;
 	-webkit-user-select: none;
