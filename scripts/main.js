@@ -59,11 +59,11 @@ function parse_meeles(json) {
 		c1.innerHTML = v.display_name;
 		c2.innerHTML = `<img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/${v.pic_filename}">`;
 		c3.innerHTML = `<span class="fast">${v.fast_swings_per_second.toFixed(2)}</span><span class="strong">${v.strong_swings_per_second.toFixed(2)}</span>`;
-		c4.innerHTML = `<span class="fast">${v.fast_damage.toFixed(2)}</span><span class="strong">${v.strong_damage}</span>`;
-		c5.innerHTML = `<span class="fast">${v.fast_hs_damage.toFixed(2)}</span><span class="strong">${v.strong_hs_damage}</span>`;
+		c4.innerHTML = `<span class="fast">${v.fast_damage}</span><span class="strong">${v.strong_damage}</span>`;
+		c5.innerHTML = `<span class="fast">${v.fast_hs_damage}</span><span class="strong">${v.strong_hs_damage}</span>`;
 		c6.innerHTML = `<span class="fast">${v.fast_stamina_required}</span><span class="strong">${v.strong_stamina_required}</span>`;
-		c7.innerHTML = v.throw_damage.toFixed(2);
-		c8.innerHTML = v.throw_hs_damage.toFixed(2);
+		c7.innerHTML = v.throw_damage;
+		c8.innerHTML = v.throw_hs_damage;
 		c9.innerHTML = v.price;
 		c10.innerHTML = v.kill_award;
 		c11.innerHTML = v.weight.toFixed(2);
@@ -124,6 +124,9 @@ function parse_spells(json) {
 		c4.innerHTML = v.cooldown;
 		c5.innerHTML = v.mana_required;
 		c6.innerHTML = v.price;
+		if (v.kill_award <= 0) {
+			v.kill_award = "N/A";
+		}
 		c7.innerHTML = v.kill_award;
 	});
 	const el = document.querySelector("#spells > thead > tr > th:nth-child(6)");
