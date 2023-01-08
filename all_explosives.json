@@ -5,9 +5,9 @@
         "pic_filename": "flashbang.png",
         "notes": "Blinds and deafens the enemy for a short while.",
         "fuse_delay": 0.800000011920929,
-        "base_damage": 0.0,
+        "base_damage": -1.0,
         "price": 700.0,
-        "kill_award": 0.0,
+        "kill_award": -1.0,
         "weight": 0.8960000276565552
     },
     "ped_grenade": {
@@ -16,9 +16,9 @@
         "pic_filename": "ped_grenade.png",
         "notes": "Drains Personal Electricity and destroys magic armor.",
         "fuse_delay": 0.800000011920929,
-        "base_damage": 0.0,
+        "base_damage": -1.0,
         "price": 800.0,
-        "kill_award": 0.0,
+        "kill_award": -1.0,
         "weight": 0.9720000624656677
     },
     "interference_grenade": {
@@ -27,9 +27,9 @@
         "pic_filename": "interference_grenade.png",
         "notes": "Victim is kicked far away and has its stamina drained.",
         "fuse_delay": 0.800000011920929,
-        "base_damage": 0.0,
+        "base_damage": -1.0,
         "price": 550.0,
-        "kill_award": 0.0,
+        "kill_award": -1.0,
         "weight": 0.9720000624656677
     },
     "force_grenade": {
@@ -38,7 +38,7 @@
         "pic_filename": "force_grenade.png",
         "notes": "Deals damage to Health.",
         "fuse_delay": 1.2000000476837158,
-        "base_damage": 0.0,
+        "base_damage": 88.0,
         "price": 1000.0,
         "kill_award": 700.0,
         "weight": 0.9720000624656677
@@ -49,7 +49,7 @@
         "pic_filename": "bomb_1.png",
         "notes": "Can be planted. Deals massive damage nearby.",
         "fuse_delay": 35.0,
-        "base_damage": 0.0,
+        "base_damage": 348.0,
         "price": 0.0,
         "kill_award": 700.0,
         "weight": 1.9200003147125244

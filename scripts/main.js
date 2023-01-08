@@ -87,14 +87,46 @@ function parse_explosives(json) {
 		var c6 = row.insertCell(5);
 		var c7 = row.insertCell(6);
 		c1.innerHTML = v.display_name;
-		c2.innerHTML = `<img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/${v.pic_filename}">`;
+		c2.innerHTML = `<img class="notes" title="${v.notes}" src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/${v.pic_filename}">`;
 		c3.innerHTML = v.fuse_delay.toFixed(2);
+		if (v.base_damage <= 0) {
+			v.base_damage = "N/A";
+		}
 		c4.innerHTML = v.base_damage;
 		c5.innerHTML = v.price;
+		if (v.kill_award <= 0) {
+			v.kill_award = "N/A";
+		}
 		c6.innerHTML = v.kill_award;
 		c7.innerHTML = v.weight.toFixed(2);
 	});
 	const el = document.querySelector("#explosives > thead > tr > th:nth-child(5)");
+	if (el) {
+		el.click();
+		el.click();
+	}
+}
+
+function parse_spells(json) {
+	var table = document.getElementById("spells").getElementsByTagName("tbody")[0];
+	Object.entries(json).forEach(([k, v]) => {
+		var row = table.insertRow(-1);
+		var c1 = row.insertCell(0);
+		var c2 = row.insertCell(1);
+		var c3 = row.insertCell(2);
+		var c4 = row.insertCell(3);
+		var c5 = row.insertCell(4);
+		var c6 = row.insertCell(5);
+		var c7 = row.insertCell(6);
+		c1.innerHTML = v.display_name;
+		c2.innerHTML = `<img class="notes" title="${v.notes}" src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/${v.pic_filename}">`;
+		c3.innerHTML = v.incantation;
+		c4.innerHTML = v.cooldown;
+		c5.innerHTML = v.mana_required;
+		c6.innerHTML = v.price;
+		c7.innerHTML = v.kill_award;
+	});
+	const el = document.querySelector("#spells > thead > tr > th:nth-child(6)");
 	if (el) {
 		el.click();
 		el.click();
@@ -132,6 +164,16 @@ function loadwpns() {
 		}
 	}
 	raw.send(null);
+	var raw = new XMLHttpRequest();
+	raw.open("GET", "./all_spells.json", false);
+	raw.onreadystatechange = function() {
+		if (raw.readyState === 4) {
+			if (raw.status === 200 || raw.status == 0) {
+				parse_spells(JSON.parse(raw.responseText));
+			}
+		}
+	}
+	raw.send(null);
 }
 
 function fast() {
@@ -155,3 +197,13 @@ function strong() {
 		strong[i].style.display = "inline";
 	}
 }
+
+window.addEventListener("load", (event) => {
+	tippy('.notes', {
+		content(reference) {
+			const title = reference.getAttribute('title');
+			reference.removeAttribute('title');
+			return title;
+		},
+	});
+});
