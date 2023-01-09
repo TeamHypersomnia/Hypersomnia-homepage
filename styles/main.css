@@ -326,6 +326,10 @@ body {
 	content: " \025B4";
 }
 
+.sortable th.no-sort {
+	pointer-events: none;
+}
+
 
 
 /* Tooltip */
