@@ -50,7 +50,7 @@
         "throw_damage": 49.0,
         "throw_hs_damage": 147.0,
         "price": 500.0,
-        "kill_award": 4000.0,
+        "kill_award": 5000.0,
         "weight": 0.45875775814056396
     },
     "cyan_scythe": {
@@ -59,16 +59,16 @@
         "pic_filename": "cyan_scythe.png",
         "fast_swings_per_second": 5.0,
         "strong_swings_per_second": 2.0,
-        "fast_damage": 54000.0,
-        "strong_damage": 100000.0,
-        "fast_hs_damage": 162000.0,
-        "strong_hs_damage": 300000.0,
+        "fast_damage": 27.0,
+        "strong_damage": 50.0,
+        "fast_hs_damage": 81.0,
+        "strong_hs_damage": 150.0,
         "fast_stamina_required": 3.0,
         "strong_stamina_required": 6.0,
-        "throw_damage": 176000.0,
-        "throw_hs_damage": 528000.0,
+        "throw_damage": 88.0,
+        "throw_hs_damage": 264.0,
         "price": 700.0,
-        "kill_award": 1350.0,
+        "kill_award": 2500.0,
         "weight": 0.7081349492073059
     },
     "yellow_dagger": {
@@ -77,16 +77,16 @@
         "pic_filename": "yellow_dagger.png",
         "fast_swings_per_second": 5.0,
         "strong_swings_per_second": 2.0,
-        "fast_damage": 54000.0,
-        "strong_damage": 100000.0,
-        "fast_hs_damage": 162000.0,
-        "strong_hs_damage": 300000.0,
+        "fast_damage": 27.0,
+        "strong_damage": 50.0,
+        "fast_hs_damage": 81.0,
+        "strong_hs_damage": 150.0,
         "fast_stamina_required": 3.0,
         "strong_stamina_required": 6.0,
-        "throw_damage": 176000.0,
-        "throw_hs_damage": 528000.0,
+        "throw_damage": 88.0,
+        "throw_hs_damage": 264.0,
         "price": 700.0,
-        "kill_award": 1350.0,
+        "kill_award": 2500.0,
         "weight": 0.8832000494003296
     },
     "poseidon": {
@@ -104,7 +104,7 @@
         "throw_damage": 96.0,
         "throw_hs_damage": 288.0,
         "price": 1000.0,
-        "kill_award": 4000.0,
+        "kill_award": 4500.0,
         "weight": 0.9138855338096619
     },
     "fury_thrower": {
@@ -122,7 +122,7 @@
         "throw_damage": 99.0,
         "throw_hs_damage": 297.0,
         "price": 1000.0,
-        "kill_award": 4000.0,
+        "kill_award": 4500.0,
         "weight": 1.1921007633209229
     }
 }
