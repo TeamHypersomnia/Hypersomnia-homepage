@@ -68,7 +68,7 @@
         "throw_damage": 88.0,
         "throw_hs_damage": 264.0,
         "price": 700.0,
-        "kill_award": 2500.0,
+        "kill_award": 2000.0,
         "weight": 0.7081349492073059
     },
     "yellow_dagger": {
@@ -86,7 +86,7 @@
         "throw_damage": 88.0,
         "throw_hs_damage": 264.0,
         "price": 700.0,
-        "kill_award": 2500.0,
+        "kill_award": 2000.0,
         "weight": 0.8832000494003296
     },
     "poseidon": {
