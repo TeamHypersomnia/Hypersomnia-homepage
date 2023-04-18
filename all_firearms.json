@@ -2,7 +2,7 @@
     "lews": {
         "id": "lews",
         "display_name": "Lews II",
-        "pic_filename": "lews.png",
+        "pic_filename": "lewsii.png",
         "pellets_per_shot": 1,
         "damage": 33.0,
         "headshot_damage": 99.0,
@@ -50,7 +50,7 @@
     "datum": {
         "id": "datum",
         "display_name": "Datum",
-        "pic_filename": "datum.png",
+        "pic_filename": "datum_gun.png",
         "pellets_per_shot": 1,
         "damage": 33.0,
         "headshot_damage": 99.0,
@@ -194,7 +194,7 @@
     "awka": {
         "id": "awka",
         "display_name": "Awka",
-        "pic_filename": "awka.png",
+        "pic_filename": "hpsr.png",
         "pellets_per_shot": 1,
         "damage": 198.0,
         "headshot_damage": 594.0,
@@ -218,7 +218,7 @@
     "warx": {
         "id": "warx",
         "display_name": "Warx",
-        "pic_filename": "warx.png",
+        "pic_filename": "warx_fq12.png",
         "pellets_per_shot": 12,
         "damage": 8.0,
         "headshot_damage": 24.0,
@@ -410,7 +410,7 @@
     "elon": {
         "id": "elon",
         "display_name": "Rocket Launcher ELON",
-        "pic_filename": "elon.png",
+        "pic_filename": "elon_hrl.png",
         "pellets_per_shot": 1,
         "damage": 112.0,
         "headshot_damage": 336.0,
