@@ -207,11 +207,13 @@ function strong() {
 }
 
 window.addEventListener("load", (event) => {
-	tippy('.notes', {
-		content(reference) {
-			const title = reference.getAttribute('title');
-			reference.removeAttribute('title');
-			return title;
-		},
-	});
+	if (document.getElementsByClassName('notes').length > 0) {
+		tippy('.notes', {
+			content(reference) {
+				const title = reference.getAttribute('title');
+				reference.removeAttribute('title');
+				return title;
+			},
+		});
+	}
 });
