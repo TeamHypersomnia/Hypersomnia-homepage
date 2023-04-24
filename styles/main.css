@@ -257,6 +257,10 @@ body {
 		width: 100%;
 		height: auto;
 	}
+
+	.alert {
+		margin: 0 auto 20px;
+	}
 }
 
 
@@ -370,4 +374,21 @@ body {
 .tooltip:hover .tooltiptext {
 	visibility: visible;
 	opacity: 1;
+}
+
+.alert {
+	margin-top: 20px;
+	padding: 15px;
+	font-size: 15px;
+	border: 1px solid #d5c395;
+	border-left: 4px solid #7c5e1e;
+	background-color: #fff3cd;
+	color: #956f2d;
+	border-radius: 5px;
+}
+
+.alert a {
+	color: #956f2d;
+	text-decoration: underline;
+	font-family: 'Roboto Medium', sans-serif;
 }
