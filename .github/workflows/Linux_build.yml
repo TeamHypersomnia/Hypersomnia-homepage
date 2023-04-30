@@ -22,5 +22,5 @@ jobs:
         run: ssh-keyscan -H hypersomnia.xyz >> ~/.ssh/known_hosts
 
       - name: Deploy with rsync
-        run: rsync --exclude='builds' --exclude='/.git' -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
+        run: rsync --exclude={'vendor','builds','/.git'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
         
