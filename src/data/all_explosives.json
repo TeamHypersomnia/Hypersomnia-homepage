@@ -1,0 +1,57 @@
+{
+    "flashbang": {
+        "id": "flashbang",
+        "display_name": "Flashbang",
+        "pic_filename": "flashbang.png",
+        "notes": "Blinds and deafens the enemy for a short while.",
+        "fuse_delay": 0.800000011920929,
+        "base_damage": -1.0,
+        "price": 700.0,
+        "kill_award": -1.0,
+        "weight": 0.8960000276565552
+    },
+    "ped_grenade": {
+        "id": "ped_grenade",
+        "display_name": "Ped grenade",
+        "pic_filename": "ped_grenade.png",
+        "notes": "Drains Personal Electricity and destroys armor.",
+        "fuse_delay": 0.800000011920929,
+        "base_damage": -1.0,
+        "price": 800.0,
+        "kill_award": -1.0,
+        "weight": 0.9720000624656677
+    },
+    "interference_grenade": {
+        "id": "interference_grenade",
+        "display_name": "Interference grenade",
+        "pic_filename": "interference_grenade.png",
+        "notes": "Kicks enemies far away. Also drains stamina.",
+        "fuse_delay": 0.800000011920929,
+        "base_damage": -1.0,
+        "price": 550.0,
+        "kill_award": -1.0,
+        "weight": 0.9720000624656677
+    },
+    "force_grenade": {
+        "id": "force_grenade",
+        "display_name": "Force grenade",
+        "pic_filename": "force_grenade.png",
+        "notes": "Deals damage to Health.",
+        "fuse_delay": 1.2000000476837158,
+        "base_damage": 88.0,
+        "price": 1000.0,
+        "kill_award": 700.0,
+        "weight": 0.9720000624656677
+    },
+    "bomb": {
+        "id": "bomb",
+        "display_name": "Bomb",
+        "pic_filename": "bomb_1.png",
+        "notes": "Can be planted. Deals massive damage nearby.",
+        "fuse_delay": 35.0,
+        "base_damage": 348.0,
+        "price": 0.0,
+        "kill_award": 700.0,
+        "weight": 1.9200003147125244
+    }
+}

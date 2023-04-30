@@ -1,0 +1,14 @@
+{% include 'overall_header.twig' %}
+
+<h2>Arenas</h2>
+<div class="arenas">
+{% for i in maps %}
+	<div class="arena">
+		<div class="arena-miniature">{% if i.miniature != false %}<img src="{{ i.miniature }}">{% endif %}</div>
+		<span class="arena_name">{{ i.name }}</span>
+		<span class="arena_author">by XXXXX</span>
+	</div>
+{% endfor %}
+</div>
+
+{% include 'overall_footer.twig' %}
