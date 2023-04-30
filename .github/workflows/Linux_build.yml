@@ -22,7 +22,7 @@ jobs:
         run: ssh-keyscan -H hypersomnia.xyz >> ~/.ssh/known_hosts
 
       - name: Deploy with rsync
-        run: rsync --exclude={'cache','vendor','builds','/.git'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
+        run: rsync --exclude={'vendor','builds','/.git'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
 
-      - name: Clear cache
-        run: sudo rm -rf /var/www/html/cache/*
+      - name: Create cache directory and set permissions
+        run: mkdir /var/www/cache && chmod 777 /var/www/cache
