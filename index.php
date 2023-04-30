@@ -20,6 +20,10 @@ $router->get('/arenas', function() {
 	require_once 'src/arenas.php';
 });
 
+$router->get('/arenas/(\w+)', function($arena) {
+	require_once 'src/arena.php';
+});
+
 $router->get('/weapons', function() {
 	require_once 'src/weapons.php';
 });

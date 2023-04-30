@@ -4,9 +4,11 @@
 <div class="arenas">
 {% for i in maps %}
 	<div class="arena">
-		<div class="arena-miniature">{% if i.miniature != false %}<img src="{{ i.miniature }}">{% endif %}</div>
-		<span class="arena_name">{{ i.name }}</span>
-		<span class="arena_author">by XXXXX</span>
+		<a href="{{ url }}arenas/{{ i.name }}">
+			<div class="arena-miniature">{% if i.miniature != false %}<img src="{{ i.miniature }}">{% endif %}</div>
+			<span class="arena_name">{{ i.name }}</span>
+			<span class="arena_author">by TBA</span>
+		</a>
 	</div>
 {% endfor %}
 </div>

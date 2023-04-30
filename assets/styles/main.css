@@ -124,6 +124,16 @@ a > i.fa-brands:hover {
   .content {
     border-radius: 5px;
   }
+
+  .arenas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .arena {
+    width: 33%;
+  }
 }
 
 .content {
@@ -261,6 +271,13 @@ body {
   .alert {
     margin: 0 auto 20px;
   }
+
+  .arenas {
+    display: grid;
+    grid-template-columns: none;
+    grid-gap: 15px;
+    row-gap: 15px;
+  }
 }
 
 
@@ -395,23 +412,25 @@ body {
 
 .arenas {
   padding: 15px 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
 }
 
 .arena {
-  width: 33%;
+  margin: 30px 0;
   text-align: center;
 }
 
-.arena-miniature {
-  min-height: 200px;
+.arena a {
+  text-decoration: none;
+}
+
+.arena a:hover > .arena_name {
+  color: #fff;
 }
 
 .arena_name {
   display: block;
   font-size: 15px;
+  color: #cdcdcd;
 }
 
 .arena_author {
