@@ -23,6 +23,4 @@ jobs:
 
       - name: Deploy with rsync
         run: rsync --exclude={'vendor','builds','/.git'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
-
-      - name: Create cache directory and set permissions
-        run: mkdir /var/www/cache && chmod 777 /var/www/cache
+        
