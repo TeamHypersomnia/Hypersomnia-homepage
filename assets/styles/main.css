@@ -122,7 +122,7 @@ a > i.fa-brands:hover {
   }
 
   .content {
-    border-radius: 5px;
+    border-radius: 4px;
   }
 
   .arenas {
@@ -210,7 +210,7 @@ body {
 }
 
 .dc {
-  height: 100%;
+  height: 80%;
   width: 100%;
 }
 
@@ -367,7 +367,7 @@ body {
   color: #fff;
   text-align: center;
   padding: 5px 0;
-  border-radius: 6px;
+  border-radius: 4px;
   position: absolute;
   z-index: 1;
   bottom: 125%;
@@ -394,20 +394,26 @@ body {
 }
 
 .alert {
-  margin-top: 20px;
+  margin-bottom: 20px;
   padding: 15px;
   font-size: 15px;
-  border: 1px solid #d5c395;
-  border-left: 4px solid #7c5e1e;
-  background-color: #fff3cd;
-  color: #956f2d;
-  border-radius: 5px;
+  background-color: #202225;
+  color: #8a8e94;
+  border-radius: 4px;
 }
 
 .alert a {
-  color: #956f2d;
+  color: #e7e7e7;
   text-decoration: underline;
   font-family: 'Roboto Medium', sans-serif;
+}
+
+.alert a:hover {
+  color: #fff;
+}
+
+.alert strong {
+  color: #fff;
 }
 
 .arenas {
