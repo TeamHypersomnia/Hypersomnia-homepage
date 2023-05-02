@@ -25,5 +25,10 @@ jobs:
         run: rsync --exclude={'cache','vendor','builds','/.git'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
 
       - name: Clear cache
-        run: curl localhost/src/clear_cache.php
-
+        uses: appleboy/ssh-action@master
+        with:
+          host: hypersomnia.xyz
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: curl localhost/src/clear_cache.php
