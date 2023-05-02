@@ -1,4 +1,4 @@
 <?php
 $url = 'https://hypersomnia.xyz/';
-$cache = false;
+$cache = '/var/www/html/cache';
 $arenas_path = '/home/ubuntu/hypersomnia/content/arenas';
