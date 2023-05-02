@@ -150,7 +150,7 @@ a > i.fa-brands:hover {
   .arenas {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
+    align-items: baseline;
   }
 
   .arena {
@@ -443,8 +443,9 @@ body {
 }
 
 .arena {
-  margin: 30px 0;
+  padding: 50px 0;
   text-align: center;
+  max-height: 200px;
 }
 
 .arena a {
@@ -455,13 +456,18 @@ body {
   color: #fff;
 }
 
+img.arena_miniature {
+  max-height: 200px;
+  max-width: 200px;
+}
+
 .arena_name {
   display: block;
   font-size: 15px;
   color: #cdcdcd;
 }
 
-.arena_author {
+.arena_author, i.arena_short_description {
   display: block;
   font-size: 13px;
   color: #a5a5a5;
