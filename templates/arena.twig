@@ -1,6 +1,20 @@
 {% include 'overall_header.twig' %}
 
 <h2>{{ arena }}</h2>
-<p>TBA</p>
+<div class="arena">
+  <div class="miniature"><img src="{{ miniature }}"></div>
+  <div class="details">
+    <dl>
+      {% if short_description is not empty %}<dt>Short description</dt>
+      <dd>{{ short_description }}</dd>{% endif %}
+      {% if full_description is not empty %}<dt>Full description</dt>
+      <dd>{{ full_description }}</dd>{% endif %}
+      <dt>Author</dt>
+      <dd>{{ author }}</dd>
+      {% if version_timestamp != 0 %}<dt>Updated</dt>
+      <dd>{{ version_timestamp }}</dd>{% endif %}
+    </dl>
+  </div>
+</div>
 
 {% include 'overall_footer.twig' %}
