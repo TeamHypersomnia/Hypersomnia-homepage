@@ -24,6 +24,10 @@ $router->get('/arenas/(\w+)', function($arena) {
 	require_once 'src/arena.php';
 });
 
+$router->get('/download/(\w+)', function($arena) {
+	require_once 'src/download.php';
+});
+
 $router->get('/weapons', function() {
 	require_once 'src/weapons.php';
 });
