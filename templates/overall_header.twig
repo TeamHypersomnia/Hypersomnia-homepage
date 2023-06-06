@@ -11,8 +11,7 @@
   <meta property="og:image:width" content="600">
   <meta property="og:image:height" content="800">
   <meta property="og:title" content="{% if page != "Index" %}{{ page }} - {% endif %}Hypersomnia">
-{% if arena is defined %}  <meta property="og:description" content="{{ short_description|replace({"\n": " "}) }}">
-{% endif %}
+  <meta property="og:description" content="{% if arena is defined %}{{ short_description|replace({"\n": " "}) }}{% else %}An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to hold a spectacular skirmish.{% endif %}">
   <title>{% if page != "Index" %}{{ page }} - {% endif %}Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="{{ url }}favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
