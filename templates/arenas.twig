@@ -5,7 +5,7 @@
 {% for i in maps %}
   <div class="arena_item">
     <a href="{{ url }}arenas/{{ i.name }}">
-      {% if i.miniature != false %}<img class="arena_miniature" src="{{ i.miniature }}">{% endif %}
+      <img class="arena_miniature" src="{{ url }}arenas/{{ i.name }}/miniature">
       <span class="arena_name">{{ i.name }}</span>
       <span class="arena_author">by {{ i.author }}</span>
       <i class="arena_short_description">{{ i.short_description }}</i>

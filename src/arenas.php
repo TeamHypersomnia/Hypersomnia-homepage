@@ -5,15 +5,6 @@ require_once 'src/twig.php';
 $maps = [];
 $arenas = array_diff(scandir($arenas_path), array('..', '.'));
 foreach ($arenas as $key => $value) {
-
-	$miniature = false;
-	$miniature_path = "$arenas_path/$value/miniature.png";
-	if (file_exists($miniature_path)) {
-		$type = pathinfo($miniature_path, PATHINFO_EXTENSION);
-		$base64 = base64_encode(file_get_contents($miniature_path));
-		$miniature = "data:image/$type;base64,$base64";
-	}
-
 	$author = 'Unknown';
 	$short_description = '';
 	$json_path = "$arenas_path/$value/$value.json";
@@ -29,7 +20,6 @@ foreach ($arenas as $key => $value) {
 
 	array_push($maps, [
 		'name' => $value,
-		'miniature' => $miniature,
 		'author' => $author,
 		'short_description' => $short_description
 	]);

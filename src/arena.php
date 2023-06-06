@@ -33,14 +33,6 @@ function time_elapsed_string($datetime, $full = false) {
 	return $string ? implode(', ', $string) . ' ago' : 'just now';
 }
 
-$miniature = false;
-$miniature_path = "$arenas_path/$arena/miniature.png";
-if (file_exists($miniature_path)) {
-	$type = pathinfo($miniature_path, PATHINFO_EXTENSION);
-	$base64 = base64_encode(file_get_contents($miniature_path));
-	$miniature = "data:image/$type;base64,$base64";
-}
-
 $version_timestamp = 0;
 $author = 'Unknown';
 $short_description = '';
@@ -66,7 +58,6 @@ echo $twig->render('arena.twig', [
 	'url' => $url,
 	'page' => $arena,
 	'arena' => $arena,
-	'miniature' => $miniature,
 	'version_timestamp' => $version_timestamp,
 	'author' => $author,
 	'short_description' => $short_description,
