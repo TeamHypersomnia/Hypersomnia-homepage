@@ -9,6 +9,7 @@
         <th class="no-sort">Weapon</th>
         <th>DMG</th>
         <th>HS DMG</th>
+        <th>Penetration</th>
         <th>Shots/sec</th>
         <th>Avg bullet speed</th>
         <th>Price</th>
@@ -23,6 +24,7 @@
         <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}"></td>
         <td>{{ i.damage }}</td>
         <td>{{ i.headshot_damage }}</td>
+        <td>{{ i.penetration }}</td>
         <td>{{ i.shots_per_second|number_format(2) }}</td>
         <td>{{ (i.min_bullet_speed + i.max_bullet_speed) / 2 }}</td>
         <td>{{ i.price }}</td>
