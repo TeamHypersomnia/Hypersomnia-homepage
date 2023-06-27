@@ -32,8 +32,8 @@ $router->get('/weapons', function() {
 	require_once 'src/weapons.php';
 });
 
-$router->get('/arenas/(\w+)/miniature', function($arena) {
-	require_once 'src/miniature.php';
+$router->get('/arenas/(\w+)/{file}', function($arena, $file) {
+	require_once 'src/file.php';
 });
 
 $router->run();

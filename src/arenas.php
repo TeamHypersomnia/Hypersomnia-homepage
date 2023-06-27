@@ -25,6 +25,11 @@ foreach ($arenas as $key => $value) {
 	]);
 }
 
+if (isset($_GET['format']) && $_GET['format'] == 'json') {
+	print(json_encode($maps));
+	exit();
+}
+
 echo $twig->render('arenas.twig', [
 	'url' => $url,
 	'page' => 'Arenas',
