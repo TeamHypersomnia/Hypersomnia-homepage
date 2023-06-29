@@ -36,4 +36,8 @@ $router->get('/arenas/(\w+)/{file}', function($arena, $file) {
 	require_once 'src/file.php';
 });
 
+$router->get('/servers', function() {
+	require_once 'src/servers.php';
+});
+
 $router->run();

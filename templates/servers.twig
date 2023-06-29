@@ -1,0 +1,42 @@
+{% include 'overall_header.twig' %}
+
+<h2>Server List</h2>
+<div class="table-responsive">
+  <table id="firearms" class="sortable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Game Mode</th>
+        <th>Players</th>
+        <th>Spectators</th>
+        <th>Arena</th>
+        <th>First appeared</th>
+        <th>Address</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in servers %}
+      <tr>
+        <td>{{ i.name }}</td>
+        <td>{{ i.game_mode }}</td>
+        <td data-sort="{{ i.num_playing }}">{{ i.num_playing }}/{{ i.slots }}</td>
+        <td data-sort="{{ i.num_spectating }}">{{ i.num_spectating }}/{{ i.slots }}</td>
+        <td>{{ i.arena }}</td>
+        <td data-sort="{{ i.time_hosted }}">{{ i.time_hosted_ago }}</td>
+        <td>{{ i.ip }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Host Dedicated Server</h2>
+<p>Ubuntu 22.04.1 LTS</p>
+<pre>wget https://hypersomnia.xyz/builds/latest/Hypersomnia-for-Linux.tar.gz
+tar -xf Hypersomnia-for-Linux.tar.gz
+cd hypersomnia
+chmod +x Hypersomnia
+sudo apt install libgl
+./Hypersomnia --dedicated-server</pre>
+
+{% include 'overall_footer.twig' %}
