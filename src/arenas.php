@@ -38,7 +38,7 @@ if (isset($_GET['format']) && $_GET['format'] == 'json') {
 	exit();
 }
 
-if (isset($_GET['version']) && isset(versions[$_GET['version'])) {
+if (isset($_GET['version']) && isset(versions[$_GET['version']])) {
 	print(versions[$_GET['version']]);
 	exit();
 }
