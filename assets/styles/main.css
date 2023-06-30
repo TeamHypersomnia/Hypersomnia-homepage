@@ -392,6 +392,10 @@ body {
   .miniature, .details {
     width: calc(100% - 40px);
   }
+
+  .footer-distributed .footer-left p {
+    padding: 0 20px;
+  }
 }
 
 
