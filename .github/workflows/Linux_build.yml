@@ -22,6 +22,7 @@ jobs:
         run: ssh-keyscan -H hypersomnia.xyz >> ~/.ssh/known_hosts
 
       - name: Deploy with rsync
+        # WATCH OUT!!! DO NOT ADD SPACES INSIDE BRACES BETWEEN ARGUMENTS OR THE ENTIRE WEBSITE WILL BE WIPED OUT!
         run: rsync --exclude={'cache','vendor','builds','.git','.github'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
 
       - name: Clear cache
