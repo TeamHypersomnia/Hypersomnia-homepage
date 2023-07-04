@@ -15,6 +15,11 @@
       </tr>
     </thead>
     <tbody>
+      {% if servers == false %}
+      <tr>
+        <td colspan="7">No response from master server</td>
+      </tr>
+      {% else %}
       {% for i in servers %}
       <tr>
         <td>{{ i.name }}</td>
@@ -26,6 +31,7 @@
         <td>{{ i.ip }}</td>
       </tr>
       {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 </div>
