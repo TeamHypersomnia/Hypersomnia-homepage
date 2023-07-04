@@ -22,7 +22,7 @@ jobs:
         run: ssh-keyscan -H hypersomnia.xyz >> ~/.ssh/known_hosts
 
       - name: Deploy with rsync
-        run: rsync --exclude={'cache','vendor','builds','/.git', '/.github'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after --dry-run
+        run: rsync --exclude={'cache','vendor','builds','.git','.github'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
 
       - name: Clear cache
         uses: appleboy/ssh-action@master
