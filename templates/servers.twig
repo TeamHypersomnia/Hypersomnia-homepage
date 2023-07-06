@@ -28,7 +28,7 @@
         <td data-sort="{{ i.num_spectating }}">{{ i.num_spectating }}/{{ i.slots }}</td>
         <td>{{ i.arena }}</td>
         <td data-sort="{{ i.time_hosted }}">{{ i.time_hosted_ago }}</td>
-        <td>{{ i.ip }}</td>
+        <td><a href="{{ url }}servers/{{ i.ip }}">{{ i.ip }}</a</td>
       </tr>
       {% endfor %}
       {% endif %}

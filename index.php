@@ -40,4 +40,8 @@ $router->get('/servers', function() {
 	require_once 'src/servers.php';
 });
 
+$router->get('/servers/{address}', function($address) {
+	require_once 'src/servers.php';
+});
+
 $router->run();

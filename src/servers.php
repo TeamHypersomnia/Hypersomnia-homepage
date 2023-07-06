@@ -14,6 +14,18 @@ if ($content == false) {
 	usort($servers, fn($a, $b) => $b['num_playing'] <=> $a['num_playing']);
 }
 
+if (isset($address)) {
+	$key = array_search($address, array_column($servers, 'ip'));
+	if (is_numeric($key)) {
+		echo $twig->render('server.twig', [
+			'url' => $url,
+			'page' => $servers[$key]['name'] . ' - Server',
+			'sv' => $servers[$key]
+		]);
+		exit();
+	}
+}
+
 echo $twig->render('servers.twig', [
 	'url' => $url,
 	'page' => 'Servers',

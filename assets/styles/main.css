@@ -1,3 +1,13 @@
+a {
+  color: #e7e7e7;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+a:hover {
+  color: #fff;
+}
+
 pre {
   margin-top: 15px;
   font-size: 14px;
@@ -518,16 +528,6 @@ body {
   background-color: #202225;
   color: #8a8e94;
   border-radius: 4px;
-}
-
-.alert a {
-  color: #e7e7e7;
-  text-decoration: underline;
-  font-weight: 500;
-}
-
-.alert a:hover {
-  color: #fff;
 }
 
 .alert strong {

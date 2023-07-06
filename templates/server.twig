@@ -1,0 +1,85 @@
+{% include 'overall_header.twig' %}
+
+<h2>Server {{ sv.name }}</h2>
+<div class="table-responsive">
+  <table>
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>server_version</th>
+        <td>{{ sv.server_version }}</td>
+      </tr>
+      <tr>
+        <th>name</th>
+        <td>{{ sv.name }}</td>
+      </tr>
+      <tr>
+        <th>ip</th>
+        <td>{{ sv.ip }}</td>
+      </tr>
+      <tr>
+        <th>time_hosted</th>
+        <td>{{ sv.time_hosted }}</td>
+      </tr>
+      <tr>
+        <th>time_last_heartbeat</th>
+        <td>{{ sv.time_last_heartbeat }}</td>
+      </tr>
+      <tr>
+        <th>arena</th>
+        <td>{{ sv.arena }}</td>
+      </tr>
+      <tr>
+        <th>game_mode</th>
+        <td>{{ sv.game_mode }}</td>
+      </tr>
+      <tr>
+        <th>num_playing</th>
+        <td>{{ sv.num_playing }}</td>
+      </tr>
+      <tr>
+        <th>num_spectating</th>
+        <td>{{ sv.num_spectating }}</td>
+      </tr>
+      <tr>
+        <th>slots</th>
+        <td>{{ sv.slots }}</td>
+      </tr>
+      <tr>
+        <th>nat</th>
+        <td>{{ sv.nat }}</td>
+      </tr>
+      <tr>
+        <th>internal_network_address</th>
+        <td>{{ sv.internal_network_address }}</td>
+      </tr>
+      <tr>
+        <th>score_resistance</th>
+        <td>{{ sv.score_resistance }}</td>
+      </tr>
+      <tr>
+        <th>score_metropolis</th>
+        <td>{{ sv.score_metropolis }}</td>
+      </tr>
+      <tr>
+        <th>players_resistance</th>
+        <td>{% for k, v in sv.players_resistance %}{{ v.nickname }}<br>{% endfor %}</td>
+      </tr>
+      <tr>
+        <th>players_metropolis</th>
+        <td>{% for k, v in sv.players_metropolis %}{{ v.nickname }}<br>{% endfor %}</td>
+      </tr>
+      <tr>
+        <th>players_spectating</th>
+        <td>{% for k, v in sv.players_spectating %}{{ v.nickname }}<br>{% endfor %}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{% include 'overall_footer.twig' %}
