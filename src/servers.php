@@ -10,6 +10,7 @@ if ($content == false) {
 	$servers = json_decode($content, true);
 	foreach ($servers as $key => $value) {
 		$servers[$key]['time_hosted_ago'] = time_elapsed_string(date('Y-m-d H:i:s', $value['time_hosted']));
+		$servers[$key]['time_last_heartbeat_ago'] = time_elapsed_string(date('Y-m-d H:i:s', $value['time_last_heartbeat']));
 	}
 	usort($servers, fn($a, $b) => $b['num_playing'] <=> $a['num_playing']);
 }
@@ -19,7 +20,7 @@ if (isset($address)) {
 	if (is_numeric($key)) {
 		echo $twig->render('server.twig', [
 			'url' => $url,
-			'page' => $servers[$key]['name'] . ' - Server',
+			'page' => $servers[$key]['name'] . ' - Servers',
 			'sv' => $servers[$key]
 		]);
 		exit();

@@ -31,7 +31,7 @@ if (file_exists($json_path)) {
 
 echo $twig->render('arena.twig', [
 	'url' => $url,
-	'page' => $arena . ' - Arena',
+	'page' => $arena . ' - Arenas',
 	'arena' => $arena,
 	'version_timestamp' => $version_timestamp,
 	'author' => $author,
