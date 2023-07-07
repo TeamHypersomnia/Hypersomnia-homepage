@@ -10,9 +10,20 @@ foreach ($arenas as $key => $value) {
 	$author = 'Unknown';
 	$short_description = '';
 	$version_timestamp = '';
+	$from_autosave = false;
+
+	$autosave_path = "$arenas_path/$value/autosave.json";
 	$json_path = "$arenas_path/$value/$value.json";
-	if (file_exists($json_path)) {
-		$json = json_decode(file_get_contents($json_path), true);
+
+	$chosen_path = $json_path;
+
+	if (file_exists($autosave_path)) {
+		$chosen_path = $autosave_path;
+		$from_autosave = true;
+	}
+
+	if (file_exists($chosen_path)) {
+		$json = json_decode(file_get_contents($chosen_path), true);
 		if (isset($json['about']['author'])) {
 			$author = $json['about']['author'];
 		}
@@ -29,7 +40,8 @@ foreach ($arenas as $key => $value) {
 		'name' => $value,
 		'author' => $author,
 		'short_description' => $short_description,
-		'version_timestamp' => $version_timestamp
+		'version_timestamp' => $version_timestamp,
+		'from_autosave' => $from_autosave
 	]);
 }
 
