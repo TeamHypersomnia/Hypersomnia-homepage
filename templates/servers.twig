@@ -43,7 +43,8 @@ tar -xf Hypersomnia-for-Linux.tar.gz
 cd hypersomnia
 chmod +x Hypersomnia
 sudo apt install libgl-dev libsm-dev libxi-dev libatomic1 libc++-dev
-./Hypersomnia --dedicated-server --no-router</pre>
+nohup ./Hypersomnia --dedicated-server --no-router > /dev/null 2>&1 &</pre>
 <p>Remove "--no-router" if you're hosting on your PC rather than a proper VPN.</p>
+<p>To be able to manage your server, remember to set a master_rcon_password in user/config.force.lua - see default_config.lua for reference.</p>
 
 {% include 'overall_footer.twig' %}
