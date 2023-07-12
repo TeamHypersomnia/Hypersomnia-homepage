@@ -38,12 +38,10 @@
 
 <h2>Host Dedicated Server</h2>
 <p>Ubuntu 22.04.1 LTS</p>
-<pre>wget https://hypersomnia.xyz/builds/latest/Hypersomnia-for-Linux.tar.gz
-tar -xf Hypersomnia-for-Linux.tar.gz
-cd hypersomnia
-chmod +x Hypersomnia
-sudo apt install libgl-dev libsm-dev libxi-dev libatomic1 libc++-dev
-nohup ./Hypersomnia --dedicated-server --no-router > /dev/null 2>&1 &</pre>
+<pre>sudo apt-get install fuse
+wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage
+chmod +x Hypersomnia.AppImage
+nohup ./Hypersomnia.AppImage --masterserver --no-router > /dev/null 2>&1 &</pre>
 <p>Remove "--no-router" if you're hosting on your PC rather than a proper VPN.</p>
 <p>To be able to manage your server, remember to set a master_rcon_password in user/config.force.lua - see default_config.lua for reference.</p>
 
