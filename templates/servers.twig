@@ -37,11 +37,27 @@
 </div>
 
 <h2>Host Dedicated Server</h2>
-<p>Ubuntu 22.04.1 LTS</p>
-<pre>sudo apt-get install fuse
+<div class="tab">
+  <button class="tablinks active" onclick="openTab(event, 'ubuntu_debian')"><i class="fa-brands fa-ubuntu"></i> Ubuntu/Debian</button>
+  <button class="tablinks" onclick="openTab(event, 'centos')"><i class="fab fa-centos"></i> CentOS</button>
+</div>
+
+<div id="ubuntu_debian" class="tabcontent" style="display: block;">
+<pre>sudo apt update
+sudo apt -y install fuse
 wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage
 chmod +x Hypersomnia.AppImage
 nohup ./Hypersomnia.AppImage --dedicated-server --no-router > /dev/null 2>&1 &</pre>
+</div>
+
+<div id="centos" class="tabcontent">
+<pre>sudo yum makecache
+sudo yum -y install fuse
+wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage
+chmod +x Hypersomnia.AppImage
+nohup ./Hypersomnia.AppImage --dedicated-server --no-router > /dev/null 2>&1 &</pre>
+</div>
+
 <p>Remove "--no-router" if you're hosting on your PC rather than a proper VPN.</p>
 <p>To be able to manage your server, remember to set a master_rcon_password in ~/.config/Hypersomnia/user/config.force.lua - see default_config.lua for reference.</p>
 

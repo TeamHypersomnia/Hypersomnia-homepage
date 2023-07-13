@@ -9,13 +9,14 @@ a:hover {
 }
 
 pre {
-  margin-top: 15px;
+  margin-top: 0;
   font-size: 14px;
   background-color: #2a2a2a;
   overflow: auto;
   border: 1px solid rgb(100 100 111 / 20%);
   padding: 16px;
-  border-radius: 3px;
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px;
 }
 
 iframe {
@@ -641,4 +642,43 @@ dd {
 
 .resistance {
   color: rgb(255, 80, 0);
+}
+
+.tab {
+  margin-top: 15px;
+  overflow: hidden;
+  background-color: #2a2a2a;
+  border-top: 1px solid rgb(100 100 111 / 20%);
+  border-left: 1px solid rgb(100 100 111 / 20%);
+  border-right: 1px solid rgb(100 100 111 / 20%);
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+.tab button:hover {
+  color: #fff;
+}
+
+.tab button.active {
+  color: #fff;
+}
+
+.tabcontent {
+  display: none;
+}
+
+.tablinks {
+  color: #cdcdcd;
+  font-size: 15px;
+  color: #cdcdcd;
 }
