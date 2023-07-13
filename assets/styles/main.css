@@ -10,13 +10,13 @@ a:hover {
 
 pre {
   margin-top: 0;
-  font-size: 14px;
-  background-color: #2a2a2a;
+  background-color: #212121;
   overflow: auto;
   border: 1px solid rgb(100 100 111 / 20%);
   padding: 16px;
   border-bottom-right-radius: 3px;
   border-bottom-left-radius: 3px;
+  font-family: 'Inconsolata', monospace;
 }
 
 iframe {
@@ -647,7 +647,7 @@ dd {
 .tab {
   margin-top: 15px;
   overflow: hidden;
-  background-color: #2a2a2a;
+  background-color: #1e1e1e;
   border-top: 1px solid rgb(100 100 111 / 20%);
   border-left: 1px solid rgb(100 100 111 / 20%);
   border-right: 1px solid rgb(100 100 111 / 20%);
@@ -663,6 +663,7 @@ dd {
   cursor: pointer;
   padding: 14px 16px;
   transition: 0.3s;
+  border-right: 1px solid rgb(100 100 111 / 20%);
 }
 
 .tab button:hover {
@@ -670,6 +671,7 @@ dd {
 }
 
 .tab button.active {
+  background-color: #1e1e1e;
   color: #fff;
 }
 
@@ -678,7 +680,7 @@ dd {
 }
 
 .tablinks {
+  font-weight: 500;
   color: #cdcdcd;
-  font-size: 15px;
-  color: #cdcdcd;
+  font-size: 14px;
 }

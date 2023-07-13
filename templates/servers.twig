@@ -38,10 +38,19 @@
 
 <h2>Host Dedicated Server</h2>
 <div class="tab">
-  <button class="tablinks active" onclick="openTab(event, 'ubuntu_debian')"><i class="fa-brands fa-ubuntu"></i> Ubuntu/Debian</button>
-  <button class="tablinks" onclick="openTab(event, 'centos')"><i class="fab fa-centos"></i> CentOS</button>
+  <button class="tablinks active" onclick="openTab(event, 'ubuntu_debian')">
+    <div><img src="{{ url }}assets/images/ubuntu.png"><img src="{{ url }}assets/images/debian.png"></div>
+    <div>Ubuntu/Debian</div>
+  </button>
+  <button class="tablinks" onclick="openTab(event, 'centos')">
+    <div><img src="{{ url }}assets/images/centos.png"></div>
+    <div>CentOS</div>
+  </button>
+  <button class="tablinks" onclick="openTab(event, 'arch')">
+    <div><img src="{{ url }}assets/images/arch.png"></div>
+    <div>Arch Linux</div>
+  </button>
 </div>
-
 <div id="ubuntu_debian" class="tabcontent" style="display: block;">
 <pre>sudo apt update
 sudo apt -y install fuse
@@ -49,10 +58,16 @@ wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage
 chmod +x Hypersomnia.AppImage
 nohup ./Hypersomnia.AppImage --dedicated-server --no-router > /dev/null 2>&1 &</pre>
 </div>
-
 <div id="centos" class="tabcontent">
 <pre>sudo yum makecache
 sudo yum -y install fuse
+wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage
+chmod +x Hypersomnia.AppImage
+nohup ./Hypersomnia.AppImage --dedicated-server --no-router > /dev/null 2>&1 &</pre>
+</div>
+<div id="arch" class="tabcontent">
+<pre>sudo pacman -Syu
+sudo pacman -S fuse2
 wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage
 chmod +x Hypersomnia.AppImage
 nohup ./Hypersomnia.AppImage --dedicated-server --no-router > /dev/null 2>&1 &</pre>
