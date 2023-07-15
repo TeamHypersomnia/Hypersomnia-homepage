@@ -22,4 +22,27 @@
   </div>
 </div>
 
+<script>
+document.onkeydown = function(e) {
+  switch(e.which) {
+    {% if prev != false %}
+    case 37:
+    if (4326 > 0) {
+      window.location.href = "{{ url }}arenas/{{ prev }}";
+    }
+    break;
+    {% endif %}
+    {% if next != false %}
+    case 39:
+    if (4328 > 0) {
+      window.location.href = "{{ url }}arenas/{{ next }}";
+    }
+    break;
+    {% endif %}
+    default: return;
+  }
+  e.preventDefault();
+};
+</script>
+
 {% include 'overall_footer.twig' %}
