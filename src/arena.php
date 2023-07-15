@@ -14,12 +14,12 @@ foreach(glob("$arenas_path/*", GLOB_ONLYDIR) as $dir) {
 }
 $key = array_search($arena, $arenas);
 if ($key == 0) {
-	$prev = false;
+	$prev = $arenas[sizeof($arenas)-1];
 } else {
 	$prev = $arenas[$key - 1];
 }
 if ($key == sizeof($arenas) - 1) {
-	$next = false;
+	$next = $arenas[0];
 } else {
 	$next = $arenas[$key + 1];
 }

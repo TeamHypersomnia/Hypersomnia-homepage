@@ -123,7 +123,7 @@ th {
 }
 
 * {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Rubik', sans-serif;
 }
 
 .yt {
@@ -297,6 +297,7 @@ h2 {
 
 p {
   font-size: 15px;
+  line-height: 20px;
 }
 
 body {
@@ -590,18 +591,10 @@ dt {
   font-size: 16px;
   display: inline;
   color: #fff;
-  font-family: 'Roboto';
 }
 
 dd {
   margin: 5px 0 15px 0;
-}
-
-.disabled {
-  pointer-events: none;
-  cursor: default;
-  text-decoration: none;
-  color: black;
 }
 
 .button {
