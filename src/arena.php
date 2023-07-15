@@ -8,6 +8,22 @@ if (file_exists("$arenas_path/$arena") == false) {
 	die();
 }
 
+$arenas = array();
+foreach(glob("$arenas_path/*", GLOB_ONLYDIR) as $dir) {
+	array_push($arenas, basename($dir));
+}
+$key = array_search($arena, $arenas);
+if ($key == 0) {
+	$prev = false;
+} else {
+	$prev = $arenas[$key - 1];
+}
+if ($key == sizeof($arenas) - 1) {
+	$next = false;
+} else {
+	$next = $arenas[$key + 1];
+}
+
 $version_timestamp = 0;
 $author = 'Unknown';
 $short_description = '';
@@ -45,5 +61,7 @@ echo $twig->render('arena.twig', [
 	'version_timestamp' => $version_timestamp,
 	'author' => $author,
 	'short_description' => $short_description,
-	'full_description' => $full_description
+	'full_description' => $full_description,
+	'next' => $next,
+	'prev' => $prev
 ]);
