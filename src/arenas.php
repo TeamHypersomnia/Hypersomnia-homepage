@@ -7,6 +7,9 @@ $versions = [];
 
 $arenas = array_diff(scandir($arenas_path), array('..', '.'));
 foreach ($arenas as $key => $value) {
+	if (is_dir("$arenas_path/$value") == false) {
+		continue;
+	}
 	$author = 'Unknown';
 	$short_description = '';
 	$version_timestamp = '';
