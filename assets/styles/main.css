@@ -1,14 +1,14 @@
 a {
-  color: #e7e7e7;
-  text-decoration: underline;
-  font-weight: 500;
+  color: rgb(1, 192, 192);
+  text-decoration: none;
 }
 
 a:hover {
-  color: #fff;
+  text-decoration: underline;
 }
 
-pre {
+.pre {
+  display: block;
   margin-top: 0;
   background-color: #212121;
   overflow: auto;
@@ -326,7 +326,7 @@ body {
 }
 
 .dc {
-  height: 80%;
+  height: 85%;
   width: 100%;
 }
 
