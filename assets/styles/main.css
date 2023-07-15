@@ -196,10 +196,7 @@ a > i.fa-brands:hover {
 
   .miniature, .details {
     width: 50%;
-  }
-
-  .details {
-    padding: 0 20px;
+    min-height: 500px;
   }
 }
 
@@ -584,13 +581,8 @@ img.arena_miniature {
 }
 
 .miniature {
-  text-align: center;
-  background: #1d1d1d;
-  border-radius: 4px;
-  padding: 20px;
   margin-top: 15px;
-  overflow: scroll;
-  min-height: 400px;
+  text-align: center;
 }
 
 dt, dd {

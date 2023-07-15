@@ -26,8 +26,8 @@ if ($key == sizeof($arenas) - 1) {
 
 $version_timestamp = 0;
 $author = 'Unknown';
-$short_description = '';
-$full_description = '';
+$short_description = 'N/A';
+$full_description = 'N/A';
 $external_resources_num = 0;
 
 $json_path = "$arenas_path/$arena/$arena.json";
