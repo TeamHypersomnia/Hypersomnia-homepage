@@ -410,10 +410,6 @@ body {
     flex-direction: column;
   }
 
-  .miniature {
-    width: calc(100% - 40px);
-  }
-
   .footer-distributed .footer-left p {
     padding: 0 20px;
   }
@@ -583,6 +579,7 @@ img.arena_miniature {
 .miniature {
   margin-top: 15px;
   text-align: center;
+  overflow: scroll;
 }
 
 dt, dd {
@@ -615,13 +612,14 @@ dd {
   font-size: 14px;
   color: #cdcdcd;
   text-decoration: none;
-  border: 1px solid #cdcdcd;
+  border: 1px solid rgb(100 100 111 / 20%);
   padding: 8px 15px;
   display: inline-block;
   border-radius: 4px;
   transition: all .3s;
   font-weight: 500;
   width: calc(100% - 40px);
+  background-color: #1e1e1e;
 }
 
 .button a:hover {
