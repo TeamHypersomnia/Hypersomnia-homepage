@@ -4,21 +4,23 @@
 <div class="arena">
   <div class="miniature"><img src="{{ url }}arenas/{{ arena }}/miniature.png"></div>
   <div class="details">
-    <dl>
-      {% if short_description is not empty %}<dt>Short description</dt>
-      <dd>{{ short_description }}</dd>{% endif %}
-      {% if full_description is not empty %}<dt>Full description</dt>
-      <dd>{{ full_description }}</dd>{% endif %}
-      <dt>Author</dt>
-      <dd>{{ author }}</dd>
-      {% if version_timestamp != 0 %}<dt>Updated</dt>
-      <dd>{{ version_timestamp }}</dd>{% endif %}
-    </dl>
     <div class="btn-group">
       <div class="button{% if prev == false %} disabled{% endif %}"><a href="{{ url }}arenas/{{ prev }}"><span><i class="fa-solid fa-arrow-left"></i></span><span>Previous</span></a></div>
       <div class="button"><a href="{{ url }}download/{{ arena }}"><span><i class="fa-solid fa-download"></i></span><span>Download</span></a></div>
       <div class="button{% if next == false %} disabled{% endif %}"><a href="{{ url }}arenas/{{ next }}"><span><i class="fa-solid fa-arrow-right"></i></span><span>Next</span></a></div>
     </div>
+    <dl>
+      {% if short_description is not empty %}<dt>Short description</dt>
+      <dd>{{ short_description }}</dd>{% endif %}
+      {% if full_description is not empty %}<dt>Full description</dt>
+      <dd>{{ full_description }}</dd>{% endif %}
+      <dt>External resources</dt>
+      <dd>{{ external_resources_num }}</dd>
+      <dt>Author</dt>
+      <dd>{{ author }}</dd>
+      {% if version_timestamp != 0 %}<dt>Updated</dt>
+      <dd>{{ version_timestamp }}</dd>{% endif %}
+    </dl>
   </div>
 </div>
 

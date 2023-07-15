@@ -28,6 +28,7 @@ $version_timestamp = 0;
 $author = 'Unknown';
 $short_description = '';
 $full_description = '';
+$external_resources_num = 0;
 
 $json_path = "$arenas_path/$arena/$arena.json";
 $autosave_path = "$arenas_path/$arena/autosave.json";
@@ -52,6 +53,9 @@ if (file_exists($chosen_path)) {
 	if (isset($json['about']['full_description'])) {
 		$full_description = $json['about']['full_description'];
 	}
+	if (isset($json['external_resources'])) {
+		$external_resources_num = sizeof($json['external_resources']);
+	}
 }
 
 echo $twig->render('arena.twig', [
@@ -63,5 +67,6 @@ echo $twig->render('arena.twig', [
 	'short_description' => $short_description,
 	'full_description' => $full_description,
 	'next' => $next,
-	'prev' => $prev
+	'prev' => $prev,
+	'external_resources_num' => $external_resources_num
 ]);

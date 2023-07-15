@@ -144,6 +144,7 @@ th {
   grid-template-columns: repeat(3, 1fr);
   align-items: center;
   justify-items: center;
+  margin-top: 15px;
 }
 
 .button > a > span {
@@ -589,6 +590,7 @@ img.arena_miniature {
   padding: 20px;
   margin-top: 15px;
   overflow: scroll;
+  min-height: 400px;
 }
 
 dt, dd {
@@ -596,12 +598,10 @@ dt, dd {
 }
 
 dt {
-  font-size: 12px;
-  text-transform: uppercase;
-  font-weight: 500;
+  font-size: 16px;
   display: inline;
   color: #fff;
-  border-bottom: 1px solid #fff;
+  font-family: 'Roboto';
 }
 
 dd {
