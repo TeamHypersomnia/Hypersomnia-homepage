@@ -16,6 +16,10 @@ $router->get('/guide', function() {
 	require_once 'src/guide.php';
 });
 
+$router->get('/disclaimer', function() {
+	require_once 'src/disclaimer.php';
+});
+
 $router->get('/contact', function() {
 	require_once 'src/contact.php';
 });
