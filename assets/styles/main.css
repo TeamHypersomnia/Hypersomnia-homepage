@@ -27,6 +27,12 @@ ul {
   padding: 0;
 }
 
+.responsive {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+}
+
 .controls td {
   white-space: normal;
 }
@@ -207,6 +213,17 @@ a > i.fa-brands:hover {
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
 }
 
+.subname {
+  font-size: 13px;
+  color: #a5a5a5;
+}
+
+.bar {
+  border-right: 1px solid #424242;
+  padding-right: 5px;
+  margin-right: 5px;
+}
+
 .footer-left p {
   margin: 20px;
   color: #5a5a5a;
@@ -238,7 +255,6 @@ a > i.fa-brands:hover {
 
 .footer-distributed .footer-right {
   float: right;
-  margin-top: -10px;
   max-width: 180px;
 }
 

@@ -16,6 +16,14 @@ $router->get('/guide', function() {
 	require_once 'src/guide.php';
 });
 
+$router->get('/contact', function() {
+	require_once 'src/contact.php';
+});
+
+$router->get('/press', function() {
+	require_once 'src/press.php';
+});
+
 $router->get('/arenas', function() {
 	require_once 'src/arenas.php';
 });
