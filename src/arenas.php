@@ -31,7 +31,7 @@ foreach ($arenas as $key => $value) {
 			$author = $json['about']['author'];
 		}
 		if (isset($json['about']['short_description'])) {
-			$short_description = mb_strimwidth($json['about']['short_description'], 0, 50, '(...)');
+			$short_description = $json['about']['short_description'];
 		}
 		if (isset($json['meta']['version_timestamp'])) {
 			$version_timestamp = $json['meta']['version_timestamp'];
