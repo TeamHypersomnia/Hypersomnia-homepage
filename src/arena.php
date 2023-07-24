@@ -31,16 +31,9 @@ $full_description = 'N/A';
 $external_resources_num = 0;
 
 $json_path = "$arenas_path/$arena/$arena.json";
-$autosave_path = "$arenas_path/$arena/autosave.json";
 
-$chosen_path = $json_path;
-
-if (file_exists($autosave_path)) {
-	$chosen_path = $autosave_path;
-}
-
-if (file_exists($chosen_path)) {
-	$json = json_decode(file_get_contents($chosen_path), true);
+if (file_exists($json_path)) {
+	$json = json_decode(file_get_contents($json_path), true);
 	if (isset($json['meta']['version_timestamp'])) {
 		$version_timestamp = time_elapsed_string($json['meta']['version_timestamp']);
 	}
