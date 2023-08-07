@@ -40,6 +40,10 @@ $router->get('/download/(\w+)', function($arena) {
 	require_once 'src/download.php';
 });
 
+$router->post('/upload', function() {
+	require_once 'src/upload.php';
+});
+
 $router->get('/weapons', function() {
 	require_once 'src/weapons.php';
 });

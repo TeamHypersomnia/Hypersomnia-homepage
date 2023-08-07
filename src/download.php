@@ -1,6 +1,5 @@
 <?php
 require_once 'src/config.php';
-require_once 'src/twig.php';
 
 function zipFile($source, $destination, $flag = '') {
 	if (!extension_loaded('zip') || !file_exists($source)) {
@@ -13,7 +12,6 @@ function zipFile($source, $destination, $flag = '') {
 	$source = str_replace('\\', '/', realpath($source));
 	if($flag) {
 		$flag = basename($source) . '/';
-		//$zip->addEmptyDir(basename($source) . '/');
 	}
 	if (is_dir($source) === true) {
 		$files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source), RecursiveIteratorIterator::SELF_FIRST);

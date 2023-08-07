@@ -190,6 +190,7 @@ a > i.fa-brands:hover {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
+    justify-content: space-between;
   }
 
   .arena_item {
