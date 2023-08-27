@@ -132,10 +132,6 @@ th {
   font-family: 'Rubik', sans-serif;
 }
 
-.yt {
-  margin: 15px 0;
-}
-
 .three {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -715,4 +711,30 @@ dd {
   font-weight: 500;
   color: #cdcdcd;
   font-size: 14px;
+}
+
+.image-container {
+  margin: 15px 0;
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.image-container img {
+  display: block;
+  width: 560px;
+  height: 315px;
+}
+
+.image-container i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.fa-play {
+  font-size: 60px;
+  color: #FFF;
+  text-shadow:3px 6px rgba(0, 0, 0, 0.75)
 }
