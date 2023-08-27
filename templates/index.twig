@@ -31,10 +31,10 @@
 document.addEventListener("DOMContentLoaded", function() {
   const imageContainer = document.getElementById("imageContainer");
   imageContainer.addEventListener("click", function() {
-    const videoUrl = "https://www.youtube.com/embed/CHLPzZqANlM?autoplay=1";
+    const videoUrl = "https://www.youtube.com/embed/CHLPzZqANlM?autoplay=1&vq=hd720&fps=60";
     const iframe = document.createElement("iframe");
-    iframe.width = "560";
-    iframe.height = "315";
+    iframe.width = imageContainer.offsetWidth;
+    iframe.height = imageContainer.offsetHeight;
     iframe.src = videoUrl;
     iframe.title = "YouTube video player";
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
