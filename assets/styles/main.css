@@ -219,10 +219,18 @@ a > i.fa-brands:hover {
   color: #a5a5a5;
 }
 
-.bar {
-  border-right: 1px solid #424242;
-  padding-right: 5px;
-  margin-right: 5px;
+.links {
+  font-size: 14px;
+  margin: 0;
+  display: inline-flex;
+}
+
+.links a {
+  margin: 0 3px;
+}
+
+.links a:first-child {
+  margin: 0 3px 0 0;
 }
 
 .footer-left p {

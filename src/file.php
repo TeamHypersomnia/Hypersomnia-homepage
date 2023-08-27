@@ -12,9 +12,7 @@ if (file_exists($path) == false) {
 	die();
 }
 
-/*
-	Allow downloading files contained in the map folder
-*/
+// Allow downloading files contained in the map folder
 function getDirContents($dir, &$results = array()) {
 	$files = scandir($dir);
 	foreach ($files as $key => $value) {

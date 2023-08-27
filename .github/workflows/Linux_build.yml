@@ -32,4 +32,4 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          script: curl localhost/src/clear_cache.php
+          script: rm -rf /var/www/html/cache/*
