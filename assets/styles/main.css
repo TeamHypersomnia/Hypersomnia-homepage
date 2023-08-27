@@ -231,17 +231,12 @@ a > i.fa-brands:hover {
 
 .footer-left p {
   margin: 20px;
-  color: #5a5a5a;
+  color: #cdcdcd;
   font-size: 14px;
 }
 
 .footer-left a {
-  color: #9a9a9a;
-  text-decoration: none;
-}
-
-.footer-left a:hover {
-  color: #fff;
+  color: rgb(1, 192, 192);
 }
 
 .footer-distributed {
