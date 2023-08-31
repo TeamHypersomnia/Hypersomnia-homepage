@@ -8,9 +8,9 @@
   <meta name="keywords" content="hypersomnia, hypersomnia game, online shooter, free game, open-source game, top-down shooter">
   <meta property="og:image" content="{{ url }}{% if arena is defined %}arenas/{{ arena }}/miniature.png{% else %}assets/images/hypersomnia3x4.png{% endif %}">
   <meta property="og:image:type" content="image/png">
-  <meta property="og:title" content="{% if page != "Index" %}{{ page }} - {% endif %}Hypersomnia">
+  <meta property="og:title" content="{% if page == "Index" %}Free Multiplayer Top-Down Shooter{% else %}{{ page }}{% endif %} - Hypersomnia">
   <meta property="og:description" content="{% if arena is defined %}{{ short_description|replace({"\n": " "}) }}{% else %}An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.{% endif %}">
-  <title>{% if page != "Index" %}{{ page }} - {% endif %}Hypersomnia</title>
+  <title>{% if page == "Index" %}Free Multiplayer Top-Down Shooter{% else %}{{ page }}{% endif %} - Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="{{ url }}favicon.ico">
   <link href="{{ url }}assets/styles/main.css?v=1693172691" rel="stylesheet">
 </head>

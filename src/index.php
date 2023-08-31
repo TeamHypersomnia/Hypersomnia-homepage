@@ -15,6 +15,6 @@ if ($content == false) {
 
 echo $twig->render('index.twig', [
 	'url' => $url,
-	'page' => 'Free Multiplayer Top-Down Shooter',
+	'page' => 'Index',
 	'commits' => $commits
 ]);
