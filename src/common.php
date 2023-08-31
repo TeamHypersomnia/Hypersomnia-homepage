@@ -24,3 +24,35 @@ function time_elapsed_string($datetime, $full = false) {
 	if (!$full) $string = array_slice($string, 0, 1);
 	return $string ? implode(', ', $string) . ' ago' : 'just now';
 }
+
+function get_json($url, $headers = []) {
+	$ch = curl_init();
+
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36');
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+	$result = curl_exec($ch);
+	if (curl_errno($ch)) {
+		die(curl_error($ch));
+	}
+	curl_close($ch);
+	return json_decode($result, true);
+}
+
+function cutTitle($title, $maxLength) {
+	if (strlen($title) <= $maxLength) {
+		return $title;
+	} else {
+		$shortenedTitle = substr($title, 0, $maxLength);
+		$lastDotPosition = strrpos($shortenedTitle, '.');
+		
+		if ($lastDotPosition !== false) {
+			return substr($shortenedTitle, 0, $lastDotPosition + 1);
+		} else {
+			return $shortenedTitle . '...';
+		}
+	}
+}

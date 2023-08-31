@@ -27,6 +27,10 @@ ul {
   padding: 0;
 }
 
+li {
+  padding-bottom: 10px;
+}
+
 .responsive {
   width: 100%;
   max-width: 400px;
@@ -547,7 +551,7 @@ body {
 
 .alert {
   margin-bottom: 20px;
-  padding: 15px;
+  padding: 15px 15px 5px 15px;
   font-size: 15px;
   background-color: #202225;
   color: #8a8e94;
