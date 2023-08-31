@@ -42,15 +42,3 @@ function strong() {
     strong[i].style.display = "inline";
   }
 }
-
-window.addEventListener("load", (event) => {
-  if (document.getElementsByClassName('notes').length > 0) {
-    tippy('.notes', {
-      content(reference) {
-        const title = reference.getAttribute('title');
-        reference.removeAttribute('title');
-        return title;
-      },
-    });
-  }
-});
