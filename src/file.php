@@ -39,11 +39,13 @@ if (in_array($file, $arr) == false) {
 	die();
 }
 
-header('Content-Description: File Transfer');
-header('Content-Type: application/octet-stream');
+$fileExtension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+if ($fileExtension === 'png') {
+    header('Content-Type: image/png');
+} else {
+    header('Content-Type: application/octet-stream');
+}
 header('Content-Disposition: attachment; filename="'.basename($path).'"');
-header('Expires: 0');
-header('Cache-Control: must-revalidate');
-header('Pragma: public');
 header('Content-Length: ' . filesize($path));
 readfile($path);
