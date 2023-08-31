@@ -28,6 +28,10 @@ $router->get('/press', function() {
 	require_once 'src/press.php';
 });
 
+$router->get('/statistics', function() {
+	require_once 'src/statistics.php';
+});
+
 $router->get('/arenas', function() {
 	require_once 'src/arenas.php';
 });
