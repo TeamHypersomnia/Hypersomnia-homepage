@@ -28,7 +28,7 @@
         <td data-sort="{{ i.num_spectating }}">{{ i.num_spectating }}/{{ i.slots }}</td>
         <td>{{ i.arena }}</td>
         <td data-sort="{{ i.time_hosted }}">{{ i.time_hosted_ago }}</td>
-        <td><a href="{{ url }}servers/{{ i.ip }}">{{ i.ip }}</a</td>
+        <td><a href="{{ url }}servers/{{ i.ip }}">{{ i.ip }}</a></td>
       </tr>
       {% endfor %}
       {% endif %}
@@ -39,15 +39,15 @@
 <h2>Host Dedicated Server</h2>
 <div class="tab">
   <button class="tablinks active" onclick="openTab(event, 'ubuntu_debian')">
-    <div><img src="{{ url }}assets/images/ubuntu.png"><img src="{{ url }}assets/images/debian.png"></div>
+    <div><img src="{{ url }}assets/images/ubuntu.png" alt="ubuntu"><img src="{{ url }}assets/images/debian.png" alt="debian"></div>
     <div>Ubuntu/Debian</div>
   </button>
   <button class="tablinks" onclick="openTab(event, 'centos')">
-    <div><img src="{{ url }}assets/images/centos.png"></div>
+    <div><img src="{{ url }}assets/images/centos.png" alt="centos"></div>
     <div>CentOS</div>
   </button>
   <button class="tablinks" onclick="openTab(event, 'arch')">
-    <div><img src="{{ url }}assets/images/arch.png"></div>
+    <div><img src="{{ url }}assets/images/arch.png" alt="arch"></div>
     <div>Arch Linux</div>
   </button>
 </div>
