@@ -11,11 +11,11 @@ pre {
   margin-top: 0;
   background-color: #212121;
   overflow: auto;
-  border: 1px solid rgb(100 100 111 / 20%);
+  border: 1px solid #2e2e30;
   padding: 16px;
   border-bottom-right-radius: 3px;
   border-bottom-left-radius: 3px;
-  font-family: 'Inconsolata', monospace;
+  font-size: 14px;
 }
 
 iframe {
@@ -133,7 +133,7 @@ th {
 }
 
 * {
-  font-family: 'Rubik', sans-serif;
+  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;
 }
 
 .three {
@@ -250,6 +250,11 @@ a > i.fa-brands:hover {
   font: normal 16px sans-serif;
   padding: 15px 0;
   margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row-reverse;
 }
 
 .footer-distributed .footer-left p {
@@ -258,7 +263,6 @@ a > i.fa-brands:hover {
 }
 
 .footer-distributed .footer-right {
-  float: right;
   max-width: 180px;
 }
 
