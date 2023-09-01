@@ -14,7 +14,7 @@ $arr = get_json('https://api.github.com/repos/TeamHypersomnia/Hypersomnia/commit
 
 $commits = [];
 foreach ($arr as $key => $value) {
-	if (sizeof($commits) == 15) {
+	if (sizeof($commits) == 20) {
 		break;
 	}
 	array_push($commits, [

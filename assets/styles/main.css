@@ -22,19 +22,17 @@ iframe {
   border: none;
 }
 
-ul {
+ul.none {
   list-style: none;
   padding: 0;
 }
 
-li {
+ul.none > li {
   padding-bottom: 10px;
 }
 
-.responsive {
-  width: 100%;
-  max-width: 400px;
-  height: auto;
+.image-margin {
+  margin-top: 15px;
 }
 
 .controls td {
@@ -97,7 +95,7 @@ th, td {
   padding: 8px 8px;
   white-space: nowrap;
   margin-right: 10px;
-  font-size: 14px;
+  font-size: 1em;
 }
 
 td, tr {
@@ -220,7 +218,7 @@ a > i.fa-brands:hover {
 }
 
 .links {
-  font-size: 14px;
+  font-size: 1em;
   margin: 0;
   display: inline-flex;
 }
@@ -236,7 +234,7 @@ a > i.fa-brands:hover {
 .footer-left p {
   margin: 20px;
   color: #cdcdcd;
-  font-size: 14px;
+  font-size: 1em;
 }
 
 .footer-left a {
@@ -258,7 +256,7 @@ a > i.fa-brands:hover {
 }
 
 .footer-distributed .footer-left p {
-  font-size: 14px;
+  font-size: 1em;
   margin: 0;
 }
 
@@ -272,7 +270,7 @@ a > i.fa-brands:hover {
   height: 35px;
   background-color: #33383b;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 1em;
   color: #cdcdcd;
   text-align: center;
   line-height: 35px;
@@ -320,7 +318,7 @@ h2 {
 }
 
 p {
-  font-size: 15px;
+  font-size: 1em;
   line-height: 20px;
 }
 
@@ -342,7 +340,7 @@ body {
   text-align: center;
   padding: 20px 16px;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 1em;
   transition: background-color 0.3s;
   font-weight: 500;
 }
@@ -556,7 +554,7 @@ body {
 .alert {
   margin-bottom: 20px;
   padding: 15px 15px 5px 15px;
-  font-size: 15px;
+  font-size: 1em;
   background-color: #202225;
   color: #8a8e94;
   border-radius: 4px;
@@ -608,7 +606,7 @@ img.arena_miniature {
 }
 
 dt, dd {
-  font-size: 15px;
+  font-size: 1em;
 }
 
 dt {
@@ -626,7 +624,7 @@ dd {
 }
 
 .button a {
-  font-size: 14px;
+  font-size: 1em;
   color: #cdcdcd;
   text-decoration: none;
   border: 1px solid rgb(100 100 111 / 20%);

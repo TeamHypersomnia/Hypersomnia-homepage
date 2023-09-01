@@ -3,7 +3,21 @@
 <div class="parent">
   <div>
     <h2>Introduction</h2>
-    <p>Hypersomnia is a fast-paced top-down arena released as free software, with an aspiration to one day become an MMO with elements of RPG.<br><br>Set in a hypothetical afterlife reality, it shall provide joy through altruistic behaviours, fierce fights, exploration, fulfillment of elaborate social roles or sowing panic as a traitor to benevolent ones.<br><br>Declare allegiance to one of the three factions whose apple of discord is a disparity between prevailing notions of moral excellence. Metropolis. Atlantis. Resistance.</p>
+    <div class="image-margin">
+      <img src="{{ url }}assets/images/gif_460x310.gif" alt="hypersomnia" class="responsive">
+    </div>
+    <p><i>Hypersomnia</i> is a competitive arena released as free software.</p>
+    <p>The game has been online and playable since 2017. It brings together:</p>
+    <ul>
+      <li>the tactics of <i>Counter-Strike</i>,</li>
+      <li>the dynamics of <i>Hotline Miami</i>,</li>
+      <li>the pixel art nostalgia of oldschool RPGs..</li>
+      <li>..and the potential for endless creativity thanks to an in-game map editor!</li>
+    </ul>
+    <p><i>Hypersomnia</i> aims to be <strong>the ultimate open-source 2D shooter</strong> - a grand community project extensible without limit.</p>
+    <p>Declare allegiance to one of the three factions whose apple of discord is a disparity between prevailing notions of moral excellence:</p>
+    <strong>Metropolis. Atlantis. Resistance.</strong>
+    <p>Will you take revenge for the unethical simulation of an inferior universe? Will you support the cruel experiments to win total control over metempsychosis? Or will you join the underground civilization that awaits the end of war in this dangerous afterlife reality?</p>
     <h2>Gameplay</h2>
     <div class="image-container" id="imageContainer">
       <img src="{{ url }}assets/images/5v5-gameplay-new-map-dejedrula.webp" alt="thumbnail" width="835" height="470">
@@ -25,7 +39,7 @@
     </div>
     <div class="alert">
       <strong>Latest Commits</strong>{% if commits|length == 0%}<p>Not updated yet.</p>{% else %}<br>
-      <ul>
+      <ul class="none">
         {% for c in commits %}
         <li><a href="{{ c.url }}" target="_blank">{{ c.title }}</a><br><i class="subname">{{ c.date }}</i></li>
         {% endfor %}
