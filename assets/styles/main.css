@@ -657,24 +657,18 @@ dd {
 
 .tab {
   margin-top: 15px;
-  overflow: hidden;
+  display: flex;
+  overflow-x: hidden;
   background-color: #1e1e1e;
-  border-top: 1px solid rgb(100 100 111 / 20%);
-  border-left: 1px solid rgb(100 100 111 / 20%);
-  border-right: 1px solid rgb(100 100 111 / 20%);
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
 }
 
 .tab button {
   background-color: inherit;
-  float: left;
   border: none;
   outline: none;
   cursor: pointer;
-  padding: 14px 16px;
+  padding: 10px 16px;
   transition: 0.3s;
-  border-right: 1px solid rgb(100 100 111 / 20%);
 }
 
 .tab button:hover {

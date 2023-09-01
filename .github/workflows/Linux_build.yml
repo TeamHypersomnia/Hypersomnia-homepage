@@ -23,4 +23,4 @@ jobs:
 
       - name: Deploy with rsync
         # WATCH OUT!!! DO NOT ADD SPACES INSIDE BRACES BETWEEN ARGUMENTS OR THE ENTIRE WEBSITE WILL BE WIPED OUT!
-        run: rsync --exclude={'src/config.php','src/data/commits.json','vendor','builds','.git','.github'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
+        run: rsync --exclude={'src/config.php','src/data/commits.json','src/data/statistics.json','vendor','builds','.git','.github'} -avzP . ubuntu@hypersomnia.xyz:/var/www/html --delete-after
