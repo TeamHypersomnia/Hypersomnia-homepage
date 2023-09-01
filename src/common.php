@@ -25,11 +25,11 @@ function time_elapsed_string($datetime, $full = false) {
 	return $string ? implode(', ', $string) . ' ago' : 'just now';
 }
 
-function get_json($url, $headers = []) {
+function request($url, $headers = []) {
 	$ch = curl_init();
 
 	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36');
+	curl_setopt($ch, CURLOPT_USERAGENT, 'Hypersomnia-App');
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);

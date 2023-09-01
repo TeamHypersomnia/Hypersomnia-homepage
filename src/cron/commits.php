@@ -3,10 +3,10 @@ if (php_sapi_name() !== 'cli') {
 	die("This script can only be run from the command line.");
 }
 
-require_once dirname(__FILE__) . '/config.php';
-require_once dirname(__FILE__) . '/common.php';
+require_once '../config.php';
+require_once '../common.php';
 
-$arr = get_json('https://api.github.com/repos/TeamHypersomnia/Hypersomnia/commits', [
+$arr = request('https://api.github.com/repos/TeamHypersomnia/Hypersomnia/commits', [
 	'Accept: application/vnd.github+json',
 	'Authorization: Bearer ' . $apikey_github,
 	'X-Github-Api-Version: 2022-11-28'
@@ -23,4 +23,4 @@ foreach ($arr as $key => $value) {
 		'date' => $value['commit']['author']['date']
 	]);
 }
-file_put_contents('data/commits.json', json_encode($commits));
+file_put_contents('../data/commits.json', json_encode($commits));

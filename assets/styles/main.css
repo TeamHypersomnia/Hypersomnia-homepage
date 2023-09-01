@@ -714,3 +714,10 @@ dd {
   opacity: 1;
   border-color: rgb(1, 192, 192);
 }
+
+#copy {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}

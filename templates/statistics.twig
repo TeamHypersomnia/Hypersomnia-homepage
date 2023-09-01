@@ -1,6 +1,55 @@
 {% include 'overall_header.twig' %}
 
 <h2>Statistics</h2>
-<p>N/A</p>
+<div class="table-responsive">
+  <table>
+    <thead>
+      <tr>
+        <th>&nbsp;</th>
+        {% for d in days %}
+        <th>{{ d }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>GitHub Stars</td>
+        {% for s in statistics %}
+        <td>{{ s.github_stars }}</td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td>GitHub Forks</td>
+        {% for s in statistics %}
+        <td>{{ s.github_forks }}</td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td>Youtube Views</td>
+        {% for s in statistics %}
+        <td>{{ s.youtube_views }}</td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td>Youtube Subscribers</td>
+        {% for s in statistics %}
+        <td>{{ s.youtube_subscribers }}</td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td>Hypersomnia Arenas</td>
+        {% for s in statistics %}
+        <td>{{ s.hypersomnia_arenas }}</td>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td>Hypersomnia Servers</td>
+        {% for s in statistics %}
+        <td>{{ s.hypersomnia_servers }}</td>
+        {% endfor %}
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 {% include 'overall_footer.twig' %}

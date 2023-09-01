@@ -55,4 +55,17 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     });
   }
+
+  var copyButton = document.getElementById("copy");
+  if (copyButton) {
+    copyButton.addEventListener("click", function() {
+      var addressText = document.getElementById("address").textContent;
+      var tempInput = document.createElement("input");
+      tempInput.setAttribute("value", addressText);
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+    });
+  }
 });
