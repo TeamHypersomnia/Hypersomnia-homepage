@@ -42,3 +42,17 @@ function strong() {
     strong[i].style.display = "inline";
   }
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+  var videoList = document.querySelectorAll('.video-t li');
+  if (videoList.length > 0) {
+    videoList.forEach(function(videoItem) {
+      var code = videoItem.getAttribute('data-code');
+      videoItem.style.backgroundImage = "url(https://img.youtube.com/vi/" + code + "/0.jpg)";
+      videoItem.addEventListener('click', function() {
+        var youtubeURL = "//www.youtube.com/watch?v=" + code;
+        window.open(youtubeURL, '_blank');
+      });
+    });
+  }
+});

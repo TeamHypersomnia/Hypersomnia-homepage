@@ -10,19 +10,3 @@ RewriteRule ^src/(.*)?$ / [F,L]
 RewriteRule ^templates/(.*)?$ / [F,L]
 RewriteRule ^vendor/(.*)?$ / [F,L]
 RewriteRule ^composer\.(lock|json)$ / [F,L]
-
-# Add cache for static files
-<IfModule mod_expires.c>
-  ExpiresActive on
-  ExpiresDefault "access plus 2 days"
-  ExpiresByType image/webp "access plus 1 month"
-  ExpiresByType image/jpg "access plus 1 month"
-  ExpiresByType image/gif "access plus 1 month"
-  ExpiresByType image/jpeg "access plus 1 month"
-  ExpiresByType image/png "access plus 1 month"
-  ExpiresByType text/css "access plus 1 month"
-  ExpiresByType text/javascript "access plus 1 month"
-  ExpiresByType application/javascript "access plus 1 month"
-  ExpiresByType image/ico "access plus 1 month"
-  ExpiresByType image/x-icon "access plus 1 month"
-</IfModule>
