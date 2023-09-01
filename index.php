@@ -32,6 +32,10 @@ $router->get('/statistics', function() {
 	require_once 'src/statistics.php';
 });
 
+$router->get('/cookie-policy', function() {
+	require_once 'src/cookie_policy.php';
+});
+
 $router->get('/arenas', function() {
 	require_once 'src/arenas.php';
 });

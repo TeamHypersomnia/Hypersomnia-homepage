@@ -235,7 +235,7 @@ a > i.fa-brands:hover {
 
 .content {
   margin-top: 20px;
-  padding: 15px;
+  padding: 20px;
   background: #212121;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
 }
@@ -249,15 +249,17 @@ a > i.fa-brands:hover {
 .links {
   font-size: 0.9em;
   margin: 0;
-  display: inline-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .links a {
-  margin: 3px 6px;
+  margin: 5px 10px;
 }
 
 .links a:first-child {
-  margin: 3px 6px 0 0;
+  margin: 5px 10px 0 0;
 }
 
 .footer-left p {
@@ -274,14 +276,13 @@ a > i.fa-brands:hover {
   box-sizing: border-box;
   width: 100%;
   text-align: left;
-  font: normal 16px sans-serif;
   padding: 15px 0;
-  margin: 20px 0;
+  margin: 10px 0;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
   flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .footer-distributed .footer-left p {
@@ -344,6 +345,18 @@ h1, h2 {
   margin: 5px 0;
   font-weight: 400;
   line-height: 1.25;
+}
+
+h1 {
+  font-size: 1.3em;
+}
+
+h2 {
+  font-size: 1.2em;
+}
+
+h3 {
+  font-size: 1.1em;
 }
 
 p, li {
@@ -449,8 +462,12 @@ body {
     flex-direction: column;
   }
 
-  .footer-distributed .footer-left p {
+  .links, .footer-distributed .footer-left p {
     padding: 0 20px;
+  }
+
+  .links {
+    justify-content: center;
   }
 }
 
@@ -533,6 +550,10 @@ body {
   color: #8a8e94;
   border-radius: 4px;
   border: 1px solid rgb(100 100 111 / 10%);
+}
+
+.alert:last-child {
+  margin-bottom: 0;
 }
 
 .alert strong {
@@ -720,4 +741,39 @@ dd {
   border: none;
   color: #fff;
   cursor: pointer;
+}
+
+/* FORMS */
+.contact-form {
+  max-width: 400px;
+  margin-top: 14px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 0.9em;
+}
+
+.form-input {
+  width: 100%;
+  font-size: 0.9em;
+  color: #cdcdcd;
+  text-decoration: none;
+  border: 1px solid rgb(100 100 111 / 20%);
+  padding: 8px 15px;
+  border-radius: 4px;
+  background-color: #1e1e1e;
+  margin-bottom: 20px;
+}
+
+.form-submit-button {
+  font-size: 0.9em;
+  color: #cdcdcd;
+  text-decoration: none;
+  border: 1px solid rgb(100 100 111 / 20%);
+  padding: 8px 15px;
+  border-radius: 4px;
+  font-weight: 500;
+  background-color: #1e1e1e;
 }

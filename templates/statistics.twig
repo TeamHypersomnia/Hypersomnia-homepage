@@ -1,6 +1,6 @@
 {% include 'overall_header.twig' %}
 
-<h2>Statistics</h2>
+<h1>Statistics</h1>
 <div class="table-responsive">
   <table>
     <thead>
@@ -25,13 +25,13 @@
         {% endfor %}
       </tr>
       <tr>
-        <td>Youtube Views</td>
+        <td>YouTube Views</td>
         {% for s in statistics %}
         <td>{{ s.youtube_views }}</td>
         {% endfor %}
       </tr>
       <tr>
-        <td>Youtube Subscribers</td>
+        <td>YouTube Subscribers</td>
         {% for s in statistics %}
         <td>{{ s.youtube_subscribers }}</td>
         {% endfor %}
