@@ -29,10 +29,16 @@ ul {
 ul.none {
   list-style: none;
   padding: 0;
+  margin-bottom: 0;
 }
 
 ul.none > li {
-  padding-bottom: 9px;
+  padding-bottom: 10px;
+  line-height: normal;
+}
+
+.extra-padding {
+  padding-top: 20px;
 }
 
 .os {
@@ -156,6 +162,12 @@ th {
   align-items: center;
   justify-items: center;
   text-align: center;
+}
+
+.three>div>a {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .btn-group {
@@ -327,20 +339,16 @@ a > i.fa-brands:hover {
 h1, h2 {
   color: #fff;
   padding-bottom: 0.3em;
-  font-size: 1.5em;
+  font-size: 1.4em;
   border-bottom: 1px dashed rgb(100 100 111 / 20%);
   margin: 5px 0;
   font-weight: 400;
   line-height: 1.25;
 }
 
-p {
+p, li {
   font-size: 0.9em;
   line-height: 20px;
-}
-
-li {
-  font-size: 0.9em;
 }
 
 body {
@@ -379,11 +387,6 @@ body {
   display: none;
 }
 
-.dc {
-  height: 85%;
-  width: 100%;
-}
-
 @media screen and (max-width: 1200px) {
   .topnav a:not(:first-child) {
     display: none;
@@ -414,10 +417,6 @@ body {
     text-align: left;
   }
 
-  .yt {
-    width: 100%;
-  }
-
   .parent {
     display: grid;
     grid-template-columns: none;
@@ -427,10 +426,6 @@ body {
 
   .content {
     margin-top: 0;
-  }
-
-  .dc {
-    height: 600px;
   }
 
   .responsive {
@@ -530,56 +525,14 @@ body {
   pointer-events: none;
 }
 
-
-
-/* Tooltip */
-.tooltip {
-  position: relative;
-  display: inline-block;
-  border-bottom: 1px dotted black;
-}
-
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 120px;
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  padding: 5px 0;
-  border-radius: 4px;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%;
-  left: 50%;
-  margin-left: -60px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.tooltip .tooltiptext::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #555 transparent transparent transparent;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
-}
-
 .alert {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   padding: 15px 15px 5px 15px;
   font-size: 0.9em;
   background-color: #202225;
   color: #8a8e94;
   border-radius: 4px;
-  border: 1px solid rgb(100 100 111 / 20%);
+  border: 1px solid rgb(100 100 111 / 10%);
 }
 
 .alert strong {
@@ -632,7 +585,7 @@ dt, dd {
 }
 
 dt {
-  font-size: 16px;
+  font-size: 0.9em;
   display: inline;
   color: #fff;
 }
@@ -741,6 +694,7 @@ dd {
   list-style: none;
   padding: 0;
   text-align: center;
+  margin: 0;
 }
 .video-t li{
   background-color: #ddd;
@@ -748,14 +702,15 @@ dd {
   background-position: center center;
   display: inline-block;
   width: 240px;
-  height: 180px;
+  height: 134px;
   cursor: pointer;
-  border: 4px solid black;
+  border: 1px solid rgb(100 100 111 / 10%);
   border-radius: 4px;
   margin: 13px;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+  opacity: 0.7;
 }
 
 .video-t li:hover{
-  opacity: 0.9;
+  opacity: 1;
+  border-color: rgb(1, 192, 192);
 }
