@@ -68,4 +68,24 @@ $router->get('/servers/{address}', function($address) {
 	require_once 'src/servers.php';
 });
 
+$router->get('/admin', function() {
+	require_once 'src/admin/login.php';
+});
+
+$router->post('/admin', function() {
+	require_once 'src/admin/login.php';
+});
+
+$router->get('/admin/visitors', function() {
+	require_once 'src/admin/visitors.php';
+});
+
+$router->get('/admin/authorized-mappers', function() {
+	require_once 'src/admin/authorized_mappers.php';
+});
+
+$router->get('/admin/logout', function() {
+	require_once 'src/admin/logout.php';
+});
+
 $router->run();

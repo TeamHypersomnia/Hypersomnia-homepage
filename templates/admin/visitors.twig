@@ -1,0 +1,27 @@
+{% include 'overall_header.twig' %}
+{% include 'admin/admin_dashboard.twig' %}
+
+<div class="table-responsive">
+  <table id="visitors" class="sortable">
+    <thead>
+      <tr>
+        <th>IP address</th>
+        <th>Last seen</th>
+        <th>User agent</th>
+        <th>Last page</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for k, v in visitors %}
+      <tr>
+        <td><a href="https://db-ip.com/{{ k }}" target="_blank">{{ k }}</a></td>
+        <td>{{ v[0] }}</td>
+        <td>{{ v[1] }}</td>
+        <td><a href="{{ url }}{{ v[2]|slice(1) }}">{{ v[2] }}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include 'overall_footer.twig' %}
