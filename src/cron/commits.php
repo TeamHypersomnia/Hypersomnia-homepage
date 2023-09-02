@@ -1,4 +1,5 @@
 <?php
+// This script should be executed by crontab every 15 minutes
 if (php_sapi_name() !== 'cli') {
 	die("This script can only be run from the command line.");
 }

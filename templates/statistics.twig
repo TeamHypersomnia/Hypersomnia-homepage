@@ -13,6 +13,12 @@
     </thead>
     <tbody>
       <tr>
+        <td>Unique Visitors</td>
+        {% for s in statistics %}
+        <td>{{ s.unique_visitors }}</td>
+        {% endfor %}
+      </tr>
+      <tr>
         <td>GitHub Stars</td>
         {% for s in statistics %}
         <td>{{ s.github_stars }}</td>

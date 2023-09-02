@@ -1,4 +1,5 @@
 <?php
+// This script should be executed by crontab at the end of the day
 if (php_sapi_name() !== 'cli') {
 	die("This script can only be run from the command line.");
 }
@@ -18,6 +19,17 @@ if (isset($statistics[$date]) == false) {
     $statistics[$date] = [];
 }
 
+// Unique Visitors
+$content = @file_get_contents('../data/visitors.json');
+if ($content == false) {
+	$visitors = [];
+} else {
+	$visitors = json_decode($content, true);
+}
+$statistics[$date]['unique_visitors'] = sizeof($visitors);
+unlink('../data/visitors.json');
+
+// GitHub
 if (empty($apikey_github) == false) {
 	$json = request('https://api.github.com/repos/TeamHypersomnia/Hypersomnia', [
 		'Accept: application/vnd.github+json',
@@ -28,12 +40,14 @@ if (empty($apikey_github) == false) {
 	$statistics[$date]['github_forks'] = intval($json['forks']);
 }
 
+// YouTube
 if (empty($apikey_youtube) == false) {
 	$json = request('https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UC4ZChoPA5sx6Z41rfaTG9bQ&key=' . $apikey_youtube);
 	$statistics[$date]['youtube_views'] = intval($json['items'][0]['statistics']['viewCount']);
 	$statistics[$date]['youtube_subscribers'] = intval($json['items'][0]['statistics']['videoCount']);
 }
 
+// Hypersomnia
 $json = request('https://hypersomnia.xyz/arenas?format=json');
 $statistics[$date]['hypersomnia_arenas'] = sizeof($json);
 $json = request('http://hypersomnia.xyz:8420/server_list_json');

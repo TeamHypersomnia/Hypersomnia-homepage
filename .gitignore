@@ -3,3 +3,4 @@ cache
 vendor
 src/data/commits.json
 src/data/statistics.json
+src/data/visitors.json
