@@ -1,6 +1,7 @@
 <?php
 require_once 'src/config.php';
 require_once 'src/twig.php';
+require_once 'src/common.php';
 
 session_start();
 
@@ -15,6 +16,16 @@ if ($content == false) {
 } else {
 	$visitors = json_decode($content, true);
 }
+
+foreach ($visitors as $key => $value) {
+	$dateTime = new DateTime();
+	$dateTime->setTimestamp($value['ts']);
+	$visitors[$key]['ts'] = time_elapsed_string($dateTime->format('Y-m-d H:i:s'));
+}
+
+uasort($visitors, function ($a, $b) {
+	return $a['ts'] - $b['ts'];
+});
 
 echo $twig->render('admin/visitors.twig', [
 	'url' => $url,

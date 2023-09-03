@@ -5,3 +5,4 @@ src/data/commits.json
 src/data/statistics.json
 src/data/visitors.json
 src/data/login_attempts.json
+src/data/authorized_mappers.json

@@ -147,6 +147,10 @@ thead > tr {
   width: 14%;
 }
 
+#authorized_mappers th {
+  width: 25%;
+}
+
 #visitors td {
   white-space: normal;
 }
@@ -238,7 +242,7 @@ th {
 }
 
 .links {
-  font-size: 0.9em;
+  font-size: 0.85em;
   margin: 0;
   display: flex;
   flex-direction: row;
@@ -246,11 +250,11 @@ th {
 }
 
 .links a {
-  margin: 5px 10px;
+  margin: 5px 5px;
 }
 
 .links a:first-child {
-  margin: 5px 10px 0 0;
+  margin: 5px 5px 0 0;
 }
 
 .footer-left p {
@@ -744,7 +748,7 @@ form {
   max-width: 300px;
 }
 
-label {
+.form-group>label {
   display: block;
   margin-bottom: 5px;
   color: #cdcdcd;
@@ -759,7 +763,7 @@ label {
   margin-bottom: 0;
 }
 
-input {
+.form-group>input {
   font-size: 0.9em;
   color: #cdcdcd;
   text-decoration: none;
@@ -772,17 +776,17 @@ input {
   outline: none;
 }
 
-input:focus {
+.form-group>input:focus {
   color: rgb(1, 192, 192);
   border-color: rgb(1, 192, 192);
 }
 
-input[type="submit"] {
+.form-group>input[type="submit"] {
   width: auto;
   cursor: pointer;
 }
 
-input[type="submit"]:hover {
+.form-group>input[type="submit"]:hover {
   color: rgb(1, 192, 192);
   border-color: rgb(1, 192, 192);
 }

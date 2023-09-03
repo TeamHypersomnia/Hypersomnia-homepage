@@ -23,7 +23,7 @@ if (isset($address)) {
 			'page' => $servers[$key]['name'] . ' - Servers',
 			'sv' => $servers[$key]
 		]);
-		exit();
+		die();
 	}
 }
 

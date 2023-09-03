@@ -1,6 +1,27 @@
 {% include 'overall_header.twig' %}
 {% include 'admin/admin_dashboard.twig' %}
 
-<p>WIP</p>
+<div class="table-responsive">
+  <table id="authorized_mappers" class="sortable">
+    <thead>
+      <tr>
+        <th>Shorthand</th>
+        <th>Allow creating new</th>
+        <th>Maps</th>
+        <th>API Key</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for k, v in authorized_mappers %}
+      <tr>
+        <td>{{ v.shorthand }}</td>
+        <td>{% if v.allow_creating_new == true %}yes{% else %}no{% endif %}</td>
+        <td><ul class="none">{% for m in v.maps %}<li>{{ m }}</li>{% endfor %}</ul></td>
+        <td>{{ k }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 {% include 'overall_footer.twig' %}

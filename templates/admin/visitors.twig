@@ -15,9 +15,9 @@
       {% for k, v in visitors %}
       <tr>
         <td><a href="https://db-ip.com/{{ k }}" target="_blank">{{ k }}</a></td>
-        <td>{{ v[0] }}</td>
-        <td>{{ v[1] }}</td>
-        <td><a href="{{ url }}{{ v[2]|slice(1) }}">{{ v[2] }}</a></td>
+        <td>{{ v.ts }}</td>
+        <td>{{ v.ua }}</td>
+        <td><a href="{{ url }}{{ v.uri|slice(1) }}">{{ v.uri }}</a></td>
       </tr>
       {% endfor %}
     </tbody>
