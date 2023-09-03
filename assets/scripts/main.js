@@ -55,17 +55,21 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     });
   }
+});
 
-  var copyButton = document.getElementById("copy");
-  if (copyButton) {
-    copyButton.addEventListener("click", function() {
-      var addressText = document.getElementById("address").textContent;
-      var tempInput = document.createElement("input");
-      tempInput.setAttribute("value", addressText);
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand("copy");
-      document.body.removeChild(tempInput);
+const copyButtons = document.querySelectorAll('.copy-button');
+copyButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const closestTocopy = button.closest('.tocopy');
+    const contentToCopy = closestTocopy.querySelector('code').textContent;
+    const textItem = new ClipboardItem({ 'text/plain': new Blob([contentToCopy], { type: 'text/plain' }) });
+    navigator.clipboard.write([textItem]).then(() => {
+      button.innerHTML = '<i class="fas fa-check"></i>';
+      setTimeout(() => {
+          button.innerHTML = '<i class="fas fa-copy"></i>';
+      }, 1000);
+    }).catch(err => {
+        console.error('Unable to copy: ', err);
     });
-  }
+  });
 });

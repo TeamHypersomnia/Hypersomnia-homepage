@@ -6,7 +6,7 @@ require_once 'src/admin/login_attempts.php';
 session_start();
 
 if (isset($_SESSION['admin']) && $_SESSION['admin'] == true) {
-	header("Location: {$url}admin/visitors");
+	header("Location: {$url}admin/system");
 	die();
 }
 

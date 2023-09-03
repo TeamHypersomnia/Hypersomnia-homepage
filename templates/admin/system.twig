@@ -11,36 +11,58 @@
     </thead>
     <tbody>
       <tr>
-        <th>Operating System</th>
-        <td>{{ php_uname }}</td>
+        <th>Operating system name</th>
+        <td>{{ s }}</td>
+      </tr>
+      {% if distro != false %}
+      <tr>
+        <th>Linux distribution</th>
+        <td>{{ distro }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <th>Host name</th>
+        <td>{{ n }}</td>
       </tr>
       <tr>
-        <th>System User</th>
+        <th>Release name</th>
+        <td>{{ r }}</td>
+      </tr>
+      <tr>
+        <th>Version information</th>
+        <td>{{ v }}</td>
+      </tr>
+      <tr>
+        <th>Machine type</th>
+        <td>{{ m }}</td>
+      </tr>
+      <tr>
+        <th>System user</th>
         <td>{{ user }}</td>
       </tr>
       <tr>
-        <th>PHP Version</th>
+        <th>PHP version</th>
         <td>{{ phpversion }}</td>
       </tr>
       <tr>
-        <th>Document Root</th>
-        <td>{{ realpath }}</td>
+        <th>Document root</th>
+        <td><span class="tocopy"><code>{{ realpath }}</code><button class="copy-button"><i class="fa-solid fa-copy"></i></button></span></td>
       </tr>
       <tr>
-        <th>Cache Path</th>
-        <td>{% if cache == false %}Disabled{% else %}{{ cache }}{% endif %}</td>
+        <th>Cache path</th>
+        <td>{% if cache != false %}<span class="tocopy"><code>{{ arenas_path }}</code><button class="copy-button"><i class="fa-solid fa-copy"></i></button></span>{% else %}Disabled{% endif %}</td>
       </tr>
       <tr>
-        <th>Arenas Path</th>
-        <td>{{ arenas_path }}</td>
+        <th>Arenas path</th>
+        <td>{% if arenas_path != '' %}<span class="tocopy"><code>{{ arenas_path }}</code><button class="copy-button"><i class="fa-solid fa-copy"></i></button></span>{% endif %}</td>
       </tr>
       <tr>
-        <th>API Key GitHub</th>
-        <td>{{ apikey_github }}</td>
+        <th>API key GitHub</th>
+        <td>{% if apikey_github != '' %}<span class="tocopy"><code>{{ apikey_github }}</code><button class="copy-button"><i class="fa-solid fa-copy"></i></button></span>{% endif %}</td>
       </tr>
       <tr>
-        <th>API Key YouTube</th>
-        <td>{{ apikey_youtube }}</td>
+        <th>API key YouTube</th>
+        <td>{% if apikey_youtube != '' %}<span class="tocopy"><code>{{ apikey_youtube }}</code><button class="copy-button"><i class="fa-solid fa-copy"></i></button></span>{% endif %}</td>
       </tr>
     </tbody>
   </table>
