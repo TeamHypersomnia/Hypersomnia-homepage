@@ -9,7 +9,7 @@ if (!isset($_SESSION['admin']) || $_SESSION['admin'] == false) {
 	die();
 }
 
-$content = @file_get_contents('src/data/authorized_mappers.json');
+$content = @file_get_contents($arenas_path . '/authorized_mappers.json');
 if ($content == false) {
 	$authorized_mappers = [];
 } else {

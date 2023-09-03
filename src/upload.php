@@ -14,25 +14,22 @@ function ensurePathExists($path) {
 }
 
 if (!isset($_POST['apikey']) || !isset($_POST['arena']) || !isset($_POST['filename'])) {
-	$response['error'] = 'Missing required parameters.';
-	die(json_encode($response));
+	die(json_encode(['error' => 'Missing required parameters.']));
 }
 
 $apikey = $_POST['apikey'];
 $arena = $_POST['arena'];
 $filename = $_POST['filename'];
 
-$path = 'src/data/authorized_mappers.json';
+$path = $arenas_path . '/authorized_mappers.json';
 $authorized_mappers = @file_get_contents($path);
 if ($authorized_mappers == false) {
-	$response['error'] = 'File authorized_mappers.json does not exist.';
-	die(json_encode($response));
+	die(json_encode(['error' => 'File authorized_mappers.json does not exist.']));
 }
 
 $authorized_mappers = json_decode($authorized_mappers, true);
 if (!isset($authorized_mappers[$apikey])) {
-	$response['error'] = 'You are not authorized to upload maps.';
-	die(json_encode($response));
+	die(json_encode(['error' => 'You are not authorized to upload maps.']));
 }
 
 $allow_creating_new = false;
@@ -47,16 +44,14 @@ if (isset($authorized_mappers[$apikey]['maps'])) {
 	$arenas = $authorized_mappers[$apikey]['maps'];
 }
 if ($allow_creating_new == false && in_array($arena, $arenas) == false) {
-	$response['error'] = 'You are not authorized to create new maps.';
-	die(json_encode($response));
+	die(json_encode(['error' => 'You are not authorized to create new maps.']));
 }
 
 $allowed = ['json', 'png', 'jpg', 'gif', 'ogg', 'wav'];
 $ext = pathinfo($_FILES['upload']['name'], PATHINFO_EXTENSION);
 $ext2 = pathinfo($filename, PATHINFO_EXTENSION);
 if (!in_array($ext, $allowed) || !in_array($ext2, $allowed)) {
-	$response['error'] = 'You are not allowed to upload this file type.';
-	die(json_encode($response));
+	die(json_encode(['error' => 'You are not allowed to upload this file type.']));
 }
 
 // To prevent the use of .. or . in file paths and avoid directory traversal attacks
@@ -64,13 +59,11 @@ $filename = str_replace('\\', '/', $filename);
 $pathComponents = explode('/', $filename);
 foreach ($pathComponents as $component) {
 	if ($component === '.' || $component === '..') {
-		$response['error'] = 'Parameter `filename` is invalid.'; 
-		die(json_encode($response));
+		die(json_encode(['error' => 'Parameter `filename` is invalid.']));
 	}
 }
 
 $desiredPath = "$arenas_path/$arena/$filename";
 ensurePathExists($desiredPath);
 move_uploaded_file($_FILES['upload']['tmp_name'], $desiredPath);
-$response['success'] = 'The file has been uploaded.';
-die(json_encode($response));
+die(json_encode(['success' => 'The file has been uploaded.']));

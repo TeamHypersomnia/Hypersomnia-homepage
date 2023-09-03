@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		foreach ($admins as $key => $value) {
 			if ($value['username'] == $username && $value['password'] == $password) {
 				$_SESSION['admin'] = true;
-				header("Location: {$url}admin/visitors");
+				header("Location: {$url}admin/system");
 				die();
 			}
 		}

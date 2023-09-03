@@ -1,0 +1,49 @@
+{% include 'overall_header.twig' %}
+{% include 'admin/admin_dashboard.twig' %}
+
+<div class="table-responsive">
+  <table>
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>Operating System</th>
+        <td>{{ php_uname }}</td>
+      </tr>
+      <tr>
+        <th>System User</th>
+        <td>{{ user }}</td>
+      </tr>
+      <tr>
+        <th>PHP Version</th>
+        <td>{{ phpversion }}</td>
+      </tr>
+      <tr>
+        <th>Document Root</th>
+        <td>{{ realpath }}</td>
+      </tr>
+      <tr>
+        <th>Cache Path</th>
+        <td>{% if cache == false %}Disabled{% else %}{{ cache }}{% endif %}</td>
+      </tr>
+      <tr>
+        <th>Arenas Path</th>
+        <td>{{ arenas_path }}</td>
+      </tr>
+      <tr>
+        <th>API Key GitHub</th>
+        <td>{{ apikey_github }}</td>
+      </tr>
+      <tr>
+        <th>API Key YouTube</th>
+        <td>{{ apikey_youtube }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{% include 'overall_footer.twig' %}

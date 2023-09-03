@@ -84,6 +84,10 @@ $router->get('/admin/authorized-mappers', function() {
 	require_once 'src/admin/authorized_mappers.php';
 });
 
+$router->get('/admin/system', function() {
+	require_once 'src/admin/system.php';
+});
+
 $router->get('/admin/logout', function() {
 	require_once 'src/admin/logout.php';
 });
