@@ -17,15 +17,15 @@ if ($content == false) {
 	$visitors = json_decode($content, true);
 }
 
+uasort($visitors, function ($a, $b) {
+	return $b['ts'] - $a['ts'];
+});
+
 foreach ($visitors as $key => $value) {
 	$dateTime = new DateTime();
 	$dateTime->setTimestamp($value['ts']);
 	$visitors[$key]['ts'] = time_elapsed_string($dateTime->format('Y-m-d H:i:s'));
 }
-
-uasort($visitors, function ($a, $b) {
-	return $a['ts'] - $b['ts'];
-});
 
 echo $twig->render('admin/visitors.twig', [
 	'url' => $url,
