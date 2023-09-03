@@ -11,7 +11,7 @@
     </thead>
     <tbody>
       <tr>
-        <th>Operating system name</th>
+        <th>Operating system</th>
         <td>{{ s }}</td>
       </tr>
       {% if distro != false %}
@@ -50,7 +50,7 @@
       </tr>
       <tr>
         <th>Cache path</th>
-        <td>{% if cache != false %}<span class="tocopy"><code>{{ arenas_path }}</code><button class="copy-button"><i class="fa-solid fa-copy"></i></button></span>{% else %}Disabled{% endif %}</td>
+        <td>{% if cache != false %}<span class="tocopy"><code>{{ cache }}</code><button class="copy-button"><i class="fa-solid fa-copy"></i></button></span>{% else %}Disabled{% endif %}</td>
       </tr>
       <tr>
         <th>Arenas path</th>
