@@ -6,7 +6,7 @@ require_once 'src/common.php';
 session_start();
 
 if (!isset($_SESSION['admin']) || $_SESSION['admin'] == false) {
-	header("Location: {$url}admin/login");
+	header("Location: {$url}admin");
 	die();
 }
 
