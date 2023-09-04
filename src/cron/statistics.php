@@ -7,10 +7,9 @@ if (php_sapi_name() !== 'cli') {
 require_once '../config.php';
 require_once '../common.php';
 
+$statistics = [];
 $content = @file_get_contents('../data/statistics.json');
-if ($content == false) {
-	$statistics = [];
-} else {
+if ($content !== false) {
 	$statistics = json_decode($content, true);
 }
 
@@ -20,10 +19,9 @@ if (isset($statistics[$date]) == false) {
 }
 
 // Unique Visitors
+$visitors = [];
 $content = @file_get_contents('../data/visitors.json');
-if ($content == false) {
-	$visitors = [];
-} else {
+if ($content !== false) {
 	$visitors = json_decode($content, true);
 }
 $statistics[$date]['unique_visitors'] = sizeof($visitors);

@@ -12,6 +12,11 @@
       </tr>
     </thead>
     <tbody>
+      {% if statistics == false %}
+      <tr>
+        <td class="error">Failed to retrieve statistics.</td>
+      </tr>
+      {% else %}
       <tr>
         <td>Unique Visitors</td>
         {% for s in statistics %}
@@ -54,6 +59,7 @@
         <td>{{ s.hypersomnia_servers }}</td>
         {% endfor %}
       </tr>
+      {% endif %}
     </tbody>
   </table>
 </div>

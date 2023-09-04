@@ -17,7 +17,7 @@
     <tbody>
       {% if servers == false %}
       <tr>
-        <td colspan="7">No response from master server</td>
+        <td colspan="7" class="error">No online servers available or the master server is unresponsive.</td>
       </tr>
       {% else %}
       {% for i in servers %}

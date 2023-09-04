@@ -217,6 +217,14 @@ dd {
 
 /* DESKTOP */
 @media screen and (min-width: 1200px) {
+  .mobile {
+    display: none;
+  }
+
+  .desktop {
+    display: inline;
+  }
+
   .box {
     display: grid;
     grid-template-columns: 50% calc(50% - 20px);
@@ -278,9 +286,21 @@ dd {
 
 /* MOBILE */
 @media screen and (max-width: 1200px) {
+  .mobile {
+    display: inline;
+  }
+
+  .desktop {
+    display: none;
+  }
+
   nav > .flex {
     height: auto;
     justify-content: space-evenly;
+  }
+
+  .flex > a {
+    padding: 20px 10px;
   }
 
   th, td {

@@ -4,10 +4,9 @@ $twig = new \Twig\Environment($loader, [
 	'cache' => $cache
 ]);
 
+$visitors = [];
 $content = @file_get_contents('src/data/visitors.json');
-if ($content == false) {
-	$visitors = [];
-} else {
+if ($content !== false) {
 	$visitors = json_decode($content, true);
 }
 

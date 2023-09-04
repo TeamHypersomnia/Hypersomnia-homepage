@@ -12,20 +12,30 @@
   <meta property="og:description" content="{% if arena is defined %}{{ short_description|replace({"\n": " "}) }}{% else %}An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.{% endif %}">
   <title>{% if page == "Index" %}Free Multiplayer Top-Down Shooter{% else %}{{ page }}{% endif %} - Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="{{ url }}favicon.ico">
-  <link href="{{ url }}assets/styles/main.css?v=1693866810" rel="stylesheet">
-  <link href="https://fonts.googleapis.com" rel="preconnect">
-  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url }}assets/styles/main.css?v=1693869727">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
   <nav>
     <div class="container flex">
-      <a href="{{ url }}"{% if page == "Index" %} class="active"{% endif %}>Hypersomnia</a>
-      <a href="{{ url }}guide"{% if page == "Guide" %} class="active"{% endif %}>Guide</a>
-      <a href="{{ url }}arenas"{% if page == "Arenas" %} class="active"{% endif %}>Arenas</a>
-      <a href="{{ url }}weapons"{% if page == "Weapons" %} class="active"{% endif %}>Weapons</a>
-      <a href="{{ url }}servers"{% if page == "Servers" %} class="active"{% endif %}>Servers</a>
+      <a href="{{ url }}"{% if page == "Index" %} class="active"{% endif %}>
+        <span class="desktop">Hypersomnia</span><span class="mobile"><i class="fa-solid fa-house"></i></span>
+      </a>
+      <a href="{{ url }}guide"{% if page == "Guide" %} class="active"{% endif %}>
+        <span class="desktop">Guide</span><span class="mobile"><i class="fa-solid fa-book"></i></span>
+      </a>
+      <a href="{{ url }}arenas"{% if page == "Arenas" %} class="active"{% endif %}>
+        <span class="desktop">Arenas</span><span class="mobile"><i class="fa-solid fa-map"></i></span>
+      </a>
+      <a href="{{ url }}weapons"{% if page == "Weapons" %} class="active"{% endif %}>
+        <span class="desktop">Weapons</span><span class="mobile"><i class="fa-solid fa-gun"></i></span>
+      </a>
+      <a href="{{ url }}servers"{% if page == "Servers" %} class="active"{% endif %}>
+        <span class="desktop">Servers</span><span class="mobile"><i class="fa-solid fa-server"></i></span>
+      </a>
     </nav>
   </div>
   <div class="container">
