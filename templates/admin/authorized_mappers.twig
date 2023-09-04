@@ -17,7 +17,7 @@
         <td>{{ v.shorthand }}</td>
         <td>{% if v.allow_creating_new == true %}yes{% else %}no{% endif %}</td>
         <td><ul class="none">{% for m in v.maps %}<li>{{ m }}</li>{% endfor %}</ul></td>
-        <td><span class="tocopy"><code>{{ k }}</code><button class="copy-button"><i class="fa-solid fa-copy"></i></button></span></td>
+        <td><span class="tocopy"><code>{{ k }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
       </tr>
       {% endfor %}
     </tbody>

@@ -12,24 +12,21 @@
   <meta property="og:description" content="{% if arena is defined %}{{ short_description|replace({"\n": " "}) }}{% else %}An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.{% endif %}">
   <title>{% if page == "Index" %}Free Multiplayer Top-Down Shooter{% else %}{{ page }}{% endif %} - Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="{{ url }}favicon.ico">
-  <link href="{{ url }}assets/styles/main.css?v=1693706735" rel="stylesheet">
+  <link href="{{ url }}assets/styles/main.css?v=1693857163" rel="stylesheet">
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-  <div class="topnav" id="myTopnav">
-    <div class="container">
+  <nav>
+    <div class="container flex">
       <a href="{{ url }}"{% if page == "Index" %} class="active"{% endif %}>Hypersomnia</a>
       <a href="{{ url }}guide"{% if page == "Guide" %} class="active"{% endif %}>Guide</a>
       <a href="{{ url }}arenas"{% if page == "Arenas" %} class="active"{% endif %}>Arenas</a>
       <a href="{{ url }}weapons"{% if page == "Weapons" %} class="active"{% endif %}>Weapons</a>
       <a href="{{ url }}servers"{% if page == "Servers" %} class="active"{% endif %}>Servers</a>
-      <a href="javascript:void(0);" class="icon" onclick="topnav()" aria-label="Open/hide navigation">
-        <i class="fa fa-bars"></i>
-      </a>
-    </div>
+    </nav>
   </div>
   <div class="container">
-    <div class="content">
+    <article>

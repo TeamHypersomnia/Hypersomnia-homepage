@@ -21,7 +21,7 @@
       {% for i in firearms %}
       <tr>
         <td>{{ i.display_name }}</td>
-        <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}" alt="{{ i.pic_filename }}"></td>
+        <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}" alt="{{ i.display_name }}"></td>
         <td>{{ i.damage }}</td>
         <td>{{ i.headshot_damage }}</td>
         <td>{{ i.penetration }}</td>
@@ -36,11 +36,11 @@
   </table>
 </div>
 
-<h1 class="extra-padding">Melee weapons</h1>
+<h2>Melee weapons</h2>
 <div class="radio">
-  <input onclick="fast()" id="fast" type="radio" name="radio1" checked>
+  <input onchange="fast()" id="fast" type="radio" name="radio1" checked>
   <label for="fast">Fast attack</label>
-  <input onclick="strong()" id="strong" type="radio" name="radio1">
+  <input onchange="strong()" id="strong" type="radio" name="radio1">
   <label for="strong">Strong attack</label>
 </div>
 <div class="table-responsive">
@@ -64,7 +64,7 @@
       {% for i in melees %}
       <tr>
         <td>{{ i.display_name }}</td>
-        <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}" alt="{{ i.pic_filename }}"></td>
+        <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}" alt="{{ i.display_name }}"></td>
         <td><span class="fast">{{ i.fast_swings_per_second|number_format(2) }}</span><span class="strong">{{ i.strong_swings_per_second|number_format(2) }}</span></td>
         <td><span class="fast">{{ i.fast_damage }}</span><span class="strong">{{ i.strong_damage }}</span></td>
         <td><span class="fast">{{ i.fast_hs_damage }}</span><span class="strong">{{ i.strong_hs_damage }}</span></td>
@@ -80,7 +80,7 @@
   </table>
 </div>
 
-<h1 class="extra-padding">Explosives</h1>
+<h2>Explosives</h2>
 <div class="table-responsive">
   <table id="explosives" class="sortable">
     <thead>
@@ -99,7 +99,7 @@
       {% for i in explosives %}
       <tr>
         <td>{{ i.display_name }}</td>
-        <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}" alt="{{ i.pic_filename }}"></td>
+        <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}" alt="{{ i.display_name }}"></td>
         <td>{{ i.notes }}</td>
         <td>{{ i.fuse_delay|number_format(2) }}</td>
         <td>{% if i.base_damage == -1 %}N/A{% else %}{{ i.base_damage }}{% endif %}</td>
@@ -112,7 +112,7 @@
   </table>
 </div>
 
-<h1 class="extra-padding">Spells</h1>
+<h2>Spells</h2>
 <div class="table-responsive">
   <table id="spells" class="sortable">
     <thead>
@@ -130,7 +130,7 @@
       {% for i in spells %}
       <tr>
         <td>{{ i.display_name }}</td>
-        <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}"></td>
+        <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}" alt="{{ i.display_name }}"></td>
         <td>{{ i.notes }}</td>
         <td>{{ i.cooldown }}</td>
         <td>{{ i.mana_required }}</td>
