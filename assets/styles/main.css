@@ -217,8 +217,18 @@ dd {
 
 /* DESKTOP */
 @media screen and (min-width: 1200px) {
+  .box {
+    display: grid;
+    grid-template-columns: 50% calc(50% - 20px);
+    grid-gap: 20px;
+  }
+
   nav > .flex {
     height: 57px;
+  }
+
+  th, td {
+    font-size: 0.9em;
   }
 
   .container {
@@ -270,13 +280,11 @@ dd {
 @media screen and (max-width: 1200px) {
   nav > .flex {
     height: auto;
+    justify-content: space-evenly;
   }
 
-  .box {
-    display: grid;
-    grid-template-columns: none;
-    grid-gap: 10px;
-    row-gap: 10px;
+  th, td {
+    font-size: 0.85em;
   }
 
   .parent {
@@ -321,6 +329,7 @@ dd {
 
   .btn-group {
     flex-direction: column;
+    gap: 10px;
   }
 
   .button {
@@ -342,7 +351,7 @@ table {
 
 .table-responsive {
   overflow-x: auto;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 tr:nth-child(even) {
@@ -353,7 +362,6 @@ th, td {
   padding: 8px 8px;
   white-space: nowrap;
   margin-right: 10px;
-  font-size: 0.9em;
 }
 
 th {
@@ -468,12 +476,6 @@ thead > tr {
 }
 
 /* SERVER */
-.box {
-  display: grid;
-  grid-template-columns: 50% calc(50% - 20px);
-  grid-gap: 20px;
-}
-
 .spectator {
   color: rgb(200, 200, 200);
 }
