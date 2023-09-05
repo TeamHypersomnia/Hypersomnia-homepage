@@ -587,8 +587,8 @@ nav > .flex {
   text-align: center;
   margin: 0;
 }
+
 .yt li {
-  background-color: #ddd;
   background-size: cover;
   background-position: center center;
   display: inline-block;

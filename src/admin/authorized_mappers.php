@@ -9,10 +9,9 @@ if (!isset($_SESSION['admin']) || $_SESSION['admin'] == false) {
 	die();
 }
 
+$authorized_mappers = [];
 $content = @file_get_contents($arenas_path . '/authorized_mappers.json');
-if ($content == false) {
-	$authorized_mappers = [];
-} else {
+if ($content !== false) {
 	$authorized_mappers = json_decode($content, true);
 }
 

@@ -12,6 +12,11 @@
       </tr>
     </thead>
     <tbody>
+      {% if servers == false %}
+      <tr>
+        <td colspan="4" class="error">Failed to retrieve the list of authorized mappers.</td>
+      </tr>
+      {% else %}
       {% for k, v in authorized_mappers %}
       <tr>
         <td>{{ v.shorthand }}</td>
@@ -20,6 +25,7 @@
         <td><span class="tocopy"><code>{{ k }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
       </tr>
       {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 </div>
