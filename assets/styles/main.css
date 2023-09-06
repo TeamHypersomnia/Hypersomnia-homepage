@@ -61,6 +61,17 @@ code {
   font-size: 0.9em;
 }
 
+canvas {
+  padding-top: 15px;
+}
+
+article {
+  margin-top: 20px;
+  padding: 20px;
+  background: #212121;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+}
+
 ul {
   padding-left: 2em;
 }
@@ -128,13 +139,6 @@ strong, th, td:nth-child(1) {
   text-align: center;
 }
 
-article {
-  margin-top: 20px;
-  padding: 20px;
-  background: #212121;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
-}
-
 .subname {
   font-size: 13px;
   color: #8a8e94;
@@ -164,21 +168,22 @@ article {
   padding: 15px 0;
 }
 
-.arena_item {
+.arenas > a {
   padding: 50px 0;
   text-align: center;
+  min-height: 200px;
   max-height: 200px;
 }
 
-.arena_item a {
+.arenas > a {
   text-decoration: none;
 }
 
-.arena_item a:hover > .arena_name {
+.arenas > a:hover > .arena_name {
   color: #fff;
 }
 
-img.arena_miniature {
+.arena_miniature {
   max-height: 200px;
   max-width: 200px;
 }
@@ -189,7 +194,7 @@ img.arena_miniature {
   color: #cdcdcd;
 }
 
-.arena_author, i.arena_desc {
+.arena_author {
   display: block;
   font-size: 13px;
   color: #a5a5a5;
@@ -261,7 +266,7 @@ dd {
     justify-content: space-between;
   }
 
-  .arena_item {
+  .arenas > a {
     width: 33%;
   }
 

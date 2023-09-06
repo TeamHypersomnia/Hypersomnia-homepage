@@ -48,7 +48,7 @@ new Chart("github_stars", {
   data: {
     labels: days,
     datasets: [{
-      label: 'GitHub Stars',
+      label: 'Stars',
       borderColor: "#4078c0",
       data: {{ github_stars|json_encode()|raw }}
     }]
@@ -59,7 +59,7 @@ new Chart("github_forks", {
   data: {
     labels: days,
     datasets: [{
-      label: 'GitHub Forks',
+      label: 'Forks',
       borderColor: "#4078c0",
       data: {{ github_forks|json_encode()|raw }}
     }]
@@ -72,7 +72,7 @@ new Chart("youtube_views", {
   data: {
     labels: days,
     datasets: [{
-      label: 'Youtube Views',
+      label: 'Views',
       borderColor: "#FF0000",
       data: {{ youtube_views|json_encode()|raw }}
     }]
@@ -83,7 +83,7 @@ new Chart("youtube_subscribers", {
   data: {
     labels: days,
     datasets: [{
-      label: 'Youtube Subscribers',
+      label: 'Subscribers',
       borderColor: "#FF0000",
       data: {{ youtube_subscribers|json_encode()|raw }}
     }]
@@ -96,7 +96,7 @@ new Chart("hypersomnia_arenas", {
   data: {
     labels: days,
     datasets: [{
-      label: 'Hypersomnia Arenas',
+      label: 'Arenas',
       borderColor: "#01c0c0",
       data: {{ hypersomnia_arenas|json_encode()|raw }}
     }]
@@ -107,7 +107,7 @@ new Chart("hypersomnia_servers", {
   data: {
     labels: days,
     datasets: [{
-      label: 'Hypersomnia Servers',
+      label: 'Servers',
       borderColor: "#01c0c0",
       data: {{ hypersomnia_servers|json_encode()|raw }}
     }]
