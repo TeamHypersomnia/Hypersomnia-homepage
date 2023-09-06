@@ -260,13 +260,13 @@ dd {
 
   .arenas {
     display: flex;
-    gap: 20px;
     flex-wrap: wrap;
     align-items: flex-end;
   }
 
   .arenas > a {
     width: calc(25% - 20px);
+    margin: 10px;
   }
 
   .arena {
