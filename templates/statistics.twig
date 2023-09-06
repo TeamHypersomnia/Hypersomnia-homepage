@@ -1,67 +1,119 @@
 {% include 'overall_header.twig' %}
 
 <h1>Statistics</h1>
-<div class="table-responsive">
-  <table>
-    <thead>
-      <tr>
-        <th>&nbsp;</th>
-        {% for d in days %}
-        <th>{{ d }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-      {% if statistics == false %}
-      <tr>
-        <td class="error">Failed to retrieve statistics.</td>
-      </tr>
-      {% else %}
-      <tr>
-        <td>Unique Visitors</td>
-        {% for s in statistics %}
-        <td>{{ s.unique_visitors }}</td>
-        {% endfor %}
-      </tr>
-      <tr>
-        <td>GitHub Stars</td>
-        {% for s in statistics %}
-        <td>{{ s.github_stars }}</td>
-        {% endfor %}
-      </tr>
-      <tr>
-        <td>GitHub Forks</td>
-        {% for s in statistics %}
-        <td>{{ s.github_forks }}</td>
-        {% endfor %}
-      </tr>
-      <tr>
-        <td>YouTube Views</td>
-        {% for s in statistics %}
-        <td>{{ s.youtube_views }}</td>
-        {% endfor %}
-      </tr>
-      <tr>
-        <td>YouTube Subscribers</td>
-        {% for s in statistics %}
-        <td>{{ s.youtube_subscribers }}</td>
-        {% endfor %}
-      </tr>
-      <tr>
-        <td>Hypersomnia Arenas</td>
-        {% for s in statistics %}
-        <td>{{ s.hypersomnia_arenas }}</td>
-        {% endfor %}
-      </tr>
-      <tr>
-        <td>Hypersomnia Servers</td>
-        {% for s in statistics %}
-        <td>{{ s.hypersomnia_servers }}</td>
-        {% endfor %}
-      </tr>
-      {% endif %}
-    </tbody>
-  </table>
+{% if statistics == false %}
+<p class="error">Failed to retrieve statistics.</p>
+{% else %}
+<canvas id="unique_visitors"></canvas>
+
+<h2>GitHub</h2>
+<div class="box">
+  <div><canvas id="github_stars"></canvas></div>
+  <div><canvas id="github_forks"></canvas></div>
 </div>
+
+<h2>YouTube</h2>
+<div class="box">
+  <div><canvas id="youtube_views"></canvas></div>
+  <div><canvas id="youtube_subscribers"></canvas></div>
+</div>
+
+<h2>Hypersomnia</h2>
+<div class="box">
+  <div><canvas id="hypersomnia_arenas"></canvas></div>
+  <div><canvas id="hypersomnia_servers"></canvas></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+<script>
+const days = {{ days|json_encode()|raw }};
+Chart.defaults.global.defaultFontColor = "#cdcdcd";
+
+// Unique Visitors
+new Chart("unique_visitors", {
+  type: "line",
+  data: {
+    labels: days,
+    datasets: [{
+      label: 'Unique Visitors',
+      borderColor: "#01c0c0",
+      data: {{ unique_visitors|json_encode()|raw }}
+    }]
+  }
+});
+
+// GitHub
+new Chart("github_stars", {
+  type: "line",
+  data: {
+    labels: days,
+    datasets: [{
+      label: 'GitHub Stars',
+      borderColor: "#4078c0",
+      data: {{ github_stars|json_encode()|raw }}
+    }]
+  }
+});
+new Chart("github_forks", {
+  type: "line",
+  data: {
+    labels: days,
+    datasets: [{
+      label: 'GitHub Forks',
+      borderColor: "#4078c0",
+      data: {{ github_forks|json_encode()|raw }}
+    }]
+  }
+});
+
+// YouTube
+new Chart("youtube_views", {
+  type: "line",
+  data: {
+    labels: days,
+    datasets: [{
+      label: 'Youtube Views',
+      borderColor: "#FF0000",
+      data: {{ youtube_views|json_encode()|raw }}
+    }]
+  }
+});
+new Chart("youtube_subscribers", {
+  type: "line",
+  data: {
+    labels: days,
+    datasets: [{
+      label: 'Youtube Subscribers',
+      borderColor: "#FF0000",
+      data: {{ youtube_subscribers|json_encode()|raw }}
+    }]
+  }
+});
+
+// Hypersomnia
+new Chart("hypersomnia_arenas", {
+  type: "line",
+  data: {
+    labels: days,
+    datasets: [{
+      label: 'Hypersomnia Arenas',
+      borderColor: "#01c0c0",
+      data: {{ hypersomnia_arenas|json_encode()|raw }}
+    }]
+  }
+});
+new Chart("hypersomnia_servers", {
+  type: "line",
+  data: {
+    labels: days,
+    datasets: [{
+      label: 'Hypersomnia Servers',
+      borderColor: "#01c0c0",
+      data: {{ hypersomnia_servers|json_encode()|raw }}
+    }]
+  }
+});
+</script>
+{% endif %}
 
 {% include 'overall_footer.twig' %}
