@@ -5,7 +5,7 @@ require_once('src/twig.php');
 
 session_start();
 
-if (!isset($_SESSION['admin']) || $_SESSION['admin'] == false) {
+if (is_admin_logged() == false) {
 	header("Location: {$url}admin");
 	die();
 }
@@ -14,7 +14,7 @@ if ($cache != false) {
 	$cache = realpath($cache);
 }
 
-function getLinuxDistroName() {
+function get_distro() {
 	$filepath = '/etc/os-release';
 	if (file_exists($filepath) == false) {
 		return false;
@@ -41,5 +41,5 @@ echo $twig->render('admin/system.twig', [
 	'r' => php_uname('r'),
 	'v' => php_uname('v'),
 	'm' => php_uname('m'),
-	'distro' => getLinuxDistroName()
+	'distro' => get_distro()
 ]);

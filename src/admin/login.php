@@ -5,7 +5,7 @@ require_once('src/twig.php');
 
 session_start();
 
-if (isset($_SESSION['admin']) && $_SESSION['admin'] == true) {
+if (is_admin_logged() == true) {
 	header("Location: {$url}admin/system");
 	die();
 }
@@ -24,11 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$error = 'You exceeded the maximum allowed number of login attempts';
 	} else {
 		foreach ($admins as $k => $v) {
-			if (!empty($v['hash'])) {
-				$hash = hash('sha256', $password);
-			}
-			if ($v['username'] == $username && $v['hash'] == $hash) {
+			$hash = hash('sha256', $password);
+			if ((empty($v['user']) && empty($v['hash'])) || ($v['user'] == $username && $v['hash'] == $hash)) {
 				$_SESSION['admin'] = true;
+				$_SESSION['ip'] = $ip;
 				header("Location: {$url}admin/system");
 				die();
 			}

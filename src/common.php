@@ -94,3 +94,16 @@ function format_size($size, $decimalPlaces = 0) {
 	$size = round($size, $decimalPlaces);
 	return $size . ' ' . $units[$i];
 }
+
+function is_admin_logged() {
+	if (!isset($_SESSION['admin']) || !isset($_SESSION['ip'])) {
+		return false;
+	}
+	if ($_SESSION['admin'] == false) {
+		return false;
+	}
+	if ($_SERVER['REMOTE_ADDR'] != $_SESSION['ip']) {
+		return false;
+	}
+	return true;
+}

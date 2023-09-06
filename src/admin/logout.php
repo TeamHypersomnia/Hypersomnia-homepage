@@ -5,5 +5,11 @@ require_once('src/twig.php');
 
 session_start();
 
+if (is_admin_logged() == false) {
+	header("Location: {$url}admin");
+	die();
+}
+
 $_SESSION['admin'] = false;
+$_SESSION['ip'] = '';
 header("Location: {$url}admin");
