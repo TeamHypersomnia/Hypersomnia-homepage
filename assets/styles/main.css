@@ -339,12 +339,8 @@ dd {
     flex-direction: column;
   }
 
-  .links, footer .footer-left p {
+  footer .footer-left p {
     padding: 0 20px;
-  }
-
-  .links {
-    justify-content: center;
   }
 
   .btn-group {
@@ -663,7 +659,7 @@ label {
 }
 
 /* FOOTER */
-.links {
+.footer-left {
   font-size: 0.85em;
   margin: 0;
   display: flex;
@@ -671,11 +667,11 @@ label {
   flex-wrap: wrap;
 }
 
-.links a {
+.footer-left a {
   margin: 5px 5px;
 }
 
-.links a:first-child {
+.footer-left a:first-child {
   margin: 5px 5px 0 0;
 }
 
@@ -689,6 +685,7 @@ footer {
   flex-wrap: wrap;
   flex-direction: row-reverse;
   align-items: flex-start;
+  align-items: center;
 }
 
 footer a {

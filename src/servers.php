@@ -16,7 +16,7 @@ if ($content !== false) {
 
 if (isset($address)) {
 	$key = array_search($address, array_column($servers, 'ip'));
-	if ($key == false) {
+	if ($key === false) {
 		header("Location: {$url}servers");
 		die();
 	}
