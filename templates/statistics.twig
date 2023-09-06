@@ -26,92 +26,40 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 <script>
-const days = {{ days|json_encode()|raw }};
-Chart.defaults.global.defaultFontColor = "#cdcdcd";
+function convertToTitleCase(str) {
+  return str.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
 
-// Unique Visitors
-new Chart("unique_visitors", {
-  type: "line",
-  data: {
-    labels: days,
-    datasets: [{
-      label: 'Unique Visitors',
-      borderColor: "#01c0c0",
-      data: {{ unique_visitors|json_encode()|raw }}
-    }]
+document.addEventListener('DOMContentLoaded', function () {
+  var data = {{ statistics|json_encode()|raw }};
+  var canvasElements = document.querySelectorAll('canvas');
+  var dataSources = [];
+  for (var i = 0; i < canvasElements.length; i++) {
+    dataSources.push(canvasElements[i].id);
   }
-});
-
-// GitHub
-new Chart("github_stars", {
-  type: "line",
-  data: {
-    labels: days,
-    datasets: [{
-      label: 'Stars',
-      borderColor: "#4078c0",
-      data: {{ github_stars|json_encode()|raw }}
-    }]
-  }
-});
-new Chart("github_forks", {
-  type: "line",
-  data: {
-    labels: days,
-    datasets: [{
-      label: 'Forks',
-      borderColor: "#4078c0",
-      data: {{ github_forks|json_encode()|raw }}
-    }]
-  }
-});
-
-// YouTube
-new Chart("youtube_views", {
-  type: "line",
-  data: {
-    labels: days,
-    datasets: [{
-      label: 'Views',
-      borderColor: "#FF0000",
-      data: {{ youtube_views|json_encode()|raw }}
-    }]
-  }
-});
-new Chart("youtube_subscribers", {
-  type: "line",
-  data: {
-    labels: days,
-    datasets: [{
-      label: 'Subscribers',
-      borderColor: "#FF0000",
-      data: {{ youtube_subscribers|json_encode()|raw }}
-    }]
-  }
-});
-
-// Hypersomnia
-new Chart("hypersomnia_arenas", {
-  type: "line",
-  data: {
-    labels: days,
-    datasets: [{
-      label: 'Arenas',
-      borderColor: "#01c0c0",
-      data: {{ hypersomnia_arenas|json_encode()|raw }}
-    }]
-  }
-});
-new Chart("hypersomnia_servers", {
-  type: "line",
-  data: {
-    labels: days,
-    datasets: [{
-      label: 'Servers',
-      borderColor: "#01c0c0",
-      data: {{ hypersomnia_servers|json_encode()|raw }}
-    }]
-  }
+  dataSources.forEach(function(dataSource) {
+    var datasets = [];
+    var labels = [];
+    Object.keys(data).forEach(function(date) {
+      labels.push(date);
+      datasets.push(data[date][dataSource]);
+    });
+    new Chart(dataSource, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: convertToTitleCase(dataSource),
+            data: datasets,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+          }
+        ]
+      }
+    });
+  });
 });
 </script>
 {% endif %}
