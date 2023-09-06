@@ -25,13 +25,12 @@ function time_elapsed($datetime, $full = false) {
 	return $string ? implode(', ', $string) . ' ago' : 'just now';
 }
 
-function request($url, $headers = []) {
+function request($url) {
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_USERAGENT, 'Hypersomnia-App');
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 	$result = curl_exec($ch);
 	if (curl_errno($ch)) {
 		print(curl_error($ch));

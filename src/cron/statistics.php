@@ -16,15 +16,9 @@ if (isset($statistics[$date]) == false) {
 $statistics[$date]['unique_visitors'] = count(get_json('../data/visitors.json'));
 put_json('../data/visitors.json', []);
 
-if (empty($apikey_github) == false) {
-	$json = request('https://api.github.com/repos/TeamHypersomnia/Hypersomnia', [
-		'Accept: application/vnd.github+json',
-		'Authorization: Bearer ' . $apikey_github,
-		'X-Github-Api-Version: 2022-11-28'
-	]);
-	$statistics[$date]['github_stars'] = intval($json['stargazers_count']);
-	$statistics[$date]['github_forks'] = intval($json['forks']);
-}
+$json = request('https://api.github.com/repos/TeamHypersomnia/Hypersomnia');
+$statistics[$date]['github_stars'] = intval($json['stargazers_count']);
+$statistics[$date]['github_forks'] = intval($json['forks']);
 
 if (empty($apikey_youtube) == false) {
 	$json = request('https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UC4ZChoPA5sx6Z41rfaTG9bQ&key=' . $apikey_youtube);
