@@ -25,6 +25,8 @@ foreach ($visitors as $key => $value) {
 	$dateTime = new DateTime();
 	$dateTime->setTimestamp($value['ts']);
 	$visitors[$key]['ts'] = time_elapsed_string($dateTime->format('Y-m-d H:i:s'));
+	$result = new WhichBrowser\Parser($value['ua']);
+	$visitors[$key]['result'] = $result->toString();
 }
 
 echo $twig->render('admin/visitors.twig', [

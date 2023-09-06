@@ -1,6 +1,7 @@
 {
     "require": {
         "twig/twig": "^3.0",
-        "bramus/router": "~1.6"
+        "bramus/router": "~1.6",
+        "whichbrowser/parser": "^2.1"
     }
 }

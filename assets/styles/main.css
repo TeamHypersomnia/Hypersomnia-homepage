@@ -282,6 +282,22 @@ dd {
   footer {
     justify-content: space-between;
   }
+
+  #firearms th {
+    width: 11%;
+  }
+  
+  #melees th {
+    width: 9%;
+  }
+  
+  #explosives th, #spells th {
+    width: 14%;
+  }
+  
+  #authorized_mappers th, #visitors th {
+    width: 25%;
+  }
 }
 
 /* MOBILE */
@@ -395,26 +411,6 @@ td, tr {
 
 thead > tr {
   border: 1px solid transparent;
-}
-
-#firearms th {
-  width: 11%;
-}
-
-#melees th {
-  width: 9%;
-}
-
-#explosives th, #spells th {
-  width: 14%;
-}
-
-#authorized_mappers th {
-  width: 25%;
-}
-
-#visitors td {
-  white-space: normal;
 }
 
 #controls > tbody > tr > td {
