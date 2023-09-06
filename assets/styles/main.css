@@ -168,14 +168,13 @@ strong, th, td:nth-child(1) {
   padding: 15px 0;
 }
 
-.arenas > a {
-  padding: 50px 0;
-  text-align: center;
-  min-height: 200px;
-  max-height: 200px;
+.arenas > a > div.subname {
+  height: 1px;
 }
 
 .arenas > a {
+  padding: 50px 0;
+  text-align: center;
   text-decoration: none;
 }
 
@@ -184,7 +183,7 @@ strong, th, td:nth-child(1) {
 }
 
 .arena_miniature {
-  max-height: 200px;
+  max-height: 150px;
   max-width: 200px;
 }
 
@@ -261,13 +260,13 @@ dd {
 
   .arenas {
     display: flex;
+    gap: 20px;
     flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
+    align-items: flex-end;
   }
 
   .arenas > a {
-    width: 33%;
+    width: calc(25% - 20px);
   }
 
   .arena {
@@ -286,6 +285,14 @@ dd {
 
   footer {
     justify-content: space-between;
+  }
+
+  .footer-left a {
+    margin: 5px 5px;
+  }
+  
+  .footer-left a:first-child {
+    margin: 5px 5px 0 0;
   }
 
   #firearms th {
@@ -664,16 +671,10 @@ label {
   font-size: 0.85em;
   margin: 0;
   display: flex;
+  gap: 10px;
   flex-direction: row;
   flex-wrap: wrap;
-}
-
-.footer-left a {
-  margin: 5px 5px;
-}
-
-.footer-left a:first-child {
-  margin: 5px 5px 0 0;
+  justify-content: center;
 }
 
 footer {

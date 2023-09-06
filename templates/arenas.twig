@@ -2,7 +2,7 @@
 
 <h1>Community Arenas</h1>
 <div class="arenas">
-{% for i in maps %}
+{% for i in arenas %}
   <a href="{{ url }}arenas/{{ i.name }}">
     <img class="arena_miniature" src="{{ url }}arenas/{{ i.name }}/miniature.png" alt="{{ i.name }}">
     <div class="arena_name">{{ i.name }}</div>
