@@ -1,7 +1,7 @@
 <?php
-function time_elapsed($datetime, $full = false) {
+function time_elapsed($dt, $full = false) {
 	$now = new DateTime;
-	$then = new DateTime($datetime);
+	$then = new DateTime($dt);
 	$diff = (array)$now->diff($then);
 	$diff['w']  = floor($diff['d'] / 7);
 	$diff['d'] -= $diff['w'] * 7;
@@ -53,17 +53,44 @@ function cut_title($title, $maxLength) {
 	}
 }
 
-function get_json($filename) {
-	if (file_exists($filename) === false) {
+function get_json($file) {
+	if (file_exists($file) === false) {
 		return [];
 	}
-	$content = file_get_contents($filename);
+	$content = file_get_contents($file);
 	if ($content === false) {
 		return [];
 	}
 	return json_decode($content, true);
 }
 
-function put_json($filename, $json = []) {
-	file_put_contents($filename, json_encode($json));
+function put_json($file, $json = []) {
+	file_put_contents($file, json_encode($json));
+}
+
+function directory_size($dir) {
+	$size = 0;
+	$files = glob(rtrim($dir, '/') . '/*');
+	if ($files === false) {
+		return false;
+	}
+	foreach ($files as $file) {
+		if (is_file($file)) {
+			$size += filesize($file);
+		} elseif (is_dir($file)) {
+			$size += directory_size($file);
+		}
+	}
+	return $size;
+}
+
+function format_size($size, $decimalPlaces = 0) {
+	$units = array('B', 'KB', 'MB', 'GB', 'TB');
+	$i = 0;
+	while ($size >= 1024 && $i < 4) {
+		$size /= 1024;
+		$i++;
+	}
+	$size = round($size, $decimalPlaces);
+	return $size . ' ' . $units[$i];
 }

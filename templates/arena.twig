@@ -9,11 +9,13 @@
       <dt>Full description</dt>
       <dd>{{ full_description }}</dd>
       <dt>External resources</dt>
-      <dd>{{ external_resources_num }}</dd>
+      <dd>{{ resources }}</dd>
       <dt>Author</dt>
       <dd>{{ author }}</dd>
       <dt>Updated</dt>
-      <dd>{% if version_timestamp != 0 %}{{ version_timestamp }}{% else %}N/A{% endif %}</dd>
+      <dd>{{ updated }}</dd>
+      <dt>Size</dt>
+      <dd>{{ size }}</dd>
     </dl>
   </div>
   <div class="miniature"><img src="{{ url }}arenas/{{ arena }}/miniature.png" alt="{{ arena }}"></div>
