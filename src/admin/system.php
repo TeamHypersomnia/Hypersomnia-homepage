@@ -34,7 +34,6 @@ echo $twig->render('admin/system.twig', [
 	'phpversion' => phpversion(),
 	'cache' => $cache,
 	'arenas_path' => $arenas_path,
-	'apikey_youtube' => $apikey_youtube,
 	'user' => get_current_user(),
 	'realpath' => realpath('.'),
 	's' => php_uname('s'),

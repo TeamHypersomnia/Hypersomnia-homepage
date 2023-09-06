@@ -1,6 +1,9 @@
 {% include 'overall_header.twig' %}
 
 <h1>Community Arenas</h1>
+{% if arenas == false %}
+<p class="error">Failed to fetch arenas</p>
+{% else %}
 <div class="arenas">
 {% for i in arenas %}
   <a href="{{ url }}arenas/{{ i.name }}">
@@ -11,5 +14,6 @@
   </a>
 {% endfor %}
 </div>
+{% endif %}
 
 {% include 'overall_footer.twig' %}

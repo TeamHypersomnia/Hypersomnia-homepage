@@ -24,7 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$error = 'You exceeded the maximum allowed number of login attempts';
 	} else {
 		foreach ($admins as $k => $v) {
-			if ($v['username'] == $username && $v['password'] == $password) {
+			if (!empty($v['hash'])) {
+				$hash = hash('sha256', $password);
+			}
+			if ($v['username'] == $username && $v['hash'] == $hash) {
 				$_SESSION['admin'] = true;
 				header("Location: {$url}admin/system");
 				die();

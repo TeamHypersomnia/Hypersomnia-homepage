@@ -19,7 +19,7 @@
     </thead>
     <tbody>
       {% if firearms == false %}
-      <tr><td class="error" colspan="10">Failed to fetch data</td></tr>
+      <tr><td class="error" colspan="10">Failed to fetch firearms</td></tr>
       {% else %}
       {% for i in firearms %}
       <tr>
@@ -66,7 +66,7 @@
     </thead>
     <tbody>
       {% if melees == false %}
-      <tr><td class="error" colspan="10">Failed to fetch data</td></tr>
+      <tr><td class="error" colspan="10">Failed to fetch melee weapons</td></tr>
       {% else %}
       {% for i in melees %}
       <tr>
@@ -104,8 +104,8 @@
       </tr>
     </thead>
     <tbody>
-      {% if melees == false %}
-      <tr><td class="error" colspan="8">Failed to fetch data</td></tr>
+      {% if explosives == false %}
+      <tr><td class="error" colspan="8">Failed to fetch explosives</td></tr>
       {% else %}
       {% for i in explosives %}
       <tr>
@@ -139,8 +139,8 @@
       </tr>
     </thead>
     <tbody>
-      {% if melees == false %}
-      <tr><td class="error" colspan="7">Failed to fetch data</td></tr>
+      {% if spells == false %}
+      <tr><td class="error" colspan="7">Failed to fetch spells</td></tr>
       {% else %}
       {% for i in spells %}
       <tr>
