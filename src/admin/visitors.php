@@ -1,7 +1,7 @@
 <?php
-require_once 'src/config.php';
-require_once 'src/twig.php';
-require_once 'src/common.php';
+require_once('src/config.php');
+require_once('src/common.php');
+require_once('src/twig.php');
 
 session_start();
 
@@ -10,23 +10,15 @@ if (!isset($_SESSION['admin']) || $_SESSION['admin'] == false) {
 	die();
 }
 
-$content = @file_get_contents('src/data/visitors.json');
-if ($content == false) {
-	$visitors = [];
-} else {
-	$visitors = json_decode($content, true);
-}
+$visitors = get_json('src/data/visitors.json');
+array_multisort(array_column($visitors, 'ts'), SORT_DESC, $visitors);
 
-uasort($visitors, function ($a, $b) {
-	return $b['ts'] - $a['ts'];
-});
-
-foreach ($visitors as $key => $value) {
-	$dateTime = new DateTime();
-	$dateTime->setTimestamp($value['ts']);
-	$visitors[$key]['ts'] = time_elapsed_string($dateTime->format('Y-m-d H:i:s'));
-	$result = new WhichBrowser\Parser($value['ua']);
-	$visitors[$key]['result'] = $result->toString();
+foreach ($visitors as $k => $v) {
+	$dt = new DateTime();
+	$dt->setTimestamp($v['ts']);
+	$visitors[$k]['ts'] = time_elapsed($dt->format('Y-m-d H:i:s'));
+	$result = new WhichBrowser\Parser($v['ua']);
+	$visitors[$k]['result'] = $result->toString();
 }
 
 echo $twig->render('admin/visitors.twig', [

@@ -1,25 +1,25 @@
 <?php
-require_once 'src/config.php';
+require_once('src/config.php');
 
 if (file_exists("$arenas_path/$arena") == false) {
-	http_response_code(404);
+	require_once('src/404.php');
 	die();
 }
 
 $path = "$arenas_path/$arena/$file";
 if (file_exists($path) == false) {
-	http_response_code(404);
+	require_once('src/404.php');
 	die();
 }
 
 // Allow downloading files contained in the map folder
 function getDirContents($dir, &$results = array()) {
 	$files = scandir($dir);
-	foreach ($files as $key => $value) {
-		$path = realpath($dir . DIRECTORY_SEPARATOR . $value);
+	foreach ($files as $k => $v) {
+		$path = realpath($dir . DIRECTORY_SEPARATOR . $v);
 		if (!is_dir($path)) {
 			$results[] = $path;
-		} else if ($value != "." && $value != "..") {
+		} else if ($v != "." && $v != "..") {
 			getDirContents($path, $results);
 		}
 	}
@@ -35,7 +35,7 @@ for ($i=0; $i < sizeof($arr); $i++) {
 }
 
 if (in_array($file, $arr) == false) {
-	http_response_code(404);
+	require_once('src/404.php');
 	die();
 }
 

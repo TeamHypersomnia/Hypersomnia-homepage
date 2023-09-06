@@ -1,5 +1,5 @@
 <?php
-require_once 'src/config.php';
+require_once('src/config.php');
 
 function zipFile($source, $destination, $flag = '') {
 	if (!extension_loaded('zip') || !file_exists($source)) {

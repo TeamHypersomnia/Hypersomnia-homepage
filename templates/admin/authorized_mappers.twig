@@ -12,12 +12,12 @@
       </tr>
     </thead>
     <tbody>
-      {% if authorized_mappers == false %}
+      {% if mappers == false %}
       <tr>
-        <td colspan="4" class="error">Failed to retrieve the list of authorized mappers.</td>
+        <td colspan="4" class="error">Failed to fetch data</td>
       </tr>
       {% else %}
-      {% for k, v in authorized_mappers %}
+      {% for k, v in mappers %}
       <tr>
         <td>{{ v.shorthand }}</td>
         <td>{% if v.allow_creating_new == true %}yes{% else %}no{% endif %}</td>

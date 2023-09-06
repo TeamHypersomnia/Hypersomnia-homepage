@@ -1,7 +1,7 @@
 <?php
-require_once 'src/config.php';
-require_once 'src/twig.php';
-require_once 'src/admin/login_attempts.php';
+require_once('src/config.php');
+require_once('src/common.php');
+require_once('src/twig.php');
 
 session_start();
 
@@ -15,24 +15,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$username = isset($_POST['username']) ? $_POST['username'] : '';
 	$password = isset($_POST['password']) ? $_POST['password'] : '';
 
-	if (isIPBlocked($ip)) {
-		$error = 'You exceeded the maximum allowed number of login attempts.';
+	$login_attempts = get_json('src/data/login_attempts.json');
+	$attempts = array_filter($login_attempts, function ($attempt) use ($ip) {
+		return $attempt['ip'] === $ip && (time() - $attempt['ts']) <= 900;
+	});
+
+	if (count($attempts) >= 3) {
+		$error = 'You exceeded the maximum allowed number of login attempts';
 	} else {
-		foreach ($admins as $key => $value) {
-			if ($value['username'] == $username && $value['password'] == $password) {
+		foreach ($admins as $k => $v) {
+			if ($v['username'] == $username && $v['password'] == $password) {
 				$_SESSION['admin'] = true;
 				header("Location: {$url}admin/system");
 				die();
 			}
 		}
-		$error = 'You have specified an incorrect username or password.';
-		logFailedLogin($ip, $username, $password);
+		$error = 'You have specified an incorrect username or password';
+		$login_attempts[] = [
+			'ip' => $ip,
+			'ts' => time()
+		];
+		put_json('src/data/login_attempts.json', $login_attempts);
 	}
 }
 
-$error = isset($error) ? $error : '';
 echo $twig->render('admin/login.twig', [
 	'url' => $url,
 	'page' => 'Admin Login',
-	'error' => $error
+	'error' => isset($error) ? $error : ''
 ]);

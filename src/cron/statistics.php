@@ -1,33 +1,21 @@
 <?php
 // This script should be executed by crontab at the end of the day
 if (php_sapi_name() !== 'cli') {
-	die("This script can only be run from the command line.");
+	die('This script can only be run from the command line');
 }
 
-require_once '../config.php';
-require_once '../common.php';
+require_once('../config.php');
+require_once('../common.php');
 
-$statistics = [];
-$content = @file_get_contents('../data/statistics.json');
-if ($content !== false) {
-	$statistics = json_decode($content, true);
-}
-
+$statistics = get_json('../data/statistics.json');
 $date = date("d.m.Y");
 if (isset($statistics[$date]) == false) {
-    $statistics[$date] = [];
+	$statistics[$date] = [];
 }
 
-// Unique Visitors
-$visitors = [];
-$content = @file_get_contents('../data/visitors.json');
-if ($content !== false) {
-	$visitors = json_decode($content, true);
-}
-$statistics[$date]['unique_visitors'] = sizeof($visitors);
-unlink('../data/visitors.json');
+$statistics[$date]['unique_visitors'] = count(get_json('../data/visitors.json'));
+put_json('../data/visitors.json', []);
 
-// GitHub
 if (empty($apikey_github) == false) {
 	$json = request('https://api.github.com/repos/TeamHypersomnia/Hypersomnia', [
 		'Accept: application/vnd.github+json',
@@ -38,17 +26,13 @@ if (empty($apikey_github) == false) {
 	$statistics[$date]['github_forks'] = intval($json['forks']);
 }
 
-// YouTube
 if (empty($apikey_youtube) == false) {
 	$json = request('https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UC4ZChoPA5sx6Z41rfaTG9bQ&key=' . $apikey_youtube);
 	$statistics[$date]['youtube_views'] = intval($json['items'][0]['statistics']['viewCount']);
 	$statistics[$date]['youtube_subscribers'] = intval($json['items'][0]['statistics']['videoCount']);
 }
 
-// Hypersomnia
-$json = request('https://hypersomnia.xyz/arenas?format=json');
-$statistics[$date]['hypersomnia_arenas'] = sizeof($json);
-$json = request('http://hypersomnia.xyz:8420/server_list_json');
-$statistics[$date]['hypersomnia_servers'] = sizeof($json);
+$statistics[$date]['hypersomnia_arenas'] = count(request('https://hypersomnia.xyz/arenas?format=json'));
+$statistics[$date]['hypersomnia_servers'] = count(request('http://hypersomnia.xyz:8420/server_list_json'));
 
-file_put_contents('../data/statistics.json', json_encode($statistics));
+put_json('../data/statistics.json', $statistics);

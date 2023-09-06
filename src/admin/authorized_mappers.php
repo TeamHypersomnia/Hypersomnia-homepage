@@ -1,6 +1,7 @@
 <?php
-require_once 'src/config.php';
-require_once 'src/twig.php';
+require_once('src/config.php');
+require_once('src/common.php');
+require_once('src/twig.php');
 
 session_start();
 
@@ -9,18 +10,11 @@ if (!isset($_SESSION['admin']) || $_SESSION['admin'] == false) {
 	die();
 }
 
-$authorized_mappers = [];
-$content = @file_get_contents($arenas_path . '/authorized_mappers.json');
-if ($content !== false) {
-	$authorized_mappers = json_decode($content, true);
-}
-
-uasort($authorized_mappers, function ($a, $b) {
-	return strcasecmp($a['shorthand'], $b['shorthand']);
-});
+$mappers = get_json($arenas_path.'/authorized_mappers.json');
+uasort($mappers, fn($a, $b) => strcasecmp($a['shorthand'], $b['shorthand']));
 
 echo $twig->render('admin/authorized_mappers.twig', [
 	'url' => $url,
 	'page' => 'Authorized Mappers',
-	'authorized_mappers' => $authorized_mappers
+	'mappers' => $mappers
 ]);

@@ -5,3 +5,7 @@ src/data/commits.json
 src/data/statistics.json
 src/data/visitors.json
 src/data/login_attempts.json
+src/data/spells.json
+src/data/firearms.json
+src/data/melees.json
+src/data/explosives.json

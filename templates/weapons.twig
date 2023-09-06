@@ -18,6 +18,9 @@
       </tr>
     </thead>
     <tbody>
+      {% if firearms == false %}
+      <tr><td class="error" colspan="10">Failed to fetch data</td></tr>
+      {% else %}
       {% for i in firearms %}
       <tr>
         <td>{{ i.display_name }}</td>
@@ -32,6 +35,7 @@
         <td>{{ i.weight|number_format(2) }}</td>
       </tr>
       {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 </div>
@@ -61,6 +65,9 @@
       </tr>
     </thead>
     <tbody>
+      {% if melees == false %}
+      <tr><td class="error" colspan="10">Failed to fetch data</td></tr>
+      {% else %}
       {% for i in melees %}
       <tr>
         <td>{{ i.display_name }}</td>
@@ -76,6 +83,7 @@
         <td>{{ i.weight|number_format(2) }}</td>
       </tr>
       {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 </div>
@@ -96,6 +104,9 @@
       </tr>
     </thead>
     <tbody>
+      {% if melees == false %}
+      <tr><td class="error" colspan="8">Failed to fetch data</td></tr>
+      {% else %}
       {% for i in explosives %}
       <tr>
         <td>{{ i.display_name }}</td>
@@ -108,6 +119,7 @@
         <td>{{ i.weight|number_format(2) }}</td>
       </tr>
       {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 </div>
@@ -127,6 +139,9 @@
       </tr>
     </thead>
     <tbody>
+      {% if melees == false %}
+      <tr><td class="error" colspan="7">Failed to fetch data</td></tr>
+      {% else %}
       {% for i in spells %}
       <tr>
         <td>{{ i.display_name }}</td>
@@ -138,6 +153,7 @@
         <td>{% if i.kill_award == -1 %}N/A{% else %}{{ i.kill_award }}{% endif %}</td>
       </tr>
       {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 </div>

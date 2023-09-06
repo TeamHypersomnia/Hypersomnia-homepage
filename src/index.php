@@ -1,15 +1,11 @@
 <?php
-require_once 'src/config.php';
-require_once 'src/twig.php';
-require_once 'src/common.php';
+require_once('src/config.php');
+require_once('src/common.php');
+require_once('src/twig.php');
 
-$commits = [];
-$content = @file_get_contents('src/data/commits.json');
-if ($content !== false) {
-	$commits = json_decode($content, true);
-	foreach ($commits as $key => $value) {
-		$commits[$key]['date'] = time_elapsed_string($value['date']);
-	}
+$commits = get_json('src/data/commits.json');
+foreach ($commits as $k => $v) {
+	$commits[$k]['date'] = time_elapsed($v['date']);
 }
 
 echo $twig->render('index.twig', [
