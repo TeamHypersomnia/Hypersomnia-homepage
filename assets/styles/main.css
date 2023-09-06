@@ -63,6 +63,7 @@ code {
 
 canvas {
   padding-top: 15px;
+  min-height: 305px;
 }
 
 article {
@@ -367,8 +368,8 @@ dd {
     flex-direction: column;
   }
 
-  footer .footer-left p {
-    padding: 0 20px;
+  .footer-left {
+    padding: 10px 20px;
   }
 
   .btn-group {

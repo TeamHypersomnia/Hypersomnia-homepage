@@ -39,6 +39,7 @@ if (in_array($file, $arr) == false) {
 	die();
 }
 
+header('Cache-Control: public, max-age=3600');
 header('Content-Type: application/octet-stream');
 header('Content-Disposition: attachment; filename="'.basename($path).'"');
 header('Content-Length: ' . filesize($path));
