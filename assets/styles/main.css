@@ -34,7 +34,7 @@ p, li {
 }
 
 a {
-  color: #42c3c3;
+  color: rgb(53, 239, 239);
   text-decoration: none;
 }
 
@@ -60,7 +60,7 @@ canvas {
 }
 
 article {
-  margin-top: 30px;
+  margin-top: 40px;
   padding: 1.5rem;
   background: #1b1f22;
   border-radius: 4px;
@@ -84,8 +84,7 @@ ul.none > li {
 
 kbd {
   background-color: #000;
-  border: 1px solid white;
-  color: #fff;
+  border: 1px solid #cdcdcd;
   display: inline-block;
   font-size: 0.9em;
   font-weight: 500;
@@ -136,8 +135,9 @@ strong, th, td:nth-child(1) {
 }
 
 .subname {
-  font-size: 13px;
+  font-size: 12.8px;
   font-style: italic;
+  color: #ababab;
 }
 
 /* ARENAS */
@@ -148,7 +148,6 @@ strong, th, td:nth-child(1) {
   background-color: #1e2225;
   border-radius: 4px;
   border: 1px solid transparent;
-  color: #ababab;
 }
 
 .alert:last-child {
@@ -287,7 +286,7 @@ dd {
   }
 
   nav a.active {
-    color: rgb(53 239 239);
+    color: rgb(53, 239, 239);
     border-bottom: 1px solid rgb(1, 192, 192);
   }
 
@@ -322,6 +321,12 @@ dd {
   
   #authorized_mappers th, #visitors th, #users th {
     width: 25%;
+  }
+
+  .form {
+    max-width: 300px;
+    margin: 0 auto;
+    padding-top: 200px;
   }
 }
 
@@ -419,6 +424,10 @@ dd {
     flex-direction: row;
     justify-content: space-evenly;
   }
+
+  .form {
+    padding-top: 15px;
+  }
 }
 
 /* TABLES */
@@ -468,6 +477,14 @@ thead > tr {
 #controls > tbody > tr {
   white-space: normal;
   border: none;
+}
+
+#controls > tbody > tr:hover {
+  color: #fff;
+}
+
+#controls > tbody > tr:hover kbd {
+  border: 1px solid #fff;
 }
 
 #controls > tbody > tr:nth-child(even) {
@@ -572,7 +589,7 @@ nav a:hover {
 }
 
 nav a.active {
-  color: rgb(53 239 239);
+  color: rgb(53, 239, 239);
 }
 
 nav > .flex {
@@ -664,12 +681,6 @@ nav > div > form > button:hover {
 }
 
 /* FORMS */
-.form {
-  max-width: 300px;
-  margin: 0 auto;
-  padding-top: 200px;
-}
-
 label {
   font-size: 0.9em;
   -webkit-user-select: none;
@@ -794,7 +805,7 @@ footer .footer-right a:hover {
 }
 
 .btn a:hover {
-  color: rgb(1, 192, 192);
+  color: rgb(53 239 239);
   border: 1px solid rgb(1, 192, 192);
 }
 
@@ -815,7 +826,7 @@ div.btn > form > button {
 }
 
 div.btn > form > button:hover {
-  color: rgb(1, 192, 192);
+  color: rgb(53, 239, 239);
   border-color: rgb(1, 192, 192);
 }
 
