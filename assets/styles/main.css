@@ -24,7 +24,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1.3em;
+  font-size: 1.4em;
   padding-top: 30px;
 }
 
@@ -52,7 +52,7 @@ pre {
 }
 
 code {
-  font-size: 0.9em;
+  font-size: 1em;
 }
 
 canvas {
@@ -297,7 +297,7 @@ dd {
 
   .footer-left a {
     margin: 5px 5px;
-    color: #dee2e6;
+    font-size: 0.9em;
   }
 
   .footer-left a:hover {
@@ -388,7 +388,13 @@ dd {
   }
 
   .footer-left {
-    padding: 10px 20px;
+    font-size: 0.9em;
+    margin: 0;
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .btn-group {
@@ -401,8 +407,17 @@ dd {
   }
 
   footer {
-    justify-content: center;
-    gap: 15px;
+    box-sizing: border-box;
+    width: 100%;
+    text-align: left;
+    padding: 15px 0;
+    margin: 30px 0;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    min-height: 200px;
+    flex-direction: row;
+    justify-content: space-evenly;
   }
 }
 
@@ -639,7 +654,7 @@ nav > div > form > button:hover {
   cursor: pointer;
   border: 1px solid transparent;
   border-radius: 4px;
-  margin: 30px;
+  margin: 10px;
   opacity: 0.8;
 }
 
@@ -650,8 +665,9 @@ nav > div > form > button:hover {
 
 /* FORMS */
 .form {
-  margin-top: 15px;
   max-width: 300px;
+  margin: 0 auto;
+  padding-top: 200px;
 }
 
 label {
@@ -685,7 +701,7 @@ label {
   display: inline-block;
   border-radius: 4px;
   transition: all .3s;
-  background-color: #1e1e1e;
+  background-color: transparent;
   outline: none;
 }
 
@@ -705,16 +721,6 @@ label {
 }
 
 /* FOOTER */
-.footer-left {
-  font-size: 0.9em;
-  margin: 0;
-  display: flex;
-  gap: 10px;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
 footer {
   box-sizing: border-box;
   width: 100%;
@@ -728,6 +734,14 @@ footer {
   align-content: flex-start;
 }
 
+footer .footer-left a {
+  color: #cdcdcd;
+}
+
+footer .footer-lfet a:hover {
+  color: #fff;
+}
+
 footer .footer-left p {
   margin: 20px;
   color: #dee2e6;
@@ -736,18 +750,16 @@ footer .footer-left p {
 
 footer .footer-right {
   display: flex;
-  gap: 20px;
+  gap: 15px;
 }
 
 footer .footer-right a {
   display: inline-block;
-  font-size: 1.2em;
-  color: #dee2e6;
+  font-size: 1em;
+  color: #cdcdcd;
 }
 
 footer .footer-right a:hover {
-  transform: scale(1.1);
-  -webkit-transform: scale(1.1);
   color: #fff;
 
 }
@@ -810,4 +822,14 @@ div.btn > form > button:hover {
 div.btn > form > button > span {
   display: block;
   text-align: center;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active{
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: #dee2e6;
+  transition: background-color 5000s ease-in-out 0s;
+  box-shadow: inset 0 0 20px 20px transparent;
 }
