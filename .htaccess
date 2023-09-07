@@ -16,9 +16,13 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . index.php [L]
 
-# Disable folder access
+# Disable access
 RewriteRule ^cache/(.*)?$ / [F,L]
 RewriteRule ^src/(.*)?$ / [F,L]
 RewriteRule ^templates/(.*)?$ / [F,L]
 RewriteRule ^vendor/(.*)?$ / [F,L]
 RewriteRule ^composer\.(lock|json)$ / [F,L]
+<FilesMatch "(\.env|\.json)$">
+	Order deny,allow
+	Deny from all
+</FilesMatch>

@@ -17,8 +17,7 @@ $provider = new Discord([
 ]);
 
 if (!isset($_GET['code'])) {
-	$options = ['scope' => ['identify']];
-	$authUrl = $provider->getAuthorizationUrl($options);
+	$authUrl = $provider->getAuthorizationUrl(['scope' => ['identify']]);
 	$_SESSION['oauth2state'] = $provider->getState();
 	header("Location: {$authUrl}");
 	die();
@@ -32,7 +31,6 @@ if (!isset($_GET['code'])) {
 	try {
 		$user = $provider->getResourceOwner($token)->toArray();
 		$id = $user['id'];
-		$ts = time();
 
 		$_SESSION['logged'] = true;
 		$_SESSION['id'] = $id;
@@ -46,9 +44,9 @@ if (!isset($_GET['code'])) {
 		$users[$id]['username'] = $user['username'];
 		$users[$id]['global_name'] = $user['global_name'];
 		$users[$id]['last_login'] = $ts;
-		$users[$id]['last_page'] = $_SERVER['REQUEST_URI'];
+		$users[$id]['last_page'] = $uri;
 		$users[$id]['last_seen'] = $ts;
-		$users[$id]['ip'] = $_SERVER['REMOTE_ADDR'];
+		$users[$id]['ip'] = $ip;
 		put_json('src/data/users.json', $users);
 
 		if (isset($_SESSION['redirect'])) {

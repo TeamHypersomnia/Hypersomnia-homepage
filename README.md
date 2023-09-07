@@ -26,7 +26,7 @@ composer update
 # Base URL
 APP_URL=http://localhost/Hypersomnia-homepage/
 
-# Cache setting (path to cache directory or false)
+# Cache (true or false)
 CACHE=false
 
 # Path to arenas directory

@@ -8,10 +8,11 @@ if (!is_logged()) {
 	die();
 }
 
-$_SESSION['logged'] = false;
-$_SESSION['id'] = '';
-$_SESSION['username'] = '';
-$_SESSION['avatar'] = '';
-$_SESSION['global_name'] = '';
-$_SESSION['admin'] = false;
+unset($_SESSION['logged']);
+unset($_SESSION['id']);
+unset($_SESSION['username']);
+unset($_SESSION['avatar']);
+unset($_SESSION['global_name']);
+unset($_SESSION['admin']);
+
 header("Location: {$url}");

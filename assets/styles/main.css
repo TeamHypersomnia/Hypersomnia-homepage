@@ -113,7 +113,7 @@ strong, th, td:nth-child(1) {
   cursor: pointer;
 }
 
-.copy:hover, .like:hover {
+.copy:hover, #like:hover {
   color: #fff;
 }
 
