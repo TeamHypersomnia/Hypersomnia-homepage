@@ -1,7 +1,8 @@
 <?php
-require_once('src/config.php');
-require_once('src/common.php');
-require_once('src/twig.php');
+require_once 'src/config.php';
+require_once 'src/common.php';
+require_once 'src/user.php';
+require_once 'src/twig.php';
 
 if (file_exists("$arenas_path/$arena") == false) {
 	header("Location: {$url}arenas");
@@ -25,6 +26,7 @@ $resources = isset($json['external_resources']) ? count($json['external_resource
 $size = format_size(directory_size("$arenas_path/$arena"));
 
 echo $twig->render('arena.twig', [
+	's' => $_SESSION,
 	'url' => $url,
 	'page' => $arena . ' - Arenas',
 	'arena' => $arena,

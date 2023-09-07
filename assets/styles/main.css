@@ -239,6 +239,10 @@ dd {
     height: 57px;
   }
 
+  nav a:last-child, nav > div > form {
+    margin-left: auto;
+  }
+
   th, td {
     font-size: 0.9em;
   }
@@ -522,14 +526,12 @@ nav {
 }
 
 nav a {
-  float: left;
   display: block;
   color: #e7e7e7;
   text-align: center;
   padding: 20px;
   text-decoration: none;
   font-size: 0.9em;
-  transition: background-color 0.3s;
   font-weight: 500;
 }
 
@@ -546,6 +548,24 @@ nav > .flex {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+}
+
+nav > div > form > button {
+  display: block;
+  color: #e7e7e7;
+  text-align: center;
+  padding: 20px 10px;
+  text-decoration: none;
+  font-size: 0.9em;
+  font-weight: 500;
+  background: transparent;
+  outline: none;
+  border: none;
+  cursor: pointer;
+}
+
+nav > div > form > button:hover {
+  color: #fff;
 }
 
 /* TABS */
@@ -611,7 +631,7 @@ nav > .flex {
 }
 
 /* FORMS */
-form {
+.form {
   margin-top: 15px;
   max-width: 300px;
 }
@@ -758,4 +778,30 @@ footer .footer-right a:hover {
 .btn a:hover {
   color: rgb(1, 192, 192);
   border-color: rgb(1, 192, 192);
+}
+
+div.btn > form > button {
+  font-size: 0.9em;
+  color: #cdcdcd;
+  text-decoration: none;
+  border: 1px solid rgb(100 100 111 / 20%);
+  padding: 8px 15px;
+  display: inline-block;
+  border-radius: 4px;
+  transition: all .3s;
+  font-weight: 500;
+  width: 100%;
+  height: 52px;
+  background-color: #1e1e1e;
+  cursor: pointer;
+}
+
+div.btn > form > button:hover {
+  color: rgb(1, 192, 192);
+  border-color: rgb(1, 192, 192);
+}
+
+div.btn > form > button > span {
+  display: block;
+  text-align: center;
 }

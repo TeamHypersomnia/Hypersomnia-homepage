@@ -1,6 +1,6 @@
 <?php
-require_once('src/config.php');
-require_once('src/common.php');
+require_once 'src/config.php';
+require_once 'src/common.php';
 
 $files = [
 	'windows' => 'https://hypersomnia.xyz/builds/latest/Hypersomnia-for-Windows.zip',

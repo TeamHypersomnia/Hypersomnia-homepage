@@ -1,7 +1,8 @@
 <?php
-require_once('src/config.php');
-require_once('src/common.php');
-require_once('src/twig.php');
+require_once 'src/config.php';
+require_once 'src/common.php';
+require_once 'src/user.php';
+require_once 'src/twig.php';
 
 $arenas = [];
 if (is_dir($arenas_path)) {
@@ -37,6 +38,7 @@ if (isset($_GET['version'])) {
 }
 
 echo $twig->render('arenas.twig', [
+	's' => $_SESSION,
 	'url' => $url,
 	'page' => 'Arenas',
 	'arenas' => $arenas

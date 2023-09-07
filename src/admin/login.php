@@ -1,9 +1,8 @@
 <?php
-require_once('src/config.php');
-require_once('src/common.php');
-require_once('src/twig.php');
-
-session_start();
+require_once 'src/config.php';
+require_once 'src/common.php';
+require_once 'src/user.php';
+require_once 'src/twig.php';
 
 if (is_admin_logged() == true) {
 	header("Location: {$url}admin/system");
@@ -42,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 echo $twig->render('admin/login.twig', [
+	's' => $_SESSION,
 	'url' => $url,
 	'page' => 'Admin Login',
 	'error' => isset($error) ? $error : ''

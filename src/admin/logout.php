@@ -1,9 +1,7 @@
 <?php
-require_once('src/config.php');
-require_once('src/common.php');
-require_once('src/twig.php');
-
-session_start();
+require_once 'src/config.php';
+require_once 'src/common.php';
+require_once 'src/user.php';
 
 if (is_admin_logged() == false) {
 	header("Location: {$url}admin");

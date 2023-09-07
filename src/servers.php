@@ -1,12 +1,13 @@
 <?php
-require_once('src/config.php');
-require_once('src/common.php');
-require_once('src/twig.php');
+require_once 'src/config.php';
+require_once 'src/common.php';
+require_once 'src/user.php';
+require_once 'src/twig.php';
 
 $servers = request('http://hypersomnia.xyz:8420/server_list_json');
 foreach ($servers as $k => $v) {
-	$servers[$k]['time_hosted_ago'] = time_elapsed(date('Y-m-d H:i:s', $v['time_hosted']));
-	$servers[$k]['time_last_heartbeat_ago'] = time_elapsed(date('Y-m-d H:i:s', $v['time_last_heartbeat']));
+	$servers[$k]['time_hosted_ago'] = time_elapsed(date('Y-m-d H:i:s', (int)$v['time_hosted']));
+	$servers[$k]['time_last_heartbeat_ago'] = time_elapsed(date('Y-m-d H:i:s', (int)$v['time_last_heartbeat']));
 }
 usort($servers, fn($a, $b) => $b['num_playing'] <=> $a['num_playing']);
 
@@ -25,6 +26,7 @@ if (isset($address)) {
 }
 
 echo $twig->render('servers.twig', [
+	's' => $_SESSION,
 	'url' => $url,
 	'page' => 'Servers',
 	'servers' => $servers

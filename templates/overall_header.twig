@@ -36,6 +36,15 @@
       <a href="{{ url }}servers"{% if page == "Servers" %} class="active"{% endif %}>
         <span class="desktop">Servers</span><span class="mobile"><i class="fa-solid fa-server"></i></span>
       </a>
+      {% if s.logged == false %}
+      <a href="{{ url }}discord"{% if page == "Discord" %} class="active"{% endif %}>
+        <span class="desktop">Login with Discord</span><span class="mobile"><i class="fa fa-brands fa-discord"></i></span>
+      </a>
+      {% else %}
+      <form method="POST" action="{{ url }}logout">
+        <button type="submit"><span class="desktop">Logout</span><span class="mobile"><i class="fa-solid fa-right-from-bracket"></i></div></button>
+      </form>
+      {% endif %}
     </div>
   </nav>
   <div class="container">

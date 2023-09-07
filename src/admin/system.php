@@ -1,9 +1,8 @@
 <?php
-require_once('src/config.php');
-require_once('src/common.php');
-require_once('src/twig.php');
-
-session_start();
+require_once 'src/config.php';
+require_once 'src/common.php';
+require_once 'src/user.php';
+require_once 'src/twig.php';
 
 if (is_admin_logged() == false) {
 	header("Location: {$url}admin");
@@ -29,6 +28,7 @@ function get_distro() {
 }
 
 echo $twig->render('admin/system.twig', [
+	's' => $_SESSION,
 	'url' => $url,
 	'page' => 'System',
 	'phpversion' => phpversion(),
@@ -36,10 +36,10 @@ echo $twig->render('admin/system.twig', [
 	'arenas_path' => $arenas_path,
 	'user' => get_current_user(),
 	'realpath' => realpath('.'),
-	's' => php_uname('s'),
-	'n' => php_uname('n'),
-	'r' => php_uname('r'),
-	'v' => php_uname('v'),
-	'm' => php_uname('m'),
+	'operating_system' => php_uname('s'),
+	'host_name' => php_uname('n'),
+	'release_name' => php_uname('r'),
+	'version_information' => php_uname('v'),
+	'machine_type' => php_uname('m'),
 	'distro' => get_distro()
 ]);

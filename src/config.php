@@ -6,3 +6,6 @@ $apikey_youtube = '';
 $admins = [
 	['user' => '', 'hash' => '']
 ];
+$discord_client_id = '';
+$discord_client_secret = '';
+$discord_redirect_uri = '';

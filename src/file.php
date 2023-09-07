@@ -1,5 +1,5 @@
 <?php
-require_once('src/config.php');
+require_once 'src/config.php';
 
 if (file_exists("$arenas_path/$arena") == false) {
 	require_once('src/404.php');
