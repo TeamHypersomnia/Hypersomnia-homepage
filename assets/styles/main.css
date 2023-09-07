@@ -300,6 +300,16 @@ dd {
   }
 
   footer {
+    box-sizing: border-box;
+    width: 100%;
+    text-align: left;
+    padding: 15px 0;
+    margin: 30px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    min-height: 200px;
+    align-content: flex-start;
     justify-content: space-between;
   }
 
@@ -352,6 +362,7 @@ dd {
   nav > .flex {
     height: auto;
     justify-content: space-around;
+    padding: 0 1.5rem;
   }
 
   .flex > a {
@@ -424,14 +435,14 @@ dd {
     box-sizing: border-box;
     width: 100%;
     text-align: left;
-    padding: 15px 0;
     margin: 30px 0;
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: flex-start;
     min-height: 200px;
-    flex-direction: row;
-    justify-content: space-evenly;
+    align-content: flex-start;
+    justify-content: space-between;
+    padding: 0 1.5rem;
   }
 
   .form {
@@ -741,19 +752,6 @@ label {
 }
 
 /* FOOTER */
-footer {
-  box-sizing: border-box;
-  width: 100%;
-  text-align: left;
-  padding: 15px 0;
-  margin: 30px 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  min-height: 200px;
-  align-content: flex-start;
-}
-
 footer .footer-left a {
   color: #cdcdcd;
 }
