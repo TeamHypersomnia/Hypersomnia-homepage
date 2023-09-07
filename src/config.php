@@ -4,10 +4,10 @@ $dotenv->load();
 
 $url = $_ENV['APP_URL'];
 
-if ($dotenv->ifPresent('CACHE')->isBoolean()) {
-    $cache = false;
+if ($_ENV['CACHE'] === 'false' || !empty($_ENV['CACHE'])) {
+	$cache = false;
 } else {
-    $cache = $_ENV['CACHE'];
+	$cache = $_ENV['CACHE'];
 }
 
 $arenas_path = $_ENV['ARENAS_PATH'];
