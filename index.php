@@ -9,6 +9,7 @@ $router->get('/download/(\w+)', fn ($file) => require_once 'src/download.php');
 $router->get('/download-zip/(\w+)', fn ($arena) => require_once 'src/download_zip.php');
 $router->post('/upload', fn () => require_once 'src/upload.php');
 $router->get('/discord', fn () => require_once 'src/discord.php');
+$router->get('/profile', fn () => require_once 'src/profile.php');
 $router->post('/logout', fn () => require_once 'src/logout.php');
 
 // Nav

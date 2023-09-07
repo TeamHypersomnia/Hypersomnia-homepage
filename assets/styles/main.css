@@ -246,8 +246,12 @@ dd {
     height: 58px;
   }
 
-  nav a:last-child, nav > div > form {
+  nav a.right {
     margin-left: auto;
+  }
+
+  nav > div > form {
+    margin-left: 0;
   }
 
   th, td {
@@ -602,7 +606,7 @@ nav > div > form > button {
   display: block;
   color: #e7e7e7;
   text-align: center;
-  padding: 20px 20px 20px 10px;
+  padding: 20px 10px 20px 10px;
   text-decoration: none;
   font-size: 0.9em;
   font-weight: 500;
