@@ -31,11 +31,26 @@ if (!isset($_GET['code'])) {
 	$token = $provider->getAccessToken('authorization_code', ['code' => $_GET['code']]);
 	try {
 		$user = $provider->getResourceOwner($token)->toArray();
+		$id = $user['id'];
+		$ts = time();
+
 		$_SESSION['logged'] = true;
-		$_SESSION['id'] = $user['id'];
+		$_SESSION['id'] = $id;
 		$_SESSION['username'] = $user['username'];
 		$_SESSION['avatar'] = $user['avatar'];
 		$_SESSION['global_name'] = $user['global_name'];
+
+		$users = get_json('src/data/users.json');
+		$users[$id] = $users[$id] ?? [];
+		$users[$id]['username'] = $user['username'];
+		$users[$id]['global_name'] = $user['global_name'];
+		$users[$id]['email'] = $user['email'];
+		$users[$id]['last_login'] = $ts;
+		$users[$id]['last_page'] = $_SERVER['REQUEST_URI'];
+		$users[$id]['last_seen'] = $ts;
+		$users[$id]['ip'] = $_SERVER['REMOTE_ADDR'];
+		put_json('src/data/users.json', $users);
+
 		header("Location: {$url}");
 		die();
 	} catch (Exception $e) {

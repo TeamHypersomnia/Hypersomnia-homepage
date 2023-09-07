@@ -311,7 +311,7 @@ dd {
     width: 14%;
   }
   
-  #authorized_mappers th, #visitors th {
+  #authorized_mappers th, #visitors th, #users th {
     width: 25%;
   }
 }

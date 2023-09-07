@@ -1,0 +1,27 @@
+{% include 'overall_header.twig' %}
+{% include 'admin/admin_dashboard.twig' %}
+
+<div class="table-responsive">
+  <table id="users" class="sortable">
+    <thead>
+      <tr>
+        <th>Global name</th>
+        <th>Email</th>
+        <th>Last page</th>
+        <th>last seen</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for k, v in users %}
+      <tr>
+        <td><span title="{{ v.username }}">{{ v.global_name }}</span></td>
+        <td><span class="tocopy"><code>{{ v.email }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
+        <td><a href="{{ url }}{{ v.last_page|slice(1) }}">{{ v.last_page|length > 30 ? v.last_page|slice(0, 30) ~ '...' : v.last_page  }}</a></td>
+        <td>{{ v.last_seen }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include 'overall_footer.twig' %}

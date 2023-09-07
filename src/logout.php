@@ -9,7 +9,7 @@ if (is_user_logged() == false) {
 }
 
 $_SESSION['logged'] = false;
-$_SESSION['id'] = 0;
+$_SESSION['id'] = '';
 $_SESSION['username'] = '';
 $_SESSION['avatar'] = '';
 $_SESSION['global_name'] = '';

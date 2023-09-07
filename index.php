@@ -37,6 +37,7 @@ $router->mount('/admin', fn () => [
     $router->match('GET|POST', '/', fn () => require_once 'src/admin/login.php'),
     $router->get('/system', fn () => require_once 'src/admin/system.php'),
     $router->get('/visitors', fn () => require_once 'src/admin/visitors.php'),
+    $router->get('/users', fn () => require_once 'src/admin/users.php'),
     $router->get('/authorized-mappers', fn () => require_once 'src/admin/authorized_mappers.php'),
     $router->post('/logout', fn () => require_once 'src/admin/logout.php'),
 ]);
