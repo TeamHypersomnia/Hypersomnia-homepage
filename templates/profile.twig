@@ -1,6 +1,10 @@
 {% include 'overall_header.twig' %}
 
 <h1>{{ s.global_name }}</h1>
-<p>Coming Soon</p>
+<img class="avatar" src="https://cdn.discordapp.com/avatars/{{ s.id }}/{{ s.avatar }}" alt="avatar">
+<dl>
+  <dt>Discord ID</dt>
+  <dd><span class="tocopy"><code>{{ s.id }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></dd>
+</dl>
 
 {% include 'overall_footer.twig' %}

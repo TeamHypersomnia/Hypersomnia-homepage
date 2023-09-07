@@ -140,6 +140,11 @@ strong, th, td:nth-child(1) {
   color: #ababab;
 }
 
+.avatar {
+  padding-top: 15px;
+  border-radius: 50%;
+}
+
 /* ARENAS */
 .alert {
   margin-bottom: 15px;
