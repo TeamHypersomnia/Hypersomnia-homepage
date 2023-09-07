@@ -16,6 +16,13 @@
       <dd>{{ updated }}</dd>
       <dt>Size</dt>
       <dd>{{ size }}</dd>
+      <dt>Likes</td>
+      <dd>
+        <span id="likes">{{ likes }}</span>
+        {% if s.logged == true %}
+        <button id="like"{% if is_liked == true %} style="display:none;"{% endif %}><i class="fa-solid fa-thumbs-up"></i></button>
+        {% endif %}
+      </dd>
     </dl>
   </div>
   <div class="miniature"><img src="{{ url }}arenas/{{ arena }}/miniature.png" alt="{{ arena }}"></div>
@@ -43,6 +50,28 @@ document.onkeydown = function(e) {
   }
   e.preventDefault();
 };
+
+{% if s.logged == true %}
+const likesSpan = document.getElementById('likes');
+const likeButton = document.getElementById('like');
+likeButton.addEventListener('click', function () {
+  likeButton.disabled = true;
+  const data = new FormData();
+  data.append('arena', '{{ arena }}');
+  send('{{ url }}ajax/like-arena', data)
+    .then(response => {
+      const json = JSON.parse(response);
+      if (json.success) {
+        likesSpan.textContent = parseInt(likesSpan.textContent) + 1;
+        likeButton.style.display = 'none';
+      }
+    })
+    .catch(error => {
+      console.error('An error occurred:', error);
+    });
+  setTimeout(() => likeButton.disabled = false, 3000);
+});
+{% endif %}
 </script>
 
 {% include 'overall_footer.twig' %}

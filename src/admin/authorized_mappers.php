@@ -4,8 +4,8 @@ require_once 'src/common.php';
 require_once 'src/user.php';
 require_once 'src/twig.php';
 
-if (is_admin_logged() == false) {
-	header("Location: {$url}admin");
+if (is_admin($admins) == false) {
+	require_once 'src/404.php';
 	die();
 }
 

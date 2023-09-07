@@ -29,6 +29,19 @@ function strong() {
   }
 }
 
+function send(url, formData) {
+  return fetch(url, {
+    method: 'POST',
+    body: formData,
+  })
+  .then(function(response) {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.text();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   const videoList = document.querySelectorAll('.yt li');
   videoList.forEach(videoItem => {

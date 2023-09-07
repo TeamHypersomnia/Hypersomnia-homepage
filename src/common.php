@@ -1,4 +1,12 @@
 <?php
+function error($v = true) {
+	die(json_encode(['error' => $v]));
+}
+
+function success($v = true) {
+	die(json_encode(['success' => $v]));
+}
+
 function time_elapsed($dt, $full = false) {
 	$now = new DateTime;
 	$then = new DateTime($dt);
@@ -95,20 +103,20 @@ function format_size($size, $decimalPlaces = 0) {
 	return $size . ' ' . $units[$i];
 }
 
-function is_admin_logged() {
-	if (!isset($_SESSION['admin']) || !isset($_SESSION['ip'])) {
+function is_admin() {
+	if (!isset($_SESSION['logged'])) {
+		return false;
+	}
+	if (!isset($_SESSION['admin'])) {
 		return false;
 	}
 	if ($_SESSION['admin'] == false) {
 		return false;
 	}
-	if ($_SERVER['REMOTE_ADDR'] != $_SESSION['ip']) {
-		return false;
-	}
 	return true;
 }
 
-function is_user_logged() {
+function is_logged() {
 	if (!isset($_SESSION['logged'])) {
 		return false;
 	}

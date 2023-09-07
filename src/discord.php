@@ -3,7 +3,7 @@ require_once 'src/config.php';
 require_once 'src/common.php';
 require_once 'src/user.php';
 
-if (is_user_logged() == true) {
+if (is_logged()) {
 	header("Location: {$url}");
 	die();
 }
@@ -39,19 +39,24 @@ if (!isset($_GET['code'])) {
 		$_SESSION['username'] = $user['username'];
 		$_SESSION['avatar'] = $user['avatar'];
 		$_SESSION['global_name'] = $user['global_name'];
+		$_SESSION['admin'] = in_array($id, $admins) ? true : false;
 
 		$users = get_json('src/data/users.json');
 		$users[$id] = $users[$id] ?? [];
 		$users[$id]['username'] = $user['username'];
 		$users[$id]['global_name'] = $user['global_name'];
-		$users[$id]['email'] = $user['email'];
 		$users[$id]['last_login'] = $ts;
 		$users[$id]['last_page'] = $_SERVER['REQUEST_URI'];
 		$users[$id]['last_seen'] = $ts;
 		$users[$id]['ip'] = $_SERVER['REMOTE_ADDR'];
 		put_json('src/data/users.json', $users);
 
-		header("Location: {$url}");
+		if (isset($_SESSION['redirect'])) {
+			$redirect = $_SESSION['redirect'];
+			header("Location: {$redirect}");
+		} else {
+			header("Location: {$url}");
+		}
 		die();
 	} catch (Exception $e) {
 		// Failed to get user details

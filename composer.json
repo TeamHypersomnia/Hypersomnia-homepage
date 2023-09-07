@@ -3,6 +3,7 @@
         "twig/twig": "^3.0",
         "bramus/router": "~1.6",
         "whichbrowser/parser": "^2.1",
-        "wohali/oauth2-discord-new": "^1.2"
+        "wohali/oauth2-discord-new": "^1.2",
+        "vlucas/phpdotenv": "^5.5"
     }
 }

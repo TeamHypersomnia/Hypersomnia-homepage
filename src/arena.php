@@ -25,6 +25,17 @@ $full_description = $json['about']['full_description'] ?? 'N/A';
 $resources = isset($json['external_resources']) ? count($json['external_resources']) : 0;
 $size = format_size(directory_size("$arenas_path/$arena"));
 
+// Likes
+$likes = 0;
+$is_liked = false;
+$d = get_json("src/data/arenas/$arena.json");
+if (isset($d['likes'])) {
+	$likes = count($d['likes']);
+	if (is_logged() && in_array($_SESSION['id'], $d['likes'])) {
+		$is_liked = true;
+	}
+}
+
 echo $twig->render('arena.twig', [
 	's' => $_SESSION,
 	'url' => $url,
@@ -37,5 +48,7 @@ echo $twig->render('arena.twig', [
 	'short_description' => $short_description,
 	'full_description' => $full_description,
 	'resources' => $resources,
-	'size' => $size
+	'size' => $size,
+	'likes' => $likes,
+	'is_liked' => $is_liked
 ]);

@@ -1,4 +1,4 @@
-/* GENERAL */
+/* Main */
 * {
   font-family: 'Inter', sans-serif;
 }
@@ -106,11 +106,15 @@ strong, th, td:nth-child(1) {
   cursor: pointer;
 }
 
-.copy {
+.copy, #like {
   background: transparent;
   border: none;
-  color: #fff;
+  color: #dee2e6;
   cursor: pointer;
+}
+
+.copy:hover, .like:hover {
+  color: #fff;
 }
 
 .error {
@@ -145,7 +149,7 @@ strong, th, td:nth-child(1) {
   border-radius: 50%;
 }
 
-/* ARENAS */
+/* Arenas */
 .alert {
   margin-bottom: 15px;
   padding: 15px 15px 5px 15px;
@@ -222,11 +226,10 @@ dd {
   margin: 5px 0 15px 0;
 }
 
-/* DESKTOP */
+/* Desktop */
 @media screen and (min-width: 1300px) {
   article {
     border: 1px solid rgb(100 100 111 / 20%);
-    min-height: 600px;
   }
 
   .mobile {
@@ -338,18 +341,16 @@ dd {
     width: 14%;
   }
   
-  #authorized_mappers th, #visitors th, #users th {
+  #authorized_mappers th, #visitors th {
     width: 25%;
   }
 
-  .form {
-    max-width: 300px;
-    margin: 0 auto;
-    padding-top: 200px;
+  #users th {
+    width: 20%;
   }
 }
 
-/* MOBILE */
+/* Mobile */
 @media screen and (max-width: 1300px) {
   .mobile {
     display: inline;
@@ -450,7 +451,7 @@ dd {
   }
 }
 
-/* TABLES */
+/* Tables */
 table {
   margin-top: 15px;
   width: 100%;
@@ -515,7 +516,7 @@ thead > tr {
   text-align: right;
 }
 
-/* SCROLLBAR */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 3px;
   height: 3px;
@@ -533,7 +534,7 @@ thead > tr {
   background: #222;
 }
 
-/* SORTABLE */
+/* Sortable */
 .sortable {
   border-spacing: 0;
 }
@@ -588,7 +589,7 @@ thead > tr {
   color: rgb(255, 80, 0);
 }
 
-/* NAV */
+/* Nav */
 nav {
   background-color: #1b1f22;
 }
@@ -636,7 +637,7 @@ nav > div > form > button:hover {
   color: #fff;
 }
 
-/* TABS */
+/* Tabs */
 .tab {
   margin-top: 15px;
   display: flex;
@@ -674,7 +675,7 @@ nav > div > form > button:hover {
   font-size: 14px;
 }
 
-/* YOUTUBE */
+/* Youtube */
 .yt {
   list-style: none;
   padding: 0;
@@ -700,7 +701,7 @@ nav > div > form > button:hover {
   border-color: rgb(1, 192, 192);
 }
 
-/* FORMS */
+/* Forms */
 label {
   font-size: 0.9em;
   -webkit-user-select: none;
@@ -751,7 +752,7 @@ label {
   border-color: rgb(1, 192, 192);
 }
 
-/* FOOTER */
+/* Footer */
 footer .footer-left a {
   color: #cdcdcd;
 }
@@ -782,7 +783,7 @@ footer .footer-right a:hover {
 
 }
 
-/* BUTTONS */
+/* Buttons */
 .btn-group {
   width: 100%;
   display: flex;
