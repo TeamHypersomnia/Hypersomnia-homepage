@@ -1,59 +1,27 @@
 <?php
 require_once('src/config.php');
+require_once('src/common.php');
 
-function zipFile($source, $destination, $flag = '') {
-	if (!extension_loaded('zip') || !file_exists($source)) {
-		return false;
-	}
-	$zip = new ZipArchive();
-	if (!$zip->open($destination, ZIPARCHIVE::CREATE)) {
-		return false;
-	}
-	$source = str_replace('\\', '/', realpath($source));
-	if($flag) {
-		$flag = basename($source) . '/';
-	}
-	if (is_dir($source) === true) {
-		$files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source), RecursiveIteratorIterator::SELF_FIRST);
-		$files->setFlags(RecursiveDirectoryIterator::SKIP_DOTS);
-		foreach ($files as $file) {
-			$file = str_replace('\\', '/', realpath($file));
-			if (is_dir($file) === true) {
-				$zip->addEmptyDir(str_replace($source . '/', '', $flag.$file . '/'));
-			} else if (is_file($file) === true) {
-				$zip->addFromString(str_replace($source . '/', '', $flag.$file), file_get_contents($file));
-			}
-		}
-	} else if (is_file($source) === true) {
-		$zip->addFromString($flag.basename($source), file_get_contents($source));
-	}
-	return $zip->close();
-}
+$files = [
+	'windows' => 'https://hypersomnia.xyz/builds/latest/Hypersomnia-for-Windows.zip',
+	'linux' => 'https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage',
+	'macos' => 'https://hypersomnia.xyz/builds/latest/Hypersomnia-for-MacOS.dmg'
+];
 
-if (file_exists("$arenas_path/$arena") == false) {
-	header("Location: {$url}arenas");
+if (!isset($files[$file])) {
+	require_once('src/404.php');
 	die();
 }
 
-$json_path = "$arenas_path/$arena/$arena.json";
-if (file_exists($json_path)) {
-	$json = json_decode(file_get_contents($json_path), true);
-	if (isset($json['meta']['version_timestamp'])) {
-		$name = "$arena-" . strtotime($json['meta']['version_timestamp']);
-	} else {
-		$name = $arena;
-	}
-} else {
-	$name = $arena;
+$download = get_json('src/data/download.json');
+if (!isset($download[$file])) {
+	$download[$file] = [];
 }
-
-if (file_exists("cache/$name.zip") == false) {
-	zipFile("$arenas_path/$arena", "cache/$name.zip", true);
+$ip = $_SERVER['REMOTE_ADDR'];
+if (!in_array($ip, $download[$file])) {
+	$download[$file][] = $ip;
 }
+put_json('src/data/download.json', $download);
 
-header("Content-type: application/zip"); 
-header("Content-Disposition: attachment; filename=$arena.zip");
-header("Content-length: " . filesize("cache/$name.zip"));
-header("Pragma: no-cache"); 
-header("Expires: 0"); 
-readfile("cache/$name.zip");
+header("Location: {$files[$file]}");
+die();

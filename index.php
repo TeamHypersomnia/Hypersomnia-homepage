@@ -5,7 +5,8 @@ $router = new \Bramus\Router\Router();
 
 /* GENERAL */
 $router->set404(fn() => require_once('src/404.php'));
-$router->get('/download/(\w+)', fn($arena) => require_once('src/download.php'));
+$router->get('/download/(\w+)', fn($file) => require_once('src/download.php'));
+$router->get('/download-zip/(\w+)', fn($arena) => require_once('src/download_zip.php'));
 $router->post('/upload', fn() => require_once('src/upload.php'));
 
 /* NAV */

@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var datasets = [];
     var labels = [];
     Object.keys(data).forEach(function(date) {
-      labels.push(date);
+      labels.push(date.substring(0, 5));
       datasets.push(data[date][dataSource]);
     });
     new Chart(dataSource, {
