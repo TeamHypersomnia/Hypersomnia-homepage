@@ -16,7 +16,7 @@
       <tr>
         <td><a href="https://db-ip.com/{{ k }}" target="_blank">{{ k }}</a></td>
         <td><span {% if v.ua is not null %} title="{{ v.ua }}"{% endif %}>{{ v.result }}</span></td>
-        <td><a href="{{ url }}{{ v.uri|slice(1) }}">{{ v.uri|length > 30 ? v.uri|slice(0, 30) ~ '...' : v.uri  }}</a></td>
+        <td>{{ v.uri|length > 30 ? v.uri|slice(0, 30) ~ '...' : v.uri  }}</td>
         <td>{{ v.ts }}</td>
       </tr>
       {% endfor %}
