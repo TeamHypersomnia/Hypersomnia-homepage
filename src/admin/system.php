@@ -38,5 +38,6 @@ echo $twig->render('admin/system.twig', [
 	'release_name' => php_uname('r'),
 	'version_information' => php_uname('v'),
 	'machine_type' => php_uname('m'),
-	'distro' => get_distro()
+	'distro' => get_distro(),
+	'inipath' => php_ini_loaded_file()
 ]);

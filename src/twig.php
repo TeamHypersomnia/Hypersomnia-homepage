@@ -1,8 +1,7 @@
 <?php
 require_once 'src/ext/filemtime.php';
+require_once 'src/ext/minify.php';
 
 $loader = new \Twig\Loader\FilesystemLoader('templates');
-$twig = new \Twig\Environment($loader, [
-	'cache' => $cache
-]);
+$twig = new CustomTwigEnvironment($loader, ['cache' => $cache]);
 $twig->addExtension(new \fileModificationTime\CustomTwigExtension());

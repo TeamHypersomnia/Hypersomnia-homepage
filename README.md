@@ -20,13 +20,13 @@ composer update
 
 ## Configuration
 
-`sudo nano /etc/php/8.2/fpm/php.ini`
+php.ini
 ```ini
 session.save_handler = memcached
 session.save_path = "localhost:11211"
 ```
 
-`sudo nano /var/www/html/.env`
+.env
 ```env
 # Base URL
 APP_URL=http://localhost/Hypersomnia-homepage/
