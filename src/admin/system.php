@@ -9,10 +9,6 @@ if (is_admin($admins) == false) {
 	die();
 }
 
-if ($cache != false) {
-	$cache = realpath($cache);
-}
-
 function get_distro() {
 	$filepath = '/etc/os-release';
 	if (file_exists($filepath) == false) {
@@ -27,6 +23,7 @@ function get_distro() {
 	return false;
 }
 
+if ($cache !== false) $cache = realpath($cache);
 echo $twig->render('admin/system.twig', [
 	's' => $_SESSION,
 	'url' => $url,

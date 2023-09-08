@@ -1,0 +1,33 @@
+{% include 'overall_header.twig' %}
+{% include 'admin/admin_dashboard.twig' %}
+
+<div class="table-responsive">
+  <table id="packages">
+    <thead>
+      <tr>
+        <th>Package</th>
+        <th>Latest</th>
+        <th>Source</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% if packages == false %}
+      <tr>
+        <td colspan="4" class="error">Failed to fetch packages</td>
+      </tr>
+    {% else %}
+      {% for package in packages.installed %}
+        <tr>
+          <td><a href="{{ package['source'] }}" target="_blank">{{ package['name'] }}</a></td>
+          <td>{{ package['version'] }}</td>
+          <td>{{ package['latest'] }}</td>
+          <td>{% if package['latest-status'] == 'up-to-date' %}<i class="fa-solid fa-check"></i>{% else %}<i class="fa-solid fa-xmark"></i>{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    {% endif %}
+  </table>
+</div>
+
+{% include 'overall_footer.twig' %}
