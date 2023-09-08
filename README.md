@@ -7,7 +7,7 @@ Currently hosted at https://hypersomnia.xyz/
 ```bash
 sudo add-apt-repository ppa:ondrej/php
 sudo apt update
-sudo apt install php8.2 php8.2-zip php8.2-curl -y
+sudo apt install memcached php8.2 php8.2-zip php8.2-curl php8.2-memcached -y
 
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
 php composer-setup.php
@@ -20,9 +20,14 @@ composer update
 
 ## Configuration
 
-```text
-# .env
+`sudo nano /etc/php/8.2/fpm/php.ini`
+```ini
+session.save_handler = memcached
+session.save_path = "localhost:11211"
+```
 
+`sudo nano /var/www/html/.env`
+```env
 # Base URL
 APP_URL=http://localhost/Hypersomnia-homepage/
 
