@@ -24,6 +24,18 @@ php.ini
 ```ini
 session.save_handler = memcached
 session.save_path = "localhost:11211"
+session.use_strict_mode = 1
+session.use_only_cookies = 1
+session.cookie_httponly = 1
+session.cookie_secure = 1
+session.cookie_samesite = "Lax"
+session.gc_maxlifetime = 86400
+```
+
+apache2.conf
+```conf
+ServerSignature Off
+ServerTokens Prod
 ```
 
 .env
