@@ -30,9 +30,9 @@
       <strong>Download The Game</strong>
       <p>Hypersomnia is available for Windows, Linux, and MacOS. Choose your OS to download the game below.</p>
       <div class="three">
-        <div><a href="{{ url }}download/windows"><img src="{{ url }}assets/images/windows.png" alt="windows"><br>Windows</a></div>
-        <div><a href="{{ url }}download/linux"><img src="{{ url }}assets/images/linux.png" alt="linux"><br>Linux</a></div>
-        <div><a href="{{ url }}download/macos"><img src="{{ url }}assets/images/macos.png" alt="macos"><br>MacOS</a></div>
+        <a href="{{ url }}download/windows"><img src="{{ url }}assets/images/windows.png" alt="windows"><br>Windows</a>
+        <a href="{{ url }}download/linux"><img src="{{ url }}assets/images/linux.png" alt="linux"><br>Linux</a>
+        <a href="{{ url }}download/macos"><img src="{{ url }}assets/images/macos.png" alt="macos"><br>MacOS</a>
       </div>
       <p class="subname">Archives are <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/src/signing_keys.h" target="_blank">digitally signed</a>. You can <a href="https://hypersomnia.xyz/builds/latest/" target="_blank">verify signatures</a>.</p>
     </div>
@@ -43,7 +43,7 @@
       {% else %}
       <ul class="none">
         {% for c in commits %}
-        <li><a href="{{ c.url }}" target="_blank">{{ c.title }}</a><br><i class="subname">{{ c.date }}</i></li>
+        <li><a href="{{ c.url }}" target="_blank">{{ c.title }}<br><i class="subname">{{ c.date }}</i></a></li>
         {% endfor %}
       </ul>
       {% endif %}
