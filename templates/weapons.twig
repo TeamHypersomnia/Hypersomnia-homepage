@@ -19,7 +19,9 @@
     </thead>
     <tbody>
       {% if firearms == false %}
-      <tr><td class="error" colspan="10">Failed to fetch firearms</td></tr>
+      <tr>
+        <td class="error" colspan="10">Failed to fetch firearms</td>
+      </tr>
       {% else %}
       {% for i in firearms %}
       <tr>

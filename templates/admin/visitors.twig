@@ -12,6 +12,11 @@
       </tr>
     </thead>
     <tbody>
+      {% if visitors == false %}
+      <tr>
+        <td colspan="4" class="error">Failed to fetch visitors</td>
+      </tr>
+      {% else %}
       {% for k, v in visitors %}
       <tr>
         <td><a href="https://db-ip.com/{{ k }}" target="_blank">{{ k }}</a></td>
@@ -20,6 +25,7 @@
         <td>{{ v.ts }}</td>
       </tr>
       {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 </div>

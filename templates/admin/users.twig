@@ -18,7 +18,7 @@
         <td>{{ v.global_name }}</td>
         <td>{{ v.username }}</td>
         <td><span class="tocopy"><code>{{ k }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
-        <td><a href="{{ url }}{{ v.last_page|slice(1) }}">{{ v.last_page|length > 30 ? v.last_page|slice(0, 30) ~ '...' : v.last_page  }}</a></td>
+        <td>{{ v.last_page|length > 30 ? v.last_page|slice(0, 30) ~ '...' : v.last_page  }}</td>
         <td>{{ v.last_seen }}</td>
       </tr>
       {% endfor %}

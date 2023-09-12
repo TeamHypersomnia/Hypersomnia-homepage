@@ -4,10 +4,11 @@ if (php_sapi_name() !== 'cli') {
 	die('This script can only be run from the command line');
 }
 
-require_once('../config.php');
-require_once('../common.php');
+require_once('vendor/autoload.php');
+require_once('src/config.php');
+require_once('src/common.php');
 
-$statistics = get_json('../data/statistics.json');
+$statistics = get_json('src/data/statistics.json');
 $date = date("d.m.Y");
 if (isset($statistics[$date]) == false) {
 	$statistics[$date] = [];
@@ -35,4 +36,4 @@ if (empty($apikey_youtube) == false) {
 $statistics[$date]['hypersomnia_arenas'] = count(request('https://hypersomnia.xyz/arenas?format=json'));
 $statistics[$date]['hypersomnia_servers'] = count(request('http://hypersomnia.xyz:8420/server_list_json'));
 
-put_json('../data/statistics.json', $statistics);
+put_json('src/data/statistics.json', $statistics);
