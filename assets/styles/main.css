@@ -5,8 +5,10 @@
 
 body {
   margin: 0;
-  background-color: #212529;
+  background: linear-gradient(45deg, #212529 0%, rgb(30 53 48) 100%);
   color: #dee2e6;
+  background-color: #212529;
+  background-repeat: no-repeat;
 }
 
 h1, h2 {
@@ -14,9 +16,8 @@ h1, h2 {
   padding-bottom: 0.3em;
   border-bottom: 1px dashed rgb(100 100 111 / 20%);
   margin: 5px 0;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.25;
-  font-family: 'Montserrat', sans-serif;
 }
 
 h1 {
@@ -39,7 +40,8 @@ a {
 }
 
 a:hover {
-  text-decoration: underline;
+  color: rgb(148 245 245);
+  text-decoration: none;
 }
 
 pre {
@@ -65,6 +67,7 @@ article {
   background: #1b1f22;
   border-radius: 4px;
   box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+  min-height: 600px;
 }
 
 ul {
@@ -92,6 +95,10 @@ kbd {
   padding: 2px 4px;
   white-space: nowrap;
   border-radius: 4px;
+}
+
+strong {
+  color: #fff;
 }
 
 strong, th, td:nth-child(1) {
@@ -155,7 +162,7 @@ strong, th, td:nth-child(1) {
   padding: 15px 15px 5px 15px;
   font-size: 0.9em;
   background-color: #1e2225;
-  border-radius: 4px;
+  border-radius: 8px;
   border: 1px solid transparent;
 }
 
@@ -165,7 +172,6 @@ strong, th, td:nth-child(1) {
 
 .alert strong {
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
   font-size: 1.1em;
 }
 
@@ -228,10 +234,6 @@ dd {
 
 /* Desktop */
 @media screen and (min-width: 1300px) {
-  article {
-    border: 1px solid rgb(100 100 111 / 20%);
-  }
-
   .mobile {
     display: none;
   }
@@ -247,11 +249,7 @@ dd {
   }
 
   nav {
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15), inset 0 -1px 0 rgb(100 100 111 / 20%);
-  }
-
-  nav > .flex {
-    height: 58px;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
   }
 
   nav a.right {
@@ -299,7 +297,6 @@ dd {
 
   nav a.active {
     color: rgb(53, 239, 239);
-    border-bottom: 1px solid rgb(1, 192, 192);
   }
 
   footer {
@@ -316,17 +313,17 @@ dd {
     justify-content: space-between;
   }
 
+  .footer-left {
+    display: inline-flex;
+    gap: 10px;
+  }
+
   .footer-left a {
-    margin: 5px 5px;
     font-size: 0.9em;
   }
 
   .footer-left a:hover {
     color: #fff;
-  }
-  
-  .footer-left a:first-child {
-    margin: 5px 5px 0 0;
   }
 
   #firearms th {
@@ -388,6 +385,7 @@ dd {
 
   article {
     margin-top: 0;
+    border-radius: 0;
   }
 
   .responsive {
@@ -421,6 +419,7 @@ dd {
     flex-direction: column;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
   }
 
   .btn-group {
@@ -439,11 +438,12 @@ dd {
     margin: 30px 0;
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
     min-height: 200px;
-    align-content: flex-start;
-    justify-content: space-between;
+    align-content: space-around;
     padding: 0 1.5rem;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
   }
 
   .form {
@@ -596,12 +596,13 @@ nav {
 
 nav a {
   display: block;
-  color: #e7e7e7;
+  color: #c4c8cc;
   text-align: center;
   padding: 20px;
   text-decoration: none;
   font-size: 0.9em;
   font-weight: 500;
+  transition: 0.3s;
 }
 
 nav a:hover {
@@ -650,10 +651,7 @@ nav > div > form > button:hover {
   cursor: pointer;
   padding: 10px 16px;
   transition: 0.3s;
-  border-bottom: 1px solid transparent;
-  border-left: none;
-  border-right: none;
-  border-top: none;
+  border: none;
 }
 
 .tab button:hover {
@@ -662,7 +660,6 @@ nav > div > form > button:hover {
 
 .tab button.active {
   color: rgb(53 239 239);
-  border-bottom: 1px solid rgb(1, 192, 192);
 }
 
 .tabcontent {
@@ -691,7 +688,7 @@ nav > div > form > button:hover {
   height: 134px;
   cursor: pointer;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 8px;
   margin: 10px;
   opacity: 0.8;
 }
@@ -754,28 +751,30 @@ label {
 
 /* Footer */
 footer .footer-left a {
-  color: #cdcdcd;
+  color: #c4c8cc;
+  transition: 0.3s;
 }
 
-footer .footer-lfet a:hover {
+footer .footer-left a:hover {
   color: #fff;
+  text-decoration: none;
 }
 
 footer .footer-left p {
   margin: 20px;
   color: #dee2e6;
-  font-size: 0.9em;
 }
 
 footer .footer-right {
   display: flex;
   gap: 15px;
+  transition: 0.3s;
 }
 
 footer .footer-right a {
   display: inline-block;
-  font-size: 1em;
-  color: #cdcdcd;
+  font-size: 1.2em;
+  color: #c4c8cc;
 }
 
 footer .footer-right a:hover {

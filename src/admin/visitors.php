@@ -9,9 +9,7 @@ if (is_admin($admins) == false) {
 	die();
 }
 
-$visitors = get_json('src/data/visitors.json');
 array_multisort(array_column($visitors, 'ts'), SORT_DESC, $visitors);
-
 foreach ($visitors as $k => $v) {
 	$dt = new DateTime();
 	$dt->setTimestamp($v['ts']);
