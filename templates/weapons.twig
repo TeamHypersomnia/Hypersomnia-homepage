@@ -26,7 +26,7 @@
       {% for i in firearms %}
       <tr>
         <td>{{ i.display_name }}</td>
-        <td><img src="https://raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/{{ i.pic_filename }}" alt="{{ i.display_name }}"></td>
+        <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@master/hypersomnia/content/gfx/{{ i.pic_filename }}" alt="{{ i.display_name }}"></td>
         <td>{{ i.damage }}</td>
         <td>{{ i.headshot_damage }}</td>
         <td>{{ i.penetration }}</td>
@@ -44,9 +44,9 @@
 
 <h2>Melee weapons</h2>
 <div class="radio">
-  <input onchange="fast()" id="fast" type="radio" name="radio1" checked>
+  <input onchange="fast()" id="fast" type="radio" name="r" checked>
   <label for="fast">Fast attack</label>
-  <input onchange="strong()" id="strong" type="radio" name="radio1">
+  <input onchange="strong()" id="strong" type="radio" name="r">
   <label for="strong">Strong attack</label>
 </div>
 <div class="table-responsive">

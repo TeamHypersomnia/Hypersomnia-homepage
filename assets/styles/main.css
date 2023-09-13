@@ -49,21 +49,12 @@ a:hover {
   text-decoration: none;
 }
 
-pre {
-  margin-top: 0;
-  background-color: rgb(0 0 0 / 5%);
-  overflow: auto;
-  border: 1px solid rgb(100 100 111 / 20%);
-  padding: 16px;
-  font-size: 0.9em;
+canvas {
+  padding-top: 15px;
 }
 
 code {
-  font-size: 1em;
-}
-
-canvas {
-  padding-top: 15px;
+  word-wrap: break-word;
 }
 
 article {
@@ -667,7 +658,7 @@ nav > div > form > button:hover {
   color: #fff;
 }
 
-.tab button.active {
+.tab button.active, a.tablinks.active {
   color: rgb(53 239 239);
 }
 
@@ -679,6 +670,14 @@ nav > div > form > button:hover {
   font-weight: 500;
   color: #dee2e6;
   font-size: 14px;
+}
+
+.tutorial {
+  border: 1px solid rgb(100 100 111 / 20%);
+  padding: 16px 16px 0 16px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  background-color: rgb(0 0 0 / 5%);
 }
 
 /* Youtube */
