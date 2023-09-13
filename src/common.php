@@ -153,3 +153,27 @@ function zip($source, $destination, $flag = '') {
 	}
 	return $zip->close();
 }
+
+function load_arenas($arenas_path, $memcached) {
+	if (!is_dir($arenas_path)) {
+		return [];
+	}
+	$folders = array_diff(scandir($arenas_path), array('..', '.'));
+	foreach ($folders as $k => $v) {
+		if (!is_dir("$arenas_path/$v")) {
+			continue;
+		}
+		$json = get_json("$arenas_path/$v/$v.json");
+		$version_timestamp = $json['meta']['version_timestamp'] ?? '';
+		$author = $json['about']['author'] ?? 'N/A';
+		$short_description = $json['about']['short_description'] ?? 'N/A';
+		$arenas[] = [
+			'name' => $v,
+			'version_timestamp' => $version_timestamp,
+			'author' => $author,
+			'short_description' => $short_description
+		];
+	}
+	$memcached->set('arenas', $arenas);
+	return $arenas;
+}

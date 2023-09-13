@@ -4,15 +4,17 @@ require_once 'src/common.php';
 require_once 'src/user.php';
 require_once 'src/twig.php';
 
-if (file_exists("$arenas_path/$arena") == false) {
+$arenas = $memcached->get('arenas');
+if (!$arenas) {
+	$arenas = load_arenas();
+}
+
+$arenas = array_column($arenas, 'name');
+if (!in_array($arena, $arenas)) {
 	header("Location: {$url}arenas");
 	die();
 }
 
-$arenas = [];
-foreach(glob("$arenas_path/*", GLOB_ONLYDIR) as $dir) {
-	$arenas[] = basename($dir);
-}
 $key = array_search($arena, $arenas);
 $prev = ($key == 0) ? $arenas[sizeof($arenas) - 1] : $arenas[$key - 1];
 $next = ($key == sizeof($arenas) - 1) ? $arenas[0] : $arenas[$key + 1];
