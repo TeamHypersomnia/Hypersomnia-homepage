@@ -15,7 +15,7 @@ if (isset($statistics[$date]) == false) {
 }
 
 $visitors = $memcached->get('visitors');
-$visitors = $visitors ? json_decode($visitors, true) : [];
+$visitors = $visitors ?? [];
 $statistics[$date]['unique_visitors'] = count($visitors);
 $memcached->delete('visitors');
 
