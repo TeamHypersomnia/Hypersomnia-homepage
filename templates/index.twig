@@ -43,7 +43,7 @@
       {% else %}
       <ul class="none">
         {% for c in commits %}
-        <li><a href="{{ c.url }}" target="_blank">{{ c.title }}<br><i class="subname">{{ c.date }}</i></a></li>
+        <li><a href="https://github.com/TeamHypersomnia/Hypersomnia/commit/{{ c.sha }}" target="_blank">{{ c.message }}<br><i class="subname">{{ c.date }}</i></a></li>
         {% endfor %}
       </ul>
       {% endif %}

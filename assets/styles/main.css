@@ -5,7 +5,7 @@
 
 body {
   margin: 0;
-  background-image: url("../images/overlay.png"), linear-gradient(45deg, #212529 15%, #1e3530 85%);
+  background-image: url("../images/overlay.png"), linear-gradient(45deg, #212529 15%, #1e3530 100%);
   color: #dee2e6;
   background-color: #212529;
   min-height: 1000px;

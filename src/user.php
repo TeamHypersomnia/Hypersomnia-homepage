@@ -7,9 +7,9 @@ $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
 $uri = $_SERVER['REQUEST_URI'];
 
 $visitors = $memcached->get('visitors');
-$visitors = $visitors ? json_decode($visitors, true) : [];
+$visitors = $visitors ?? [];
 $visitors[$ip] = ['ts' => $ts, 'ua' => $ua, 'uri' => $uri];
-$memcached->set('visitors', json_encode($visitors));
+$memcached->set('visitors', $visitors);
 
 if (is_logged()) {
 	$users = get_json('src/data/users.json');

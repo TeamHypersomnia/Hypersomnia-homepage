@@ -8,16 +8,18 @@ require_once('vendor/autoload.php');
 require_once('src/config.php');
 require_once('src/common.php');
 
-$arr = request('https://api.github.com/repos/TeamHypersomnia/Hypersomnia/commits');
+$result = request('https://api.github.com/repos/TeamHypersomnia/Hypersomnia/commits');
+if (!$result) {
+	die('Failed to fetch commits');
+}
 
 $commits = [];
-foreach ($arr as $k => $v) {
-	if (count($commits) >= 15) break;
+foreach (array_slice($result, 0, 15) as $k => $v) {
 	$commits[] = [
-		'title' => cut_title($v['commit']['message'], 40),
-		'url' => $v['html_url'],
-		'date' => $v['commit']['author']['date']
+		'sha' => $v['sha'],
+		'date' => $v['commit']['author']['date'],
+		'message' => cut_title($v['commit']['message'], 40)
 	];
 }
 
-put_json('src/data/commits.json', $commits);
+$memcached->set('commits', $commits);
