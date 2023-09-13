@@ -8,7 +8,7 @@ $arenas = [];
 if (is_dir($arenas_path)) {
 	$folders = array_diff(scandir($arenas_path), array('..', '.'));
 	foreach ($folders as $k => $v) {
-		if (is_dir("$arenas_path/$v") == false) {
+		if (!is_dir("$arenas_path/$v")) {
 			continue;
 		}
 		$json = get_json("$arenas_path/$v/$v.json");

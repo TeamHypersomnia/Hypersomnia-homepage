@@ -534,7 +534,7 @@ thead > tr {
 }
 
 ::-webkit-scrollbar-thumb, ::-webkit-scrollbar-thumb:hover {
-  background: #464545;
+  background: rgb(100 100 111 / 20%);
 }
 
 ::-webkit-scrollbar-corner {
@@ -798,6 +798,7 @@ footer .footer-right a:hover {
   width: 100%;
   display: flex;
   margin-top: 15px;
+  margin-bottom: 15px;
 }
 
 .btn > a > span {

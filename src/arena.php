@@ -24,6 +24,7 @@ $short_description = $json['about']['short_description'] ?? 'N/A';
 $full_description = $json['about']['full_description'] ?? 'N/A';
 $resources = isset($json['external_resources']) ? count($json['external_resources']) : 0;
 $size = format_size(directory_size("$arenas_path/$arena"));
+$version_timestamp = $json['meta']['version_timestamp'];
 
 // Likes
 $likes = 0;
@@ -50,5 +51,6 @@ echo $twig->render('arena.twig', [
 	'resources' => $resources,
 	'size' => $size,
 	'likes' => $likes,
-	'is_liked' => $is_liked
+	'is_liked' => $is_liked,
+	'version_timestamp' => $version_timestamp
 ]);

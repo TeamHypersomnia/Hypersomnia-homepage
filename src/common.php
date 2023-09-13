@@ -41,7 +41,6 @@ function request($url) {
 	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 	$result = curl_exec($ch);
 	if (curl_errno($ch)) {
-		print(curl_error($ch));
 		return [];
 	}
 	curl_close($ch);
