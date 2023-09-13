@@ -13,7 +13,7 @@ use Wohali\OAuth2\Client\Provider\Discord;
 $provider = new Discord([
 	'clientId'     => $discord_client_id,
 	'clientSecret' => $discord_client_secret,
-	'redirectUri'  => $discord_redirect_uri,
+	'redirectUri'  => $url . 'discord',
 ]);
 
 if (!isset($_GET['code'])) {

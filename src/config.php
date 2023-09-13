@@ -9,4 +9,3 @@ $apikey_youtube = $_ENV['APIKEY_YOUTUBE'];
 $admins = explode(',', $_ENV['ADMINS']);
 $discord_client_id = $_ENV['DISCORD_CLIENT_ID'];
 $discord_client_secret = $_ENV['DISCORD_CLIENT_SECRET'];
-$discord_redirect_uri = $_ENV['DISCORD_REDIRECT_URI'];
