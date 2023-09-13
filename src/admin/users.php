@@ -10,11 +10,9 @@ if (is_admin($admins) == false) {
 }
 
 $users = get_json('src/data/users.json');
-uasort($users, fn($a, $b) => strtotime($b['last_seen']) - strtotime($a['last_seen']));
+uasort($users, fn($a, $b) => $b['last_seen'] - $a['last_seen']);
 foreach ($users as $k => $v) {
-	$dt = new DateTime();
 	$users[$k]['last_login'] = time_elapsed($dt->setTimestamp($v['last_login'])->format('Y-m-d H:i:s'));
-	$users[$k]['last_seen'] = time_elapsed($dt->setTimestamp($v['last_seen'])->format('Y-m-d H:i:s'));
 }
 
 echo $twig->render('admin/users.twig', [

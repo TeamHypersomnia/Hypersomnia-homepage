@@ -8,8 +8,7 @@
         <th>Display name</th>
         <th>Username</th>
         <th>Discord ID</th>
-        <th>Last page</th>
-        <th>Last seen</th>
+        <th>Last login</th>
       </tr>
     </thead>
     <tbody>
@@ -18,8 +17,7 @@
         <td>{{ v.global_name }}</td>
         <td>{{ v.username }}</td>
         <td><span class="tocopy"><code>{{ k }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
-        <td>{{ v.last_page|length > 30 ? v.last_page|slice(0, 30) ~ '...' : v.last_page  }}</td>
-        <td>{{ v.last_seen }}</td>
+        <td>{{ v.last_login }}</td>
       </tr>
       {% endfor %}
     </tbody>

@@ -44,8 +44,6 @@ if (!isset($_GET['code'])) {
 		$users[$id]['username'] = $user['username'];
 		$users[$id]['global_name'] = $user['global_name'];
 		$users[$id]['last_login'] = $ts;
-		$users[$id]['last_page'] = $uri;
-		$users[$id]['last_seen'] = $ts;
 		$users[$id]['ip'] = $ip;
 		put_json('src/data/users.json', $users);
 

@@ -15,8 +15,8 @@
       {% for k, v in visitors %}
       <tr>
         <td><a href="https://db-ip.com/{{ k }}" target="_blank">{{ k }}</a></td>
-        <td><span {% if v.ua is not null %} title="{{ v.ua }}"{% endif %}>{{ v.result }}</span></td>
-        <td>{{ v.uri|length > 30 ? v.uri|slice(0, 30) ~ '...' : v.uri  }}</td>
+        <td title="{{ v.ua }}">{{ v.ua|length > 30 ? v.ua|slice(0, 30) ~ '...' : v.ua  }}</td>
+        <td title="{{ v.uri }}">{{ v.uri|length > 30 ? v.uri|slice(0, 30) ~ '...' : v.uri  }}</td>
         <td>{{ v.ts }}</td>
       </tr>
       {% endfor %}

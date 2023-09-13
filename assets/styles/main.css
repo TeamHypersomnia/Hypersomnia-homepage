@@ -342,12 +342,12 @@ dd {
     width: 14%;
   }
   
-  #authorized_mappers th, #visitors th, #packages th {
+  #authorized_mappers th, #packages th {
     width: 25%;
   }
 
-  #users th {
-    width: 20%;
+  #visitors th, #users th {
+    width: 25%;
   }
 }
 
