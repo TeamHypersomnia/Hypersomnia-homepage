@@ -6,14 +6,10 @@ $ts = time();
 $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
 $uri = $_SERVER['REQUEST_URI'];
 
-if (class_exists('Memcached')) {
-	$memcached = new Memcached();
-	$memcached->addServer('127.0.0.1', 11211);
-	$visitors = $memcached->get('visitors');
-	$visitors = $visitors ? json_decode($visitors, true) : [];
-	$visitors[$ip] = ['ts' => $ts, 'ua' => $ua, 'uri' => $uri];
-	$memcached->set('visitors', json_encode($visitors));
-}
+$visitors = $memcached->get('visitors');
+$visitors = $visitors ? json_decode($visitors, true) : [];
+$visitors[$ip] = ['ts' => $ts, 'ua' => $ua, 'uri' => $uri];
+$memcached->set('visitors', json_encode($visitors));
 
 if (is_logged()) {
 	$users = get_json('src/data/users.json');

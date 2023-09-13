@@ -14,14 +14,10 @@ if (isset($statistics[$date]) == false) {
 	$statistics[$date] = [];
 }
 
-if (class_exists('Memcached')) {
-	$memcached = new Memcached();
-	$memcached->addServer('127.0.0.1', 11211);
-	$visitors = $memcached->get('visitors');
-	$visitors = $visitors ? json_decode($visitors, true) : [];
-	$statistics[$date]['unique_visitors'] = count($visitors);
-	$memcached->delete('visitors');
-}
+$visitors = $memcached->get('visitors');
+$visitors = $visitors ? json_decode($visitors, true) : [];
+$statistics[$date]['unique_visitors'] = count($visitors);
+$memcached->delete('visitors');
 
 $json = request('https://api.github.com/repos/TeamHypersomnia/Hypersomnia');
 $statistics[$date]['github_stars'] = intval($json['stargazers_count']);

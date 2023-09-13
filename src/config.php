@@ -9,3 +9,9 @@ $apikey_youtube = $_ENV['APIKEY_YOUTUBE'];
 $admins = explode(',', $_ENV['ADMINS']);
 $discord_client_id = $_ENV['DISCORD_CLIENT_ID'];
 $discord_client_secret = $_ENV['DISCORD_CLIENT_SECRET'];
+
+if (!class_exists('Memcached')) {
+    die('PHP extension memcached is not installed/enabled');
+}
+$memcached = new Memcached();
+$memcached->addServer('127.0.0.1', 11211);

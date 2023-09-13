@@ -9,17 +9,13 @@ if (is_admin($admins) == false) {
 	die();
 }
 
-if (isset($visitors)) {
-	array_multisort(array_column($visitors, 'ts'), SORT_DESC, $visitors);
-	foreach ($visitors as $k => $v) {
-		$dt = new DateTime();
-		$dt->setTimestamp($v['ts']);
-		$visitors[$k]['ts'] = time_elapsed($dt->format('Y-m-d H:i:s'));
-		$result = @new WhichBrowser\Parser($v['ua']);
-		$visitors[$k]['result'] = $result->toString();
-	}
-} else {
-	$visitors = false;
+array_multisort(array_column($visitors, 'ts'), SORT_DESC, $visitors);
+foreach ($visitors as $k => $v) {
+	$dt = new DateTime();
+	$dt->setTimestamp($v['ts']);
+	$visitors[$k]['ts'] = time_elapsed($dt->format('Y-m-d H:i:s'));
+	$result = @new WhichBrowser\Parser($v['ua']);
+	$visitors[$k]['result'] = $result->toString();
 }
 
 echo $twig->render('admin/visitors.twig', [
