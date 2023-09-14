@@ -41,42 +41,42 @@
 <div class="btn-group">
   <div class="btn">
     <a class="tablinks active" href="javascript:void(0)" onclick="javascript:openTab(event, 'debian')">
-      <span><img src="{{ url }}assets/images/ubuntu.png" alt="ubuntu"><img src="{{ url }}assets/images/debian.png" alt="debian"></span>
+      <span><img src="{{ url }}assets/images/os/ubuntu.png" alt="ubuntu"><img src="{{ url }}assets/images/os/debian.png" alt="debian"></span>
       <span>Ubuntu/Debian</span>
     </a>
   </div>
   <div class="btn">
     <a class="tablinks" href="javascript:void(0)" onclick="javascript:openTab(event, 'centos')">
-      <span><img src="{{ url }}assets/images/centos.png" alt="centos"></span>
+      <span><img src="{{ url }}assets/images/os/centos.png" alt="centos"></span>
       <span>CentOS</span>
     </a>
   </div>
   <div class="btn">
     <a class="tablinks" href="javascript:void(0)" onclick="javascript:openTab(event, 'arch')">
-      <span><img src="{{ url }}assets/images/arch.png" alt="arch"></span>
+      <span><img src="{{ url }}assets/images/os/arch.png" alt="arch"></span>
       <span>Arch Linux</span>
     </a>
   </div>
   <div class="btn">
     <a class="tablinks" href="javascript:void(0)" onclick="javascript:openTab(event, 'fedora')">
-      <span><img src="{{ url }}assets/images/fedora.png" alt="fedora"></span>
+      <span><img src="{{ url }}assets/images/os/fedora.png" alt="fedora"></span>
       <span>Fedora</span>
     </a>
   </div>
 </div>
 
 <div class="tutorial">
-  <p>Ensure that your package manager's cache is up to date, and then install fuse:<br>
-  <span class="tocopy tabcontent" id="debian" style="display: block;"><code>sudo apt update && sudo apt install fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="tocopy tabcontent" id="centos"><code>sudo yum makecache && sudo yum -y install fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <p>Update package manager cache and install fuse:<br>
+  <span class="tocopy tabcontent" id="debian" style="display: block;"><code>sudo apt update && sudo apt install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="tocopy tabcontent" id="centos"><code>sudo yum makecache && sudo yum install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
   <span class="tocopy tabcontent" id="arch"><code>sudo pacman -Sy && sudo pacman -S --noconfirm fuse2</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
   <span class="tocopy tabcontent" id="fedora"><code>sudo dnf makecache && sudo dnf install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
   </p>
-  <p>Download Hypersomnia.AppImage using the following command:<br>
+  <p>Download Hypersomnia using the following command:<br>
   <span class="tocopy"><code>wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></p>
-  <p>Grant execution permission to the "Hypersomnia.AppImage" file:<br>
+  <p>Grant execution permission to the file:<br>
   <span class="tocopy"><code>chmod +x Hypersomnia.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></p>
-  <p>Run the "Hypersomnia.AppImage" in the background as a dedicated server:<br>
+  <p>Run the dedicated server in the background:<br>
   <span class="tocopy"><code>nohup ./Hypersomnia.AppImage --dedicated-server --no-router > /dev/null 2>&1 &</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></p>
 </div>
 
