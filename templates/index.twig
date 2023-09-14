@@ -3,9 +3,7 @@
 <div class="parent">
   <div>
     <h1>Hypersomnia</h1>
-    <div class="margin">
-      <img src="{{ url }}assets/images/gif_460x310.gif" alt="hypersomnia" class="responsive">
-    </div>
+    <img src="{{ url }}assets/images/gif_460x310.gif" alt="hypersomnia" class="responsive">
     <p><i>Hypersomnia</i> is a competitive arena released as free software.</p>
     <p>The game has been online and playable since 2017. It brings together:</p>
     <ul>
@@ -26,17 +24,30 @@
     </ul>
   </div>
   <div>
-    <div class="alert">
-      <strong>Download The Game</strong>
-      <p>Hypersomnia is available for Windows, Linux, and MacOS. Choose your OS to download the game below.</p>
+    <div class="panel">
+      <strong>Download</strong>
+      <p>Free and built on open source.</p>
       <div class="three">
-        <a href="{{ url }}download/windows"><img src="{{ url }}assets/images/os/windows.png" alt="windows"><br>Windows</a>
-        <a href="{{ url }}download/linux"><img src="{{ url }}assets/images/os/linux.png" alt="linux"><br>Linux</a>
-        <a href="{{ url }}download/macos"><img src="{{ url }}assets/images/os/macos.png" alt="macos"><br>MacOS</a>
+        <a href="{{ url }}builds/latest/Hypersomnia-for-Windows.zip" class="os">
+          <img src="{{ url }}assets/images/os/windows.svg" alt="Windows">
+          <span>Windows</span>
+          <small>Download zip</small>
+        </a>
+        <a href="{{ url }}builds/latest/Hypersomnia-for-MacOS.dmg" class="os">
+          <img src="{{ url }}assets/images/os/macos.svg" alt="macOS">
+          <span>macOS</span>
+          <small>Download dmg</small>
+        </a>
+        <a href="{{ url }}builds/latest/Hypersomnia.AppImage" class="os">
+        <img src="{{ url }}assets/images/os/linux.svg" alt="Linux">
+          <span>Linux</span>
+          <small>Download AppImage</small>
+        </a>
       </div>
-      <p class="subname">Archives are <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/src/signing_keys.h" target="_blank">digitally signed</a>. You can <a href="https://hypersomnia.xyz/builds/latest/" target="_blank">verify signatures</a>.</p>
+      <p class="subname">Archives are <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/src/signing_keys.h" target="_blank">digitally signed</a>.<br>
+      You can <a href="https://hypersomnia.xyz/builds/latest/" target="_blank">verify signatures</a>.</p>
     </div>
-    <div class="alert">
+    <div class="panel">
       <strong>Latest Commits</strong>
       {% if commits == false %}
       <p class="error">Failed to fetch commits</p>

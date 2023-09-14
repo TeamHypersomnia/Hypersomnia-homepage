@@ -66,18 +66,17 @@
 </div>
 
 <div class="tutorial">
-  <p>Update package manager cache and install fuse:<br>
-  <span class="tocopy tabcontent" id="debian" style="display: block;"><code>sudo apt update && sudo apt install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="tocopy tabcontent" id="centos"><code>sudo yum makecache && sudo yum install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="tocopy tabcontent" id="arch"><code>sudo pacman -Sy && sudo pacman -S --noconfirm fuse2</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="tocopy tabcontent" id="fedora"><code>sudo dnf makecache && sudo dnf install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  </p>
-  <p>Download Hypersomnia using the following command:<br>
-  <span class="tocopy"><code>wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></p>
-  <p>Grant execution permission to the file:<br>
-  <span class="tocopy"><code>chmod +x Hypersomnia.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></p>
-  <p>Run the dedicated server in the background:<br>
-  <span class="tocopy"><code>nohup ./Hypersomnia.AppImage --dedicated-server --no-router > /dev/null 2>&1 &</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></p>
+  <span class="txt"># Update package manager cache and install fuse</span>
+  <span class="tocopy tabcontent" id="debian" style="display:block;"><code>sudo apt update <span class="operators">&&</span> sudo apt install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="tocopy tabcontent" id="centos"><code>sudo yum makecache <span class="operators">&&</span>  sudo yum install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="tocopy tabcontent" id="arch"><code>sudo pacman -Sy <span class="operators">&&</span>  sudo pacman -S --noconfirm fuse2</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="tocopy tabcontent" id="fedora"><code>sudo dnf makecache <span class="operators">&&</span>  sudo dnf install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="txt"># Download Hypersomnia using the following command</span>
+  <span class="tocopy"><code>wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="txt"># Grant execution permission to the file</span>
+  <span class="tocopy"><code>chmod +x Hypersomnia.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="txt"># Run the dedicated server in the background</span>
+  <span class="tocopy"><code>nohup ./Hypersomnia.AppImage --dedicated-server --no-router <span class="operators">></span> /dev/null <span class="operators">2>&1 &</span></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
 </div>
 
 <p>Remove "--no-router" if you're hosting on your PC rather than a proper VPN.</p>

@@ -8,11 +8,11 @@ $commits = $memcached->get('commits');
 if (!$commits) {
 	$result = request('https://api.github.com/repos/TeamHypersomnia/Hypersomnia/commits');
 	$commits = [];
-	foreach (array_slice($result, 0, 15) as $k => $v) {
+	foreach (array_slice($result, 0, 10) as $k => $v) {
 		$commits[] = [
 			'sha' => $v['sha'],
 			'date' => $v['commit']['author']['date'],
-			'message' => cut_title($v['commit']['message'], 40)
+			'message' => cut_title($v['commit']['message'], 35)
 		];
 	}
 	$memcached->set('commits', $commits, time() + 300);
