@@ -61,9 +61,9 @@ copyButtons.forEach(button => {
     const contentToCopy = closestTocopy.querySelector('code').textContent;
     const textItem = new ClipboardItem({ 'text/plain': new Blob([contentToCopy], { type: 'text/plain' }) });
     navigator.clipboard.write([textItem]).then(() => {
-      button.innerHTML = '<i class="fas fa-check"></i>';
+      button.innerHTML = '<i class="fa-solid fa-check"></i>';
       setTimeout(() => {
-        button.innerHTML = '<i class="fas fa-copy"></i>';
+        button.innerHTML = '<i class="fa-solid fa-copy"></i>';
       }, 1000);
     }).catch(err => {
       console.error('Unable to copy: ', err);

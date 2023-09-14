@@ -12,9 +12,9 @@ if (is_admin($admins) == false) {
 $mappers = get_json($arenas_path.'/authorized_mappers.json');
 uasort($mappers, fn($a, $b) => strcasecmp($a['shorthand'], $b['shorthand']));
 
-echo $twig->render('admin/authorized_mappers.twig', [
+echo $twig->render('admin/creators.twig', [
 	's' => $_SESSION,
 	'url' => $url,
-	'page' => 'Authorized Mappers',
+	'page' => 'Creators',
 	'mappers' => $mappers
 ]);

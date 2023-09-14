@@ -100,6 +100,14 @@ strong, th, td:nth-child(1) {
   font-weight: 500;
 }
 
+.center {
+  justify-content: center;
+}
+
+.fa-solid {
+  font-size: 1.2em;
+}
+
 .radio {
   margin-top: 15px;
 }
@@ -247,6 +255,10 @@ dd {
     grid-gap: 20px;
   }
 
+  .btn a {
+    min-width: 150px;
+  }
+
   nav a.right {
     margin-left: auto;
   }
@@ -350,6 +362,10 @@ dd {
 
   .desktop {
     display: none;
+  }
+
+  .btn-group {
+    justify-content: center;
   }
 
   nav > .flex {
@@ -616,7 +632,6 @@ nav a.active {
 nav > .flex {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
 }
 
 nav > div > form > button {
@@ -798,6 +813,9 @@ footer .footer-right a:hover {
   display: flex;
   margin-top: 15px;
   margin-bottom: 15px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .btn > a > span {
@@ -805,22 +823,17 @@ footer .footer-right a:hover {
   text-align: center;
 }
 
-.btn {
-  width: 100%;
-}
-
 .btn a {
   font-size: 0.9em;
   color: #dee2e6;
   text-decoration: none;
   border: 1px solid rgb(100 100 111 / 20%);
-  padding: 8px 15px;
+  padding: 8px;
   display: inline-block;
   border-radius: 8px;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
   font-weight: 500;
-  width: calc(100% - 40px);
 }
 
 .btn a:hover {
@@ -846,7 +859,10 @@ div.btn > form > button {
 
 div.btn > form > button:hover {
   color: rgb(53, 239, 239);
-  border-color: rgb(1, 192, 192);
+}
+
+.btn > a.active {
+  color: rgb(53, 239, 239);
 }
 
 div.btn > form > button > span {

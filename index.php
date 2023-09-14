@@ -39,7 +39,7 @@ $router->mount('/admin', fn () => [
 	$router->get('/packages', fn () => require_once 'src/admin/packages.php'),
 	$router->get('/visitors', fn () => require_once 'src/admin/visitors.php'),
 	$router->get('/users', fn () => require_once 'src/admin/users.php'),
-	$router->get('/authorized-mappers', fn () => require_once 'src/admin/authorized_mappers.php'),
+	$router->get('/creators', fn () => require_once 'src/admin/creators.php'),
 ]);
 
 // Ajax
