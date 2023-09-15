@@ -9,6 +9,12 @@ if (!$arenas) {
 	$arenas = load_arenas($arenas_path, $memcached);
 }
 
+if (isset($_GET['author'])) {
+	$arenas = array_filter($arenas, function ($v) {
+		return $v['author'] === $_GET['author'];
+	});
+}
+
 if (isset($_GET['format']) && $_GET['format'] == 'json') {
 	header('Content-type: application/json; charset=utf-8');
 	die(json_encode($arenas));

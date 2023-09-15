@@ -11,17 +11,14 @@
       <dt>External resources</dt>
       <dd>{{ resources }}</dd>
       <dt>Author</dt>
-      <dd>{{ author }}</dd>
+      <dd>{{ author }}{% if s.logged == true %}<a href="{{ url }}arenas?author={{ author }}" class="icon"><i class="fa-solid fa-magnifying-glass"></i></a>{% endif %}</dd>
       <dt>Updated</dt>
       <dd>{{ updated }}</dd>
       <dt>Size</dt>
       <dd>{{ size }}</dd>
       <dt>Likes</td>
       <dd>
-        <span id="likes">{{ likes }}</span>
-        {% if s.logged == true %}
-        <button id="like"{% if is_liked == true %} style="display:none;"{% endif %}><i class="fa-solid fa-thumbs-up"></i></button>
-        {% endif %}
+        <span id="likes">{{ likes }}</span>{% if s.logged == true %}<button id="like"{% if is_liked == true %} style="display:none;"{% endif %}><i class="fa-solid fa-thumbs-up"></i></button>{% endif %}
       </dd>
     </dl>
   </div>
