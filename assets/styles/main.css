@@ -1,4 +1,3 @@
-/* Main */
 * {
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
@@ -13,12 +12,11 @@ body {
 
 h1, h2 {
   color: #fff;
-  border-bottom: 1px solid rgb(100 100 111 / 25%);
-  margin: 5px 0 10px 0;
+  border-bottom: 1px solid #323235;
+  margin: 5px 0 8px 0;
   padding-bottom: 0.3em;
   font-weight: 500;
   line-height: 1.25;
-  text-shadow: 0 0 #000;
   overflow: hidden;
   text-wrap: nowrap;
 }
@@ -93,7 +91,7 @@ ul.none > li {
 }
 
 .panel > ul.none > li {
-  border-bottom: 1px solid rgb(100 100 111 / 25%);
+  border-bottom: 1px solid #38383b;
 }
 
 ul.none > li:first-child {
@@ -114,7 +112,7 @@ i.subname {
 }
 
 kbd {
-  border: 1px solid rgb(100 100 111 / 50%);
+  border: 1px solid #ccc;
   display: inline-block;
   font-size: 0.9em;
   font-weight: 500;
@@ -137,8 +135,6 @@ strong, th, td:nth-child(1) {
 }
 
 a.os {
-  transition-timing-function: cubic-bezier(.4,0,.2,1);
-  transition-duration: .15s;
   background-color: #3c3c3c;
   border: 1px solid rgb(100 100 111 / 25%);
   cursor: pointer;
@@ -203,10 +199,6 @@ a.os > small {
   color: #fff;
 }
 
-.error {
-  color: #FFEB3B;
-}
-
 .strong {
   display: none;
 }
@@ -223,12 +215,11 @@ a.os > small {
   border-radius: 50%;
 }
 
-/* Arenas */
 .panel {
   padding: 1em;
   font-size: 0.9em;
   border-radius: 8px;
-  border: 1px solid rgb(100 100 111 / 25%);
+  border: 1px solid #38383b;
   margin-bottom: 1.5rem;
   background: #2a2a2a;
 }
@@ -243,7 +234,6 @@ a.os > small {
   display: inline-block;
   margin: 5px 0;
   padding-bottom: 0.3em;
-  text-shadow: 0 0 #000;
 }
 
 .panel p:last-child {
@@ -393,22 +383,6 @@ dd {
   .footer-left a:hover {
     color: #fff;
   }
-
-  #firearms th {
-    width: 11%;
-  }
-  
-  #melees th {
-    width: 9%;
-  }
-  
-  #explosives th, #spells th {
-    width: 14%;
-  }
-  
-  #creators th, #packages th, #visitors th, #users th {
-    width: 25%;
-  }
 }
 
 /* Mobile */
@@ -419,10 +393,6 @@ dd {
 
   .desktop {
     display: none;
-  }
-
-  .btn-group {
-    justify-content: center;
   }
 
   nav > .flex {
@@ -458,7 +428,6 @@ dd {
   .responsive {
     width: 100%;
     height: auto;
-    border: 1px solid transparent;
     border-radius: 4px;
   }
 
@@ -485,11 +454,6 @@ dd {
     align-items: center;
   }
 
-  .btn-group {
-    flex-direction: column;
-    gap: 10px;
-  }
-
   .button {
     padding: 5px 0;
   }
@@ -510,7 +474,6 @@ dd {
   }
 }
 
-/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -522,7 +485,7 @@ table {
 }
 
 tr:nth-child(even) {
-  background-color: #2a2a2a;
+  background-color: #262626;
 }
 
 th, td {
@@ -536,11 +499,11 @@ th {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid #323235;
 }
 
 td, tr {
-  border: 1px solid #444;
+  border: 1px solid #323235;
 }
 
 thead > tr {
@@ -561,14 +524,6 @@ thead > tr {
   border: none;
 }
 
-#controls > tbody > tr:hover {
-  color: #fff;
-}
-
-#controls > tbody > tr:hover kbd {
-  border: 1px solid rgb(100 100 111 / 70%);
-}
-
 #controls > tbody > tr:nth-child(even) {
   background-color: transparent;
 }
@@ -577,7 +532,6 @@ thead > tr {
   text-align: right;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 2px;
   height: 2px;
@@ -591,7 +545,6 @@ thead > tr {
   background: #444;
 }
 
-/* Sortable */
 .sortable {
   border-spacing: 0;
 }
@@ -629,7 +582,6 @@ thead > tr {
   pointer-events: none;
 }
 
-/* SERVER */
 .spectator {
   color: rgb(200, 200, 200);
 }
@@ -646,7 +598,6 @@ thead > tr {
   color: rgb(255, 80, 0);
 }
 
-/* Nav */
 nav {
   background-color: #212121;
   box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
@@ -656,7 +607,7 @@ nav a {
   display: block;
   color: #e7e7e7;
   text-align: center;
-  padding: 20px;
+  padding: 20px 15px;
   text-decoration: none;
   font-size: 0.9em;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
@@ -695,7 +646,6 @@ nav > div > form > button:hover {
   color: #fff;
 }
 
-/* Tabs */
 .tab {
   margin-top: 15px;
   display: flex;
@@ -739,7 +689,7 @@ nav > div > form > button:hover {
 }
 
 .tutorial {
-  border: 1px solid rgb(100 100 111 / 25%);
+  border: 1px solid #323235;
   padding: 16px;
   border-radius: 4px;
   margin-bottom: 15px;
@@ -756,7 +706,6 @@ nav > div > form > button:hover {
   color: #e7e7e7;
 }
 
-/* Youtube */
 .yt {
   list-style: none;
   padding: 0;
@@ -780,7 +729,6 @@ nav > div > form > button:hover {
   opacity: 1;
 }
 
-/* Forms */
 .form {
   display: flex;
   gap: 8px;
@@ -789,8 +737,6 @@ nav > div > form > button:hover {
 
 .form-inline {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
   gap: 8px;
   align-items: flex-end;
 }
@@ -820,7 +766,7 @@ nav > div > form > button:hover {
 input[type='text'], input[type='submit'], textarea, select, option {
   color: #e7e7e7;
   text-decoration: none;
-  border: 1px solid rgb(100 100 111 / 25%);
+  border: 1px solid #323235;
   padding: 8px 15px;
   border-radius: 4px;
   background-color: #212121;
@@ -828,10 +774,6 @@ input[type='text'], input[type='submit'], textarea, select, option {
   font-size: 0.9em;
   margin-bottom: 8px;
   width: 100%;
-}
-
-input:focus {
-  color: #fff;
 }
 
 input[type="submit"] {
@@ -843,7 +785,6 @@ input[type="submit"]:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Footer */
 footer .footer-left a {
   color: #8f8e8e;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
@@ -873,12 +814,11 @@ footer .footer-right a:hover {
 
 }
 
-/* Buttons */
 .btn-group {
   width: 100%;
   display: flex;
-  margin-top: 15px;
-  margin-bottom: 15px;
+  margin-top: 8px;
+  margin-bottom: 8px;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 8px;
@@ -888,31 +828,33 @@ footer .footer-right a:hover {
   display: block;
   text-align: center;
   font-size: 0.9em;
+  font-weight: 500;
+}
+
+.btn > a > span > i {
+  font-size: 1.2em;
 }
 
 .btn a {
   font-size: 0.9em;
   color: #cccccc;
   text-decoration: none;
-  border: 1px solid rgb(100 100 111 / 25%);
-  padding: 8px;
+  border: 1px solid #323235;
+  padding: 8px 10px 6px 10px;
   display: inline-block;
   border-radius: 4px;
-  transition-timing-function: cubic-bezier(.4,0,.2,1);
-  transition-duration: .15s;
-  font-weight: 500;
-  min-width: 67px;
+  min-width: 85px;
 }
 
 .btn a:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: #2c2c2c;
 }
 
 div.btn > form > button {
   font-size: 0.9em;
   color: #cccccc;
   text-decoration: none;
-  border: 1px solid rgb(100 100 111 / 25%);
+  border: 1px solid #323235;
   padding: 8px 15px;
   display: inline-block;
   border-radius: 4px;
@@ -945,5 +887,4 @@ input:-webkit-autofill:active{
   -webkit-background-clip: text;
   -webkit-text-fill-color: #e7e7e7;
   transition: background-color 5000s ease-in-out 0s;
-  box-shadow: inset 0 0 20px 20px transparent;
 }
