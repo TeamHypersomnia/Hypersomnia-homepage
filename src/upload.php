@@ -24,13 +24,7 @@ $apikey = $_POST['apikey'];
 $arena = $_POST['arena'];
 $filename = $_POST['filename'];
 
-$path = $arenas_path . '/authorized_mappers.json';
-$authorized_mappers = @file_get_contents($path);
-if ($authorized_mappers == false) {
-	error('File authorized_mappers.json does not exist');
-}
-
-$authorized_mappers = json_decode($authorized_mappers, true);
+$authorized_mappers = get_json($arenas_path . '/authorized_mappers.json');
 if (!isset($authorized_mappers[$apikey])) {
 	error('You are not authorized to upload maps');
 }
@@ -48,6 +42,15 @@ if (isset($authorized_mappers[$apikey]['maps'])) {
 }
 if ($allow_creating_new == false && in_array($arena, $arenas) == false) {
 	error('You are not authorized to create new maps');
+} elseif ($allow_creating_new == true) {
+	foreach ($authorized_mappers as $key => $value) {
+		if (in_array($arena, $value['maps'])) {
+			$owner = $key;
+		}
+	}
+	if (isset($owner) && $owner != $apikey) {
+		error('You are not authorized to upload map with this name');
+	}
 }
 
 $allowed = ['json', 'png', 'jpg', 'gif', 'ogg', 'wav'];
@@ -73,6 +76,10 @@ move_uploaded_file($_FILES['upload']['tmp_name'], $desiredPath);
 // Refresh the cache when a new arena is uploaded
 if ($filename == "$arena.json") {
 	load_arenas($arenas_path, $memcached);
+	if (!in_array($arena, $authorized_mappers[$apikey]['maps'])) {
+		$authorized_mappers[$apikey]['maps'][] = $arena;
+		put_json($arenas_path . '/authorized_mappers.json', $authorized_mappers);
+	}
 }
 
 success('The file has been uploaded');

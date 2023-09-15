@@ -19,16 +19,18 @@ if ($k === false) {
 
 $k = array_keys($creators)[$k];
 
-if (isset($_POST['delete']) && $_POST['delete'] == 'on') {
-	unset($creators[$k]);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+	if (isset($_POST['delete']) && $_POST['delete'] == 'on') {
+		unset($creators[$k]);
+	} else {
+		$arenas = explode(PHP_EOL, trim($_POST['arenas']));
+		$creators[$k]['shorthand'] = $_POST['shorthand'];
+		$creators[$k]['allow_creating_new'] = ($_POST['allow_creating_new'] === 'yes') ? true : false;
+		$creators[$k]['maps'] = $arenas;
+	}
 	put_json($arenas_path . '/authorized_mappers.json', $creators);
 	header("Location: {$url}admin/creators");
 	die();
-} elseif (isset($_POST['shorthand']) && isset($_POST['arenas'])) {
-	$arenas = explode(PHP_EOL, trim($_POST['arenas']));
-	$creators[$k]['shorthand'] = $_POST['shorthand'];
-	$creators[$k]['maps'] = $arenas;
-	put_json($arenas_path . '/authorized_mappers.json', $creators);
 }
 
 echo $twig->render('admin/creator.twig', [

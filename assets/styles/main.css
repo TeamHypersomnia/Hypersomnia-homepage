@@ -18,6 +18,8 @@ h1, h2 {
   font-weight: 500;
   line-height: 1.25;
   text-shadow: 0 0 #000;
+  overflow: hidden;
+  text-wrap: nowrap;
 }
 
 h1 {
@@ -522,7 +524,6 @@ tr:nth-child(even) {
 th, td {
   padding: 8px;
   white-space: nowrap;
-  margin-right: 10px;
 }
 
 th {
@@ -796,16 +797,13 @@ label {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
-}
-
-.form-group>label {
   color: #e7e7e7;
   font-size: 0.9em;
   display: block;
   margin-bottom: 8px;
 }
 
-.form-group.checkbox {
+.checkbox {
   display: flex;
   flex-direction: row-reverse;
   justify-content: flex-end;
@@ -815,28 +813,28 @@ label {
   cursor: pointer;
 }
 
-.form-group > input, .form-group > textarea {
+input, textarea, select, option {
   color: #e7e7e7;
   text-decoration: none;
   border: 1px solid rgb(100 100 111 / 25%);
   padding: 8px 15px;
   border-radius: 8px;
-  background-color: transparent;
+  background-color: #212121;
   outline: none;
   font-size: 0.9em;
   margin-bottom: 8px;
 }
 
-.form-group > input:focus {
+input:focus {
   color: #fff;
 }
 
-.form-group > input[type="submit"] {
+input[type="submit"] {
   width: auto;
   cursor: pointer;
 }
 
-.form-group > input[type="submit"]:hover {
+input[type="submit"]:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -892,12 +890,13 @@ footer .footer-right a:hover {
   color: #cccccc;
   text-decoration: none;
   border: 1px solid rgb(100 100 111 / 25%);
-  padding: 8px 16px;
+  padding: 8px;
   display: inline-block;
   border-radius: 8px;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
   font-weight: 500;
+  min-width: 60px;
 }
 
 .btn a:hover {
