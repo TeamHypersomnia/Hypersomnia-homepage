@@ -1,6 +1,7 @@
 /* Main */
 * {
   font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
 }
 
 body {
@@ -39,6 +40,7 @@ p, li {
 p {
   margin-top: 0;
   margin-bottom: 1em;
+  word-break: break-word;
 }
 
 p:last-child {
@@ -144,6 +146,7 @@ a.os {
   justify-content: start;
   column-gap: 0.5em;
   color: #e7e7e7;
+  border-radius: 4px;
 }
 
 a.os:hover {
@@ -180,6 +183,7 @@ a.os > small {
 }
 
 .radio {
+  font-size: 0.9em;
   margin-top: 15px;
 }
 
@@ -215,7 +219,7 @@ a.os > small {
 }
 
 .avatar {
-  padding-top: 15px;
+  margin-top: 15px;
   border-radius: 50%;
 }
 
@@ -365,7 +369,7 @@ dd {
   }
 
   footer {
-    box-sizing: border-box;
+    min-height: 100px;
     width: 100%;
     text-align: left;
     padding: 1em 0;
@@ -424,7 +428,7 @@ dd {
   nav > .flex {
     height: auto;
     justify-content: space-around;
-    padding: 0 1.5rem;
+    padding: 0 1rem;
   }
 
   .flex > a {
@@ -449,14 +453,13 @@ dd {
 
   article {
     margin-top: 0;
-    border-radius: 0;
   }
 
   .responsive {
     width: 100%;
     height: auto;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 4px;
   }
 
   .arenas {
@@ -738,7 +741,7 @@ nav > div > form > button:hover {
 .tutorial {
   border: 1px solid rgb(100 100 111 / 25%);
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   margin-bottom: 15px;
   background-color: rgb(0 0 0 / 5%);
   font-size: 0.9em;
@@ -768,7 +771,6 @@ nav > div > form > button:hover {
   width: 240px;
   height: 134px;
   cursor: pointer;
-  border: 1px solid rgb(100 100 111 / 25%);
   border-radius: 8px;
   margin: 10px;
   opacity: 0.8;
@@ -808,22 +810,24 @@ nav > div > form > button:hover {
   display: flex;
   flex-direction: row-reverse;
   justify-content: flex-end;
+  align-items: flex-start;
 }
 
 .checkbox>label, .checkbox>input {
   cursor: pointer;
 }
 
-input, textarea, select, option {
+input[type='text'], input[type='submit'], textarea, select, option {
   color: #e7e7e7;
   text-decoration: none;
   border: 1px solid rgb(100 100 111 / 25%);
   padding: 8px 15px;
-  border-radius: 8px;
+  border-radius: 4px;
   background-color: #212121;
   outline: none;
   font-size: 0.9em;
   margin-bottom: 8px;
+  width: 100%;
 }
 
 input:focus {
@@ -893,11 +897,11 @@ footer .footer-right a:hover {
   border: 1px solid rgb(100 100 111 / 25%);
   padding: 8px;
   display: inline-block;
-  border-radius: 8px;
+  border-radius: 4px;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
   font-weight: 500;
-  min-width: 60px;
+  min-width: 67px;
 }
 
 .btn a:hover {
@@ -911,7 +915,7 @@ div.btn > form > button {
   border: 1px solid rgb(100 100 111 / 25%);
   padding: 8px 15px;
   display: inline-block;
-  border-radius: 8px;
+  border-radius: 4px;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
   font-weight: 500;

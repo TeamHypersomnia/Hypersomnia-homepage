@@ -13,6 +13,10 @@ if (isset($_GET['author'])) {
 	$arenas = array_filter($arenas, function ($v) {
 		return $v['author'] === $_GET['author'];
 	});
+	if (count($arenas) == 0) {
+		header("Location: {$url}arenas");
+		die();
+	}
 }
 
 if (isset($_GET['format']) && $_GET['format'] == 'json') {
