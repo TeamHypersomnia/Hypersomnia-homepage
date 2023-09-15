@@ -41,6 +41,10 @@
         <td>{{ user }}</td>
       </tr>
       <tr>
+        <th>System load average</th>
+        <td>{{ loadavg|map(v => v|number_format(2))|join(' ') }}</td>
+      </tr>
+      <tr>
         <th>PHP version</th>
         <td>{{ phpversion }}</td>
       </tr>

@@ -39,7 +39,8 @@ $router->mount('/admin', fn () => [
 	$router->get('/packages', fn () => require_once 'src/admin/packages.php'),
 	$router->get('/visitors', fn () => require_once 'src/admin/visitors.php'),
 	$router->get('/users', fn () => require_once 'src/admin/users.php'),
-	$router->get('/creators', fn () => require_once 'src/admin/creators.php'),
+	$router->match('GET|POST', '/creators', fn () => require_once 'src/admin/creators.php'),
+	$router->match('GET|POST', '/creators/{creator}', fn ($creator) => require_once 'src/admin/creator.php'),
 ]);
 
 // Ajax

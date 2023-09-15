@@ -1,0 +1,22 @@
+{% include 'overall_header.twig' %}
+{% include 'admin/admin_dashboard.twig' %}
+
+<form class="form" method="post">
+  <div class="form-group">
+    <label for="shorthand">Shorthand</label>
+    <input type="text" id="shorthand" name="shorthand" value="{{ creator.shorthand }}" spellcheck="false">
+  </div>
+  <div class="form-group">
+    <label for="arenas">Arenas</label>
+    <textarea id="arenas" name="arenas" rows="15" cols="25" spellcheck="false">{{ creator.maps|join('\n') }}</textarea>
+  </div>
+  <div class="form-group checkbox">
+    <label for="delete">Delete</label>
+    <input type="checkbox" name="delete" id="delete">
+  </div>
+  <div class="form-group">
+    <input type="submit" value="Save">
+  </div>
+</form>
+
+{% include 'overall_footer.twig' %}

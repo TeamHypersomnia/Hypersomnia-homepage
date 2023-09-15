@@ -1,27 +1,37 @@
 {% include 'overall_header.twig' %}
 {% include 'admin/admin_dashboard.twig' %}
 
+<form class="form-inline" method="post">
+  <div class="form-group">
+    <label for="shorthand">Shorthand</label>
+    <input type="text" id="shorthand" name="shorthand" spellcheck="false">
+  </div>
+  <div class="form-group">
+    <input type="submit" value="Add">
+  </div>
+</form>
+
 <div class="table-responsive">
-  <table id="authorized_mappers" class="sortable">
+  <table id="creators" class="sortable">
     <thead>
       <tr>
         <th>Shorthand</th>
         <th>Allow creating new</th>
-        <th>Maps</th>
+        <th>Arenas</th>
         <th>API Key</th>
       </tr>
     </thead>
     <tbody>
-      {% if mappers == false %}
+      {% if creators == false %}
       <tr>
-        <td colspan="4" class="error">Failed to fetch authorized mappers</td>
+        <td colspan="4" class="error">Failed to fetch creators</td>
       </tr>
       {% else %}
-      {% for k, v in mappers %}
+      {% for k, v in creators %}
       <tr>
-        <td>{{ v.shorthand }}</td>
+        <td><a href="{{ url }}admin/creators/{{ v.shorthand }}">{{ v.shorthand }}</a></td>
         <td>{% if v.allow_creating_new == true %}yes{% else %}no{% endif %}</td>
-        <td><ul class="none">{% for m in v.maps %}<li>{{ m }}</li>{% endfor %}</ul></td>
+        <td>{{ v.maps|length }}</td>
         <td><span class="tocopy"><code>{{ k }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
       </tr>
       {% endfor %}

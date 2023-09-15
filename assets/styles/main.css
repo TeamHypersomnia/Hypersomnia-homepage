@@ -399,11 +399,7 @@ dd {
     width: 14%;
   }
   
-  #authorized_mappers th, #packages th {
-    width: 25%;
-  }
-
-  #visitors th, #users th {
+  #creators th, #packages th, #visitors th, #users th {
     width: 25%;
   }
 }
@@ -505,10 +501,6 @@ dd {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-  }
-
-  .form {
-    padding-top: 15px;
   }
 }
 
@@ -785,6 +777,20 @@ nav > div > form > button:hover {
 }
 
 /* Forms */
+.form {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+}
+
+.form-inline {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
 label {
   font-size: 0.9em;
   -webkit-user-select: none;
@@ -793,37 +799,36 @@ label {
 }
 
 .form-group>label {
-  display: block;
-  margin-bottom: 5px;
   color: #e7e7e7;
   font-size: 0.9em;
+  display: block;
+  margin-bottom: 8px;
 }
 
-.form-group {
-  margin-bottom: 10px;
+.form-group.checkbox {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
 }
 
-.form-group:last-child {
-  margin-bottom: 0;
+.checkbox>label, .checkbox>input {
+  cursor: pointer;
 }
 
-.form-group > input {
-  font-size: 0.9em;
+.form-group > input, .form-group > textarea {
   color: #e7e7e7;
   text-decoration: none;
   border: 1px solid rgb(100 100 111 / 25%);
   padding: 8px 15px;
-  display: inline-block;
   border-radius: 8px;
-  transition-timing-function: cubic-bezier(.4,0,.2,1);
-  transition-duration: .15s;
   background-color: transparent;
   outline: none;
+  font-size: 0.9em;
+  margin-bottom: 8px;
 }
 
 .form-group > input:focus {
   color: #fff;
-  border-color: #fff;
 }
 
 .form-group > input[type="submit"] {
@@ -832,8 +837,7 @@ label {
 }
 
 .form-group > input[type="submit"]:hover {
-  color: #fff;
-  border-color: #fff;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 /* Footer */
@@ -874,7 +878,7 @@ footer .footer-right a:hover {
   margin-bottom: 15px;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 8px;
 }
 
 .btn > a > span {

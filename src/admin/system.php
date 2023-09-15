@@ -39,5 +39,6 @@ echo $twig->render('admin/system.twig', [
 	'version_information' => php_uname('v'),
 	'machine_type' => php_uname('m'),
 	'distro' => get_distro(),
-	'inipath' => php_ini_loaded_file()
+	'inipath' => php_ini_loaded_file(),
+	'loadavg' => sys_getloadavg()
 ]);

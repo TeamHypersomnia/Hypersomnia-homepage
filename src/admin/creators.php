@@ -9,12 +9,22 @@ if (is_admin($admins) == false) {
 	die();
 }
 
-$mappers = get_json($arenas_path.'/authorized_mappers.json');
-uasort($mappers, fn($a, $b) => strcasecmp($a['shorthand'], $b['shorthand']));
+$creators = get_json($arenas_path.'/authorized_mappers.json');
+uasort($creators, fn($a, $b) => strcasecmp($a['shorthand'], $b['shorthand']));
+
+if (isset($_POST['shorthand'])) {
+	$key = random_string(50);
+	$creators[$key] = [
+		'shorthand' => $_POST['shorthand'],
+		'allow_creating_new' => false,
+		'maps' => []
+	];
+	put_json($arenas_path . '/authorized_mappers.json', $creators);
+}
 
 echo $twig->render('admin/creators.twig', [
 	's' => $_SESSION,
 	'url' => $url,
 	'page' => 'Creators',
-	'mappers' => $mappers
+	'creators' => $creators
 ]);

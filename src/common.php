@@ -177,3 +177,12 @@ function load_arenas($arenas_path, $memcached) {
 	$memcached->set('arenas', $arenas);
 	return $arenas;
 }
+
+function random_string($length = 50) {
+	$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	$randomString = '';
+	for ($i = 0; $i < $length; $i++) {
+		$randomString .= $characters[rand(0, strlen($characters) - 1)];
+	}
+	return $randomString;
+}
