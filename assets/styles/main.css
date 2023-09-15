@@ -13,7 +13,7 @@ body {
 h1, h2 {
   color: #fff;
   border-bottom: 1px solid #323235;
-  margin: 5px 0 8px 0;
+  margin: 5px 0 16px 0;
   padding-bottom: 0.3em;
   font-weight: 500;
   line-height: 1.25;
@@ -71,7 +71,7 @@ article {
 }
 
 article > div > div:nth-child(1) > img {
-  margin: 0.6em 0;
+  margin-bottom: 8px;
 }
 
 ul {
@@ -811,14 +811,13 @@ footer .footer-right a {
 
 footer .footer-right a:hover {
   color: #fff;
-
 }
 
 .btn-group {
   width: 100%;
   display: flex;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin-top: 16px;
+  margin-bottom: 16px;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 8px;
