@@ -24,15 +24,12 @@
   <div><canvas id="hypersomnia_servers"></canvas></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 function convertToTitleCase(str) {
   return str.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 document.addEventListener('DOMContentLoaded', function () {
   Chart.defaults.color = "#e7e7e7";
-  Chart.defaults.borderColor = "#323235";
-  Chart.defaults.borderWidth = 2;
   Chart.defaults.animation.duration = 0;
   Chart.defaults.scale.precision = 0;
   const data = {{ statistics|json_encode()|raw }};
@@ -48,12 +45,18 @@ document.addEventListener('DOMContentLoaded', function () {
       type: 'line',
       data: {
         labels: labels,
-        datasets: [{label: convertToTitleCase(dataSource), data: datasets}]
+        datasets: [{
+          label: convertToTitleCase(dataSource),
+          data: datasets,
+          borderColor: '#44e8c3',
+          borderWidth: 2
+        }],
       }
     });
   });
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 {% endif %}
 
 {% include 'overall_footer.twig' %}

@@ -9,9 +9,35 @@ if (is_admin($admins) == false) {
 	die();
 }
 
+if (isset($packages)) {
+	$packages = [];
+	$require = get_json('composer.json')['require'];
+	$composer = get_json('composer.lock');
+	foreach ($composer['packages'] as $k => $v) {
+		$name = $v['name'];
+		if (!isset($require[$name])) {
+			continue;
+		}
+		$d = request("https://repo.packagist.org/p2/{$name}.json");
+		$packages[] = [
+			'name' => $name,
+			'version' => $v['version'],
+			'url' => $d['packages'][$name][0]['source']['url'],
+			'latest' => $d['packages'][$name][0]['version']
+		];
+	}
+	echo $twig->render('admin/packages.twig', [
+		's' => $_SESSION,
+		'url' => $url,
+		'page' => 'System',
+		'packages' => $packages
+	]);
+	exit();
+}
+
 function get_distro() {
 	$filepath = '/etc/os-release';
-	if (file_exists($filepath) == false) {
+	if (!file_exists($filepath)) {
 		return false;
 	}
 	$lines = file($filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -23,6 +49,19 @@ function get_distro() {
 	return false;
 }
 
+function system_uptime() {
+	$filepath = '/proc/uptime';
+	if (!file_exists($filepath)) {
+		return false;
+	}
+	$contents = file_get_contents($filepath);
+	if (!$contents) {
+		return false;
+	}
+	return intval(explode(' ', $contents)[0]);
+}
+
+$m = $memcached->getStats()[$memcached_host . ':' . $memcached_port];
 if ($cache !== false) $cache = realpath($cache);
 echo $twig->render('admin/system.twig', [
 	's' => $_SESSION,
@@ -40,5 +79,9 @@ echo $twig->render('admin/system.twig', [
 	'machine_type' => php_uname('m'),
 	'distro' => get_distro(),
 	'inipath' => php_ini_loaded_file(),
-	'loadavg' => sys_getloadavg()
+	'loadavg' => sys_getloadavg(),
+	'memcached_uptime' => seconds_to_hhmmss($m['uptime']),
+	'memcached_version' => $m['version'],
+	'memcached_bytes' => format_size($m['bytes']),
+	'system_uptime' => seconds_to_hhmmss(system_uptime())
 ]);

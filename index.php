@@ -36,7 +36,7 @@ $router->get('/statistics', fn () => require_once 'src/statistics.php');
 // Admin
 $router->mount('/admin', fn () => [
 	$router->get('/system', fn () => require_once 'src/admin/system.php'),
-	$router->get('/packages', fn () => require_once 'src/admin/packages.php'),
+	$router->get('/system/packages', fn ($packages = 1) => require_once 'src/admin/system.php'),
 	$router->get('/visitors', fn () => require_once 'src/admin/visitors.php'),
 	$router->get('/users', fn () => require_once 'src/admin/users.php'),
 	$router->match('GET|POST', '/creators', fn () => require_once 'src/admin/creators.php'),

@@ -1,71 +1,109 @@
 {% include 'overall_header.twig' %}
 {% include 'admin/admin_dashboard.twig' %}
 
-<div class="table-responsive">
-  <table>
-    <thead>
-      <tr>
-        <th>Key</th>
-        <th>Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th>Operating system</th>
-        <td>{{ operating_system }}</td>
-      </tr>
-      {% if distro != false %}
-      <tr>
-        <th>Linux distribution</th>
-        <td>{{ distro }}</td>
-      </tr>
-      {% endif %}
-      <tr>
-        <th>Host name</th>
-        <td>{{ host_name }}</td>
-      </tr>
-      <tr>
-        <th>Release name</th>
-        <td>{{ release_name }}</td>
-      </tr>
-      <tr>
-        <th>Version information</th>
-        <td>{{ version_information }}</td>
-      </tr>
-      <tr>
-        <th>Machine type</th>
-        <td>{{ machine_type }}</td>
-      </tr>
-      <tr>
-        <th>System user</th>
-        <td>{{ user }}</td>
-      </tr>
-      <tr>
-        <th>System load average</th>
-        <td>{{ loadavg|map(v => v|number_format(2))|join(' ') }}</td>
-      </tr>
-      <tr>
-        <th>PHP version</th>
-        <td>{{ phpversion }}</td>
-      </tr>
-      <tr>
-        <th>Document root</th>
-        <td><span class="tocopy"><code>{{ realpath }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
-      </tr>
-      <tr>
-        <th>Cache path</th>
-        <td>{% if cache != false %}<span class="tocopy"><code>{{ cache }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>{% else %}Disabled{% endif %}</td>
-      </tr>
-      <tr>
-        <th>Arenas path</th>
-        <td>{% if arenas_path != '' %}<span class="tocopy"><code>{{ arenas_path }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>{% endif %}</td>
-      </tr>
-      <tr>
-        <th>Loaded php.ini</th>
-        <td><span class="tocopy"><code>{{ inipath }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
-      </tr>
-    </tbody>
-  </table>
+<div class="box">
+  <div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>Operating system</th>
+            <td>{{ operating_system }}</td>
+          </tr>
+          {% if distro != false %}
+          <tr>
+            <th>Linux distribution</th>
+            <td>{{ distro }}</td>
+          </tr>
+          {% endif %}
+          <tr>
+            <th>Host name</th>
+            <td>{{ host_name }}</td>
+          </tr>
+          <tr>
+            <th>Release name</th>
+            <td>{{ release_name }}</td>
+          </tr>
+          <tr>
+            <th>Version information</th>
+            <td>{{ version_information }}</td>
+          </tr>
+          <tr>
+            <th>Machine type</th>
+            <td>{{ machine_type }}</td>
+          </tr>
+          <tr>
+            <th>System user</th>
+            <td>{{ user }}</td>
+          </tr>
+          <tr>
+            <th>System uptime</th>
+            <td>{{ system_uptime }}</td>
+          </tr>
+          <tr>
+            <th>System load average</th>
+            <td>{{ loadavg|map(v => v|number_format(2))|join(' ') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>PHP version</th>
+            <td>{{ phpversion }}</td>
+          </tr>
+          <tr>
+            <th>Memcached version</th>
+            <td>{{ memcached_version }}</td>
+          </tr>
+          <tr>
+            <th>Memcached uptime</th>
+            <td>{{ memcached_uptime }}</td>
+          </tr>
+          <tr>
+            <th>Memcached bytes used</th>
+            <td>{{ memcached_bytes }}</td>
+          </tr>
+          <tr>
+            <th>Document root</th>
+            <td><span class="tocopy"><code>{{ realpath }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
+          </tr>
+          <tr>
+            <th>Cache path</th>
+            <td>{% if cache != false %}<span class="tocopy"><code>{{ cache }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>{% else %}Disabled{% endif %}</td>
+          </tr>
+          <tr>
+            <th>Arenas path</th>
+            <td>{% if arenas_path != '' %}<span class="tocopy"><code>{{ arenas_path }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>{% endif %}</td>
+          </tr>
+          <tr>
+            <th>Loaded php.ini</th>
+            <td><span class="tocopy"><code>{{ inipath }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
+          </tr>
+          <tr>
+            <th>Composer packages</th>
+            <td><a href="{{ url }}admin/system/packages">Check for updates</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 {% include 'overall_footer.twig' %}

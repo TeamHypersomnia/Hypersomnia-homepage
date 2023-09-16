@@ -186,3 +186,16 @@ function random_string($length = 50) {
 	}
 	return $randomString;
 }
+
+function seconds_to_hhmmss($seconds) {
+	$days = floor($seconds / (60 * 60 * 24));
+	$hours = floor(($seconds % (60 * 60 * 24)) / (60 * 60));
+	$minutes = floor(($seconds % (60 * 60)) / 60);
+	$seconds = $seconds % 60;
+	$formattedTime = '';
+	if ($days > 0) {
+		$formattedTime .= $days . ' days, ';
+	}
+	$formattedTime .= sprintf("%02d:%02d:%02d", $hours, $minutes, $seconds);
+	return $formattedTime;
+}
