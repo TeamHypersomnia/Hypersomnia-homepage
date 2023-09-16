@@ -8,12 +8,20 @@ if (is_logged()) {
 	die();
 }
 
+if ($url == '/') {
+	$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+	$httphost = $_SERVER['HTTP_HOST'];
+	$redirectUri = "{$protocol}{$httphost}/discord";
+} else {
+	$redirectUri = "{$url}discord";
+}
+
 use Wohali\OAuth2\Client\Provider\Discord;
 
 $provider = new Discord([
 	'clientId'     => $discord_client_id,
 	'clientSecret' => $discord_client_secret,
-	'redirectUri'  => $url . 'discord',
+	'redirectUri'  => $redirectUri
 ]);
 
 if (!isset($_GET['code'])) {

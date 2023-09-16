@@ -29,7 +29,8 @@ session.use_only_cookies = 1
 session.cookie_httponly = 1
 session.cookie_secure = 1
 session.cookie_samesite = "Lax"
-session.gc_maxlifetime = 86400
+session.gc_maxlifetime = 2592000
+session.cookie_lifetime = 2592000
 ```
 
 apache2.conf
