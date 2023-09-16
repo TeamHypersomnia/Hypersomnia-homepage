@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const videoList = document.querySelectorAll('.yt li');
   videoList.forEach(videoItem => {
     const code = videoItem.getAttribute('data-code');
-    videoItem.style.backgroundImage = `url(https://img.youtube.com/vi/${code}/0.jpg)`;
+    videoItem.style.backgroundImage = `url(https://i.ytimg.com/vi_webp/${code}/hqdefault.webp)`;
     videoItem.addEventListener('click', () => {
       const youtubeURL = `//www.youtube.com/watch?v=${code}`;
       window.open(youtubeURL, '_blank');
