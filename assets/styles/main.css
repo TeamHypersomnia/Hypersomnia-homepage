@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+
 * {
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
@@ -646,30 +648,6 @@ nav > div > form > button:hover {
   color: #fff;
 }
 
-.tab {
-  margin-top: 15px;
-  display: flex;
-  overflow-x: hidden;
-}
-
-.tab button {
-  background-color: inherit;
-  outline: none;
-  cursor: pointer;
-  padding: 10px 16px;
-  transition-timing-function: cubic-bezier(.4,0,.2,1);
-  transition-duration: .15s;
-  border: none;
-}
-
-.tab button:hover {
-  color: #fff;
-}
-
-.tab button.active, a.tablinks.active {
-  color: #44e8c3;
-}
-
 .tabcontent {
   display: none;
 }
@@ -823,18 +801,18 @@ footer > div:nth-child(2) > a:hover {
   gap: 8px;
 }
 
-.btn > a > span {
+.btn > a > span, .btn > button > span {
   display: block;
   text-align: center;
   font-size: 0.9em;
   font-weight: 500;
 }
 
-.btn > a > span > i {
-  font-size: 1.2em;
+.btn > a > span > i, .btn > button > span > i {
+  font-size: 1.5em;
 }
 
-.btn a {
+.btn a, .btn button {
   font-size: 0.9em;
   color: #cccccc;
   text-decoration: none;
@@ -845,13 +823,12 @@ footer > div:nth-child(2) > a:hover {
   min-width: 85px;
 }
 
-.btn a:hover {
+.btn a:hover, .btn button:hover {
   background: #2c2c2c;
 }
 
-div.btn > form > button {
+.btn > button {
   font-size: 0.9em;
-  color: #cccccc;
   text-decoration: none;
   border: 1px solid #323235;
   padding: 8px 15px;
@@ -860,23 +837,27 @@ div.btn > form > button {
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
   font-weight: 500;
-  width: 100%;
-  height: 52px;
-  background: transparent;
+  background: #212121;
   cursor: pointer;
+  outline: none;
 }
 
-div.btn > form > button:hover {
+.btn > button:hover {
   color: #fff;
 }
 
-.btn > a.active {
+.btn > a.active, .btn > button.active {
   color: #44e8c3;
 }
 
-div.btn > form > button > span {
+.btn > button > span {
   display: block;
   text-align: center;
+}
+
+.btn > button > span > img {
+  width: 24px;
+  height: 24px;;
 }
 
 input:-webkit-autofill,

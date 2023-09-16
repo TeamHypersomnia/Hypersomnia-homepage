@@ -1,10 +1,10 @@
-function openTab(evt, name) {
+function opn(e, name) {
   const tabcontents = document.querySelectorAll('.tabcontent');
   tabcontents.forEach(tabcontent => tabcontent.style.display = 'none');
   const tablinks = document.querySelectorAll('.tablinks');
   tablinks.forEach(tablink => tablink.classList.remove('active'));
   document.getElementById(name).style.display = 'block';
-  evt.currentTarget.classList.add('active');
+  e.currentTarget.classList.add('active');
 }
 
 function fast() {
