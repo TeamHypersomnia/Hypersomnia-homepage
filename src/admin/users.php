@@ -10,7 +10,7 @@ if (is_admin($admins) == false) {
 }
 
 $users = get_json('src/data/users.json');
-uasort($users, fn($a, $b) => $b['last_seen'] - $a['last_seen']);
+uasort($users, fn($a, $b) => $b['last_login'] - $a['last_login']);
 foreach ($users as $k => $v) {
 	$users[$k]['last_login'] = time_elapsed($dt->setTimestamp($v['last_login'])->format('Y-m-d H:i:s'));
 }

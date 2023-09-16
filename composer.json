@@ -1,9 +1,9 @@
 {
     "require": {
-        "twig/twig": "^3.0",
-        "bramus/router": "~1.6",
-        "wohali/oauth2-discord-new": "^1.2",
-        "vlucas/phpdotenv": "^5.5",
-        "voku/html-min": "^4.5"
+        "twig/twig": "*",
+        "bramus/router": "*",
+        "wohali/oauth2-discord-new": "*",
+        "vlucas/phpdotenv": "*",
+        "voku/html-min": "*"
     }
 }

@@ -5,6 +5,7 @@
   <table class="sortable">
     <thead>
       <tr>
+        <th>IP address</th>
         <th>Display name</th>
         <th>Username</th>
         <th>Discord ID</th>
@@ -14,6 +15,7 @@
     <tbody>
       {% for k, v in users %}
       <tr>
+        <td><a href="https://db-ip.com/{{ v.ip }}" target="_blank">{{ v.ip }}</a></td>
         <td>{{ v.global_name }}</td>
         <td>{{ v.username }}</td>
         <td><span class="tocopy"><code>{{ k }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>

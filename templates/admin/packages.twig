@@ -17,12 +17,12 @@
         <td colspan="4">Failed to fetch packages</td>
       </tr>
     {% else %}
-      {% for package in packages.installed %}
+      {% for v in packages %}
         <tr>
-          <td><a href="{{ package['source'] }}" target="_blank">{{ package['name'] }}</a></td>
-          <td>{{ package['version'] }}</td>
-          <td>{{ package['latest'] }}</td>
-          <td>{% if package['latest-status'] == 'up-to-date' %}<i class="fa-solid fa-check"></i>{% else %}<i class="fa-solid fa-xmark"></i>{% endif %}</td>
+          <td><a href="{{ v.url }}" target="_blank">{{ v.name }}</a></td>
+          <td>{{ v.version }}</td>
+          <td>{{ v.latest }}</td>
+          <td>{% if v.version == v.latest %}<i class="fa-solid fa-check"></i>{% else %}<i class="fa-solid fa-xmark"></i>{% endif %}</td>
         </tr>
       {% endfor %}
     </tbody>
