@@ -366,21 +366,21 @@ dd {
     margin: 1em 0;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: baseline;
     align-content: flex-start;
     justify-content: space-between;
   }
 
-  .footer-left {
+  footer > div:nth-child(1) {
     display: inline-flex;
-    gap: 10px;
+    gap: 8px;
   }
 
-  .footer-left a {
+  footer > div:nth-child(1) > a {
     font-size: 0.9em;
   }
 
-  .footer-left a:hover {
+  footer > div:nth-child(1) > a:hover {
     color: #fff;
   }
 }
@@ -443,11 +443,11 @@ dd {
     flex-direction: column;
   }
 
-  .footer-left {
+  footer > div:nth-child(1) {
     font-size: 0.9em;
     margin: 0;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-direction: column;
     flex-wrap: wrap;
     justify-content: center;
@@ -785,23 +785,23 @@ input[type="submit"]:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
-footer .footer-left a {
+footer > div:nth-child(1) > a {
   color: #8f8e8e;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
 }
 
-footer .footer-left a:hover {
+footer > div:nth-child(1) > a:hover {
   color: #fff;
   text-decoration: none;
 }
 
-footer .footer-right {
+footer > div:nth-child(2) {
   display: flex;
-  gap: 15px;
+  gap: 8px;
 }
 
-footer .footer-right a {
+footer > div:nth-child(2) > a {
   display: inline-block;
   font-size: 1.2em;
   color: #8f8e8e;
@@ -809,7 +809,7 @@ footer .footer-right a {
   transition-duration: .15s;
 }
 
-footer .footer-right a:hover {
+footer > div:nth-child(2) > a:hover {
   color: #fff;
 }
 

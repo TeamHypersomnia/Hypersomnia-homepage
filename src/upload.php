@@ -78,7 +78,7 @@ if ($filename == "$arena.json") {
 	load_arenas($arenas_path, $memcached);
 	if (!in_array($arena, $authorized_mappers[$apikey]['maps'])) {
 		$authorized_mappers[$apikey]['maps'][] = $arena;
-		put_json($arenas_path . '/authorized_mappers.json', $authorized_mappers);
+		put_json("$arenas_path/authorized_mappers.json", $authorized_mappers);
 	}
 }
 

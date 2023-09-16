@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		$creators[$k]['allow_creating_new'] = ($_POST['allow_creating_new'] === 'yes') ? true : false;
 		$creators[$k]['maps'] = $arenas;
 	}
-	put_json($arenas_path . '/authorized_mappers.json', $creators);
+	put_json("$arenas_path/authorized_mappers.json", $creators);
 	header("Location: {$url}admin/creators");
 	die();
 }

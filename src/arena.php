@@ -4,9 +4,25 @@ require_once 'src/common.php';
 require_once 'src/user.php';
 require_once 'src/twig.php';
 
+function directory_size($dir) {
+	$size = 0;
+	$files = glob(rtrim($dir, '/') . '/*');
+	if ($files === false) {
+		return false;
+	}
+	foreach ($files as $file) {
+		if (is_file($file)) {
+			$size += filesize($file);
+		} elseif (is_dir($file)) {
+			$size += directory_size($file);
+		}
+	}
+	return $size;
+}
+
 $arenas = $memcached->get('arenas');
 if (!$arenas) {
-	$arenas = load_arenas();
+	$arenas = load_arenas($arenas_path, $memcached);
 }
 
 $arenas = array_column($arenas, 'name');

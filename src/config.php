@@ -2,7 +2,7 @@
 $dotenv = Dotenv\Dotenv::createImmutable('./');
 $dotenv->load();
 
-$url = $_ENV['APP_URL'];
+$url = isset($_ENV['APP_URL']) ? $_ENV['APP_URL'] : '/';
 $cache = (empty($_ENV['CACHE']) || $_ENV['CACHE'] == 'false') ? false : 'cache';
 $arenas_path = $_ENV['ARENAS_PATH'];
 $apikey_youtube = $_ENV['APIKEY_YOUTUBE'];
