@@ -42,7 +42,25 @@ function send(url, formData) {
   });
 }
 
+function updateCountdown() {
+  var countDownDate = new Date("2023-09-23T14:30:00Z").getTime();
+  var now = new Date().getTime();
+  var distance = countDownDate - now;
+  var d = Math.floor(distance / (1000 * 60 * 60 * 24));
+  var h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  var m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  var s = Math.floor((distance % (1000 * 60)) / 1000);
+  var txt = d + " days, " + (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+  document.getElementById("countdown").innerHTML = 'Starts in ' + txt;
+  if (distance < 0) {
+    clearInterval(x);
+    document.getElementById("countdown").innerHTML = "It's started, join now!";
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
   const videoList = document.querySelectorAll('.yt li');
   videoList.forEach(videoItem => {
     const code = videoItem.getAttribute('data-code');
