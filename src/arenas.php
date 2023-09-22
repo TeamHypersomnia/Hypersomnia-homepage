@@ -33,8 +33,6 @@ if (isset($_GET['version'])) {
 }
 
 echo $twig->render('arenas.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Arenas',
 	'arenas' => $arenas
 ]);

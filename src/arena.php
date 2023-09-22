@@ -56,8 +56,6 @@ if (isset($d['likes'])) {
 }
 
 echo $twig->render('arena.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => $arena . ' - Arenas',
 	'arena' => $arena,
 	'prev' => $prev,

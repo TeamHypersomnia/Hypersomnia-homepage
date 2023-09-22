@@ -10,7 +10,5 @@ if (!is_logged()) {
 }
 
 echo $twig->render('profile.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Profile'
 ]);

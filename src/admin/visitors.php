@@ -20,8 +20,6 @@ foreach ($visitors as $k => $v) {
 }
 
 echo $twig->render('admin/visitors.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Visitors',
 	'visitors' => $visitors
 ]);

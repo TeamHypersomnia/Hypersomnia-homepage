@@ -40,8 +40,6 @@ if (isset($_POST['shorthand'])) {
 }
 
 echo $twig->render('admin/creators.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Creators',
 	'creators' => $creators
 ]);

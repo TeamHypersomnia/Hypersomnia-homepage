@@ -21,8 +21,6 @@ foreach ($users as $k => $v) {
 }
 
 echo $twig->render('admin/users.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Users',
 	'users' => $users
 ]);

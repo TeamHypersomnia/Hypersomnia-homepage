@@ -39,7 +39,7 @@
             <td>{{ system_uptime }}</td>
           </tr>
           <tr>
-            <th>System load average</th>
+            <th>System load avg</th>
             <td>{{ loadavg|map(v => v|number_format(2))|join(' ') }}</td>
           </tr>
         </tbody>

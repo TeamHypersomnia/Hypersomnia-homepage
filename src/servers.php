@@ -18,8 +18,6 @@ if (isset($address)) {
 		die();
 	}
 	echo $twig->render('server.twig', [
-		's' => $_SESSION,
-		'url' => $url,
 		'page' => $servers[$k]['name'] . ' - Servers',
 		'sv' => $servers[$k]
 	]);
@@ -27,8 +25,6 @@ if (isset($address)) {
 }
 
 echo $twig->render('servers.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Servers',
 	'servers' => $servers
 ]);

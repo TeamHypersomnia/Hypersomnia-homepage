@@ -16,8 +16,6 @@ if (!$weapons) {
 }
 
 echo $twig->render('weapons.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Weapons',
 	'firearms' => $weapons['firearms'],
 	'melees' => $weapons['melees'],

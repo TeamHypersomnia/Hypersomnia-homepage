@@ -5,7 +5,5 @@ require_once 'src/user.php';
 require_once 'src/twig.php';
 
 echo $twig->render('disclaimer.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Disclaimer'
 ]);

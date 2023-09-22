@@ -6,6 +6,9 @@ $loader = new \Twig\Loader\FilesystemLoader('templates');
 $twig = new CustomTwigEnvironment($loader, ['cache' => $cache]);
 $twig->addExtension(new \fileModificationTime\CustomTwigExtension());
 
+$twig->addGlobal('s', $_SESSION);
+$twig->addGlobal('url', $url);
+
 if (!is_logged()) {
 	$_SESSION['redirect'] = $uri;
 }

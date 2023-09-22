@@ -20,8 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['key'])) {
 
 $stats = $memcached->getStats()[$memcached_host . ':' . $memcached_port];
 echo $twig->render('admin/cache.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Cache',
 	'memcached_uptime' => seconds_to_hhmmss($stats['uptime']),
 	'memcached_version' => $stats['version'],

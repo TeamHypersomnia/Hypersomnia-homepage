@@ -8,8 +8,6 @@ $statistics = get_json('src/data/statistics.json');
 $statistics = array_slice($statistics, -7, null, true);
 
 echo $twig->render('statistics.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Statistics',
 	'statistics' => $statistics
 ]);

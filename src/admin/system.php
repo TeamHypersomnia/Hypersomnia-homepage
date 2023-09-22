@@ -58,8 +58,6 @@ if (isset($packages)) {
 		];
 	}
 	echo $twig->render('admin/packages.twig', [
-		's' => $_SESSION,
-		'url' => $url,
 		'page' => 'System',
 		'packages' => $packages
 	]);
@@ -69,8 +67,6 @@ if (isset($packages)) {
 $web_server = isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : 'Unknown';
 if ($cache !== false) $cache = realpath($cache);
 echo $twig->render('admin/system.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'System',
 	'phpversion' => phpversion(),
 	'cache' => $cache,
@@ -84,6 +80,5 @@ echo $twig->render('admin/system.twig', [
 	'inipath' => php_ini_loaded_file(),
 	'loadavg' => sys_getloadavg(),
 	'system_uptime' => seconds_to_hhmmss(system_uptime()),
-	'web_server' => $web_server,
-	'composer_version' => $composer_version
+	'web_server' => $web_server
 ]);

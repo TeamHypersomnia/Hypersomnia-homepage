@@ -39,8 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 echo $twig->render('admin/creator.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Creators',
 	'creator' => $creators[$k]
 ]);

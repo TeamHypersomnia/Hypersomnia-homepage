@@ -11,8 +11,6 @@ foreach ($commits as $k => $v) {
 }
 
 echo $twig->render('index.twig', [
-	's' => $_SESSION,
-	'url' => $url,
 	'page' => 'Index',
 	'commits' => $commits
 ]);
