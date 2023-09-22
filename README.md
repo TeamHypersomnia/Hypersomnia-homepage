@@ -31,12 +31,9 @@ session.cookie_secure = 1
 session.cookie_samesite = "Lax"
 session.gc_maxlifetime = 2592000
 session.cookie_lifetime = 2592000
-```
 
-apache2.conf
-```conf
-ServerSignature Off
-ServerTokens Prod
+upload_max_filesize = 20M
+post_max_size = 25M
 ```
 
 .env
