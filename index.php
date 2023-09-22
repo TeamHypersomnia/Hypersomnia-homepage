@@ -43,6 +43,7 @@ $router->mount('/admin', fn () => [
 	$router->match('GET|POST', '/creators', fn () => require_once 'src/admin/creators.php'),
 	$router->match('GET|POST', '/creators/{creator}', fn ($creator) => require_once 'src/admin/creator.php'),
 	$router->match('GET|POST', '/cache', fn () => require_once 'src/admin/cache.php'),
+	$router->match('GET|POST', '/settings', fn () => require_once 'src/admin/settings.php'),
 ]);
 
 // Ajax

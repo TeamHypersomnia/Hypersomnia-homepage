@@ -42,24 +42,33 @@ function send(url, formData) {
   });
 }
 
-function updateCountdown() {
-  const countDownDate = new Date("2023-09-23T14:30:00Z").getTime();
-  const now = new Date().getTime();
-  const distance = countDownDate - now;
-  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-  const formatTime = (value) => (value < 10 ? "0" : "") + value;
-  const timeString = (days > 0 ? `${days} days, ` : "") + `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
-  const countdownElement = document.getElementById("countdown");
-  countdownElement.innerHTML = distance < 0 ? "It's started, join now!" : `Starts in ${timeString}`;
+function countdown(countdownElement, countdownContent) {
+  const targetDate = new Date(countdownElement.getAttribute('data-date'));
+  const currentDate = new Date();
+  const timeRemaining = targetDate - currentDate;
+  if (timeRemaining > 0) {
+    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+    const formatTime = (value) => (value < 10 ? "0" : "") + value;
+    const timeString = (days > 0 ? `${days} days, ` : "") + `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
+    countdownElement.textContent = countdownContent + ' ' + timeString;
+  } else {
+    const endText = new Date(countdownElement.getAttribute('data-end'));
+    countdownElement.textContent = endText;
+  }
 }
 
-
 document.addEventListener('DOMContentLoaded', function () {
-  updateCountdown();
-  setInterval(updateCountdown, 1000);
+  const countdownElement = document.querySelector('.countdown');
+  if (countdownElement) {
+    const countdownContent = countdownElement.textContent;
+    countdown(countdownElement, countdownContent);
+    setInterval(function() {
+      countdown(countdownElement, countdownContent);
+    }, 1000);
+  }
   const videoList = document.querySelectorAll('.yt li');
   videoList.forEach(videoItem => {
     const code = videoItem.getAttribute('data-code');

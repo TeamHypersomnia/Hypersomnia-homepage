@@ -9,6 +9,11 @@ $twig->addExtension(new \fileModificationTime\CustomTwigExtension());
 $twig->addGlobal('s', $_SESSION);
 $twig->addGlobal('url', $url);
 
+$alert = $memcached->get('alert');
+if ($alert) {
+	$twig->addGlobal('alert', $alert);
+}
+
 if (!is_logged()) {
 	$_SESSION['redirect'] = $uri;
 }

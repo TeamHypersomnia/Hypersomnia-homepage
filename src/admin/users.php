@@ -3,16 +3,7 @@ require_once 'src/config.php';
 require_once 'src/common.php';
 require_once 'src/user.php';
 require_once 'src/twig.php';
-
-if (is_logged() == false) {
-	require_once 'src/discord.php';
-	die();
-}
-
-if (is_admin($admins) == false) {
-	require_once 'src/403.php';
-	die();
-}
+require_once 'src/admin/permissions.php';
 
 $users = get_json('src/data/users.json');
 uasort($users, fn($a, $b) => $b['last_login'] - $a['last_login']);

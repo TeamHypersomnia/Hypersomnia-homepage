@@ -305,6 +305,7 @@ dd {
 
   article {
     padding: 1.5em;
+    margin-top: 1.5em;
   }
 
   .mobile {
@@ -754,6 +755,13 @@ nav > div > form > button:hover {
   margin-bottom: 8px;
 }
 
+.form-hint {
+  margin-bottom: 8px;
+  display: block;
+  color: #8f8e8e;
+  font-size: 0.75em;
+}
+
 .checkbox {
   display: flex;
   flex-direction: row-reverse;
@@ -893,7 +901,7 @@ input:-webkit-autofill:active{
   transition: background-color 5000s ease-in-out 0s;
 }
 
-.event {
+.alert {
   margin: 1.5em 0;
   font-size: 0.85em;
   color: #b8dc89;
@@ -905,6 +913,6 @@ input:-webkit-autofill:active{
   border-radius: 0.25rem;
 }
 
-.event > a {
+.alert > a {
   margin: 0 0.25em;
 }

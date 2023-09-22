@@ -3,16 +3,7 @@ require_once 'src/config.php';
 require_once 'src/common.php';
 require_once 'src/user.php';
 require_once 'src/twig.php';
-
-if (is_logged() == false) {
-	require_once 'src/discord.php';
-	die();
-}
-
-if (is_admin($admins) == false) {
-	require_once 'src/403.php';
-	die();
-}
+require_once 'src/admin/permissions.php';
 
 function get_distro() {
 	$filepath = '/etc/os-release';
