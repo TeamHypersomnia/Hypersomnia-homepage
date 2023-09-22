@@ -110,14 +110,13 @@ i.subname {
 }
 
 kbd {
-  border: 1px solid #ccc;
+  border: 1px solid rgb(231 231 231 / 70%);
   display: inline-block;
   font-size: 0.9em;
-  font-weight: 500;
   line-height: 1;
   padding: 2px 4px;
   white-space: nowrap;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 small {
@@ -320,6 +319,12 @@ dd {
     display: grid;
     grid-template-columns: 50% calc(50% - 1.5em);
     grid-gap: 1.5em;
+  }
+
+  .box-controls {
+    grid-template-columns: 50% calc(50% - 3em);
+    grid-gap: 3em;
+    align-items: start;
   }
 
   .btn a {
@@ -530,25 +535,26 @@ thead > tr {
   border: 1px solid transparent;
 }
 
-#controls {
-  margin: 16px 0;
+.kbd {
+  margin: 8px 0;
 }
 
-#controls > tbody > tr > td {
+.kbd > tbody > tr > td {
+  white-space: normal;
+  border: none;
+  padding: 7px 5px
+}
+
+.kbd > tbody > tr {
   white-space: normal;
   border: none;
 }
 
-#controls > tbody > tr {
-  white-space: normal;
-  border: none;
-}
-
-#controls > tbody > tr:nth-child(even) {
+.kbd > tbody > tr:nth-child(even) {
   background-color: transparent;
 }
 
-#controls td:nth-child(1), #controls th:nth-child(1) {
+.kbd td:nth-child(1), .kbd th:nth-child(1) {
   text-align: right;
 }
 
