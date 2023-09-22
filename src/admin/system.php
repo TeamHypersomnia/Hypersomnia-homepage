@@ -4,17 +4,14 @@ require_once 'src/common.php';
 require_once 'src/user.php';
 require_once 'src/twig.php';
 
-function seconds_to_hhmmss($seconds) {
-	$days = floor($seconds / (60 * 60 * 24));
-	$hours = floor(($seconds % (60 * 60 * 24)) / (60 * 60));
-	$minutes = floor(($seconds % (60 * 60)) / 60);
-	$seconds = $seconds % 60;
-	$formattedTime = '';
-	if ($days > 0) {
-		$formattedTime .= $days . ' days, ';
-	}
-	$formattedTime .= sprintf("%02d:%02d:%02d", $hours, $minutes, $seconds);
-	return $formattedTime;
+if (is_logged() == false) {
+	require_once 'src/discord.php';
+	die();
+}
+
+if (is_admin($admins) == false) {
+	require_once 'src/403.php';
+	die();
 }
 
 function get_distro() {
@@ -43,11 +40,6 @@ function system_uptime() {
 	return intval(explode(' ', $contents)[0]);
 }
 
-if (is_admin($admins) == false) {
-	require_once 'src/404.php';
-	die();
-}
-
 if (isset($packages)) {
 	$packages = [];
 	$require = get_json('composer.json')['require'];
@@ -74,7 +66,7 @@ if (isset($packages)) {
 	exit();
 }
 
-$m = $memcached->getStats()[$memcached_host . ':' . $memcached_port];
+$web_server = isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : 'Unknown';
 if ($cache !== false) $cache = realpath($cache);
 echo $twig->render('admin/system.twig', [
 	's' => $_SESSION,
@@ -85,16 +77,13 @@ echo $twig->render('admin/system.twig', [
 	'arenas_path' => $arenas_path,
 	'user' => get_current_user(),
 	'realpath' => realpath('.'),
-	'operating_system' => php_uname('s'),
+	'operating_system' => php_uname('s') . ' ' . php_uname('m'),
 	'host_name' => php_uname('n'),
 	'release_name' => php_uname('r'),
-	'version_information' => php_uname('v'),
-	'machine_type' => php_uname('m'),
 	'distro' => get_distro(),
 	'inipath' => php_ini_loaded_file(),
 	'loadavg' => sys_getloadavg(),
-	'memcached_uptime' => seconds_to_hhmmss($m['uptime']),
-	'memcached_version' => $m['version'],
-	'memcached_bytes' => format_size($m['bytes']),
-	'system_uptime' => seconds_to_hhmmss(system_uptime())
+	'system_uptime' => seconds_to_hhmmss(system_uptime()),
+	'web_server' => $web_server,
+	'composer_version' => $composer_version
 ]);

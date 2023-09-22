@@ -31,14 +31,6 @@
             <td>{{ release_name }}</td>
           </tr>
           <tr>
-            <th>Version information</th>
-            <td>{{ version_information }}</td>
-          </tr>
-          <tr>
-            <th>Machine type</th>
-            <td>{{ machine_type }}</td>
-          </tr>
-          <tr>
             <th>System user</th>
             <td>{{ user }}</td>
           </tr>
@@ -65,22 +57,6 @@
         </thead>
         <tbody>
           <tr>
-            <th>PHP version</th>
-            <td>{{ phpversion }}</td>
-          </tr>
-          <tr>
-            <th>Memcached version</th>
-            <td>{{ memcached_version }}</td>
-          </tr>
-          <tr>
-            <th>Memcached uptime</th>
-            <td>{{ memcached_uptime }}</td>
-          </tr>
-          <tr>
-            <th>Memcached bytes used</th>
-            <td>{{ memcached_bytes }}</td>
-          </tr>
-          <tr>
             <th>Document root</th>
             <td><span class="tocopy"><code>{{ realpath }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
           </tr>
@@ -95,6 +71,14 @@
           <tr>
             <th>Loaded php.ini</th>
             <td><span class="tocopy"><code>{{ inipath }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
+          </tr>
+          <tr>
+            <th>Web server</th>
+            <td>{{ web_server }}</td>
+          </tr>
+          <tr>
+            <th>PHP version</th>
+            <td>{{ phpversion }}</td>
           </tr>
           <tr>
             <th>Composer packages</th>

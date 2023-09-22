@@ -124,7 +124,7 @@ small {
   font-size: 0.8em;
 }
 
-strong, th, td:nth-child(1) {
+strong, th, td:nth-child(1), label, dt {
   font-weight: 500;
 }
 
@@ -742,7 +742,7 @@ nav > div > form > button:hover {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  color: #e7e7e7;
+  color: #fff;
   font-size: 0.9em;
   display: block;
   margin-bottom: 8px;

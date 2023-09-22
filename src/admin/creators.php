@@ -4,6 +4,16 @@ require_once 'src/common.php';
 require_once 'src/user.php';
 require_once 'src/twig.php';
 
+if (is_logged() == false) {
+	require_once 'src/discord.php';
+	die();
+}
+
+if (is_admin($admins) == false) {
+	require_once 'src/403.php';
+	die();
+}
+
 function random_string($length = 50) {
 	$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 	$randomString = '';
@@ -11,11 +21,6 @@ function random_string($length = 50) {
 		$randomString .= $characters[rand(0, strlen($characters) - 1)];
 	}
 	return $randomString;
-}
-
-if (is_admin($admins) == false) {
-	require_once 'src/404.php';
-	die();
 }
 
 $creators = get_json($arenas_path.'/authorized_mappers.json');

@@ -3,6 +3,7 @@
 
 <form class="form-inline" method="POST">
   <div class="form-group">
+    <label for="key">Memcached key</label>
     <select name="key" id="key">
       <option value="arenas">arenas</option>
       <option value="commits">commits</option>
@@ -14,5 +15,11 @@
     <input type="submit" value="Purge the cache">
   </div>
 </form>
+
+<dl>
+  <dt>Memcached version</dt><dd>{{ memcached_version }}</dd>
+  <dt>Memcached uptime</dt><dd>{{ memcached_uptime }}</dd>
+  <dt>Memcached bytes used</dt><dd>{{ memcached_bytes }}</dd>
+</dl>
 
 {% include 'overall_footer.twig' %}

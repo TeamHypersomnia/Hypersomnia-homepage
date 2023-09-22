@@ -4,32 +4,26 @@ require_once 'src/common.php';
 require_once 'src/user.php';
 require_once 'src/twig.php';
 
+if (is_logged() == false) {
+	require_once 'src/discord.php';
+	die();
+}
+
 if (is_admin($admins) == false) {
-	require_once 'src/404.php';
+	require_once 'src/403.php';
 	die();
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['key'])) {
-	switch ($_POST['key']) {
-		case 'arenas':
-			load_arenas($arenas_path, $memcached);
-			break;
-		case 'commits':
-			$memcached->delete('commits');
-			break;
-		case 'visitors':
-			$memcached->delete('visitors');
-			break;
-		case 'weapons':
-			$memcached->delete('weapons');
-			break;
-		default:
-			break;
-	}
+	$memcached->delete($_POST['key']);
 }
 
+$stats = $memcached->getStats()[$memcached_host . ':' . $memcached_port];
 echo $twig->render('admin/cache.twig', [
 	's' => $_SESSION,
 	'url' => $url,
-	'page' => 'Cache'
+	'page' => 'Cache',
+	'memcached_uptime' => seconds_to_hhmmss($stats['uptime']),
+	'memcached_version' => $stats['version'],
+	'memcached_bytes' => format_size($stats['bytes'])
 ]);
