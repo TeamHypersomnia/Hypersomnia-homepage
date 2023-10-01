@@ -20,10 +20,21 @@ composer update
 
 ## Configuration
 
-php.ini
+/etc/memcached.conf
+```conf
+-d
+logfile /var/log/memcached.log
+-s /var/run/memcached/memcached.sock
+-a 666
+-m 64
+-u memcache
+-P /var/run/memcached/memcached.pid
+```
+
+/etc/php/8.2/fpm/php.ini
 ```ini
 session.save_handler = memcached
-session.save_path = "localhost:11211"
+session.save_path = "/var/run/memcached/memcached.sock"
 session.use_strict_mode = 1
 session.use_only_cookies = 1
 session.cookie_httponly = 1
@@ -31,18 +42,21 @@ session.cookie_secure = 1
 session.cookie_samesite = "Lax"
 session.gc_maxlifetime = 2592000
 session.cookie_lifetime = 2592000
-
 upload_max_filesize = 20M
 post_max_size = 25M
 ```
 
-.env
+/var/www/html/.env
 ```env
 # Base URL
 APP_URL=http://localhost/Hypersomnia-homepage/
 
 # Cache (true or false)
 CACHE=false
+
+# Memcached
+MEMCACHED_HOST=/var/run/memcached/memcached.sock
+MEMCACHED_PORT=0
 
 # Path to arenas directory
 ARENAS_PATH=C:\hypersomnia\content\arenas
