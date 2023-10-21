@@ -101,7 +101,7 @@ ul.none > li:last-child {
 }
 
 li > a {
-  display: block;
+  display: inline-block;
 }
 
 i.subname {
