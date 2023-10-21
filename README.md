@@ -1,26 +1,21 @@
 # Hypersomnia homepage
 
-Currently hosted at https://hypersomnia.xyz/
+Currently hosted at https://hypersomnia.xyz
 
 ## Installation
 
 ```bash
 sudo add-apt-repository ppa:ondrej/php
 sudo apt update
-sudo apt install memcached php8.2 php8.2-{zip,curl,xml,memcached} -y
-
-php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-php composer-setup.php
-php -r "unlink('composer-setup.php');"
+sudo apt install -y curl memcached php8.2-fpm php8.2-{zip,curl,xml,memcached}
+curl -sSL https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
-
-cd /var/www/html
-composer update
+cd /var/www/html && composer update
 ```
 
 ## Configuration
 
-/etc/memcached.conf
+`/etc/memcached.conf`
 ```conf
 -d
 logfile /var/log/memcached.log
@@ -31,22 +26,7 @@ logfile /var/log/memcached.log
 -P /var/run/memcached/memcached.pid
 ```
 
-/etc/php/8.2/fpm/php.ini
-```ini
-session.save_handler = memcached
-session.save_path = "/var/run/memcached/memcached.sock"
-session.use_strict_mode = 1
-session.use_only_cookies = 1
-session.cookie_httponly = 1
-session.cookie_secure = 1
-session.cookie_samesite = "Lax"
-session.gc_maxlifetime = 2592000
-session.cookie_lifetime = 2592000
-upload_max_filesize = 20M
-post_max_size = 25M
-```
-
-/var/www/html/.env
+`/var/www/html/.env`
 ```env
 # Base URL
 APP_URL=http://localhost/Hypersomnia-homepage/
@@ -58,7 +38,7 @@ CACHE=false
 MEMCACHED_HOST=/var/run/memcached/memcached.sock
 MEMCACHED_PORT=0
 
-# Path to arenas directory
+# Path to arenas
 ARENAS_PATH=C:\hypersomnia\content\arenas
 
 # YouTube API Key

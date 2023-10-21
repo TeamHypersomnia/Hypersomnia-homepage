@@ -123,7 +123,7 @@ small {
   font-size: 0.8em;
 }
 
-strong, th, td:nth-child(1), label, dt {
+strong, th, td:nth-child(1), label, dt, b {
   font-weight: 500;
 }
 
@@ -211,7 +211,7 @@ a.os > small {
 .panel {
   padding: 1em;
   font-size: 0.9em;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid #38383b;
   background: #2a2a2a;
 }
@@ -723,7 +723,7 @@ nav > div > form > button:hover {
   width: 240px;
   height: 134px;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 4px;
   margin: 10px;
   opacity: 0.8;
 }
