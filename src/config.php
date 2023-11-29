@@ -2,6 +2,7 @@
 $dotenv = Dotenv\Dotenv::createImmutable('./');
 $dotenv->load();
 
+$_VERSION = 29112023;
 $url = isset($_ENV['APP_URL']) ? $_ENV['APP_URL'] : '/';
 $cache = (empty($_ENV['CACHE']) || $_ENV['CACHE'] == 'false') ? false : 'cache';
 $arenas_path = $_ENV['ARENAS_PATH'];
