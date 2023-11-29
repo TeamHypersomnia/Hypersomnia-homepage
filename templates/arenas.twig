@@ -6,8 +6,8 @@
 {% else %}
 <div class="arenas">
 {% for i in arenas %}
-  <a href="{{ url }}arenas/{{ i.name }}">
-    <img class="arena_miniature" src="{{ url }}arenas/{{ i.name }}/miniature.png?v={{ i.version_timestamp|date("U") }}" alt="{{ i.name }}">
+  <a href="/arenas/{{ i.name }}">
+    <img class="arena_miniature" src="/arenas/{{ i.name }}/miniature.png?v={{ i.version_timestamp|date("U") }}" alt="{{ i.name }}">
     <div class="arena_name">{{ i.name }}</div>
     <div class="arena_author">by {{ i.author }}</div>
     <div class="subname">{{ i.short_description }}</div>

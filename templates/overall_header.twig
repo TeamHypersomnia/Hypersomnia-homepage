@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="{% if arena is defined %}{{ short_description|replace({"\n": " "}) }}{% else %}An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.{% endif %}">
   <meta name="keywords" content="hypersomnia, hypersomnia game, online shooter, free game, open-source game, top-down shooter">
-  <meta property="og:image" content="{{ url }}{% if arena is defined %}arenas/{{ arena }}/miniature.png{% else %}assets/images/hypersomnia3x4.png{% endif %}">
+  <meta property="og:image" content="/{% if arena is defined %}arenas/{{ arena }}/miniature.png{% else %}assets/images/hypersomnia3x4.png{% endif %}">
   <meta property="og:image:type" content="image/png">
   <meta property="og:title" content="{% if page == "Index" %}Free Multiplayer Top-Down Shooter{% else %}{{ page }}{% endif %} - Hypersomnia">
   <meta property="og:description" content="{% if arena is defined %}{{ short_description|replace({"\n": " "}) }}{% else %}An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.{% endif %}">
   <title>{% if page == "Index" %}Free Multiplayer Top-Down Shooter{% else %}{{ page }}{% endif %} - Hypersomnia</title>
-  <link rel="icon" type="image/x-icon" href="{{ url }}favicon.ico">
-  <link rel="stylesheet" href="{{ url }}assets/styles/main.css?v={{ filemtime('assets/styles/main.css') }}">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/styles/main.css?v={{ filemtime('assets/styles/main.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -21,30 +21,30 @@
 <body>
   <nav>
     <div class="container flex">
-      <a href="{{ url }}"{% if page == "Index" %} class="active"{% endif %} aria-label="Hypersomnia">
+      <a href="/"{% if page == "Index" %} class="active"{% endif %} aria-label="Hypersomnia">
         <span class="desktop">Hypersomnia</span><span class="mobile"><i class="fa-solid fa-house"></i></span>
       </a>
-      <a href="{{ url }}guide"{% if page == "Guide" %} class="active"{% endif %} aria-label="Guide">
+      <a href="/guide"{% if page == "Guide" %} class="active"{% endif %} aria-label="Guide">
         <span class="desktop">Guide</span><span class="mobile"><i class="fa-solid fa-book"></i></span>
       </a>
-      <a href="{{ url }}arenas"{% if page == "Arenas" %} class="active"{% endif %} aria-label="Arenas">
+      <a href="/arenas"{% if page == "Arenas" %} class="active"{% endif %} aria-label="Arenas">
         <span class="desktop">Arenas</span><span class="mobile"><i class="fa-solid fa-map"></i></span>
       </a>
-      <a href="{{ url }}weapons"{% if page == "Weapons" %} class="active"{% endif %} aria-label="Weapons">
+      <a href="/weapons"{% if page == "Weapons" %} class="active"{% endif %} aria-label="Weapons">
         <span class="desktop">Weapons</span><span class="mobile"><i class="fa-solid fa-gun"></i></span>
       </a>
-      <a href="{{ url }}servers"{% if page == "Servers" %} class="active"{% endif %} aria-label="Servers">
+      <a href="/servers"{% if page == "Servers" %} class="active"{% endif %} aria-label="Servers">
         <span class="desktop">Servers</span><span class="mobile"><i class="fa-solid fa-server"></i></span>
       </a>
       {% if s.logged == false %}
-      <a href="{{ url }}discord" class="right" aria-label="Discord">
+      <a href="/discord" class="right" aria-label="Discord">
         <span class="desktop">Login with Discord</span><span class="mobile"><i class="fa fa-brands fa-discord"></i></span>
       </a>
       {% else %}
-      <a href="{{ url }}profile" class="right{% if page == "Profile" %} active{% endif %}" aria-label="Profile">
+      <a href="/profile" class="right{% if page == "Profile" %} active{% endif %}" aria-label="Profile">
         <span class="desktop">Profile</span><span class="mobile"><i class="fa-solid fa-user"></i></span>
       </a>
-      <form method="POST" action="{{ url }}logout">
+      <form method="POST" action="/logout">
         <button type="submit" aria-label="Logout"><span class="desktop">Logout</span><span class="mobile"><i class="fa-solid fa-right-from-bracket"></i></div></button>
       </form>
       {% endif %}

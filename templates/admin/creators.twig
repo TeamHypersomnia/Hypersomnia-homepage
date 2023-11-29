@@ -29,7 +29,7 @@
       {% else %}
       {% for k, v in creators %}
       <tr>
-        <td><a href="{{ url }}admin/creators/{{ v.shorthand }}">{{ v.shorthand }}</a></td>
+        <td><a href="/admin/creators/{{ v.shorthand }}">{{ v.shorthand }}</a></td>
         <td>{% if v.allow_creating_new == true %}Yes{% else %}No{% endif %}</td>
         <td>{{ v.maps|length }}</td>
         <td><span class="tocopy"><code>{{ k }}</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>

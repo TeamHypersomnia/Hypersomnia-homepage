@@ -11,7 +11,7 @@
       <dt>External resources</dt>
       <dd>{{ resources }}</dd>
       <dt>Author</dt>
-      <dd>{{ author }}{% if s.logged == true %}<a href="{{ url }}arenas?author={{ author }}" class="icon"><i class="fa-solid fa-magnifying-glass"></i></a>{% endif %}</dd>
+      <dd>{{ author }}{% if s.logged == true %}<a href="/arenas?author={{ author }}" class="icon"><i class="fa-solid fa-magnifying-glass"></i></a>{% endif %}</dd>
       <dt>Updated</dt>
       <dd>{{ updated }}</dd>
       <dt>Size</dt>
@@ -22,12 +22,12 @@
       </dd>
     </dl>
   </div>
-  <div class="miniature"><img src="{{ url }}arenas/{{ arena }}/miniature.png?v={{ version_timestamp|date("U") }}" alt="{{ arena }}"></div>
+  <div class="miniature"><img src="/arenas/{{ arena }}/miniature.png?v={{ version_timestamp|date("U") }}" alt="{{ arena }}"></div>
 </div>
 <div class="btn-group center">
-  <div class="btn"><a href="{{ url }}arenas/{{ prev }}"><span><i class="fa-solid fa-arrow-left"></i></span><span>Previous</span></a></div>
-  <div class="btn"><a href="{{ url }}download-zip/{{ arena }}"><span><i class="fa-solid fa-download"></i></span><span>Download</span></a></div>
-  <div class="btn"><a href="{{ url }}arenas/{{ next }}"><span><i class="fa-solid fa-arrow-right"></i></span><span>Next</span></a></div>
+  <div class="btn"><a href="/arenas/{{ prev }}"><span><i class="fa-solid fa-arrow-left"></i></span><span>Previous</span></a></div>
+  <div class="btn"><a href="/download-zip/{{ arena }}"><span><i class="fa-solid fa-download"></i></span><span>Download</span></a></div>
+  <div class="btn"><a href="/arenas/{{ next }}"><span><i class="fa-solid fa-arrow-right"></i></span><span>Next</span></a></div>
 </div>
 
 <script>
@@ -35,12 +35,12 @@ document.onkeydown = function(e) {
   switch(e.which) {
     case 37:
     if (4326 > 0) {
-      window.location.href = "{{ url }}arenas/{{ prev }}";
+      window.location.href = "/arenas/{{ prev }}";
     }
     break;
     case 39:
     if (4328 > 0) {
-      window.location.href = "{{ url }}arenas/{{ next }}";
+      window.location.href = "/arenas/{{ next }}";
     }
     break;
     default: return;
@@ -55,7 +55,7 @@ likeButton.addEventListener('click', function () {
   likeButton.disabled = true;
   const data = new FormData();
   data.append('arena', '{{ arena }}');
-  send('{{ url }}ajax/like-arena', data)
+  send('/ajax/like-arena', data)
     .then(response => {
       const json = JSON.parse(response);
       if (json.success) {

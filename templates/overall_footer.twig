@@ -1,13 +1,13 @@
     </article>
     <footer>
       <div>
-        <a href="{{ url }}disclaimer">Disclaimer</a>
-        <a href="{{ url }}cookie-policy">Cookie Policy</a>
-        <a href="{{ url }}contact">Contact</a>
-        <a href="{{ url }}press">Press</a>
-        <a href="{{ url }}statistics">Statistics</a>
+        <a href="/disclaimer">Disclaimer</a>
+        <a href="/cookie-policy">Cookie Policy</a>
+        <a href="/contact">Contact</a>
+        <a href="/press">Press</a>
+        <a href="/statistics">Statistics</a>
         {% if s.admin == true %}
-        <a href="{{ url }}admin/system">Admin</a>
+        <a href="/admin/system">Admin</a>
         {% endif %}
       </div>
       <div>
@@ -18,7 +18,7 @@
       </div>
     </footer>
   </div>
-  <script src="{{ url }}assets/scripts/sortable.min.js" defer></script>
-  <script src="{{ url }}assets/scripts/main.js?v={{ filemtime('assets/scripts/main.js') }}" defer></script>
+  <script src="/assets/scripts/sortable.min.js" defer></script>
+  <script src="/assets/scripts/main.js?v={{ filemtime('assets/scripts/main.js') }}" defer></script>
 </body>
 </html>
