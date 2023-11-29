@@ -7,7 +7,7 @@ Currently hosted at https://hypersomnia.xyz
 ```bash
 sudo add-apt-repository ppa:ondrej/php
 sudo apt update
-sudo apt install -y curl memcached php8.3-fpm php8.3-{zip,curl,xml,memcached}
+sudo apt install -y curl memcached php8.2-fpm php8.2-{zip,curl,xml,memcached}
 curl -sSL https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
 cd /var/www/html && composer update
