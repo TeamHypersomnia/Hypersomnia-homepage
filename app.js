@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const minifyHTML = require('express-minify-html-2');
 const passport = require('passport');
 const passportSteam = require('passport-steam');
 const SteamStrategy = passportSteam.Strategy;
@@ -37,6 +38,17 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(__dirname + '/public'));
+app.use(minifyHTML({
+  override: true,
+  exceptionUrls: false,
+  htmlMinifier: {
+    removeComments: true,
+    collapseWhitespace: true,
+    collapseBooleanAttributes: true,
+    removeAttributeQuotes: true,
+    removeEmptyAttributes: true
+  }
+}));
 app.locals = {
   arena: false,
   version: 3,
