@@ -4,11 +4,12 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-const arenas = require(__dirname + '/arenas')();
+const arenas = require(__dirname + '/arenas');
 const servers = require(__dirname + '/servers');
 const commits = require(__dirname + '/commits');
 const weapons = require(__dirname + '/weapons');
 
+arenas.init();
 servers.init();
 commits.init();
 
@@ -47,33 +48,35 @@ module.exports = function (app, passport) {
   });
 
   app.get('/arenas', function (req, res) {
+    const obj = arenas.getArenas();
     if (req.query.format !== undefined && req.query.format == 'json') {
-      return res.json(arenas);
+      return res.json(obj);
     }
     res.render('arenas', {
       page: 'Arenas',
       user: req.user,
-      arenas: arenas
+      arenas: obj
     });
   });
 
   app.get('/arenas/:arena', function (req, res) {
-    const index = arenas.findIndex(v => v.name === req.params.arena);
+    const obj = arenas.getArenas();
+    const index = obj.findIndex(v => v.name === req.params.arena);
     if (index === -1) {
       return res.redirect('/arenas');
     }
-    let prev = arenas[arenas.length - 1].name;
-    if (arenas[index - 1] !== undefined) {
-      prev = arenas[index - 1].name;
+    let prev = obj[obj.length - 1].name;
+    if (obj[index - 1] !== undefined) {
+      prev = obj[index - 1].name;
     }
-    let next = arenas[0].name;
-    if (arenas[index + 1] !== undefined) {
-      next = arenas[index + 1].name;
+    let next = obj[0].name;
+    if (obj[index + 1] !== undefined) {
+      next = obj[index + 1].name;
     }
     res.render('arena', {
-      page: arenas[index].name,
+      page: obj[index].name,
       user: req.user,
-      arena: arenas[index],
+      arena: obj[index],
       prev: prev,
       next: next
     });

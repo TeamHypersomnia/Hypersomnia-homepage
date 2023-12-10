@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
+const chokidar = require('chokidar');
 const dirPath = __dirname + '/../public/arenas';
+let arenas = [];
 
 function getFolderSize(folderPath) {
   let totalSize = 0;
@@ -22,7 +24,7 @@ function getFolderSize(folderPath) {
   return sizeInMegabytes.toFixed(2) + ' MB';
 }
 
-module.exports = function () {
+function loadArenas() {
   try {
     const files = fs.readdirSync(dirPath, { withFileTypes: true });
     const directories = files.filter(file => file.isDirectory());
@@ -57,8 +59,47 @@ module.exports = function () {
         size: size
       });
     });
+    console.log(`Loaded ${arenas.length} arenas successfully`);
     return arenas;
   } catch (err) {
     console.error('Error reading directory:', err);
+    return [];
   }
 }
+
+module.exports = {
+  init: function () {
+    arenas = loadArenas();
+
+    const watcher = chokidar.watch(`${dirPath}/**/*.json`, {
+      persistent: true,
+      recursive: true,
+      ignored: '**/editor_view.json'
+    });
+    
+    watcher.on('change', (filePath) => {
+      console.log(`File ${filePath} has been changed`);
+      arenas = loadArenas();
+    });
+
+    watcher.on('unlink', (filePath) => {
+      console.log(`File ${filePath} has been removed`);
+      arenas = loadArenas();
+    });
+    
+    watcher.on('error', (error) => {
+      console.error(`Watcher error: ${error}`);
+    });
+    
+    process.on('SIGINT', () => {
+      watcher.close();
+      process.exit();
+    });
+    
+    console.log(`Watching for changes to *.json files in ${dirPath}...`);
+  },
+
+  getArenas: function () {
+    return arenas;
+  }
+};
