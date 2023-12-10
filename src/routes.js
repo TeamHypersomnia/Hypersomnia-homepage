@@ -20,15 +20,12 @@ function ensureAuthenticated(req, res, next) {
   res.redirect('/auth/steam');
 }
 
-function ensurePathExists(filePath) {
-  const directories = filePath.split(path.sep);
-  let currentPath = '';
-  for (const directory of directories) {
-    currentPath = path.join(currentPath, directory);
-    if (!fs.existsSync(currentPath)) {
-      fs.mkdirSync(currentPath);
-    }
+function writeFileWithDirectory(filePath, content) {
+  const directory = path.dirname(filePath);
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
   }
+  fs.writeFileSync(filePath, content);
 }
 
 module.exports = function (app, passport) {
@@ -210,12 +207,9 @@ module.exports = function (app, passport) {
       }
     }
   
-    const fileName = req.file.originalname;
-    const fileContent = req.file.buffer;
-    const filePath = __dirname + `/../public/arenas/${arena}/${filename}`;
-    ensurePathExists(filePath);
-    fs.writeFileSync(filePath, fileContent);
-    console.log('File saved to:', filePath);
+    const filePath = `public/arenas/${arena}/${sanitizedFilename}`;
+    writeFileWithDirectory(filePath, req.file.buffer);
+    console.log(`File saved to ${filePath}`);
   
     return res.json({
       success: 'The file has been uploaded'

@@ -31,33 +31,35 @@ function loadArenas() {
     const arenas = [];
     directories.forEach(d => {
       const arenaPath = `${dirPath}/${d.name}/${d.name}.json`;
-      const fileContent = fs.readFileSync(arenaPath, 'utf8');
-      const obj = JSON.parse(fileContent);
-
-      const format = 'YYYY-MM-DD HH:mm:ss.SSSSSS Z';
-      const dateObject = moment.utc(obj.meta.version_timestamp, format);
-      const timeAgo = dateObject.fromNow();
-      const size = getFolderSize(`${dirPath}/${d.name}`);
-
-      let short_description = 'N/A';
-      if (obj.about.short_description) {
-        short_description = obj.about.short_description;
+      if (fs.existsSync(arenaPath)) {
+        const fileContent = fs.readFileSync(arenaPath, 'utf8');
+        const obj = JSON.parse(fileContent);
+  
+        const format = 'YYYY-MM-DD HH:mm:ss.SSSSSS Z';
+        const dateObject = moment.utc(obj.meta.version_timestamp, format);
+        const timeAgo = dateObject.fromNow();
+        const size = getFolderSize(`${dirPath}/${d.name}`);
+  
+        let short_description = 'N/A';
+        if (obj.about.short_description) {
+          short_description = obj.about.short_description;
+        }
+  
+        let full_description = 'N/A';
+        if (obj.about.full_description) {
+          full_description = obj.about.full_description;
+        }
+  
+        arenas.push({
+          name: obj.meta.name,
+          author: obj.about.author,
+          short_description: short_description,
+          full_description: full_description,
+          version_timestamp: obj.meta.version_timestamp,
+          updated: timeAgo,
+          size: size
+        });
       }
-
-      let full_description = 'N/A';
-      if (obj.about.full_description) {
-        full_description = obj.about.full_description;
-      }
-
-      arenas.push({
-        name: obj.meta.name,
-        author: obj.about.author,
-        short_description: short_description,
-        full_description: full_description,
-        version_timestamp: obj.meta.version_timestamp,
-        updated: timeAgo,
-        size: size
-      });
     });
     console.log(`Loaded ${arenas.length} arenas successfully`);
     return arenas;
@@ -72,18 +74,14 @@ module.exports = {
     arenas = loadArenas();
 
     const watcher = chokidar.watch(`${dirPath}/**/*.json`, {
+      ignoreInitial: true,
       persistent: true,
       recursive: true,
       ignored: '**/editor_view.json'
     });
-    
-    watcher.on('change', (filePath) => {
-      console.log(`File ${filePath} has been changed`);
-      arenas = loadArenas();
-    });
 
-    watcher.on('unlink', (filePath) => {
-      console.log(`File ${filePath} has been removed`);
+    watcher.on('all', (event, path) => {
+      console.log(event, path);
       arenas = loadArenas();
     });
     
