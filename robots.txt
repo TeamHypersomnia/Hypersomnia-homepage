@@ -1,6 +1,0 @@
-User-agent: *
-Disallow: /download/
-Disallow: /download-zip/
-Disallow: /builds/
-Disallow: /vendor/
-Disallow: /admin/

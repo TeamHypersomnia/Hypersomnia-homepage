@@ -1,50 +1,30 @@
-# Hypersomnia homepage
-
-Currently hosted at https://hypersomnia.xyz
+# Hypersomnia Website
+https://hypersomnia.xyz/
 
 ## Installation
-
+Node.js
 ```bash
-sudo add-apt-repository ppa:ondrej/php
-sudo apt update
-sudo apt install -y curl memcached php8.2-fpm php8.2-{zip,curl,xml,memcached}
-curl -sSL https://getcomposer.org/installer | php
-sudo mv composer.phar /usr/local/bin/composer
-cd /var/www/html && composer update
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+NODE_MAJOR=20
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+sudo apt-get update
+sudo apt-get install nodejs -y
+```
+
+Website
+```bash
+cd /var/www/app
+npm install
+sudo npm install -g pm2
+pm2 start app.js
 ```
 
 ## Configuration
-
-`/etc/memcached.conf`
-```conf
--d
-logfile /var/log/memcached.log
--s /var/run/memcached/memcached.sock
--a 666
--m 64
--u memcache
--P /var/run/memcached/memcached.pid
-```
-
-`/var/www/html/.env`
+.env
 ```env
-# Cache (true or false)
-CACHE=false
-
-# Memcached
-MEMCACHED_HOST=/var/run/memcached/memcached.sock
-MEMCACHED_PORT=0
-
-# Path to arenas
-ARENAS_PATH=C:\hypersomnia\content\arenas
-
-# YouTube API Key
-APIKEY_YOUTUBE=
-
-# Admins (comma-separated format)
-ADMINS=550080230161645592,231574084931026944
-
-# Discord OAuth settings
-DISCORD_CLIENT_ID=
-DISCORD_CLIENT_SECRET=
+STEAM_APIKEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+SESSION_SECRET="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 ```

@@ -1,0 +1,10 @@
+<%- include('overall_header'); %>
+
+<h1><%= user.displayName %></h1>
+<img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="184" height="184">
+<dl>
+  <dt>Steam ID</dt>
+  <dd><span class="tocopy"><code><%= user.id %></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></dd>
+</dl>
+
+<%- include('overall_footer'); %>

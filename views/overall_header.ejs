@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="<% if (!arena) { %>An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.<% } else { %><%= arena.short_description.replace(/\n/g, ' ') %><% } %>">
+  <meta name="keywords" content="hypersomnia, hypersomnia game, hypersomnia shooter, teamhypersomnia, open source shooter, free shooter, free 2d shooter, 2d topdown, 2d topdown shooter, topdown shooter, top-down shooter, pixelart, pixel art, pixel-art shooter, indie shooter, 2d shooter, online shooter, competitive shooter, competitive 2d">
+  <meta property="og:image" content="https://hypersomnia.xyz/<% if (!arena) { %>assets/images/hypersomnia3x4.png<% } else { %>arenas/<%= arena.name %>/miniature.png<% } %>">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:title" content="<% if (page === 'Index') { %>Free Multiplayer Top-Down Shooter<% } else { %><%= page %><% } %> - Hypersomnia">
+  <meta property="og:description" content="<% if (!arena) { %>An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.<% } else { %><%= arena.short_description.replace(/\n/g, ' ') %><% } %>">
+  <title><% if (page === 'Index') { %>Free Multiplayer Top-Down Shooter<% } else { %><%= page %><% } %> - Hypersomnia</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/styles/main.css?v=<%= version %>">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+  <nav>
+    <div class="container flex">
+      <a href="/"<% if(page == 'Index'){ %> class="active"<% } %> aria-label="Hypersomnia">
+        <span class="desktop">Hypersomnia</span><span class="mobile"><i class="fa-solid fa-house"></i></span>
+      </a>
+      <a href="/guide"<% if(page == 'Guide'){ %> class="active"<% } %> aria-label="Guide">
+        <span class="desktop">Guide</span><span class="mobile"><i class="fa-solid fa-book"></i></span>
+      </a>
+      <a href="/arenas"<% if(page == 'Arenas'){ %> class="active"<% } %> aria-label="Arenas">
+        <span class="desktop">Arenas</span><span class="mobile"><i class="fa-solid fa-map"></i></span>
+      </a>
+      <a href="/weapons"<% if(page == 'Weapons'){ %> class="active"<% } %> aria-label="Weapons">
+        <span class="desktop">Weapons</span><span class="mobile"><i class="fa-solid fa-gun"></i></span>
+      </a>
+      <a href="/servers"<% if(page == 'Servers'){ %> class="active"<% } %> aria-label="Servers">
+        <span class="desktop">Servers</span><span class="mobile"><i class="fa-solid fa-server"></i></span>
+      </a>
+      <% if (!user) { %>
+        <a href="/auth/steam" class="right steam" aria-label="Sign in with Steam">
+          <span class="desktop"><img src="https://community.cloudflare.steamstatic.com/public/images/signinthroughsteam/sits_01.png" alt="Sign in through Steam" width="180" height="35"></span><span class="mobile"><i class="fa fa-brands fa-steam"></i></span>
+        </a>
+      <% } else { %>
+        <a href="/profile" class="right<% if(page == 'Profile'){ %> active<% } %>" aria-label="Profile">
+          <span class="desktop">Profile</span><span class="mobile"><i class="fa-solid fa-user"></i></span>
+        </a>
+        <form method="POST" action="/logout">
+          <button type="submit" aria-label="Logout"><span class="desktop">Logout</span><span class="mobile"><i class="fa-solid fa-right-from-bracket"></i></div></button>
+        </form>
+      <% } %>
+    </div>
+  </nav>
+  <div class="container">
+    <% if(alert != ''){ %><div class="alert"><%- alert %></div><% } %>
+    <article>

@@ -1,0 +1,157 @@
+<%- include('overall_header'); %>
+
+<h1>Firearms</h1>
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th class="no-sort">Weapon</th>
+        <th>DMG</th>
+        <th>HS DMG</th>
+        <th>Penetration</th>
+        <th>Shots/sec</th>
+        <th>Avg bullet speed</th>
+        <th>Price</th>
+        <th>Kill award</th>
+        <th>Weight</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% firearms.forEach(i => { %>
+        <tr>
+          <td><%= i.display_name %></td>
+          <td><img src="//cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@master/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td><%= i.damage %></td>
+          <td><%= i.headshot_damage %></td>
+          <td><%= i.penetration %></td>
+          <td><%= i.shots_per_second.toFixed(2) %></td>
+          <td><%= (i.min_bullet_speed + i.max_bullet_speed) / 2 %></td>
+          <td><%= i.price %></td>
+          <td><%= i.kill_award %></td>
+          <td><%= i.weight.toFixed(2) %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<h2>Melee weapons</h2>
+<div class="radio">
+  <input onchange="fast()" id="fast" type="radio" name="r" checked>
+  <label for="fast">Fast attack</label>
+  <input onchange="strong()" id="strong" type="radio" name="r">
+  <label for="strong">Strong attack</label>
+</div>
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th class="no-sort">Weapon</th>
+        <th>Swings/sec</th>
+        <th>DMG</th>
+        <th>HS DMG</th>
+        <th>Stamina</th>
+        <th>Throw DMG</th>
+        <th>Throw HS DMG</th>
+        <th>Price</th>
+        <th>Kill award</th>
+        <th>Weight</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% melees.forEach(i => { %>
+        <tr>
+          <td><%= i.display_name %></td>
+          <td><img src="//raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td>
+            <span class="fast"><%= i.fast_swings_per_second.toFixed(2) %></span>
+            <span class="strong"><%= i.strong_swings_per_second.toFixed(2) %></span>
+          </td>
+          <td>
+            <span class="fast"><%= i.fast_damage %></span>
+            <span class="strong"><%= i.strong_damage %></span>
+          </td>
+          <td>
+            <span class="fast"><%= i.fast_hs_damage %></span>
+            <span class="strong"><%= i.strong_hs_damage %></span>
+          </td>
+          <td>
+            <span class="fast"><%= i.fast_stamina_required %></span>
+            <span class="strong"><%= i.strong_stamina_required %></span>
+          </td>
+          <td><%= i.throw_damage %></td>
+          <td><%= i.throw_hs_damage %></td>
+          <td><%= i.price %></td>
+          <td><%= i.kill_award %></td>
+          <td><%= i.weight.toFixed(2) %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<h2>Explosives</h2>
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th class="no-sort">Weapon</th>
+        <th>Notes</th>
+        <th>Fuse delay</th>
+        <th>Base DMG</th>
+        <th>Price</th>
+        <th>Kill award</th>
+        <th>Weight</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% explosives.forEach(i => { %>
+        <tr>
+          <td><%= i.display_name %></td>
+          <td><img src="//raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td><%= i.notes %></td>
+          <td><%= i.fuse_delay.toFixed(2) %></td>
+          <td><%= i.base_damage === -1 ? 'N/A' : i.base_damage %></td>
+          <td><%= i.price %></td>
+          <td><%= i.kill_award === -1 ? 'N/A' : i.kill_award %></td>
+          <td><%= i.weight.toFixed(2) %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<h2>Spells</h2>
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th class="no-sort">Spell</th>
+        <th>Notes</th>
+        <th>Cooldown</th>
+        <th>Mana required</th>
+        <th>Price</th>
+        <th>Kill award</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% spells.forEach(i => { %>
+        <tr>
+          <td><%= i.display_name %></td>
+          <td><img src="//raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td><%= i.notes %></td>
+          <td><%= i.cooldown %></td>
+          <td><%= i.mana_required %></td>
+          <td><%= i.price %></td>
+          <td><%= i.kill_award === -1 ? 'N/A' : i.kill_award %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('overall_footer'); %>
