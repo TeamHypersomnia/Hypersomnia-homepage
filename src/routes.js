@@ -13,11 +13,22 @@ arenas.init();
 servers.init();
 commits.init();
 
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
+function onlyUserAccess(req, res, next) {
+  if (!req.isAuthenticated()) {
+    return res.redirect('/auth/steam');
   }
-  res.redirect('/auth/steam');
+  return next();
+}
+
+function onlyAdminAccess(req, res, next) {
+  if (!req.isAuthenticated()) {
+    return res.redirect('/auth/steam');
+  }
+  const admins = process.env.ADMINS.split(',');
+  if (!admins.includes(req.user.id)) {
+    return res.redirect('/');
+  }
+  return next();
 }
 
 function writeFileWithDirectory(filePath, content) {
@@ -111,7 +122,7 @@ module.exports = function (app, passport) {
     });
   });
 
-  app.get('/Disclaimer', function (req, res) {
+  app.get('/disclaimer', function (req, res) {
     res.render('disclaimer', {
       page: 'Disclaimer',
       user: req.user
@@ -136,9 +147,16 @@ module.exports = function (app, passport) {
     });
   });
 
-  app.get('/profile', ensureAuthenticated, function (req, res) {
+  app.get('/profile', onlyUserAccess, function (req, res) {
     res.render('profile', {
       page: 'Profile',
+      user: req.user
+    });
+  });
+
+  app.get('/admin', onlyAdminAccess, function (req, res) {
+    res.render('admin', {
+      page: 'Admin',
       user: req.user
     });
   });
@@ -155,11 +173,11 @@ module.exports = function (app, passport) {
       });
     }
 
-    const jsonData = fs.readFileSync(__dirname + '/../private/authorized_mappers.json', {
+    const d = fs.readFileSync(__dirname + '/../private/authorized_mappers.json', {
       encoding: 'utf8',
       flag: 'r'
     });
-    const authorizedMappers = JSON.parse(jsonData);
+    const authorizedMappers = JSON.parse(d);
     if (!authorizedMappers[apikey]) {
       return res.status(400).json({
         error: 'You are not authorized to upload maps'

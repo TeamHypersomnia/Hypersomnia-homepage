@@ -1,0 +1,13 @@
+<%- include('overall_header'); %>
+
+<h1>Admin Dashboard</h1>
+<div class="btn-group">
+  <div class="btn"><a href="/admin/system"<% if(page == 'System'){ %> class="active"<% } %>><span><i class="fa-solid fa-circle-info"></i></span><span>System</span></a></div>
+  <div class="btn"><a href="/admin/visitors"<% if(page == 'Visitors'){ %> class="active"<% } %>><span><i class="fa-solid fa-users"></i></span><span>Visitors</span></a></div>
+  <div class="btn"><a href="/admin/users"<% if(page == 'Users'){ %> class="active"<% } %>><span><i class="fa fa-brands fa-discord"></i></span><span>Users</span></a></div>
+  <div class="btn"><a href="/admin/creators"<% if(page == 'Creators'){ %> class="active"<% } %>><span><i class="fa-solid fa-lock"></i></span><span>Creators</span></a></div>
+  <div class="btn"><a href="/admin/settings"<% if(page == 'Settings'){ %> class="active"<% } %>><span><i class="fa-solid fa-gear"></i></span><span>Settings</span></a></div>
+</div>
+<p>TBA</p>
+
+<%- include('overall_footer'); %>

@@ -64,7 +64,7 @@ function loadArenas() {
     console.log(`Loaded ${arenas.length} arenas successfully`);
     return arenas;
   } catch (err) {
-    console.error('Error reading directory:', err);
+    console.error(`Error reading directory: ${err}`);
     return [];
   }
 }
@@ -94,7 +94,7 @@ module.exports = {
       process.exit();
     });
     
-    console.log(`Watching for changes to *.json files in ${dirPath}...`);
+    console.log(`Watching for changes in arenas...`);
   },
 
   getArenas: function () {

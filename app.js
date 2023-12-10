@@ -16,8 +16,8 @@ passport.deserializeUser(function (obj, done) {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: 'https://hypersomnia.xyz/auth/steam/return',
-    realm: 'https://hypersomnia.xyz/',
+    returnURL: process.env.URL + 'auth/steam/return',
+    realm: process.env.URL,
     apiKey: process.env.STEAM_APIKEY
   },
   function (identifier, profile, done) {
