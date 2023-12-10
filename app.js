@@ -52,7 +52,7 @@ app.use(minifyHTML({
 app.locals = {
   arena: false,
   version: 3,
-  alert: 'Wishlist now. <a href="https://store.steampowered.com/app/2660970/Hypersomnia/" target="_blank">https://store.steampowered.com/app/2660970/Hypersomnia/</a>'
+  alert: '<a href="https://store.steampowered.com/app/2660970/Hypersomnia/" target="_blank">Hypersomnia will be available on Steam. Planned Release Date: 28 Dec, 2023</a>'
 };
 require(__dirname + '/src/routes')(app, passport);
 app.listen(3000);
