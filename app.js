@@ -104,12 +104,22 @@ app.use((req, res, next) => {
     const parser = new UAParser();
     const userAgent = req.headers['user-agent'];
     const result = parser.setUA(userAgent).getResult();
+    const referer = req.get('Referer');
+    let origin = '';
+    if (referer) {
+      try {
+        const url = new URL(referer);
+        origin = url.origin;
+      } catch (error) {
+        console.error(error.message);
+      }
+    }
     visitors[ip] = {
       lastSeen: ts,
       ip: ip,
       os: result.os,
       browser: result.browser,
-      referer: req.get('Referrer')
+      referer: origin
     };
   }
   next();

@@ -25,7 +25,7 @@
             <td><%= hostname %></td>
           </tr>
           <tr>
-            <th>Uptime</th>
+            <th>System uptime</th>
             <td><%= uptime %></td>
           </tr>
           <tr>
@@ -36,9 +36,27 @@
             <th>RAM usage</th>
             <td><%= Math.floor(usedmem / (1024 * 1024)) %>/<%= Math.floor(totalmem / (1024 * 1024)) %> MB</td>
           </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div>
+    <div class="table-responsive">
+      <table>
+        <thead>
           <tr>
-            <th>Node version</th>
+            <th width="50%">Key</th>
+            <th width="50%">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>Node.js version</th>
             <td><%= node %></td>
+          </tr>
+          <tr>
+            <th>Node.js uptime</th>
+            <td><%= appuptime %></td>
           </tr>
         </tbody>
       </table>

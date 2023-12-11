@@ -25,7 +25,8 @@ router.get('/', (req, res) => {
     uptime: formatUptime(os.uptime()),
     usedmem: os.totalmem() - os.freemem(),
     totalmem: os.totalmem(),
-    node: process.version
+    node: process.version,
+    appuptime: formatUptime(process.uptime())
   });
 });
 
