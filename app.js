@@ -7,11 +7,13 @@ const minifyHTML = require('express-minify-html-2');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
+const UAParser = require('ua-parser-js');
 
 const github = 'https://github.com/TeamHypersomnia';
 const pressKit = `${github}/PressKit/blob/main/README.md#intro`;
 const app = express();
 const port = 3000;
+const visitors = {};
 
 // Passport
 passport.serializeUser((user, done) => {
@@ -93,6 +95,26 @@ function adm(req, res, next) {
   return next();
 }
 
+app.use((req, res, next) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const ts = Math.floor(Date.now() / 1000);
+  if (visitors.hasOwnProperty(ip)) {
+    visitors[ip].lastSeen = ts;
+  } else {
+    const parser = new UAParser();
+    const userAgent = req.headers['user-agent'];
+    const result = parser.setUA(userAgent).getResult();
+    visitors[ip] = {
+      lastSeen: ts,
+      ip: ip,
+      os: result.os,
+      browser: result.browser,
+      referer: req.get('Referrer')
+    };
+  }
+  next();
+});
+
 // Routes
 app.use('/', require('./src/index'));
 app.use('/guide', require('./src/guide'));
@@ -109,7 +131,7 @@ app.get('/press', (req, res) => res.redirect(pressKit));
 app.use('/upload', require('./src/upload'));
 app.get('/admin', adm, (req, res) => res.redirect('/admin/system'));
 app.use('/admin/system', adm, require('./src/admin/system'));
-app.use('/admin/visitors', adm, require('./src/admin/visitors'));
+app.use('/admin/visitors', adm, require('./src/admin/visitors')(visitors));
 app.use('/admin/users', adm, require('./src/admin/users'));
 app.use('/admin/creators', adm, require('./src/admin/creators'));
 app.use('/admin/settings', adm, require('./src/admin/settings')(app.locals));

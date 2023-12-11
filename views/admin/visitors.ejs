@@ -1,6 +1,30 @@
 <%- include('../overall_header'); %>
 <%- include('nav'); %>
 
-<p>TBA</p>
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th width="20%">IP address</th>
+        <th width="20%">Last seen</th>
+        <th width="20%">Browser</th>
+        <th width="20%">Operating system</th>
+        <th width="20%">HTTP referer</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% Object.keys(visitors).forEach((k) => { %>
+      <% const v = visitors[k]; %>
+      <tr>
+        <td><a href="https://db-ip.com/<%= v.ip %>" target="_blank"><%= v.ip %></a></td>
+        <td><%= v.lastSeen %></td>
+        <td><%= v.browser.name %> <%= v.browser.major %></td>
+        <td><%= v.os.name %> <%= v.os.version %></td>
+        <td><%= v.referer %></td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
 
 <%- include('../overall_footer'); %>

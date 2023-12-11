@@ -16,13 +16,12 @@ function loadUsers() {
 }
 
 router.get('/', (req, res) => {
-  const users = loadUsers();
   const updatedUsers = Object.fromEntries(
-    Object.entries(users).map(([userId, user]) => [
-      userId,
+    Object.entries(loadUsers()).map(([k, v]) => [
+      k,
       {
-        ...user,
-        lastLogin: moment(user.lastLogin * 1000).fromNow()
+        ...v,
+        lastLogin: moment(v.lastLogin * 1000).fromNow()
       }
     ])
   );

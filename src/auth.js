@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
+const UAParser = require('ua-parser-js');
 const path = `${__dirname}/../private/users.json`;
 
 function loadUsers() {
@@ -39,11 +40,15 @@ module.exports = function(passport) {
     }),
     function (req, res) {
       const users = loadUsers();
+      const parser = new UAParser();
+      const userAgent = req.headers['user-agent'];
+      const result = parser.setUA(userAgent).getResult();
       const data = {
         name: req.user.displayName,
         lastLogin: Math.floor(Date.now() / 1000),
         ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-        ua: req.get('User-Agent')
+        os: result.os,
+        browser: result.browser
       };
       if (users.hasOwnProperty(req.user.id)) {
         Object.assign(users[req.user.id], data);

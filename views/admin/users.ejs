@@ -5,10 +5,12 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th width="25%">Steam ID</th>
-        <th width="25%">Display name</th>
-        <th width="25%">IP address</th>
-        <th width="25%">Last login</th>
+        <th width="16%">Steam ID</th>
+        <th width="20%">Display name</th>
+        <th width="16%">IP address</th>
+        <th width="16%">Last login</th>
+        <th width="16%">Browser</th>
+        <th width="16%">Operating system</th>
       </tr>
     </thead>
     <tbody>
@@ -17,8 +19,10 @@
       <tr>
         <td><a href="https://steamcommunity.com/profiles/<%= k %>" target="_blank"><%= k %></a></td>
         <td><%= v.name %></td>
-        <td><%= v.ip %></td>
+        <td><a href="https://db-ip.com/<%= v.ip %>" target="_blank"><%= v.ip %></a></td>
         <td><%= v.lastLogin %></td>
+        <td><%= v.browser.name %> <%= v.browser.major %></td>
+        <td><%= v.os.name %> <%= v.os.version %></td>
       </tr>
       <% }); %>
     </tbody>
