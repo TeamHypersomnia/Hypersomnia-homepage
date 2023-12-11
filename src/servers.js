@@ -31,4 +31,23 @@ router.get('/', function (req, res) {
   });
 });
 
+router.get('/:address', function (req, res) {
+  const data = servers.map(v => {
+    return {
+      ...v,
+      time_hosted_ago: moment(v.time_hosted * 1000).fromNow(),
+      time_last_heartbeat_ago: moment(v.time_last_heartbeat * 1000).fromNow()
+    };
+  });
+  const sv = data.find(v => v.ip === req.params.address);
+  if (!sv) {
+    return res.redirect('/servers');
+  }
+  res.render('server', {
+    page: sv.name,
+    user: req.user,
+    sv: sv
+  });
+});
+
 module.exports = router;
