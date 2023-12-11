@@ -8,6 +8,8 @@ const arenas = require(__dirname + '/arenas');
 const servers = require(__dirname + '/servers');
 const commits = require(__dirname + '/commits');
 const weapons = require(__dirname + '/weapons');
+const system = require(__dirname + '/admin/system');
+const settings = require(__dirname + '/admin/settings');
 
 arenas.init();
 servers.init();
@@ -155,10 +157,53 @@ module.exports = function (app, passport) {
   });
 
   app.get('/admin', onlyAdminAccess, function (req, res) {
-    res.render('admin', {
-      page: 'Admin',
+    res.redirect('/admin/system');
+  });
+
+  app.get('/admin/system', onlyAdminAccess, function (req, res) {
+    res.render('admin/system', {
+      page: 'System',
+      user: req.user,
+      system: system.getData()
+    });
+  });
+
+  app.get('/admin/visitors', onlyAdminAccess, function (req, res) {
+    res.render('admin/visitors', {
+      page: 'Visitors',
       user: req.user
     });
+  });
+
+  app.get('/admin/users', onlyAdminAccess, function (req, res) {
+    res.render('admin/users', {
+      page: 'Users',
+      user: req.user
+    });
+  });
+
+  app.get('/admin/creators', onlyAdminAccess, function (req, res) {
+    res.render('admin/creators', {
+      page: 'Creators',
+      user: req.user
+    });
+  });
+
+  app.get('/admin/settings', onlyAdminAccess, function (req, res) {
+    res.render('admin/settings', {
+      page: 'Settings',
+      user: req.user,
+      alert: app.locals.alert
+    });
+  });
+
+  app.post('/admin/settings', onlyAdminAccess, function (req, res) {
+    const alert = req.body.alert;
+    app.locals.alert = alert;
+    const obj = settings.load();
+    obj.alert = alert;
+    settings.save(obj);
+    res.redirect('/admin/settings');
   });
 
   app.post('/upload', upload.single('upload'), (req, res) => {

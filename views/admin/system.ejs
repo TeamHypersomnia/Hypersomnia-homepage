@@ -1,0 +1,49 @@
+<%- include('../overall_header'); %>
+<%- include('nav'); %>
+
+<div class="box">
+  <div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>Machine type</th>
+            <td><%= system.machine %></td>
+          </tr>
+          <tr>
+            <th>Operating system</th>
+            <td><%= system.type %> <%= system.release %></td>
+          </tr>
+          <tr>
+            <th>Host name</th>
+            <td><%= system.hostname %></td>
+          </tr>
+          <tr>
+            <th>Uptime</th>
+            <td><%= system.uptime %></td>
+          </tr>
+          <tr>
+            <th>Load avg</th>
+            <td><%= system.loadavg.map(v => v.toFixed(2)).join(' ') %></td>
+          </tr>
+          <tr>
+            <th>RAM usage</th>
+            <td><%= Math.floor(system.usedmem / (1024 * 1024)) %>/<%= Math.floor(system.totalmem / (1024 * 1024)) %> MB</td>
+          </tr>
+          <tr>
+            <th>Node version</th>
+            <td><%= system.nodever %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../overall_footer'); %>
