@@ -1,35 +1,25 @@
+const express = require('express');
+const router = express.Router();
 const fs = require('fs');
 
-module.exports = {
-  getFirearms: function () {
-    const d = fs.readFileSync(__dirname + '/../public/weapons/firearms.json', {
-      encoding: 'utf8',
-      flag: 'r'
-    });
-    return JSON.parse(d);
-  },
+function getWeapons(file) {
+  const path = `${__dirname}/../public/weapons/${file}.json`;
+  const data = fs.readFileSync(path, {
+    encoding: 'utf8',
+    flag: 'r'
+  });
+  return JSON.parse(data);
+}
 
-  getMelees: function () {
-    const d = fs.readFileSync(__dirname + '/../public/weapons/melees.json', {
-      encoding: 'utf8',
-      flag: 'r'
-    });
-    return JSON.parse(d);
-  },
+router.get('/', function (req, res) {
+  res.render('weapons', {
+    page: 'Weapons',
+    user: req.user,
+    firearms: getWeapons('firearms'),
+    melees: getWeapons('melees'),
+    explosives: getWeapons('explosives'),
+    spells: getWeapons('spells')
+  });
+});
 
-  getExplosives: function () {
-    const d = fs.readFileSync(__dirname + '/../public/weapons/explosives.json', {
-      encoding: 'utf8',
-      flag: 'r'
-    });
-    return JSON.parse(d);
-  },
-
-  getSpells: function () {
-    const d = fs.readFileSync(__dirname + '/../public/weapons/spells.json', {
-      encoding: 'utf8',
-      flag: 'r'
-    });
-    return JSON.parse(d);
-  }
-};
+module.exports = router;

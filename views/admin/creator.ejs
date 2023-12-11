@@ -1,0 +1,29 @@
+<%- include('../overall_header'); %>
+<%- include('nav'); %>
+
+<form class="form" method="POST">
+  <div class="form-group">
+    <label for="shorthand">Shorthand</label>
+    <input type="text" id="shorthand" name="shorthand" value="<%= c.shorthand %>" spellcheck="false">
+  </div>
+  <div class="form-group">
+    <label for="allow_creating_new">Allow creating new</label>
+    <select name="allow_creating_new" id="allow_creating_new">
+      <option value="yes" <%= c.allow_creating_new ? 'selected' : '' %>>Yes</option>
+      <option value="no" <%= !c.allow_creating_new ? 'selected' : '' %>>No</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="arenas">Arenas</label>
+    <textarea id="arenas" name="arenas" rows="15" cols="25" spellcheck="false"><%= c.maps.join('\n') %></textarea>
+  </div>
+  <div class="form-group checkbox">
+    <label for="delete">Delete</label>
+    <input type="checkbox" name="delete" id="delete">
+  </div>
+  <div class="form-group">
+    <input type="submit" value="Save">
+  </div>
+</form>
+
+<%- include('../overall_footer'); %>

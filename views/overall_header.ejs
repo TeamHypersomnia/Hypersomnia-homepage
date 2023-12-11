@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="<% if (!arena) { %>An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.<% } else { %><%= arena.short_description.replace(/\n/g, ' ') %><% } %>">
+  <meta name="description" content="<% if (typeof arena !== 'undefined' && arena) { %><%= arena.short_description.replace(/\n/g, ' ') %><% } else { %>An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.<% } %>">
   <meta name="keywords" content="hypersomnia, hypersomnia game, hypersomnia shooter, teamhypersomnia, open source shooter, free shooter, free 2d shooter, 2d topdown, 2d topdown shooter, topdown shooter, top-down shooter, pixelart, pixel art, pixel-art shooter, indie shooter, 2d shooter, online shooter, competitive shooter, competitive 2d">
-  <meta property="og:image" content="https://hypersomnia.xyz/<% if (!arena) { %>assets/images/hypersomnia3x4.png<% } else { %>arenas/<%= arena.name %>/miniature.png<% } %>">
+  <meta property="og:image" content="https://hypersomnia.xyz/<% if (typeof arena !== 'undefined' && arena) { %>arenas/<%= arena.name %>/miniature.png<% } else { %>assets/images/hypersomnia3x4.png<% } %>">
   <meta property="og:image:type" content="image/png">
   <meta property="og:title" content="<% if (page === 'Index') { %>Free Multiplayer Top-Down Shooter<% } else { %><%= page %><% } %> - Hypersomnia">
-  <meta property="og:description" content="<% if (!arena) { %>An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.<% } else { %><%= arena.short_description.replace(/\n/g, ' ') %><% } %>">
+  <meta property="og:description" content="<% if (typeof arena !== 'undefined' && arena) { %><%= arena.short_description.replace(/\n/g, ' ') %><% } else { %>An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.<% } %>">
   <title><% if (page === 'Index') { %>Free Multiplayer Top-Down Shooter<% } else { %><%= page %><% } %> - Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="/assets/styles/main.css?v=<%= version %>">

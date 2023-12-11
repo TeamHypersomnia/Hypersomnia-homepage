@@ -1,6 +1,28 @@
 <%- include('../overall_header'); %>
 <%- include('nav'); %>
 
-<p>TBA</p>
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th width="25%">Steam ID</th>
+        <th width="25%">Display name</th>
+        <th width="25%">IP address</th>
+        <th width="25%">Last login</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% Object.keys(users).forEach((k) => { %>
+      <% const v = users[k]; %>
+      <tr>
+        <td><a href="https://steamcommunity.com/profiles/<%= k %>" target="_blank"><%= k %></a></td>
+        <td><%= v.name %></td>
+        <td><%= v.ip %></td>
+        <td><%= v.lastLogin %></td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
 
 <%- include('../overall_footer'); %>

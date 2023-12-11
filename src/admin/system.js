@@ -1,3 +1,5 @@
+const express = require('express');
+const router = express.Router();
 const os = require('os');
 
 function formatUptime(uptime) {
@@ -11,18 +13,20 @@ function formatUptime(uptime) {
   return `${h}:${m}:${s}`;
 }
 
-module.exports = {
-  getData: function () {
-    return {
-      hostname: os.hostname(),
-      loadavg: os.loadavg(),
-      machine: os.machine(),
-      type: os.type(),
-      release: os.release(),
-      uptime: formatUptime(os.uptime()),
-      usedmem: os.totalmem() - os.freemem(),
-      totalmem: os.totalmem(),
-      nodever: process.version,
-    };
-  }
-};
+router.get('/', (req, res) => {
+  res.render('admin/system', {
+    page: 'System',
+    user: req.user,
+    hostname: os.hostname(),
+    loadavg: os.loadavg(),
+    machine: os.machine(),
+    type: os.type(),
+    release: os.release(),
+    uptime: formatUptime(os.uptime()),
+    usedmem: os.totalmem() - os.freemem(),
+    totalmem: os.totalmem(),
+    node: process.version
+  });
+});
+
+module.exports = router;
