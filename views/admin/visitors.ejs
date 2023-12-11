@@ -17,7 +17,7 @@
       <% const v = visitors[k]; %>
       <tr>
         <td><a href="https://db-ip.com/<%= v.ip %>" target="_blank"><%= v.ip %></a></td>
-        <td><%= v.lastSeen %></td>
+        <td data-sort="<%= v.lastSeen %>"><%= v.lastSeenAgo %></td>
         <td><%= v.browser.name %> <%= v.browser.major %></td>
         <td><%= v.os.name %> <%= v.os.version %></td>
         <td><%= v.referer %></td>

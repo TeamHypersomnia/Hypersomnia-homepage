@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
       k,
       {
         ...v,
-        lastLogin: moment(v.lastLogin * 1000).fromNow()
+        lastLoginAgo: moment(v.lastLogin * 1000).fromNow()
       }
     ])
   );

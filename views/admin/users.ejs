@@ -20,7 +20,7 @@
         <td><a href="https://steamcommunity.com/profiles/<%= k %>" target="_blank"><%= k %></a></td>
         <td><%= v.name %></td>
         <td><a href="https://db-ip.com/<%= v.ip %>" target="_blank"><%= v.ip %></a></td>
-        <td><%= v.lastLogin %></td>
+        <td data-sort="<%= v.lastLogin %>"><%= v.lastLoginAgo %></td>
         <td><%= v.browser.name %> <%= v.browser.major %></td>
         <td><%= v.os.name %> <%= v.os.version %></td>
       </tr>

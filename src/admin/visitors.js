@@ -9,7 +9,7 @@ module.exports = function(visitors) {
         k,
         {
           ...v,
-          lastSeen: moment(v.lastSeen * 1000).fromNow()
+          lastSeenAgo: moment(v.lastSeen * 1000).fromNow()
         }
       ])
     );
