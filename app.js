@@ -12,6 +12,7 @@ const UAParser = require('ua-parser-js');
 const github = 'https://github.com/TeamHypersomnia';
 const pressKit = `${github}/PressKit/blob/main/README.md#intro`;
 const credits = `https://teamhypersomnia.github.io/PressKit/credits`
+const steam = `https://store.steampowered.com/app/2660970/Hypersomnia/`
 const discord = `https://discord.com/invite/YC49E4G`
 const app = express();
 const port = 3000;
@@ -141,6 +142,7 @@ app.use('/cookie-policy', require('./src/cookie_policy'));
 app.use('/contact', require('./src/contact'));
 app.get('/press', (req, res) => res.redirect(pressKit));
 app.get('/credits', (req, res) => res.redirect(credits));
+app.get('/steam', (req, res) => res.redirect(steam));
 app.get('/discord', (req, res) => res.redirect(discord));
 app.use('/upload', require('./src/upload'));
 app.get('/admin', adm, (req, res) => res.redirect('/admin/system'));
