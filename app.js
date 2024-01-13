@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const sqlite3 = require('sqlite3');
 const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
@@ -17,6 +18,29 @@ const discord = `https://discord.com/invite/YC49E4G`
 const app = express();
 const port = 3000;
 const visitors = {};
+
+const dbPath = process.env.DB_PATH;
+
+// Check if the database file exists, if not, initialize it
+if (!fs.existsSync(dbPath)) {
+  const db = new sqlite3.Database(dbPath);
+
+  // Create the players table if it doesn't exist
+  db.serialize(() => {
+    db.run(`
+      CREATE TABLE IF NOT EXISTS players (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        steam_id TEXT UNIQUE,
+        mmr INTEGER DEFAULT 0,
+        matches_won INTEGER DEFAULT 0,
+        matches_lost INTEGER DEFAULT 0
+      )
+    `);
+  });
+
+  // Close the database connection
+  db.close();
+}
 
 // Passport
 passport.serializeUser((user, done) => {
@@ -145,6 +169,8 @@ app.get('/credits', (req, res) => res.redirect(credits));
 app.get('/steam', (req, res) => res.redirect(steam));
 app.get('/discord', (req, res) => res.redirect(discord));
 app.use('/upload', require('./src/upload'));
+app.use('/report_match', require('./src/report_match'));
+app.use('/leaderboards', require('./src/leaderboards'));
 app.get('/admin', adm, (req, res) => res.redirect('/admin/system'));
 app.use('/admin/system', adm, require('./src/admin/system'));
 app.use('/admin/visitors', adm, require('./src/admin/visitors')(visitors));

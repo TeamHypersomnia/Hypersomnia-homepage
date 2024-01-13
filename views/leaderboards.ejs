@@ -1,0 +1,27 @@
+<%- include('overall_header'); %>
+
+<h1>Leaderboards</h1>
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th>Steam ID</th>
+        <th>MMR</th>
+        <th>Matches Won</th>
+        <th>Matches Lost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% leaderboards.forEach(i => { %>
+        <tr>
+          <td><%= i.steam_id %></td>
+          <td><%= i.mmr %></td>
+          <td><%= i.matches_won %></td>
+          <td><%= i.matches_lost %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('overall_footer'); %>
