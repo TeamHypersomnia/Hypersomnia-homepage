@@ -11,7 +11,7 @@ router.get('/', (req, res) => {
     const db = new sqlite3.Database(dbPath);
 
     // Fetch all players and their match counts
-    db.all('SELECT steam_id, mmr, matches_won, matches_lost FROM players', (err, rows) => {
+    db.all('SELECT account_id, mmr, mu, sigma, matches_won, matches_lost, nickname FROM players', (err, rows) => {
       if (err) {
         console.error(err.message);
         return res.status(500).json({ error: 'Internal Server Error' });
@@ -22,8 +22,11 @@ router.get('/', (req, res) => {
 
       // Create a JSON response with players and match counts
       const leaderboards = rows.map((row) => ({
-        steam_id: row.steam_id,
+        account_id: row.account_id,
+        nickname: row.nickname,
         mmr: row.mmr,
+        mu: row.mu,
+        sigma: row.sigma,
         matches_won: row.matches_won,
         matches_lost: row.matches_lost
       }));

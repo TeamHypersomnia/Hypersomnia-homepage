@@ -29,9 +29,11 @@ if (!fs.existsSync(dbPath)) {
   db.serialize(() => {
     db.run(`
       CREATE TABLE IF NOT EXISTS players (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        steam_id TEXT UNIQUE,
-        mmr INTEGER DEFAULT 0,
+        account_id TEXT UNIQUE,
+        nickname TEXT,
+        mmr FLOAT DEFAULT 0,
+        mu FLOAT DEFAULT 0,
+        sigma FLOAT DEFAULT 0,
         matches_won INTEGER DEFAULT 0,
         matches_lost INTEGER DEFAULT 0
       )

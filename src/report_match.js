@@ -1,5 +1,6 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
+const { rating, rate, ordinal } = require('openskill');
 
 const router = express.Router();
 const dbPath = process.env.DB_PATH;
@@ -7,8 +8,6 @@ const dbPath = process.env.DB_PATH;
 // Middleware for API key authentication
 function apiKeyAuth(req, res, next) {
   const apiKey = req.headers["apikey"];
-
-  // Check if the API key is valid (replace 'your-api-key' with the actual API key)
   if (apiKey && apiKey === process.env.REPORT_MATCH_APIKEY) {
     return next();
   } else {
@@ -16,51 +15,60 @@ function apiKeyAuth(req, res, next) {
   }
 }
 
-router.post('/', apiKeyAuth, async (req, res) => {
+router.post('/', apiKeyAuth, (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-  const { win_score, lose_score, win_players, lose_players } = req.body;
+  const { win_score, lose_score, win_players, lose_players, nicknames } = req.body;
 
   // Validate input
-  if (!win_score || !lose_score || !win_players || !lose_players) {
+  if (!win_score || !lose_score || !win_players || !lose_players || !nicknames) {
     return res.status(400).json({ error: 'Invalid input format' });
   }
 
   try {
-    const db = new sqlite3.Database(dbPath);
+    const db = new Database(dbPath);
 
-    // Start a transaction to handle multiple queries
-    db.serialize(() => {
-      const stmtInsertPlayer = db.prepare('INSERT OR IGNORE INTO players (steam_id) VALUES (?)');
-      const stmtUpdateMatchesWon = db.prepare('UPDATE players SET matches_won = matches_won + 1 WHERE steam_id = ?');
-      const stmtUpdateMatchesLost = db.prepare('UPDATE players SET matches_lost = matches_lost + 1 WHERE steam_id = ?');
+    db.transaction(() => {
+      const allPlayers = win_players.concat(lose_players);
+      const playerRatings = {};
+      const default_rating = rating();
+      const stmt_insert_player = db.prepare('INSERT OR IGNORE INTO players (account_id, mu, sigma) VALUES (?, ?, ?)');
+      const stmt_get_player = db.prepare('SELECT mu, sigma FROM players WHERE account_id = ?');
+      const stmt_update_player = db.prepare('UPDATE players SET mu = ?, sigma = ?, mmr = ?, matches_won = matches_won + ?, matches_lost = matches_lost + ?, nickname = ? WHERE account_id = ?');
 
-      // Process win players
-      win_players.forEach((player) => {
-        // Insert the player if not already exists
-        stmtInsertPlayer.run(player);
-
-        // Increment matches_won for the player
-        stmtUpdateMatchesWon.run(player);
+      // Insert player entries if they do not exist
+      allPlayers.forEach(playerId => {
+        stmt_insert_player.run(playerId, default_rating.mu, default_rating.sigma);
       });
 
-      // Process lose players
-      lose_players.forEach((player) => {
-        // Insert the player if not already exists
-        stmtInsertPlayer.run(player);
-
-        // Increment matches_lost for the player
-        stmtUpdateMatchesLost.run(player);
+      // Read current ratings from the database
+      allPlayers.forEach(playerId => {
+        const row = stmt_get_player.get(playerId);
+        playerRatings[playerId] = rating({ mu: row.mu, sigma: row.sigma });
       });
 
-      // Finalize the statements
-      stmtInsertPlayer.finalize();
-      stmtUpdateMatchesWon.finalize();
-      stmtUpdateMatchesLost.finalize();
-    });
+      // Calculate new ratings
+      const winners = win_players.map(playerId => playerRatings[playerId]);
+      const losers = lose_players.map(playerId => playerRatings[playerId]);
+      const updatedRatings = rate([winners, losers]);
 
-    return res.status(200).json({ success: true });
-  } catch (error) {
+      // Update players in the database with new ratings
+      updatedRatings.forEach((team, index) => {
+        team.forEach((playerRating, playerIndex) => {
+          const playerId = index === 0 ? win_players[playerIndex] : lose_players[playerIndex];
+          const winIncrement = index === 0 ? 1 : 0;
+          const lossIncrement = index === 1 ? 1 : 0;
+          const mmr = ordinal(playerRating);
+          const new_nickname = nicknames[playerId];
+
+          stmt_update_player.run(playerRating.mu, playerRating.sigma, mmr, winIncrement, lossIncrement, new_nickname, playerId);
+        });
+      });
+    })(); // Execute the transaction
+
+    res.json({ message: 'Match reported successfully' });
+  }
+  catch (error) {
     console.error(error.message);
     return res.status(500).json({ error: 'Internal Server Error' });
   }

@@ -5,8 +5,10 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th>Steam ID</th>
+        <th>Nickname</th>
         <th>MMR</th>
+        <th>Mu</th>
+        <th>Sigma</th>
         <th>Matches Won</th>
         <th>Matches Lost</th>
       </tr>
@@ -14,8 +16,10 @@
     <tbody>
       <% leaderboards.forEach(i => { %>
         <tr>
-          <td><%= i.steam_id %></td>
+          <td><%= i.nickname %></td>
           <td><%= i.mmr %></td>
+          <td><%= i.mu %></td>
+          <td><%= i.sigma %></td>
           <td><%= i.matches_won %></td>
           <td><%= i.matches_lost %></td>
         </tr>
