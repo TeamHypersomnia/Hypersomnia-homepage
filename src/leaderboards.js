@@ -25,7 +25,7 @@ router.get('/', (req, res) => {
       matches_lost: row.matches_lost
     }));
 
-    leaderboards.sort((a, b) => b.matches_won - a.matches_won);
+    leaderboards.sort((a, b) => b.mmr - a.mmr);
 
     if (req.query.format !== undefined && req.query.format == 'json') {
       return res.status(200).json({ leaderboards });
