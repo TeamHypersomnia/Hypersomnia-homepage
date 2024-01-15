@@ -20,24 +20,24 @@
           <td><%= i.match_id %></td>
           <td>
             <% i.winners.forEach(player => { %>
+              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : 'red' %>; font-family: monospace;">
+                <%= player.mmr_delta >= 0 ? '↑' : '↓' %><%= Math.abs(player.mmr_delta).toFixed(2) %>
+              </span>
               <a href="/user/<%= player.id %>">
                 <%= player.nickname %>
               </a>
-              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : 'red' %>;">
-                <%= player.mmr_delta >= 0 ? '↑' : '↓' %><%= Math.abs(player.mmr_delta.toFixed(2)) %>
-              </span>
-              <% if (i.winners.indexOf(player) < i.winners.length - 1) { %>, <% } %>
+              <% if (i.winners.indexOf(player) < i.winners.length - 1) { %><br><% } %>
             <% }); %>
           </td>
           <td>
             <% i.losers.forEach(player => { %>
+              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : 'red' %>; font-family: monospace;">
+                <%= player.mmr_delta >= 0 ? '↑' : '↓' %><%= Math.abs(player.mmr_delta).toFixed(2) %>
+              </span>
               <a href="/user/<%= player.id %>">
                 <%= player.nickname %>
               </a>
-              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : 'red' %>;">
-                <%= player.mmr_delta >= 0 ? '↑' : '↓' %><%= Math.abs(player.mmr_delta.toFixed(2)) %>
-              </span>
-              <% if (i.losers.indexOf(player) < i.losers.length - 1) { %>, <% } %>
+              <% if (i.losers.indexOf(player) < i.losers.length - 1) { %><br><% } %>
             <% }); %>
           </td>
           <td><%= i.win_score %>:<%= i.lose_score %></td>
