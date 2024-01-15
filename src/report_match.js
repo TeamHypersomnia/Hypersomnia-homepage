@@ -21,11 +21,11 @@ router.post('/', apiKeyAuth, (req, res) => {
   const { win_score, lose_score, win_players, lose_players, nicknames } = req.body;
 
   // Validate input
-  if (!win_score) {
+  if (typeof win_score === 'undefined') {
     return res.status(400).json({ error: 'Missing win_score' });
   }
 
-  if (!lose_score) {
+  if (typeof lose_score === 'undefined') {
     return res.status(400).json({ error: 'Missing lose_score' });
   }
 
