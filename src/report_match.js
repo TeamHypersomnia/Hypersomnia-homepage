@@ -21,8 +21,28 @@ router.post('/', apiKeyAuth, (req, res) => {
   const { win_score, lose_score, win_players, lose_players, nicknames } = req.body;
 
   // Validate input
-  if (!win_score || !lose_score || !win_players || !lose_players || !nicknames) {
-    return res.status(400).json({ error: 'Invalid input format' });
+  if (!win_score) {
+    return res.status(400).json({ error: 'Missing win_score' });
+  }
+
+  if (!lose_score) {
+    return res.status(400).json({ error: 'Missing lose_score' });
+  }
+
+  if (!win_players) {
+    return res.status(400).json({ error: 'Missing win_players' });
+  }
+
+  if (!lose_players) {
+    return res.status(400).json({ error: 'Missing lose_players' });
+  }
+
+  if (!nicknames) {
+    return res.status(400).json({ error: 'Missing nicknames' });
+  }
+
+  if (win_players.length == 0 || lose_players.length == 0) {
+    return res.status(400).json({ error: 'Invalid input format: lose/win players array is empty' });
   }
 
   try {
