@@ -1,0 +1,53 @@
+<%- include('overall_header'); %>
+
+<h1>Matches</h1>
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Winning team</th>
+        <th>Losing team</th>
+        <th>Score</th>
+        <th>Arena</th>
+        <th>Game mode</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% matches.forEach(i => { %>
+        <tr>
+          <td><%= i.match_id %></td>
+          <td>
+            <% i.winners.forEach(player => { %>
+              <a href="/user/<%= player.id %>">
+                <%= player.nickname %>
+              </a>
+              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : 'red' %>;">
+                <%= player.mmr_delta >= 0 ? '↑' : '↓' %><%= Math.abs(player.mmr_delta.toFixed(2)) %>
+              </span>
+              <% if (i.winners.indexOf(player) < i.winners.length - 1) { %>, <% } %>
+            <% }); %>
+          </td>
+          <td>
+            <% i.losers.forEach(player => { %>
+              <a href="/user/<%= player.id %>">
+                <%= player.nickname %>
+              </a>
+              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : 'red' %>;">
+                <%= player.mmr_delta >= 0 ? '↑' : '↓' %><%= Math.abs(player.mmr_delta.toFixed(2)) %>
+              </span>
+              <% if (i.losers.indexOf(player) < i.losers.length - 1) { %>, <% } %>
+            <% }); %>
+          </td>
+          <td><%= i.win_score %>:<%= i.lose_score %></td>
+          <td><%= i.arena %></td>
+          <td><%= i.game_mode %></td>
+          <td><%= new Date(i.match_date).toLocaleString() %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('overall_footer'); %>

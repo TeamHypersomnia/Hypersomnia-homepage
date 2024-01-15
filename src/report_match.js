@@ -18,7 +18,7 @@ function apiKeyAuth(req, res, next) {
 router.post('/', apiKeyAuth, (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-  const { win_score, lose_score, win_players, lose_players, nicknames } = req.body;
+  const { server_name, arena, game_mode, win_score, lose_score, win_players, lose_players, nicknames } = req.body;
 
   // Validate input
   if (typeof win_score === 'undefined') {
@@ -39,6 +39,18 @@ router.post('/', apiKeyAuth, (req, res) => {
 
   if (!nicknames) {
     return res.status(400).json({ error: 'Missing nicknames' });
+  }
+
+  if (!server_name) {
+    return res.status(400).json({ error: 'Missing server_name' });
+  }
+
+  if (!arena) {
+    return res.status(400).json({ error: 'Missing arena' });
+  }
+
+  if (!game_mode) {
+    return res.status(400).json({ error: 'Missing game_mode' });
   }
 
   if (win_players.length == 0 || lose_players.length == 0) {
@@ -68,9 +80,9 @@ router.post('/', apiKeyAuth, (req, res) => {
       });
 
       // Calculate new ratings
-      const winners = win_players.map(playerId => playerRatings[playerId]);
-      const losers = lose_players.map(playerId => playerRatings[playerId]);
-      const updatedRatings = rate([winners, losers]);
+      const winner_ratings = win_players.map(playerId => playerRatings[playerId]);
+      const loser_ratings = lose_players.map(playerId => playerRatings[playerId]);
+      const updatedRatings = rate([winner_ratings, loser_ratings]);
 
       // Update players in the database with new ratings
       updatedRatings.forEach((team, index) => {
@@ -84,6 +96,38 @@ router.post('/', apiKeyAuth, (req, res) => {
           stmt_update_player.run(playerRating.mu, playerRating.sigma, mmr, winIncrement, lossIncrement, new_nickname, playerId);
         });
       });
+
+      const winners = [];
+      const losers = [];
+
+      updatedRatings[0].forEach((rating, index) => {
+        const player_id = win_players[index];
+
+        winners.push({ 
+          nickname: nicknames[player_id],
+          id: player_id,
+          new_mmr: ordinal(rating),
+          mmr_delta: ordinal(rating) - ordinal(winner_ratings[index])
+        });
+      });
+
+      updatedRatings[1].forEach((rating, index) => {
+        const player_id = lose_players[index];
+
+        losers.push({ 
+          nickname: nicknames[player_id],
+          id: player_id,
+          new_mmr: ordinal(rating),
+          mmr_delta: ordinal(rating) - ordinal(loser_ratings[index])
+        });
+      });
+
+      const insertMatchSql = `
+        INSERT INTO matches (server_name, arena, game_mode, winners, losers, win_score, lose_score)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      db.prepare(insertMatchSql).run(server_name, arena, game_mode, JSON.stringify(winners), JSON.stringify(losers), win_score, lose_score);
     })(); // Execute the transaction
 
     res.json({ message: 'Match reported successfully' });

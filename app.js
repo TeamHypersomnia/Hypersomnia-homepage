@@ -38,6 +38,20 @@ if (!fs.existsSync(dbPath)) {
         matches_lost INTEGER DEFAULT 0
       )
     `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS matches (
+        match_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        server_name TEXT,
+        arena TEXT,
+        game_mode TEXT,
+        winners TEXT,
+        losers TEXT,
+        win_score INTEGER,
+        lose_score INTEGER,
+        match_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
   });
 
   // Close the database connection
@@ -173,6 +187,7 @@ app.get('/discord', (req, res) => res.redirect(discord));
 app.use('/upload', require('./src/upload'));
 app.use('/report_match', require('./src/report_match'));
 app.use('/leaderboards', require('./src/leaderboards'));
+app.use('/matches', require('./src/matches'));
 app.get('/admin', adm, (req, res) => res.redirect('/admin/system'));
 app.use('/admin/system', adm, require('./src/admin/system'));
 app.use('/admin/visitors', adm, require('./src/admin/visitors')(visitors));
