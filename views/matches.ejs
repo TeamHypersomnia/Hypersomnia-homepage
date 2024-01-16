@@ -20,7 +20,7 @@
           <td><%= i.match_id %></td>
           <td>
             <% i.winners.forEach(player => { %>
-              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : 'red' %>; font-family: monospace;">
+              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : '#f85e73' %>; font-family: monospace;">
                 <%= player.mmr_delta >= 0 ? '↑' : '↓' %><%= Math.abs(player.mmr_delta).toFixed(2) %>
               </span>
               <a href="/user/<%= player.id %>">
@@ -31,7 +31,7 @@
           </td>
           <td>
             <% i.losers.forEach(player => { %>
-              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : 'red' %>; font-family: monospace;">
+              <span style="color: <%= player.mmr_delta >= 0 ? 'chartreuse' : '#f85e73' %>; font-family: monospace;">
                 <%= player.mmr_delta >= 0 ? '↑' : '↓' %><%= Math.abs(player.mmr_delta).toFixed(2) %>
               </span>
               <a href="/user/<%= player.id %>">

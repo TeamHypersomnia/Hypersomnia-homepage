@@ -64,9 +64,21 @@ router.post('/', apiKeyAuth, (req, res) => {
       const allPlayers = win_players.concat(lose_players);
       const playerRatings = {};
       const default_rating = rating();
-      const stmt_insert_player = db.prepare('INSERT OR IGNORE INTO players (account_id, mu, sigma) VALUES (?, ?, ?)');
-      const stmt_get_player = db.prepare('SELECT mu, sigma FROM players WHERE account_id = ?');
-      const stmt_update_player = db.prepare('UPDATE players SET mu = ?, sigma = ?, mmr = ?, matches_won = matches_won + ?, matches_lost = matches_lost + ?, nickname = ? WHERE account_id = ?');
+      const table_name = (() => {
+        if (game_mode === 'bomb_defusal') {
+          return 'mmr_team';
+        }
+
+        if (game_mode === 'gun_game') {
+          return 'mmr_ffa';
+        }
+
+        return 'mmr_team';
+      })();
+
+      const stmt_insert_player = db.prepare(`INSERT OR IGNORE INTO ${table_name} (account_id, mu, sigma) VALUES (?, ?, ?)`);
+      const stmt_get_player = db.prepare(`SELECT mu, sigma FROM ${table_name} WHERE account_id = ?`);
+      const stmt_update_player = db.prepare(`UPDATE ${table_name} SET mu = ?, sigma = ?, mmr = ?, matches_won = matches_won + ?, matches_lost = matches_lost + ?, nickname = ? WHERE account_id = ?`);
 
       // Insert player entries if they do not exist
       allPlayers.forEach(playerId => {

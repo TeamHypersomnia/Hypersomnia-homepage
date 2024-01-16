@@ -1,31 +1,88 @@
 <%- include('overall_header'); %>
 
 <h1>Leaderboards</h1>
-<div class="table-responsive">
-  <table class="sortable">
-    <thead>
-      <tr>
-        <th>Nickname</th>
-        <th>MMR</th>
-        <th>Mu</th>
-        <th>Sigma</th>
-        <th>Matches Won</th>
-        <th>Matches Lost</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% leaderboards.forEach(i => { %>
-        <tr>
-          <td><%= i.nickname %></td>
-          <td><%= i.mmr %></td>
-          <td><%= i.mu %></td>
-          <td><%= i.sigma %></td>
-          <td><%= i.matches_won %></td>
-          <td><%= i.matches_lost %></td>
-        </tr>
-      <% }); %>
-    </tbody>
-  </table>
+<div style="display: flex; justify-content: space-around;">
+
+  <!-- TEAM Leaderboard Section -->
+  <div>
+    <h2 style="text-align: center;">BOMB DEFUSAL</h2>
+    <div class="table-responsive">
+      <table class="sortable">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Nickname</th>
+            <th>OpenSkill</th>
+<!--
+            <th>Mu</th>
+            <th>Sigma</th>
+-->
+            <th>Won #</th>
+            <th>Lost #</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% leaderboards_team.forEach((i, index) => { %>
+            <tr>
+              <td><b><%= index + 1 %></b></td>
+              <td>
+                <%= index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '' %>
+                <%= i.nickname %>
+              </td>
+              <td><b><%= i.mmr.toFixed(3) %></b></td>
+<!--
+              <td><%= i.mu.toFixed(3) %></td>
+              <td><%= i.sigma.toFixed(3) %></td>
+-->
+              <td><%= i.matches_won %></td>
+              <td><%= i.matches_lost %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FFA Leaderboard Section -->
+  <div>
+    <h2 style="text-align: center;">FFA</h2>
+    <div class="table-responsive">
+      <table class="sortable">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Nickname</th>
+            <th>OpenSkill</th>
+<!--
+            <th>Mu</th>
+            <th>Sigma</th>
+-->
+            <th>Won #</th>
+            <th>Lost #</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% leaderboards_ffa.forEach((i, index) => { %>
+            <tr>
+              <td><b><%= index + 1 %></b></td>
+              <td>
+                <%= index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '' %>
+                <%= i.nickname %>
+              </td>
+              <td><b><%= i.mmr.toFixed(3) %></b></td>
+<!--
+              <td><%= i.mu.toFixed(3) %></td>
+              <td><%= i.sigma.toFixed(3) %></td>
+-->
+              <td><%= i.matches_won %></td>
+              <td><%= i.matches_lost %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <%- include('overall_footer'); %>

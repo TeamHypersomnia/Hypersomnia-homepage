@@ -11,11 +11,10 @@ router.get('/', (req, res) => {
     const db = new Database(dbPath);
 
     // Prepare and execute the query to fetch all players
-    const stmt = db.prepare('SELECT account_id, mmr, mu, sigma, matches_won, matches_lost, nickname FROM players');
-    const rows = stmt.all();
+    const rows_team  = db.prepare('SELECT account_id, mmr, mu, sigma, matches_won, matches_lost, nickname FROM mmr_team').all();
+    const rows_ffa   = db.prepare('SELECT account_id, mmr, mu, sigma, matches_won, matches_lost, nickname FROM mmr_ffa').all();
 
-    // Create a JSON response with players and match counts
-    const leaderboards = rows.map((row) => ({
+    const row_reader = (row) => ({
       account_id: row.account_id,
       nickname: row.nickname,
       mmr: row.mmr,
@@ -23,18 +22,23 @@ router.get('/', (req, res) => {
       sigma: row.sigma,
       matches_won: row.matches_won,
       matches_lost: row.matches_lost
-    }));
+    });
 
-    leaderboards.sort((a, b) => b.mmr - a.mmr);
+    const leaderboards_team = rows_team.map(row_reader);
+    const leaderboards_ffa = rows_ffa.map(row_reader);
+
+    leaderboards_team.sort((a, b) => b.mmr - a.mmr);
+    leaderboards_ffa.sort( (a, b) => b.mmr - a.mmr);
 
     if (req.query.format !== undefined && req.query.format == 'json') {
-      return res.status(200).json({ leaderboards });
+      return res.status(200).json({ leaderboards_team, leaderboards_ffa });
     }
     else {
       res.render('leaderboards', {
         page: 'Leaderboards',
         user: req.user,
-        leaderboards: leaderboards
+        leaderboards_team: leaderboards_team,
+        leaderboards_ffa: leaderboards_ffa
       });
     }
   } catch (error) {

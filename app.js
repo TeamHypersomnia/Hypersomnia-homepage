@@ -28,7 +28,19 @@ if (!fs.existsSync(dbPath)) {
   // Create the players table if it doesn't exist
   db.serialize(() => {
     db.run(`
-      CREATE TABLE IF NOT EXISTS players (
+      CREATE TABLE IF NOT EXISTS mmr_team (
+        account_id TEXT UNIQUE,
+        nickname TEXT,
+        mmr FLOAT DEFAULT 0,
+        mu FLOAT DEFAULT 0,
+        sigma FLOAT DEFAULT 0,
+        matches_won INTEGER DEFAULT 0,
+        matches_lost INTEGER DEFAULT 0
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS mmr_ffa (
         account_id TEXT UNIQUE,
         nickname TEXT,
         mmr FLOAT DEFAULT 0,
