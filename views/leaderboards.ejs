@@ -27,7 +27,9 @@
               <td><b><%= index + 1 %></b></td>
               <td>
                 <%= index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '' %>
+                <a href="/user/<%= i.account_id %>">
                 <%= i.nickname %>
+                </a>
               </td>
               <td><b><%= i.mmr.toFixed(3) %></b></td>
 <!--
@@ -67,7 +69,9 @@
               <td><b><%= index + 1 %></b></td>
               <td>
                 <%= index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '' %>
+                <a href="/user/<%= i.account_id %>">
                 <%= i.nickname %>
+                </a>
               </td>
               <td><b><%= i.mmr.toFixed(3) %></b></td>
 <!--
