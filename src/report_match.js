@@ -94,7 +94,40 @@ router.post('/', apiKeyAuth, (req, res) => {
       // Calculate new ratings
       const winner_ratings = win_players.map(playerId => playerRatings[playerId]);
       const loser_ratings = lose_players.map(playerId => playerRatings[playerId]);
-      const updatedRatings = rate([winner_ratings, loser_ratings]);
+
+      const updatedRatings = (() => {
+        if (table_name === 'mmr_ffa') {
+          // In case of ffa,
+          // winners array will have one element and losers will have the rest of the players
+
+          // Create an array of ranks, starting from 2 up to the number of losers
+          const ranks = loser_ratings.map((_, index) => index + 2);
+
+          // Create an array of ranks, starting from 1 up to the number of players
+          ranks.unshift(1);
+
+          // Split winner_ratings into individual teams (one player per team)
+          const individualTeams = loser_ratings.map(player => [player]);
+          individualTeams.unshift([winner_ratings[0]]);
+
+          // Call the rate function with individual teams and ranks
+          const new_ratings = rate(individualTeams, { rank: ranks });
+
+          // Extract the ratings from the nested arrays
+          const extractedRatings = new_ratings.map(ratingArray => ratingArray[0]);
+
+          // Reconstruct the ratings into the desired format
+          const winnerRating = [extractedRatings[0]];
+          const loserRatings = extractedRatings.slice(1);
+
+          return [winnerRating, loserRatings];
+        }
+        else {
+          return rate([winner_ratings, loser_ratings], {
+            score: [win_score, lose_score]
+          });
+        }
+      })();
 
       // Update players in the database with new ratings
       updatedRatings.forEach((team, index) => {
