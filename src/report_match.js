@@ -1,6 +1,7 @@
 const express = require('express');
 const Database = require('better-sqlite3');
 const { rating, rate, ordinal } = require('openskill');
+const lose_severity = require('./lose_severity');
 
 const router = express.Router();
 const dbPath = process.env.DB_PATH;
@@ -123,9 +124,23 @@ router.post('/', apiKeyAuth, (req, res) => {
           return [winnerRating, loserRatings];
         }
         else {
-          return rate([winner_ratings, loser_ratings], {
-            score: [win_score, lose_score]
-          });
+          const iterations = lose_severity(win_score, lose_score);
+
+          let currentWinnerRatings = winner_ratings;
+          let currentLoserRatings = loser_ratings;
+
+          // Run the rate function multiple times as determined
+          for (let i = 0; i < iterations; i++) {
+            const newRatings = rate([currentWinnerRatings, currentLoserRatings], {
+              score: [win_score, lose_score]
+            });
+
+            // Update ratings for the next iteration
+            currentWinnerRatings = newRatings[0];
+            currentLoserRatings = newRatings[1];
+          }
+
+          return [currentWinnerRatings, currentLoserRatings];
         }
       })();
 
