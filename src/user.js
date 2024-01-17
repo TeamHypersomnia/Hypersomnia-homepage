@@ -46,8 +46,10 @@ router.get('/:user', function (req, res) {
       const prev_loser_mmr = (loser.new_mmr - loser.mmr_delta).toFixed(2);
 
       return {
+        prev_mmr: prev_loser_mmr,
+        new_mmr: loser.new_mmr,
         date: new Date(match.match_date).toLocaleString(),
-        description: `<b>${severityToString(lose_severity(match.win_score, match.lose_score))} ${loserDelta}</b> at MMR <span style='font-family: monospace;'>${prev_loser_mmr}</span> by ${formattedWinnerNicknames}.`
+        description: `<b>${severityToString(lose_severity(match.win_score, match.lose_score))} ${loserDelta}</b> by ${formattedWinnerNicknames}.`
       };
     }).filter(match => match !== null);
 
