@@ -1,12 +1,17 @@
 <%- include('overall_header'); %>
 
 <div style="text-align: center;">
-  <h1>Character: <a href="https://steamcommunity.com/profiles/<%= steamId %>"><%= nickname %></a></h1>
+  <h1>Character: <%= nickname %></h1>
   <div style="display: inline-block; text-align: left;">
     <table>
       <tr>
+        <td style="min-width: 150px;">External profile:</td>
+        <td style="min-width: 300px;">
+        <a href="https://steamcommunity.com/profiles/<%= steamId %>" target="_blank">link<span class="external-link-icon" aria-hidden="true"></span></a>
+      </tr>
+      <tr>
         <td style="min-width: 150px;">Nickname:</td>
-        <td style="min-width: 300px;"><a href="https://steamcommunity.com/profiles/<%= steamId %>"><%= nickname %></a></td>
+        <td style="min-width: 300px;"><%= nickname %></td>
       </tr>
       <tr>
         <td>MMR:</td>

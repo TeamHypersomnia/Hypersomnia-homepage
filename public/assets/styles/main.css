@@ -927,3 +927,6 @@ input:-webkit-autofill:active{
 .alert > a:hover {
   color: #b8f568;
 }
+.external-link-icon::after {
+  content: '\2197'; /* Unicode character for an arrow */
+}

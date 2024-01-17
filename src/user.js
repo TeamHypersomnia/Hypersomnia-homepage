@@ -34,15 +34,19 @@ router.get('/:user', function (req, res) {
       const winnerNicknames = winnersArray.map((winner, idx) => {
         const delta = formatMMRDelta(winner.mmr_delta);
         const link = `<a href="/user/${winner.id}">${winner.nickname}</a> ${delta}`;
-        return (idx === winnersArray.length - 1 && winnersArray.length > 1) ? 'and ' + link : link;
-      }).join(', ');
+        return link;
+      });
+
+      const formattedWinnerNicknames = winnerNicknames.length > 1 
+        ? winnerNicknames.slice(0, -1).join(', ') + ' and ' + winnerNicknames.slice(-1)
+        : winnerNicknames.join('');
 
       // Assume loserDelta is also needed, using similar logic
       const loserDelta = formatMMRDelta(loser.mmr_delta);
 
       return {
         date: new Date(match.match_date).toLocaleString(),
-        description: `<b>${severityToString(lose_severity(match.win_score, match.lose_score))} ${loserDelta} </b>by ${winnerNicknames}.`
+        description: `<b>${severityToString(lose_severity(match.win_score, match.lose_score))} ${loserDelta} </b>by ${formattedWinnerNicknames}.`
       };
     }).filter(match => match !== null);
 
