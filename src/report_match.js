@@ -1,7 +1,7 @@
 const express = require('express');
 const Database = require('better-sqlite3');
 const { rating, rate, ordinal } = require('openskill');
-const lose_severity = require('./lose_severity');
+const { lose_severity, severityToString } = require('./lose_severity');
 
 const router = express.Router();
 const dbPath = process.env.DB_PATH;

@@ -184,6 +184,7 @@ app.use((req, res, next) => {
 app.use('/', require('./src/index'));
 app.use('/guide', require('./src/guide'));
 app.use('/arenas', require('./src/arenas'));
+app.use('/user', require('./src/user'));
 app.use('/weapons', require('./src/weapons'));
 app.use('/servers', require('./src/servers'));
 app.use('/profile', usr, require('./src/profile'));

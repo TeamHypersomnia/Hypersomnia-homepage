@@ -1,5 +1,6 @@
 const express = require('express');
 const Database = require('better-sqlite3');
+const formatMMRDelta = require('./format_delta');
 
 const router = express.Router();
 const dbPath = process.env.DB_PATH;
@@ -43,7 +44,8 @@ router.get('/', (req, res) => {
       res.render('matches', {
         page: 'Matches',
         user: req.user,
-        matches: matches
+        matches: matches,
+        formatMMRDelta: formatMMRDelta
       });
     }
   } catch (error) {
