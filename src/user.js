@@ -11,10 +11,10 @@ router.get('/:user', function (req, res) {
     const userid = req.params.user;
 
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
-    const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0 };
+    const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
 
     const stmtFFA = db.prepare('SELECT * FROM mmr_ffa WHERE account_id = ?');
-    const userFFA = stmtFFA.get(userid) || { mmr: 0, sigma: 0, mu: 0 };
+    const userFFA = stmtFFA.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
 
     const stmtMatches = db.prepare(`
       SELECT match_id, match_date, winners, losers, lose_score, win_score 
