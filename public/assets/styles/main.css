@@ -930,3 +930,8 @@ input:-webkit-autofill:active{
 .external-link-icon::after {
   content: '\2197'; /* Unicode character for an arrow */
 }
+
+.monospace-big {
+  font-family: monospace;
+  font-size: 1.2em;
+}
