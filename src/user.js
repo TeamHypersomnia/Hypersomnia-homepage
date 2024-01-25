@@ -19,7 +19,7 @@ router.get('/:user', function (req, res) {
     const stmtMatches = db.prepare(`
       SELECT match_id, match_date, winners, losers, lose_score, win_score 
       FROM matches 
-      WHERE losers LIKE ? AND game_mode = 'bomb_defusal'
+      WHERE losers LIKE ? AND game_mode = 'Bomb Defusal'
       ORDER BY match_id DESC
     `);
     const matches = stmtMatches.all(`%${userid}%`).map(match => {
