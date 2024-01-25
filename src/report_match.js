@@ -19,7 +19,7 @@ function apiKeyAuth(req, res, next) {
 router.post('/', apiKeyAuth, (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-  const { server_name, arena, game_mode, win_score, lose_score, win_players, lose_players, nicknames } = req.body;
+  const { server_name, arena, game_mode, win_score, lose_score, win_players, lose_players, player_infos } = req.body;
 
   // Validate input
   if (typeof win_score === 'undefined') {
@@ -38,8 +38,8 @@ router.post('/', apiKeyAuth, (req, res) => {
     return res.status(400).json({ error: 'Missing lose_players' });
   }
 
-  if (!nicknames) {
-    return res.status(400).json({ error: 'Missing nicknames' });
+  if (!player_infos) {
+    return res.status(400).json({ error: 'Missing player_infos' });
   }
 
   if (!server_name) {
@@ -66,11 +66,11 @@ router.post('/', apiKeyAuth, (req, res) => {
       const playerRatings = {};
       const default_rating = rating();
       const table_name = (() => {
-        if (game_mode === 'bomb_defusal') {
+        if (game_mode === 'Bomb Defusal') {
           return 'mmr_team';
         }
 
-        if (game_mode === 'gun_game') {
+        if (game_mode === 'FFA Gun Game') {
           return 'mmr_ffa';
         }
 
@@ -151,7 +151,7 @@ router.post('/', apiKeyAuth, (req, res) => {
           const winIncrement = index === 0 ? 1 : 0;
           const lossIncrement = index === 1 ? 1 : 0;
           const mmr = ordinal(playerRating);
-          const new_nickname = nicknames[playerId];
+          const new_nickname = player_infos[playerId].nickname;
 
           stmt_update_player.run(playerRating.mu, playerRating.sigma, mmr, winIncrement, lossIncrement, new_nickname, playerId);
         });
@@ -164,7 +164,7 @@ router.post('/', apiKeyAuth, (req, res) => {
         const player_id = win_players[index];
 
         winners.push({ 
-          nickname: nicknames[player_id],
+          nickname: player_infos[player_id].nickname,
           id: player_id,
           new_mmr: ordinal(rating),
           mmr_delta: ordinal(rating) - ordinal(winner_ratings[index])
@@ -175,7 +175,7 @@ router.post('/', apiKeyAuth, (req, res) => {
         const player_id = lose_players[index];
 
         losers.push({ 
-          nickname: nicknames[player_id],
+          nickname: player_infos[player_id].nickname,
           id: player_id,
           new_mmr: ordinal(rating),
           mmr_delta: ordinal(rating) - ordinal(loser_ratings[index])
