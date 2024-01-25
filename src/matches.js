@@ -31,7 +31,7 @@ router.get('/', (req, res) => {
         win_score: match.win_score,
         lose_score: match.lose_score,
         match_date: match.match_date,
-        is_ffa: match.game_mode === 'gun_game'
+        is_ffa: match.game_mode === 'FFA Gun Game'
       };
     });
 

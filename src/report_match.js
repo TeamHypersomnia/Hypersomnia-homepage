@@ -131,9 +131,7 @@ router.post('/', apiKeyAuth, (req, res) => {
 
           // Run the rate function multiple times as determined
           for (let i = 0; i < iterations; i++) {
-            const newRatings = rate([currentWinnerRatings, currentLoserRatings], {
-              score: [win_score, lose_score]
-            });
+            const newRatings = rate([currentWinnerRatings, currentLoserRatings]);
 
             // Update ratings for the next iteration
             currentWinnerRatings = newRatings[0];
