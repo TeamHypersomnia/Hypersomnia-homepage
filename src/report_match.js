@@ -79,6 +79,10 @@ router.post('/', apiKeyAuth, (req, res) => {
     const db = new Database(dbPath);
 
     db.transaction(() => {
+      // This mult change depending on various events.
+      // For now only integer values are supported even tho the database can hold floats.
+      const event_match_multiplier = 1; 
+
       const total_rounds_played = win_score + lose_score;
       const should_count_wins = total_rounds_played >= MIN_ROUNDS_TO_COUNT_WINS;
 
@@ -183,7 +187,7 @@ router.post('/', apiKeyAuth, (req, res) => {
               });
             }
 
-            for (let i = 0; i < iterations; i++) {
+            for (let i = 0; i < iterations * event_match_multiplier; i++) {
               const teams = [it_winners, it_losers];
               let scores = [win_score, lose_score];
 
@@ -343,11 +347,11 @@ router.post('/', apiKeyAuth, (req, res) => {
       });
 
       const insertMatchSql = `
-        INSERT INTO matches (server_name, arena, game_mode, winners, losers, win_score, lose_score)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO matches (server_name, arena, game_mode, winners, losers, win_score, lose_score, event_match_multiplier)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      db.prepare(insertMatchSql).run(server_name, arena, game_mode, JSON.stringify(winners), JSON.stringify(losers), win_score, lose_score);
+      db.prepare(insertMatchSql).run(server_name, arena, game_mode, JSON.stringify(winners), JSON.stringify(losers), win_score, lose_score, event_match_multiplier);
     })(); // Execute the transaction
 
     res.json({ message: 'Match reported successfully' });

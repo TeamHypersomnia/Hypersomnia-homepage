@@ -61,6 +61,7 @@ if (!fs.existsSync(dbPath)) {
         losers TEXT,
         win_score INTEGER,
         lose_score INTEGER,
+        event_match_multiplier FLOAT DEFAULT 1,
         match_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
