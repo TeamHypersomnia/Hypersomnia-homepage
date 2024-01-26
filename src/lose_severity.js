@@ -1,12 +1,14 @@
 function lose_severity(win, lose) {
-  if (win === 16) {
-    if (lose <= 3) {
-      return 3;
-    } 
-    else if (lose <= 8) {
-      return 2;
-    }
+  const diff = win - lose;
+
+  if (diff >= 13) {
+    return 3;
   }
+
+  if (diff >= 8) {
+    return 2;
+  }
+
   return 1;
 }
 

@@ -1,3 +1,5 @@
+const assert = require('assert');
+
 const express = require('express');
 const Database = require('better-sqlite3');
 const { rating, rate, ordinal } = require('openskill');
@@ -5,6 +7,21 @@ const { lose_severity, severityToString } = require('./lose_severity');
 
 const router = express.Router();
 const dbPath = process.env.DB_PATH;
+
+const ABANDONED_SCORE_CONTRIBUTION_CUTOFF = 13;
+const MIN_ROUNDS_TO_COUNT_WINS = 5;
+
+const abandoned = ((player) => {
+  return typeof player.abandoned_at_score === 'number' && player.abandoned_at_score >= 0;
+});
+
+const contributed_to_match = ((player) => {
+  if (abandoned(player)) {
+    return player.abandoned_at_score >= ABANDONED_SCORE_CONTRIBUTION_CUTOFF;
+  }
+
+  return true;
+});
 
 // Middleware for API key authentication
 function apiKeyAuth(req, res, next) {
@@ -62,6 +79,9 @@ router.post('/', apiKeyAuth, (req, res) => {
     const db = new Database(dbPath);
 
     db.transaction(() => {
+      const total_rounds_played = win_score + lose_score;
+      const should_count_wins = total_rounds_played >= MIN_ROUNDS_TO_COUNT_WINS;
+
       const allPlayers = win_players.concat(lose_players);
       const playerRatings = {};
       const default_rating = rating();
@@ -93,8 +113,8 @@ router.post('/', apiKeyAuth, (req, res) => {
       });
 
       // Calculate new ratings
-      const winner_ratings = win_players.map(playerId => playerRatings[playerId]);
-      const loser_ratings = lose_players.map(playerId => playerRatings[playerId]);
+      const original_winner_ratings = win_players.map(playerId => playerRatings[playerId]);
+      const original_loser_ratings = lose_players.map(playerId => playerRatings[playerId]);
 
       const updatedRatings = (() => {
         if (table_name === 'mmr_ffa') {
@@ -102,14 +122,14 @@ router.post('/', apiKeyAuth, (req, res) => {
           // winners array will have one element and losers will have the rest of the players
 
           // Create an array of ranks, starting from 2 up to the number of losers
-          const ranks = loser_ratings.map((_, index) => index + 2);
+          const ranks = original_loser_ratings.map((_, index) => index + 2);
 
           // Create an array of ranks, starting from 1 up to the number of players
           ranks.unshift(1);
 
-          // Split winner_ratings into individual teams (one player per team)
-          const individualTeams = loser_ratings.map(player => [player]);
-          individualTeams.unshift([winner_ratings[0]]);
+          // Split original_winner_ratings into individual teams (one player per team)
+          const individualTeams = original_loser_ratings.map(player => [player]);
+          individualTeams.unshift([original_winner_ratings[0]]);
 
           // Call the rate function with individual teams and ranks
           const new_ratings = rate(individualTeams, { rank: ranks });
@@ -124,21 +144,151 @@ router.post('/', apiKeyAuth, (req, res) => {
           return [winnerRating, loserRatings];
         }
         else {
-          const iterations = lose_severity(win_score, lose_score);
+          const won_by_abandon = win_score != 16;
 
-          let currentWinnerRatings = winner_ratings;
-          let currentLoserRatings = loser_ratings;
+          const make_team_ratings = ((iterations, count_nocontrib_winners, count_nocontrib_losers, force_loss_for = -1) => {
+            const purge_nocontrib_winners = !count_nocontrib_winners; 
+            const purge_nocontrib_losers = !count_nocontrib_losers; 
 
-          // Run the rate function multiple times as determined
-          for (let i = 0; i < iterations; i++) {
-            const newRatings = rate([currentWinnerRatings, currentLoserRatings]);
+            let it_winners = original_winner_ratings;
+            let it_losers = original_loser_ratings;
 
-            // Update ratings for the next iteration
-            currentWinnerRatings = newRatings[0];
-            currentLoserRatings = newRatings[1];
-          }
+            // Arrays to track the indices of abandoned players
+            let contrib_winners_indices = [];
+            let contrib_losers_indices = [];
 
-          return [currentWinnerRatings, currentLoserRatings];
+            const contributed = ((playerId) => {
+              return contributed_to_match(player_infos[playerId]);
+            });
+
+            if (purge_nocontrib_winners) {
+              it_winners = [];
+
+              original_winner_ratings.forEach((player, index) => {
+                if (contributed(win_players[index])) {
+                  contrib_winners_indices.push(index);
+                  it_winners.push(player);
+                }
+              });
+            }
+
+            if (purge_nocontrib_losers) {
+              it_losers = [];
+
+              original_loser_ratings.forEach((player, index) => {
+                if (contributed(lose_players[index])) {
+                  contrib_losers_indices.push(index);
+                  it_losers.push(player);
+                }
+              });
+            }
+
+            for (let i = 0; i < iterations; i++) {
+              const teams = [it_winners, it_losers];
+              let scores = [win_score, lose_score];
+
+              if (force_loss_for === 0) {
+                scores = [0, 1];
+              }
+              else if (force_loss_for === 1) {
+                scores = [1, 0];
+              }
+              else {
+                if (won_by_abandon) {
+                  /*
+                   * Force a win regardless of if the remaining team 
+                   * was currently losing 1:5, or tying 7:7.
+                   * In the input, the abandoning team always properly marked as lose_players and lose_score.
+                   *
+                   * Therefore, the scores might seem "inverted" like 1:5,
+                   * but still if the team with 5 points abandoned,
+                   * the match was won by the team with 1 point.
+                   * Same applies for a temporary tie like 7:7.
+                  */
+                  scores = [1, 0];
+                }
+              }
+
+              const next_ratings = rate(teams, { score: scores });
+
+              it_winners = next_ratings[0];
+              it_losers = next_ratings[1];
+            }
+
+            if (purge_nocontrib_winners) {
+              final_winners = []
+
+              for (let i = 0; i < original_winner_ratings.length; i++) {
+                final_winners.push(default_rating);
+              }
+
+              assert.strictEqual(it_winners.length, contrib_winners_indices.length);
+
+              for (let i = 0; i < contrib_winners_indices.length; i++) {
+                final_winners[contrib_winners_indices[i]] = it_winners[i];
+              }
+
+              it_winners = final_winners;
+            }
+
+            if (purge_nocontrib_losers) {
+              final_losers = []
+
+              for (let i = 0; i < original_loser_ratings.length; i++) {
+                final_losers.push(default_rating);
+              }
+              
+              assert.strictEqual(it_losers.length, contrib_losers_indices.length);
+
+              for (let i = 0; i < contrib_losers_indices.length; i++) {
+                final_losers[contrib_losers_indices[i]] = it_losers[i];
+              }
+
+              it_losers = final_losers;
+            }
+
+            return [it_winners, it_losers];
+          });
+
+          const severity = lose_severity(win_score, lose_score);
+
+          const ratings_for_present_winners = make_team_ratings(severity, false, true)[0];
+          const ratings_for_present_losers = make_team_ratings(severity, true, false)[1];
+
+          const ratings_for_abandons_in_winners = make_team_ratings(3, true, true, 0)[0];
+          const ratings_for_abandons_in_losers = make_team_ratings(3, true, true, 1)[1];
+
+          const updated_winners = [];
+          const updated_losers = [];
+
+          original_winner_ratings.forEach((rating, playerIndex) => {
+            const playerId = win_players[playerIndex];
+
+            if (abandoned(player_infos[playerId])) {
+              updated_winners.push(ratings_for_abandons_in_winners[playerIndex]);
+            }
+            else {
+              if (should_count_wins) {
+                updated_winners.push(ratings_for_present_winners[playerIndex]);
+              }
+              else {
+                updated_winners.push(rating);
+              }
+            }
+          });
+
+          original_loser_ratings.forEach((rating, playerIndex) => {
+            const playerId = lose_players[playerIndex];
+
+            if (abandoned(player_infos[playerId])) {
+              updated_losers.push(ratings_for_abandons_in_losers[playerIndex]);
+            }
+            else {
+              updated_losers.push(ratings_for_present_losers[playerIndex]);
+            }
+          });
+
+          return [updated_winners, updated_losers];
         }
       })();
 
@@ -146,8 +296,14 @@ router.post('/', apiKeyAuth, (req, res) => {
       updatedRatings.forEach((team, index) => {
         team.forEach((playerRating, playerIndex) => {
           const playerId = index === 0 ? win_players[playerIndex] : lose_players[playerIndex];
-          const winIncrement = index === 0 ? 1 : 0;
-          const lossIncrement = index === 1 ? 1 : 0;
+          let winIncrement = index === 0 ? 1 : 0;
+          let lossIncrement = index === 1 ? 1 : 0;
+
+          if (abandoned(player_infos[playerId])) {
+            winIncrement = 0;
+            lossIncrement = 1;
+          }
+
           const mmr = ordinal(playerRating);
           const new_nickname = player_infos[playerId].nickname;
 
@@ -160,23 +316,29 @@ router.post('/', apiKeyAuth, (req, res) => {
 
       updatedRatings[0].forEach((rating, index) => {
         const player_id = win_players[index];
+        const abandoned_at = player_infos[player_id].abandoned_at_score;
+        const contributed_to_win = contributed_to_match(player_infos[player_id]);
 
         winners.push({ 
           nickname: player_infos[player_id].nickname,
           id: player_id,
           new_mmr: ordinal(rating),
-          mmr_delta: ordinal(rating) - ordinal(winner_ratings[index])
+          mmr_delta: ordinal(rating) - ordinal(original_winner_ratings[index]),
+          ...(abandoned_at >= 0 && { abandoned_at_score: abandoned_at }),
+          contributed: contributed_to_win
         });
       });
 
       updatedRatings[1].forEach((rating, index) => {
         const player_id = lose_players[index];
+        const abandoned_at = player_infos[player_id].abandoned_at_score;
 
         losers.push({ 
           nickname: player_infos[player_id].nickname,
           id: player_id,
           new_mmr: ordinal(rating),
-          mmr_delta: ordinal(rating) - ordinal(loser_ratings[index])
+          mmr_delta: ordinal(rating) - ordinal(original_loser_ratings[index]),
+          ...(abandoned_at >= 0 && { abandoned_at_score: abandoned_at })
         });
       });
 

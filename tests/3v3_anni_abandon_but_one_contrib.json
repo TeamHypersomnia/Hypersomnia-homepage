@@ -1,0 +1,40 @@
+{
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 14,
+  "lose_score": 1,
+  "player_infos": {
+    "steam_3v3_anni_abandon_but_one_contrib0": {
+      "nickname": "3v3_anni_abandon_but_one_contrib0"
+    },
+    "steam_3v3_anni_abandon_but_one_contrib1": {
+      "nickname": "3v3_anni_abandon_but_one_contrib1",
+      "abandoned_at_score": 12
+    },
+    "steam_3v3_anni_abandon_but_one_contrib2": {
+      "nickname": "3v3_anni_abandon_but_one_contrib2",
+      "abandoned_at_score": 14
+    },
+
+    "steam_3v3_anni_abandon_but_one_contrib3": {
+      "nickname": "3v3_anni_abandon_but_one_contrib3"
+    },
+    "steam_3v3_anni_abandon_but_one_contrib4": {
+      "nickname": "3v3_anni_abandon_but_one_contrib4"
+    },
+    "steam_3v3_anni_abandon_but_one_contrib5": {
+      "nickname": "3v3_anni_abandon_but_one_contrib5"
+    }
+  },
+  "win_players": [
+    "steam_3v3_anni_abandon_but_one_contrib0",
+    "steam_3v3_anni_abandon_but_one_contrib1",
+    "steam_3v3_anni_abandon_but_one_contrib2"
+  ],
+  "lose_players": [
+    "steam_3v3_anni_abandon_but_one_contrib3",
+    "steam_3v3_anni_abandon_but_one_contrib4",
+    "steam_3v3_anni_abandon_but_one_contrib5"
+  ]
+}

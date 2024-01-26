@@ -1,0 +1,21 @@
+{
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 16,
+  "lose_score": 14,
+  "player_infos": {
+    "steam_1v1_0to1_normal0": {
+      "nickname": "1v1_0to1_normal0"
+    },
+    "steam_1v1_0to1_normal1": {
+      "nickname": "1v1_0to1_normal1"
+    }
+  },
+  "win_players": [
+    "steam_1v1_0to1_normal0"
+  ],
+  "lose_players": [
+    "steam_1v1_0to1_normal1"
+  ]
+}

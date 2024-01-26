@@ -1,0 +1,22 @@
+{
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 1,
+  "lose_score": 15,
+  "player_infos": {
+    "steam_1v1_win_by_abandon_at_end0": {
+      "nickname": "1v1_win_by_abandon_at_end0"
+    },
+    "steam_1v1_win_by_abandon_at_end1": {
+      "nickname": "1v1_win_by_abandon_at_end1",
+      "abandoned_at_score": 15
+    }
+  },
+  "win_players": [
+    "steam_1v1_win_by_abandon_at_end0"
+  ],
+  "lose_players": [
+    "steam_1v1_win_by_abandon_at_end1"
+  ]
+}

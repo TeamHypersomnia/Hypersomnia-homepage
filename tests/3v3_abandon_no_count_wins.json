@@ -1,0 +1,42 @@
+{
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 3,
+  "lose_score": 1,
+  "player_infos": {
+    "steam_3v3_abandon_no_count_wins0": {
+      "nickname": "3v3_abandon_no_count_wins0"
+    },
+    "steam_3v3_abandon_no_count_wins1": {
+      "nickname": "3v3_abandon_no_count_wins1"
+    },
+    "steam_3v3_abandon_no_count_wins2": {
+      "nickname": "3v3_abandon_no_count_wins2",
+      "abandoned_at_score": 2
+    },
+
+    "steam_3v3_abandon_no_count_wins3": {
+      "nickname": "3v3_abandon_no_count_wins3",
+      "abandoned_at_score": 1
+    },
+    "steam_3v3_abandon_no_count_wins4": {
+      "nickname": "3v3_abandon_no_count_wins4",
+      "abandoned_at_score": 1
+    },
+    "steam_3v3_abandon_no_count_wins5": {
+      "nickname": "3v3_abandon_no_count_wins5",
+      "abandoned_at_score": 1
+    }
+  },
+  "win_players": [
+    "steam_3v3_abandon_no_count_wins0",
+    "steam_3v3_abandon_no_count_wins1",
+    "steam_3v3_abandon_no_count_wins2"
+  ],
+  "lose_players": [
+    "steam_3v3_abandon_no_count_wins3",
+    "steam_3v3_abandon_no_count_wins4",
+    "steam_3v3_abandon_no_count_wins5"
+  ]
+}

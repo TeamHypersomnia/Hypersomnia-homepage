@@ -1,0 +1,41 @@
+{
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 16,
+  "lose_score": 14,
+  "player_infos": {
+    "steam_1v1_simulated_high_stakes0": {
+      "nickname": "1v1_simulated_high_stakes0"
+    },
+    "steam_1v1_simulated_high_stakes1": {
+      "nickname": "1v1_simulated_high_stakes1",
+      "abandoned_at_score": 1
+    },
+    "steam_1v1_simulated_high_stakes2": {
+      "nickname": "1v1_simulated_high_stakes2",
+      "abandoned_at_score": 1
+    },
+    "steam_1v1_simulated_high_stakes3": {
+      "nickname": "1v1_simulated_high_stakes3"
+    },
+    "steam_1v1_simulated_high_stakes4": {
+      "nickname": "1v1_simulated_high_stakes4",
+      "abandoned_at_score": 1
+    },
+    "steam_1v1_simulated_high_stakes5": {
+      "nickname": "1v1_simulated_high_stakes5",
+      "abandoned_at_score": 1
+    }
+  },
+  "win_players": [
+    "steam_1v1_simulated_high_stakes0",
+    "steam_1v1_simulated_high_stakes1",
+    "steam_1v1_simulated_high_stakes2"
+  ],
+  "lose_players": [
+    "steam_1v1_simulated_high_stakes3",
+    "steam_1v1_simulated_high_stakes4",
+    "steam_1v1_simulated_high_stakes5"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 1,
+  "lose_score": 15,
+  "player_infos": {
+    "steam_1v3_win_by_abandon_at_end0": {
+      "nickname": "1v3_win_by_abandon_at_end0"
+    },
+
+    "steam_1v3_win_by_abandon_at_end3": {
+      "nickname": "1v3_win_by_abandon_at_end3",
+      "abandoned_at_score": 15
+    },
+    "steam_1v3_win_by_abandon_at_end4": {
+      "nickname": "1v3_win_by_abandon_at_end4",
+      "abandoned_at_score": 15
+    },
+    "steam_1v3_win_by_abandon_at_end5": {
+      "nickname": "1v3_win_by_abandon_at_end5",
+      "abandoned_at_score": 15
+    }
+  },
+  "win_players": [
+    "steam_1v3_win_by_abandon_at_end0"
+  ],
+  "lose_players": [
+    "steam_1v3_win_by_abandon_at_end3",
+    "steam_1v3_win_by_abandon_at_end4",
+    "steam_1v3_win_by_abandon_at_end5"
+  ]
+}

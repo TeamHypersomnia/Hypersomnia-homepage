@@ -1,0 +1,40 @@
+{
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 16,
+  "lose_score": 14,
+  "player_infos": {
+    "steam_3v3_abandon_to_steal0": {
+      "nickname": "3v3_abandon_to_steal0"
+    },
+    "steam_3v3_abandon_to_steal1": {
+      "nickname": "3v3_abandon_to_steal1"
+    },
+    "steam_3v3_abandon_to_steal2": {
+      "nickname": "3v3_abandon_to_steal2"
+    },
+
+    "steam_3v3_abandon_to_steal3": {
+      "nickname": "3v3_abandon_to_steal3",
+      "abandoned_at_score": 10
+    },
+    "steam_3v3_abandon_to_steal4": {
+      "nickname": "3v3_abandon_to_steal4",
+      "abandoned_at_score": 10
+    },
+    "steam_3v3_abandon_to_steal5": {
+      "nickname": "3v3_abandon_to_steal5"
+    }
+  },
+  "win_players": [
+    "steam_3v3_abandon_to_steal0",
+    "steam_3v3_abandon_to_steal1",
+    "steam_3v3_abandon_to_steal2"
+  ],
+  "lose_players": [
+    "steam_3v3_abandon_to_steal3",
+    "steam_3v3_abandon_to_steal4",
+    "steam_3v3_abandon_to_steal5"
+  ]
+}

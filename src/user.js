@@ -30,7 +30,9 @@ router.get('/:user', function (req, res) {
         return null;
       }
 
-      const winnersArray = JSON.parse(match.winners);
+      const winnersArrayUnfiltered = JSON.parse(match.winners);
+      const winnersArray = winnersArrayUnfiltered.filter((winner) => (winner.contributed));
+
       const winnerNicknames = winnersArray.map((winner, idx) => {
         const delta = formatMMRDelta(winner.mmr_delta);
         const link = `<a href="/user/${winner.id}">${winner.nickname}</a> ${delta}`;
