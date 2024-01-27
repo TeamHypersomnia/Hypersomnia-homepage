@@ -36,7 +36,7 @@ function apiKeyAuth(req, res, next) {
 router.post('/', apiKeyAuth, (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-  const { server_name, arena, game_mode, win_score, lose_score, win_players, lose_players, player_infos } = req.body;
+  const { match_start_date, server_name, arena, game_mode, win_score, lose_score, win_players, lose_players, player_infos } = req.body;
 
   // Validate input
   if (typeof win_score === 'undefined') {
@@ -69,6 +69,10 @@ router.post('/', apiKeyAuth, (req, res) => {
 
   if (!game_mode) {
     return res.status(400).json({ error: 'Missing game_mode' });
+  }
+
+  if (!match_start_date) {
+    return res.status(400).json({ error: 'Missing match_start_date' });
   }
 
   if (win_players.length == 0 || lose_players.length == 0) {
@@ -347,11 +351,11 @@ router.post('/', apiKeyAuth, (req, res) => {
       });
 
       const insertMatchSql = `
-        INSERT INTO matches (server_name, arena, game_mode, winners, losers, win_score, lose_score, event_match_multiplier)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO matches (match_start_date, server_name, arena, game_mode, winners, losers, win_score, lose_score, event_match_multiplier)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      db.prepare(insertMatchSql).run(server_name, arena, game_mode, JSON.stringify(winners), JSON.stringify(losers), win_score, lose_score, event_match_multiplier);
+      db.prepare(insertMatchSql).run(match_start_date, server_name, arena, game_mode, JSON.stringify(winners), JSON.stringify(losers), win_score, lose_score, event_match_multiplier);
     })(); // Execute the transaction
 
     res.json({ message: 'Match reported successfully' });

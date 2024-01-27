@@ -62,7 +62,8 @@ if (!fs.existsSync(dbPath)) {
         win_score INTEGER,
         lose_score INTEGER,
         event_match_multiplier FLOAT DEFAULT 1,
-        match_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        match_start_date TIMESTAMP,
+        match_end_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
   });

@@ -17,7 +17,7 @@ router.get('/:user', function (req, res) {
     const userFFA = stmtFFA.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
 
     const stmtMatches = db.prepare(`
-      SELECT match_id, match_date, winners, losers, lose_score, win_score 
+      SELECT match_id, match_end_date, winners, losers, lose_score, win_score 
       FROM matches 
       WHERE losers LIKE ? AND game_mode = 'Bomb Defusal'
       ORDER BY match_id DESC
@@ -50,7 +50,7 @@ router.get('/:user', function (req, res) {
       return {
         prev_mmr: prev_loser_mmr,
         new_mmr: loser.new_mmr,
-        date: new Date(match.match_date).toLocaleString(),
+        date: new Date(match.match_end_date).toLocaleString(),
         description: `<b>${severityToString(lose_severity(match.win_score, match.lose_score))} ${loserDelta}</b> by ${formattedWinnerNicknames}.`
       };
     }).filter(match => match !== null);
