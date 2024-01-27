@@ -31,7 +31,7 @@ router.get('/:user', function (req, res) {
       }
 
       const winnersArrayUnfiltered = JSON.parse(match.winners);
-      const winnersArray = winnersArrayUnfiltered.filter((winner) => (winner.contributed));
+      const winnersArray = winnersArrayUnfiltered.filter((winner) => (winner.contributed_as_enemy));
 
       const winnerNicknames = winnersArray.map((winner, idx) => {
         const delta = formatMMRDelta(winner.mmr_delta);

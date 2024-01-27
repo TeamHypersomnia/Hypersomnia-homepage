@@ -1,0 +1,53 @@
+{
+  "match_start_date": "2024-01-27T18:02:44Z",
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 16,
+  "lose_score": 10,
+  "player_infos": {
+    "steam_1v8_normal0": {
+      "nickname": "1v8_normal0"
+    },
+    "steam_1v8_normal1": {
+      "nickname": "1v8_normal1"
+    },
+    "steam_1v8_normal2": {
+      "nickname": "1v8_normal2"
+    },
+    "steam_1v8_normal3": {
+      "nickname": "1v8_normal3"
+    },
+    "steam_1v8_normal4": {
+      "nickname": "1v8_normal4"
+    },
+    "steam_1v8_normal5": {
+      "nickname": "1v8_normal5"
+    },
+    "steam_1v8_normal6": {
+      "nickname": "1v8_normal6"
+    },
+    "steam_1v8_normal7": {
+      "nickname": "1v8_normal7"
+    },
+    "steam_1v8_normal8": {
+      "nickname": "1v8_normal8"
+    },
+    "steam_1v8_normal9": {
+      "nickname": "1v8_normal9"
+    }
+  },
+  "win_players": [
+    "steam_1v8_normal0"
+  ],
+  "lose_players": [
+    "steam_1v8_normal1",
+    "steam_1v8_normal2",
+    "steam_1v8_normal3",
+    "steam_1v8_normal4",
+    "steam_1v8_normal5",
+    "steam_1v8_normal6",
+    "steam_1v8_normal7",
+    "steam_1v8_normal8"
+  ]
+}

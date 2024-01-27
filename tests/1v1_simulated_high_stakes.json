@@ -11,22 +11,22 @@
     },
     "steam_1v1_simulated_high_stakes1": {
       "nickname": "1v1_simulated_high_stakes1",
-      "abandoned_at_score": 1
+      "abandoned_at_score": 4
     },
     "steam_1v1_simulated_high_stakes2": {
       "nickname": "1v1_simulated_high_stakes2",
-      "abandoned_at_score": 1
+      "abandoned_at_score": 4
     },
     "steam_1v1_simulated_high_stakes3": {
       "nickname": "1v1_simulated_high_stakes3"
     },
     "steam_1v1_simulated_high_stakes4": {
       "nickname": "1v1_simulated_high_stakes4",
-      "abandoned_at_score": 1
+      "abandoned_at_score": 15
     },
     "steam_1v1_simulated_high_stakes5": {
       "nickname": "1v1_simulated_high_stakes5",
-      "abandoned_at_score": 1
+      "abandoned_at_score": 15
     }
   },
   "win_players": [

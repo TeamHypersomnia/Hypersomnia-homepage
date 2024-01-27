@@ -8,16 +8,23 @@ const { lose_severity, severityToString } = require('./lose_severity');
 const router = express.Router();
 const dbPath = process.env.DB_PATH;
 
-const ABANDONED_SCORE_CONTRIBUTION_CUTOFF = 13;
+const MIN_SCORE_AS_TEAMMATE_TO_CONRIBUTE = 13;
+const MIN_SCORE_AS_ENEMY_TO_CONTRIBUTE = 4;
+
 const MIN_ROUNDS_TO_COUNT_WINS = 5;
 
 const abandoned = ((player) => {
   return typeof player.abandoned_at_score === 'number' && player.abandoned_at_score >= 0;
 });
 
-const contributed_to_match = ((player) => {
+const contributed_to_match = ((player, is_teammate) => {
   if (abandoned(player)) {
-    return player.abandoned_at_score >= ABANDONED_SCORE_CONTRIBUTION_CUTOFF;
+    if (is_teammate) {
+      return player.abandoned_at_score >= MIN_SCORE_AS_TEAMMATE_TO_CONRIBUTE;
+    }
+    else {
+      return player.abandoned_at_score >= MIN_SCORE_AS_ENEMY_TO_CONTRIBUTE;
+    }
   }
 
   return true;
@@ -154,7 +161,7 @@ router.post('/', apiKeyAuth, (req, res) => {
         else {
           const won_by_abandon = win_score != 16;
 
-          const make_team_ratings = ((iterations, count_nocontrib_winners, count_nocontrib_losers, force_loss_for = -1) => {
+          const make_team_ratings = ((iterations, pov, count_nocontrib_winners, count_nocontrib_losers, force_loss_for = -1) => {
             const purge_nocontrib_winners = !count_nocontrib_winners; 
             const purge_nocontrib_losers = !count_nocontrib_losers; 
 
@@ -165,15 +172,15 @@ router.post('/', apiKeyAuth, (req, res) => {
             let contrib_winners_indices = [];
             let contrib_losers_indices = [];
 
-            const contributed = ((playerId) => {
-              return contributed_to_match(player_infos[playerId]);
+            const contributed = ((playerId, is_teammate) => {
+              return contributed_to_match(player_infos[playerId], is_teammate);
             });
 
             if (purge_nocontrib_winners) {
               it_winners = [];
 
               original_winner_ratings.forEach((player, index) => {
-                if (contributed(win_players[index])) {
+                if (contributed(win_players[index], pov === "winner")) {
                   contrib_winners_indices.push(index);
                   it_winners.push(player);
                 }
@@ -184,7 +191,7 @@ router.post('/', apiKeyAuth, (req, res) => {
               it_losers = [];
 
               original_loser_ratings.forEach((player, index) => {
-                if (contributed(lose_players[index])) {
+                if (contributed(lose_players[index], pov === "loser")) {
                   contrib_losers_indices.push(index);
                   it_losers.push(player);
                 }
@@ -260,11 +267,11 @@ router.post('/', apiKeyAuth, (req, res) => {
 
           const severity = lose_severity(win_score, lose_score);
 
-          const ratings_for_present_winners = make_team_ratings(severity, false, true)[0];
-          const ratings_for_present_losers = make_team_ratings(severity, true, false)[1];
+          const ratings_for_present_winners = make_team_ratings(severity, "winner", false, false)[0];
+          const ratings_for_present_losers  = make_team_ratings(severity, "loser" , false, false)[1];
 
-          const ratings_for_abandons_in_winners = make_team_ratings(3, true, true, 0)[0];
-          const ratings_for_abandons_in_losers = make_team_ratings(3, true, true, 1)[1];
+          const ratings_for_abandons_in_winners = make_team_ratings(3, "winner", true, true, 0)[0];
+          const ratings_for_abandons_in_losers  = make_team_ratings(3, "loser" , true, true, 1)[1];
 
           const updated_winners = [];
           const updated_losers = [];
@@ -325,7 +332,8 @@ router.post('/', apiKeyAuth, (req, res) => {
       updatedRatings[0].forEach((rating, index) => {
         const player_id = win_players[index];
         const abandoned_at = player_infos[player_id].abandoned_at_score;
-        const contributed_to_win = contributed_to_match(player_infos[player_id]);
+        const contributed_as_teammate = contributed_to_match(player_infos[player_id], true);
+        const contributed_as_enemy    = contributed_to_match(player_infos[player_id], false);
 
         winners.push({ 
           nickname: player_infos[player_id].nickname,
@@ -333,7 +341,8 @@ router.post('/', apiKeyAuth, (req, res) => {
           new_mmr: ordinal(rating),
           mmr_delta: ordinal(rating) - ordinal(original_winner_ratings[index]),
           ...(abandoned_at >= 0 && { abandoned_at_score: abandoned_at }),
-          contributed: contributed_to_win
+          contributed_as_enemy: contributed_as_enemy,
+          contributed_as_teammate: contributed_as_teammate
         });
       });
 
