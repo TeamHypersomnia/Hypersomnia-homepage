@@ -24,6 +24,7 @@ router.get('/', (req, res) => {
       return {
         match_id: match.match_id,
         server_name: match.server_name,
+        server_id: match.server_id,
         arena: match.arena,
         game_mode: match.game_mode,
         winners,

@@ -11,6 +11,7 @@
         <th>Score</th>
         <th>Arena</th>
         <th>Game mode</th>
+        <th>Server ID</th>
         <th>Date</th>
       </tr>
     </thead>
@@ -43,6 +44,7 @@
           <% } %>
           <td><%= i.arena %></td>
           <td><%= i.game_mode %></td>
+          <td><%= i.server_id %></td>
           <td><%= new Date(i.match_end_date).toLocaleString() %></td>
         </tr>
       <% }); %>

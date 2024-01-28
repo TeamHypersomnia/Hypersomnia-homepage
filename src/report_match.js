@@ -1,5 +1,6 @@
 const assert = require('assert');
 
+const fs = require('fs');
 const express = require('express');
 const Database = require('better-sqlite3');
 const { rating, rate, ordinal } = require('openskill');
@@ -12,6 +13,14 @@ const MIN_SCORE_AS_TEAMMATE_TO_CONRIBUTE = 13;
 const MIN_SCORE_AS_ENEMY_TO_CONTRIBUTE = 4;
 
 const MIN_ROUNDS_TO_COUNT_WINS = 5;
+
+const authorizedServersPath = `${__dirname}/../private/authorized_ranked_servers.json`;
+const authorizedServersData = fs.readFileSync(authorizedServersPath, {
+  encoding: 'utf8',
+  flag: 'r'
+});
+
+const authorizedServers = JSON.parse(authorizedServersData);
 
 const abandoned = ((player) => {
   return typeof player.abandoned_at_score === 'number' && player.abandoned_at_score >= 0;
@@ -32,11 +41,14 @@ const contributed_to_match = ((player, is_teammate) => {
 
 // Middleware for API key authentication
 function apiKeyAuth(req, res, next) {
-  const apiKey = req.headers["apikey"];
-  if (apiKey && apiKey === process.env.REPORT_MATCH_APIKEY) {
-    return next();
+  const apiKey = req.headers['apikey'];
+
+  if (apiKey in authorizedServers) {
+    // Set server ID in the request for later use
+    req.server_id = authorizedServers[apiKey].id;
+    next();
   } else {
-    return res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).send({ error: 'Unauthorized' });
   }
 }
 
@@ -360,11 +372,11 @@ router.post('/', apiKeyAuth, (req, res) => {
       });
 
       const insertMatchSql = `
-        INSERT INTO matches (match_start_date, server_name, arena, game_mode, winners, losers, win_score, lose_score, event_match_multiplier)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO matches (match_start_date, server_id, server_name, arena, game_mode, winners, losers, win_score, lose_score, event_match_multiplier)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      db.prepare(insertMatchSql).run(match_start_date, server_name, arena, game_mode, JSON.stringify(winners), JSON.stringify(losers), win_score, lose_score, event_match_multiplier);
+      db.prepare(insertMatchSql).run(match_start_date, req.server_id, server_name, arena, game_mode, JSON.stringify(winners), JSON.stringify(losers), win_score, lose_score, event_match_multiplier);
     })(); // Execute the transaction
 
     res.json({ message: 'Match reported successfully' });

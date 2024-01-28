@@ -55,6 +55,7 @@ if (!fs.existsSync(dbPath)) {
       CREATE TABLE IF NOT EXISTS matches (
         match_id INTEGER PRIMARY KEY AUTOINCREMENT,
         server_name TEXT,
+        server_id TEXT,
         arena TEXT,
         game_mode TEXT,
         winners TEXT,
