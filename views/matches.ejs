@@ -44,7 +44,12 @@
           <% } %>
           <td><%= i.arena %></td>
           <td><%= i.game_mode %></td>
-          <td><%= i.server_id %></td>
+          <td>
+          <% if (i.event_match_multiplier !== 1) { %>
+          <b style="color: orange;">(<%= i.event_match_multiplier %>x)</b>
+          <% } %>
+          <%= i.server_id %>
+          </td>
           <td><%= new Date(i.match_end_date).toLocaleString() %></td>
         </tr>
       <% }); %>

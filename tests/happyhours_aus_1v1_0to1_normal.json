@@ -1,0 +1,22 @@
+{
+  "match_start_date": "2024-01-27T08:59:44Z",
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 16,
+  "lose_score": 14,
+  "player_infos": {
+    "steam_happyhours_aus_1v1_0to1_normal.json0": {
+      "nickname": "happyhours_aus_1v1_0to1_normal.json0"
+    },
+    "steam_happyhours_aus_1v1_0to1_normal.json1": {
+      "nickname": "happyhours_aus_1v1_0to1_normal.json1"
+    }
+  },
+  "win_players": [
+    "steam_happyhours_aus_1v1_0to1_normal.json0"
+  ],
+  "lose_players": [
+    "steam_happyhours_aus_1v1_0to1_normal.json1"
+  ]
+}

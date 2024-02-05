@@ -5,6 +5,40 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const { rating, rate, ordinal } = require('openskill');
 const { lose_severity, severityToString } = require('./lose_severity');
+const moment = require('moment-timezone');
+
+function isWeekendEveningTime(isoTimestamp, location_id) {
+  const timeZoneMap = {
+    "aus": "Australia/Sydney", // Sydney, Australia - GMT+10 (AEST, GMT+11 when observing AEDT)
+    "ru": "Europe/Moscow", // St. Petersburg, Russia - GMT+3 (MSK, no daylight saving time)
+    "de": "Europe/Berlin", // Berlin, Germany - GMT+1 (CET, GMT+2 when observing CEST)
+    "us-central": "America/Chicago", // Central US - GMT-6 (CST, GMT-5 when observing CDT)
+    "pl": "Europe/Warsaw" // Warsaw, Poland - GMT+1 (CET, GMT+2 when observing CEST)
+  };
+
+  // Get the corresponding time zone for the location_id
+  const timeZone = timeZoneMap[location_id];
+
+  if (!timeZone) {
+    return false;
+  }
+
+  // Convert the ISO8601 timestamp to the local time of the given location
+  const localTime = moment(isoTimestamp).tz(timeZone);
+
+  // Extract the day of the week and the hour
+  const dayOfWeek = localTime.day(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+  const hour = localTime.hour();
+
+  // Check if it's Friday, Saturday, or Sunday
+  const isWeekend = dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0;
+
+  // Check if the time is between 19:00-21:00
+  const isInTimeRange = hour >= 19 && hour < 21;
+
+  // Return true if both conditions are met, false otherwise
+  return isWeekend && isInTimeRange;
+}
 
 const router = express.Router();
 const dbPath = process.env.DB_PATH;
@@ -102,9 +136,8 @@ router.post('/', apiKeyAuth, (req, res) => {
     const db = new Database(dbPath);
 
     db.transaction(() => {
-      // This mult change depending on various events.
-      // For now only integer values are supported even tho the database can hold floats.
-      const event_match_multiplier = 1; 
+      const is_happy_hours = isWeekendEveningTime(match_start_date, req.server_id);
+      const event_match_multiplier = is_happy_hours ? 2 : 1;
 
       const total_rounds_played = win_score + lose_score;
       const should_count_wins = total_rounds_played >= MIN_ROUNDS_TO_COUNT_WINS;
