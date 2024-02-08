@@ -202,6 +202,7 @@ app.get('/steam', (req, res) => res.redirect(steam));
 app.get('/discord', (req, res) => res.redirect(discord));
 app.use('/upload', require('./src/upload'));
 app.use('/report_match', require('./src/report_match'));
+app.use('/adjust_negative_mmrs', require('./src/adjust_negative_mmrs'));
 app.use('/leaderboards', require('./src/leaderboards'));
 app.use('/matches', require('./src/matches'));
 app.get('/admin', adm, (req, res) => res.redirect('/admin/system'));
