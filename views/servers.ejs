@@ -65,14 +65,13 @@
   <span class="tocopy tabcontent" id="arch"><code>sudo pacman -Sy <span class="operators">&&</span>  sudo pacman -S --noconfirm fuse2</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
   <span class="tocopy tabcontent" id="fedora"><code>sudo dnf makecache <span class="operators">&&</span>  sudo dnf install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
   <span class="txt"># Download Hypersomnia using the following command</span>
-  <span class="tocopy"><code>wget https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="tocopy"><code>wget https://hypersomnia.xyz/builds/latest/Hypersomnia-Headless.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
   <span class="txt"># Grant execution permission to the file</span>
-  <span class="tocopy"><code>chmod +x Hypersomnia.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="tocopy"><code>chmod +x Hypersomnia-Headless.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
   <span class="txt"># Run the dedicated server in the background</span>
-  <span class="tocopy"><code>nohup ./Hypersomnia.AppImage --dedicated-server --no-router --daily-autoupdate <span class="operators">></span> /dev/null <span class="operators">2>&1 &</span></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
+  <span class="tocopy"><code>nohup ./Hypersomnia-Headless.AppImage --daily-autoupdate <span class="operators">></span> /dev/null <span class="operators">2>&1 &</span></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
 </div>
-<p>Remove "--no-router" if you're hosting on your PC rather than a proper VPN.</p>
-<p>To be able to manage your server, remember to set the master_rcon_password in ~/.config/Hypersomnia/user/config.lua - see default_config.lua for reference. Open your game client. Setup your RCON password in Settings -> Client. Then, press F8 when you're on your server to open the administration panel.</p>
+<p>To be able to manage your server, remember to set the master_rcon_password in ~/.config/Hypersomnia/user/config.force.lua - see default_config.lua for reference. Open your game client. Setup your RCON password in Settings -> Client. Then, press F8 when you're on your server to open the administration panel.</p>
 <p>"--daily-autoupdate" flag causes the server to <b>update itself</b> every 24 hours at 03:00 AM (your local time), if a newer game version is available. This flag is highly recommended so you don't have to keep up with frequent game updates (the game is in active development). You can also set the flag in RCON settings (press F8 and go to Vars tab).</p>
 
 <%- include('overall_footer'); %>

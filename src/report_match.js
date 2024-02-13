@@ -13,7 +13,8 @@ function isWeekendEveningTime(isoTimestamp, location_id) {
     "ru": "Europe/Moscow", // St. Petersburg, Russia - GMT+3 (MSK, no daylight saving time)
     "de": "Europe/Berlin", // Berlin, Germany - GMT+1 (CET, GMT+2 when observing CEST)
     "us-central": "America/Chicago", // Central US - GMT-6 (CST, GMT-5 when observing CDT)
-    "pl": "Europe/Warsaw" // Warsaw, Poland - GMT+1 (CET, GMT+2 when observing CEST)
+    "pl": "Europe/Warsaw", // Warsaw, Poland - GMT+1 (CET, GMT+2 when observing CEST)
+    "ch": "Europe/Zurich"
   };
 
   // Get the corresponding time zone for the location_id
