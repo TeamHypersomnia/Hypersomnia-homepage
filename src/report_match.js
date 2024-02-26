@@ -205,7 +205,8 @@ router.post('/', apiKeyAuth, (req, res) => {
           return [winnerRating, loserRatings];
         }
         else {
-          const won_by_abandon = win_score != 16;
+          const is_tie = win_score === 15 && lose_score === 15;
+          const won_by_abandon = !is_tie && win_score !== 16;
 
           const make_team_ratings = ((iterations, pov, count_nocontrib_winners, count_nocontrib_losers, force_loss_for = -1) => {
             const purge_nocontrib_winners = !count_nocontrib_winners; 
