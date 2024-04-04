@@ -5,6 +5,15 @@ const dbPath = process.env.DB_PATH;
 const { lose_severity, severityToString } = require('./lose_severity');
 const formatMMRDelta = require('./format_delta');
 
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+}
+
 router.get('/:user', function (req, res) {
   try {
     const db = new Database(dbPath);
@@ -35,7 +44,9 @@ router.get('/:user', function (req, res) {
 
       const winnerNicknames = winnersArray.map((winner, idx) => {
         const delta = formatMMRDelta(winner.mmr_delta);
-        const link = `<a href="/user/${winner.id}">${winner.nickname}</a> ${delta}`;
+        const escapedWinnerNickname = escapeHtml(winner.nickname);
+
+        const link = `<a href="/user/${winner.id}">${escapedWinnerNickname}</a> ${delta}`;
         return link;
       });
 
@@ -61,15 +72,17 @@ router.get('/:user', function (req, res) {
       };
     }).filter(match => match !== null);
 
-    res.render('user', {
+    const render_data = {
       page: userTeam.nickname,
       user: req.user,
-      nickname: userTeam.nickname || userFFA.nickname,
+      nickname: escapeHtml(userTeam.nickname || userFFA.nickname),
       steamId: userid.split('_')[1],
       teamData: userTeam,
       ffaData: userFFA,
       matches: matches
-    });
+    };
+
+    res.render('user', render_data);
   } catch (error) {
     console.error(error.message);
     return res.status(500).json({ error: 'Internal Server Error' });
