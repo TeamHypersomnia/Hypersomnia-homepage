@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3');
 const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const minifyHTML = require('express-minify-html-2');
 const bodyParser = require('body-parser');
 const passport = require('passport');
@@ -12,9 +13,9 @@ const UAParser = require('ua-parser-js');
 
 const github = 'https://github.com/TeamHypersomnia';
 const pressKit = `${github}/PressKit/blob/main/README.md#intro`;
-const credits = `https://teamhypersomnia.github.io/PressKit/credits`
-const steam = `https://store.steampowered.com/app/2660970/Hypersomnia/`
-const discord = `https://discord.com/invite/YC49E4G`
+const credits = `https://teamhypersomnia.github.io/PressKit/credits`;
+const steam = `https://store.steampowered.com/app/2660970/Hypersomnia/`;
+const discord = `https://discord.com/invite/YC49E4G`;
 const app = express();
 const port = 3000;
 const visitors = {};
@@ -98,9 +99,15 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.use(session({
+  store: new SQLiteStore({
+    dir: __dirname + '/private',
+    db: 'sessions.db',
+    createDirIfNotExists: true
+  }),
   secret: process.env.SESSION_SECRET,
   resave: true,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: { maxAge: 365 * 24 * 60 * 60 * 1000 } // 1 year
 }));
 
 app.use(passport.initialize());
