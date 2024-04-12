@@ -10,7 +10,6 @@
         <th>Players</th>
         <th>Spectators</th>
         <th>Arena</th>
-        <th>First appeared</th>
         <th>Address</th>
       </tr>
     </thead>
@@ -22,7 +21,6 @@
         <td data-sort="<%= v.num_playing %>"><%= v.num_playing %>/<%= v.slots %></td>
         <td data-sort="<%= v.num_spectating %>"><%= v.num_spectating %>/<%= v.slots %></td>
         <td><%= v.arena %></td>
-        <td data-sort="<%= v.time_hosted %>"><%= v.time_hosted_ago %></td>
         <td><a href="/servers/<%= v.ip %>"><%= v.ip %></a></td>
       </tr>
     <% }); %>
