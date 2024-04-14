@@ -21,13 +21,13 @@
         </tr>
         <tr>
           <td>MMR</td>
-          <td class="monospace-big">
+          <td>
             <%= teamData.mmr.toFixed(6) %>
           </td>
         </tr>
         <tr>
           <td>MMR (FFA)</td>
-          <td class="monospace-big">
+          <td>
             <%= ffaData.mmr.toFixed(6) %>
           </td>
         </tr>
@@ -78,7 +78,7 @@
       <% matches.forEach(match => { %>
         <tr>
           <td style="min-width: 150px;"><%= match.time_ago %></td>
-          <td class="monospace-big"><%= match.prev_mmr %></td>
+          <td><%= match.prev_mmr %></td>
           <td style="min-width: 200px; max-width: 400px; white-space: normal;"><%- match.description %></td>
         </tr>
       <% }); %>

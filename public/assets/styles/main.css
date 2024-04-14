@@ -913,9 +913,10 @@ input:-webkit-autofill:active{
   content: '\2197'; /* Unicode character for an arrow */
 }
 
-.monospace-big {
-  font-family: monospace;
-  font-size: 1.2em;
+.rank {
+  height: 16px;
+  vertical-align: bottom;
+  padding-right: 4px;
 }
 
 @media only screen and (max-width: 768px) {

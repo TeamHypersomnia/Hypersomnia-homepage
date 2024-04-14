@@ -1,6 +1,6 @@
 const express = require('express');
 const Database = require('better-sqlite3');
-
+const ranks = require('./ranks_info');
 const router = express.Router();
 const dbPath = process.env.DB_PATH;
 
@@ -41,15 +41,20 @@ router.get('/bomb-defusal', (req, res) => {
     const db = new Database(dbPath);
     const rows_team  = db.prepare('SELECT account_id, mmr, mu, sigma, matches_won, matches_lost, nickname FROM mmr_team').all();
 
-    const row_reader = (row) => ({
-      account_id: row.account_id,
-      nickname: row.nickname,
-      mmr: row.mmr,
-      mu: row.mu,
-      sigma: row.sigma,
-      matches_won: row.matches_won,
-      matches_lost: row.matches_lost
-    });
+    const row_reader = (row) => {
+      const rank = ranks.getRank(parseInt(row.mmr));
+      return {
+        account_id: row.account_id,
+        nickname: row.nickname,
+        mmr: row.mmr,
+        mu: row.mu,
+        sigma: row.sigma,
+        matches_won: row.matches_won,
+        matches_lost: row.matches_lost,
+        rankImg: rank.rankImg,
+        rankName: rank.rankName
+      };
+    };
 
     const leaderboards_team = rows_team.map(row_reader);
     leaderboards_team.sort((a, b) => b.mmr - a.mmr);
@@ -75,15 +80,20 @@ router.get('/ffa', (req, res) => {
     const db = new Database(dbPath);
     const rows_ffa = db.prepare('SELECT account_id, mmr, mu, sigma, matches_won, matches_lost, nickname FROM mmr_ffa').all();
 
-    const row_reader = (row) => ({
-      account_id: row.account_id,
-      nickname: row.nickname,
-      mmr: row.mmr,
-      mu: row.mu,
-      sigma: row.sigma,
-      matches_won: row.matches_won,
-      matches_lost: row.matches_lost
-    });
+    const row_reader = (row) => {
+      const rank = ranks.getRank(parseInt(row.mmr));
+      return {
+        account_id: row.account_id,
+        nickname: row.nickname,
+        mmr: row.mmr,
+        mu: row.mu,
+        sigma: row.sigma,
+        matches_won: row.matches_won,
+        matches_lost: row.matches_lost,
+        rankImg: rank.rankImg,
+        rankName: rank.rankName
+      };
+    };
 
     const leaderboards_ffa = rows_ffa.map(row_reader);
     leaderboards_ffa.sort( (a, b) => b.mmr - a.mmr);
