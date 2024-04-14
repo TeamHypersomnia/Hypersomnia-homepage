@@ -1,6 +1,13 @@
 <%- include('overall_header'); %>
 
 <h1><%= user.displayName %></h1>
+<form method="POST" action="/logout">
+  <div class="btn-group">
+    <div class="btn">
+      <button type="submit" aria-label="Logout">Logout</span></button>
+    </div>
+  </div>
+</form>
 <img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="184" height="184">
 <dl>
   <dt>Steam ID</dt>

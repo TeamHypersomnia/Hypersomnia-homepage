@@ -45,11 +45,8 @@
         </a>
       <% } else { %>
         <a href="/profile" class="right<% if(page == 'Profile'){ %> active<% } %>" aria-label="Profile">
-          <span class="desktop">Profile</span><span class="mobile"><i class="fa-solid fa-user"></i></span>
+          <span class="desktop">Signed in as <strong><%= user.displayName %></strong></span><span class="mobile"><i class="fa-solid fa-user"></i></span>
         </a>
-        <form method="POST" action="/logout">
-          <button type="submit" aria-label="Logout"><span class="desktop">Logout</span><span class="mobile"><i class="fa-solid fa-right-from-bracket"></i></div></button>
-        </form>
       <% } %>
     </div>
   </nav>
