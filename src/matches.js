@@ -1,6 +1,7 @@
 const express = require('express');
 const Database = require('better-sqlite3');
 const formatMMRDelta = require('./format_delta');
+const moment = require('moment');
 
 const router = express.Router();
 const dbPath = process.env.DB_PATH;
@@ -32,6 +33,7 @@ router.get('/', (req, res) => {
         win_score: match.win_score,
         lose_score: match.lose_score,
         match_end_date: match.match_end_date,
+        match_end_date_ago: moment(match.match_end_date, "YYYY-MM-DD HH:mm:ss").fromNow(),
         match_start_date: match.match_start_date,
         event_match_multiplier: match.event_match_multiplier,
         is_ffa: match.game_mode === 'FFA Gun Game'

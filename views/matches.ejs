@@ -5,20 +5,20 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th>#</th>
-        <th>Winning team</th>
-        <th>Losing team</th>
-        <th>Score</th>
-        <th>Arena</th>
-        <th>Game mode</th>
-        <th>Server ID</th>
-        <th>Date</th>
+        <th width="13%">ID</th>
+        <th width="10%">Arena</th>
+        <th class="no-sort" width="25%">Winning team</th>
+        <th class="no-sort" width="4%">Score</th>
+        <th class="no-sort" width="25%">Losing team</th>
+        <th width="10%">Time ago</th>
+        <th width="13%">Server</th>
       </tr>
     </thead>
     <tbody>
       <% matches.forEach(i => { %>
         <tr>
           <td><%= i.match_id %></td>
+          <td><%= i.arena %></td>
           <td>
             <% i.winners.forEach(player => { %>
               <%- formatMMRDelta(player.mmr_delta, true) %>
@@ -28,6 +28,11 @@
               <% if (i.winners.indexOf(player) < i.winners.length - 1) { %><br><% } %>
             <% }); %>
           </td>
+          <% if (i.is_ffa) { %>
+            <td><i>FFA</i></td>
+            <% } else { %>
+            <td><%= i.win_score %>:<%= i.lose_score %></td>
+            <% } %>
           <td>
             <% i.losers.forEach(player => { %>
               <%- formatMMRDelta(player.mmr_delta, true) %>
@@ -37,20 +42,13 @@
               <% if (i.losers.indexOf(player) < i.losers.length - 1) { %><br><% } %>
             <% }); %>
           </td>
-          <% if (i.is_ffa) { %>
-            <td><i>FFA</i></td>
-          <% } else { %>
-            <td><%= i.win_score %>:<%= i.lose_score %></td>
-          <% } %>
-          <td><%= i.arena %></td>
-          <td><%= i.game_mode %></td>
+          <td data-sort="<%= i.match_end_date %>"><%= i.match_end_date_ago %></td>
           <td>
-          <% if (i.event_match_multiplier !== 1) { %>
-          <b style="color: orange;">(<%= i.event_match_multiplier %>x)</b>
-          <% } %>
           <%= i.server_id %>
+          <% if (i.event_match_multiplier !== 1) { %>
+          <b style="color: orange;">x<%= i.event_match_multiplier %></b>
+          <% } %>
           </td>
-          <td><%= new Date(i.match_end_date).toLocaleString() %></td>
         </tr>
       <% }); %>
     </tbody>
