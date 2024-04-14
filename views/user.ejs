@@ -70,14 +70,14 @@
     <table>
       <thead>
         <tr>
-          <th>Date</th>
+          <th>Time ago</th>
           <th>At MMR</th>
           <th></th>
         </tr>
       </thead>
       <% matches.forEach(match => { %>
         <tr>
-          <td style="min-width: 150px;"><%= match.date %></td>
+          <td style="min-width: 150px;"><%= match.time_ago %></td>
           <td class="monospace-big"><%= match.prev_mmr %></td>
           <td style="min-width: 200px; max-width: 400px; white-space: normal;"><%- match.description %></td>
         </tr>

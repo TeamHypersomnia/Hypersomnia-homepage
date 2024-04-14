@@ -42,7 +42,7 @@
               <% if (i.losers.indexOf(player) < i.losers.length - 1) { %><br><% } %>
             <% }); %>
           </td>
-          <td data-sort="<%= i.match_end_date %>"><%= i.match_end_date_ago %></td>
+          <td data-sort="<%= i.match_end_date %>"><%= i.time_ago %></td>
           <td>
           <%= i.server_id %>
           <% if (i.event_match_multiplier !== 1) { %>

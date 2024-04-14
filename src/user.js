@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Database = require('better-sqlite3');
+const moment = require('moment');
 const dbPath = process.env.DB_PATH;
 const { lose_severity, severityToString } = require('./lose_severity');
 const formatMMRDelta = require('./format_delta');
@@ -67,7 +68,7 @@ router.get('/:user', function (req, res) {
       return {
         prev_mmr: prev_loser_mmr,
         new_mmr: loser.new_mmr,
-        date: new Date(match.match_end_date).toLocaleString(),
+        time_ago: moment(match.match_end_date, "YYYY-MM-DD HH:mm:ss").fromNow(),
         description: `<b>${multPreffix}${severityToString(lose_severity(match.win_score, match.lose_score))} ${loserDelta}</b> by ${formattedWinnerNicknames}.`
       };
     }).filter(match => match !== null);
