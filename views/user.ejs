@@ -1,83 +1,89 @@
 <%- include('overall_header'); %>
-
-<div style="text-align: center;">
-  <h1>Character: <%- nickname %></h1>
-  <div style="display: inline-block; text-align: left;">
+<h1>Character: <%= nickname %></h1>
+<div class="box">
+  <div class="table-responsive">
     <table>
-      <tr>
-        <td style="min-width: 150px;">External profile:</td>
-        <td style="min-width: 300px;">
-        <a href="https://steamcommunity.com/profiles/<%= steamId %>" target="_blank">link<span class="external-link-icon" aria-hidden="true"></span></a>
-      </tr>
-      <tr>
-        <td style="min-width: 150px;">Nickname:</td>
-        <td style="min-width: 300px;"><%= nickname %></td>
-      </tr>
-      <tr>
-        <td>MMR:</td>
-        <td class="monospace-big">
-          <%= teamData.mmr.toFixed(6) %>
-        </td>
-      </tr>
-      <tr>
-        <td>MMR (FFA):</td>
-        <td class="monospace-big">
-          <%= ffaData.mmr.toFixed(6) %>
-        </td>
-      </tr>
-      <tr>
-        <td>Matches won:</td>
-        <td>
-          <b><%= teamData.matches_won %></b> 
-        </td>
-      </tr>
-      <tr>
-        <td>Matches won (FFA):</td>
-        <td>
-          <b><%= ffaData.matches_won %></b> 
-        </td>
-      </tr>
-      <tr>
-        <td>Matches lost:</td>
-        <td>
-          <b><%= teamData.matches_lost %></b> 
-        </td>
-      </tr>
-      <tr>
-        <td>Matches lost (FFA):</td>
-        <td>
-          <b><%= ffaData.matches_lost %></b> 
-        </td>
-      </tr>
-      <tr>
-        <td>Details:</td>
-        <td>
-          <span style="font-family: monospace;">μ = <%= teamData.mu.toFixed(3) %><br>σ = <%= teamData.sigma.toFixed(3) %></span>
-          <span style="font-family: monospace;"><br>μ (ffa) = <%= ffaData.mu.toFixed(3) %><br>σ (ffa) = <%= ffaData.sigma.toFixed(3) %></span>
-        </td>
-      </tr>
+      <thead>
+        <tr>
+          <th>Key</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="min-width: 150px;">External profile</td>
+          <td style="min-width: 300px;">
+          <a href="https://steamcommunity.com/profiles/<%= steamId %>" target="_blank"><%= steamId %><span class="external-link-icon" aria-hidden="true"></span></a>
+        </tr>
+        <tr>
+          <td style="min-width: 150px;">Nickname</td>
+          <td style="min-width: 300px;"><%= nickname %></td>
+        </tr>
+        <tr>
+          <td>MMR</td>
+          <td class="monospace-big">
+            <%= teamData.mmr.toFixed(6) %>
+          </td>
+        </tr>
+        <tr>
+          <td>MMR (FFA)</td>
+          <td class="monospace-big">
+            <%= ffaData.mmr.toFixed(6) %>
+          </td>
+        </tr>
+        <tr>
+          <td>Matches won</td>
+          <td>
+            <b><%= teamData.matches_won %></b> 
+          </td>
+        </tr>
+        <tr>
+          <td>Matches won (FFA)</td>
+          <td>
+            <b><%= ffaData.matches_won %></b> 
+          </td>
+        </tr>
+        <tr>
+          <td>Matches lost</td>
+          <td>
+            <b><%= teamData.matches_lost %></b> 
+          </td>
+        </tr>
+        <tr>
+          <td>Matches lost (FFA)</td>
+          <td>
+            <b><%= ffaData.matches_lost %></b> 
+          </td>
+        </tr>
+        <tr>
+          <td>Details</td>
+          <td>
+            <span style="font-family: monospace;">μ = <%= teamData.mu.toFixed(3) %><br>σ = <%= teamData.sigma.toFixed(3) %></span>
+            <span style="font-family: monospace;"><br>μ (ffa) = <%= ffaData.mu.toFixed(3) %><br>σ (ffa) = <%= ffaData.sigma.toFixed(3) %></span>
+          </td>
+        </tr>
+      </tbody>
     </table>
   </div>
 
-<h2>Character deaths</h2>
-<div style="display: inline-block; text-align: left;">
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>At MMR</th>
-        <th></th>
-      </tr>
-    </thead>
-    <% matches.forEach(match => { %>
-      <tr>
-        <td style="min-width: 150px;"><%= match.date %></td>
-        <td class="monospace-big"><%= match.prev_mmr %></td>
-        <td style="min-width: 200px; max-width: 400px; white-space: normal;"><%- match.description %></td>
-      </tr>
-    <% }); %>
-  </table>
-</div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>At MMR</th>
+          <th></th>
+        </tr>
+      </thead>
+      <% matches.forEach(match => { %>
+        <tr>
+          <td style="min-width: 150px;"><%= match.date %></td>
+          <td class="monospace-big"><%= match.prev_mmr %></td>
+          <td style="min-width: 200px; max-width: 400px; white-space: normal;"><%- match.description %></td>
+        </tr>
+      <% }); %>
+    </table>
+  </div>
 </div>
 
 <%- include('overall_footer'); %>

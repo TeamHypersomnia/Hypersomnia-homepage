@@ -73,9 +73,9 @@ router.get('/:user', function (req, res) {
     }).filter(match => match !== null);
 
     const render_data = {
-      page: userTeam.nickname,
+      page: userTeam.nickname || userFFA.nickname,
       user: req.user,
-      nickname: escapeHtml(userTeam.nickname || userFFA.nickname),
+      nickname: userTeam.nickname || userFFA.nickname,
       steamId: userid.split('_')[1],
       teamData: userTeam,
       ffaData: userFFA,
