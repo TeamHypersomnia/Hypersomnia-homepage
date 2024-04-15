@@ -7,17 +7,16 @@
 
 body {
   margin: 0;
-  color: #e7e7e7;
-  background-color: #151515;
-  background-image: url(../images/overlay.png);
+  color: rgba(255, 255, 255, 0.81);
+  background-color: rgb(25, 25, 25);
+  font-size: 0.92rem;
 }
 
 h1, h2 {
-  color: #fff;
-  border-bottom: 1px solid #323235;
+  border-bottom: 1px dashed #323235;
   margin: 5px 0 15px 0;
   padding-bottom: 0.3em;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.25;
   overflow: hidden;
   text-wrap: nowrap;
@@ -63,12 +62,6 @@ canvas {
 
 code {
   word-wrap: break-word;
-}
-
-article {
-  background-color: #212121;
-  box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
-  border-radius: 4px;
 }
 
 article > div > div:nth-child(1) > img {
@@ -307,8 +300,7 @@ dd {
   }
 
   article {
-    padding: 1.5em;
-    margin-top: 1.5em;
+    margin-top: 3em;
   }
 
   .mobile {
@@ -353,7 +345,7 @@ dd {
   }
 
   .container {
-    width: 1200px;
+    width: 1080px;
     margin: 0 auto;
   }
 
@@ -380,6 +372,10 @@ dd {
 
   .miniature, .details {
     width: 50%;
+  }
+
+  .details > .btn-group {
+    margin-top: 0;
   }
 
   footer {
@@ -518,7 +514,7 @@ table {
 }
 
 tr:nth-child(even) {
-  background-color: #262626;
+  background-color: #2d2e31;
 }
 
 th, td {
@@ -527,7 +523,6 @@ th, td {
 }
 
 th {
-  color: #fff;
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -633,7 +628,7 @@ thead > tr {
 }
 
 nav {
-  background-color: #212121;
+  background-color: #2d2e31;
   box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
 }
 

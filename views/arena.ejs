@@ -3,6 +3,10 @@
 <h1><%= arena.name %></h1>
 <div class="arena">
   <div class="details">
+    <div class="btn-group">
+      <div class="btn"><a href="/arenas/<%= prev %>"><span><i class="fa-solid fa-arrow-left"></i></span><span>Previous</span></a></div>
+      <div class="btn"><a href="/arenas/<%= next %>"><span><i class="fa-solid fa-arrow-right"></i></span><span>Next</span></a></div>
+    </div>
     <dl>
       <dt>Short description</dt>
       <dd><%= arena.short_description %></dd>
@@ -17,11 +21,6 @@
     </dl>
   </div>
   <div class="miniature"><img src="/arenas/<%= arena.name %>/miniature.png" alt="<%= arena.name %>"></div>
-</div>
-<div class="btn-group center">
-  <div class="btn"><a href="/arenas/<%= prev %>"><span><i class="fa-solid fa-arrow-left"></i></span><span>Previous</span></a></div>
-  <div class="btn"><a href="#"><span><i class="fa-solid fa-download"></i></span><span>Download</span></a></div>
-  <div class="btn"><a href="/arenas/<%= next %>"><span><i class="fa-solid fa-arrow-right"></i></span><span>Next</span></a></div>
 </div>
 
 <script>
