@@ -518,7 +518,7 @@ table {
 }
 
 tr:nth-child(even) {
-  background-color: #2d2e31;
+  background-color: #1e1e1e;
 }
 
 th, td {
