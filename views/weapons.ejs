@@ -8,12 +8,13 @@
         <th>Name</th>
         <th class="no-sort">Weapon</th>
         <th>DMG</th>
-        <th>HS DMG</th>
+        <th>HS</th>
         <th>Penetration</th>
         <th>Shots/sec</th>
-        <th>Avg bullet speed</th>
+        <th>DMG/sec</th>
+        <th>Bullet speed</th>
         <th>Price</th>
-        <th>Kill award</th>
+        <th>Award</th>
         <th>Weight</th>
       </tr>
     </thead>
@@ -26,9 +27,10 @@
           <td><%= i.headshot_damage %></td>
           <td><%= i.penetration %></td>
           <td><%= i.shots_per_second.toFixed(2) %></td>
+          <td><%= Math.floor(i.shots_per_second * i.damage) %></td>
           <td><%= (i.min_bullet_speed + i.max_bullet_speed) / 2 %></td>
-          <td><%= i.price %></td>
-          <td><%= i.kill_award %></td>
+          <td>$<%= i.price %></td>
+          <td>$<%= i.kill_award %></td>
           <td><%= i.weight.toFixed(2) %></td>
         </tr>
       <% }); %>

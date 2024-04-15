@@ -1,1 +1,74 @@
-[{"id":"fury_of_the_aeons","display_name":"Fury of the Aeons","pic_filename":"spell_fury_of_the_aeons_icon.png","notes":"Causes instant damage around the caster.","incantation":"mania aiones","associated_color":[0,255,255,255],"cooldown":2,"mana_required":30,"price":900,"kill_award":700},{"id":"echoes_of_the_higher_realms","display_name":"Echoes of the higher realms","pic_filename":"spell_echoes_of_the_higher_realms_icon.png","notes":"Restores full stamina.","incantation":"armonia","associated_color":[255,255,0,255],"cooldown":2,"mana_required":27,"price":1100,"kill_award":-1},{"id":"haste","display_name":"Haste","pic_filename":"spell_haste_icon.png","notes":"Increases movement speed for 15 seconds.","incantation":"treximo","associated_color":[0,255,0,255],"cooldown":5,"mana_required":36,"price":2000,"kill_award":-1},{"id":"ultimate_wrath_of_the_aeons","display_name":"Ultimate Wrath of the Aeons","pic_filename":"spell_ultimate_wrath_of_the_aeons_icon.png","notes":"Causes massive damage around the caster after a delay.","incantation":"megalyteri aiones via","associated_color":[0,255,255,255],"cooldown":2,"mana_required":75,"price":2500,"kill_award":700},{"id":"exaltation","display_name":"Exaltation","pic_filename":"spell_exaltation_icon.png","notes":"Restores moderate amount of health.","incantation":"efforia","associated_color":[0,255,0,255],"cooldown":5,"mana_required":40,"price":2800,"kill_award":-1},{"id":"electric_triad","display_name":"Electric Triad","pic_filename":"spell_electric_triad_icon.png","notes":"Spawns three missiles chasing hostile entities.","incantation":"energeia triada","associated_color":[0,255,255,255],"cooldown":3,"mana_required":75,"price":4100,"kill_award":700}]
+[
+    {
+        "id": "fury_of_the_aeons",
+        "display_name": "Fury of the Aeons",
+        "pic_filename": "spell_fury_of_the_aeons_icon.png",
+        "notes": "Causes instant damage around the caster.",
+        "incantation": "mania aiones",
+        "associated_color": [0, 255, 255, 255],
+        "cooldown": 2.0,
+        "mana_required": 30.0,
+        "price": 900.0,
+        "kill_award": 700.0
+    },
+    {
+        "id": "echoes_of_the_higher_realms",
+        "display_name": "Echoes of the higher realms",
+        "pic_filename": "spell_echoes_of_the_higher_realms_icon.png",
+        "notes": "Restores full stamina.",
+        "incantation": "armonia",
+        "associated_color": [255, 255, 0, 255],
+        "cooldown": 2.0,
+        "mana_required": 27.0,
+        "price": 1800.0,
+        "kill_award": -1.0
+    },
+    {
+        "id": "ultimate_wrath_of_the_aeons",
+        "display_name": "Ultimate Wrath of the Aeons",
+        "pic_filename": "spell_ultimate_wrath_of_the_aeons_icon.png",
+        "notes": "Causes massive damage around the caster after a delay.",
+        "incantation": "megalyteri aiones via",
+        "associated_color": [0, 255, 255, 255],
+        "cooldown": 2.0,
+        "mana_required": 75.0,
+        "price": 2500.0,
+        "kill_award": 700.0
+    },
+    {
+        "id": "haste",
+        "display_name": "Haste",
+        "pic_filename": "spell_haste_icon.png",
+        "notes": "Increases movement speed for 7 seconds.",
+        "incantation": "treximo",
+        "associated_color": [0, 255, 0, 255],
+        "cooldown": 5.0,
+        "mana_required": 36.0,
+        "price": 2700.0,
+        "kill_award": -1.0
+    },
+    {
+        "id": "exaltation",
+        "display_name": "Exaltation",
+        "pic_filename": "spell_exaltation_icon.png",
+        "notes": "Restores moderate amount of health.",
+        "incantation": "efforia",
+        "associated_color": [0, 255, 0, 255],
+        "cooldown": 5.0,
+        "mana_required": 40.0,
+        "price": 2800.0,
+        "kill_award": -1.0
+    },
+    {
+        "id": "electric_triad",
+        "display_name": "Electric Triad",
+        "pic_filename": "spell_electric_triad_icon.png",
+        "notes": "Spawns three missiles chasing hostile entities.",
+        "incantation": "energeia triada",
+        "associated_color": [0, 255, 255, 255],
+        "cooldown": 3.0,
+        "mana_required": 75.0,
+        "price": 4100.0,
+        "kill_award": 700.0
+    }
+]
