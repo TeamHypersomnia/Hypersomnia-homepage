@@ -401,16 +401,16 @@ dd {
     justify-content: space-between;
   }
 
-  footer > div:nth-child(1) {
+  footer > div:nth-child(2) {
     display: inline-flex;
     gap: 12px;
   }
 
-  footer > div:nth-child(1) > a {
+  footer > div:nth-child(2) > a {
     font-size: 0.9em;
   }
 
-  footer > div:nth-child(1) > a:hover {
+  footer > div:nth-child(2) > a:hover {
     color: #fff;
   }
 }
@@ -482,7 +482,7 @@ dd {
     flex-direction: column;
   }
 
-  footer > div:nth-child(1) {
+  footer > div:nth-child(2) {
     font-size: 0.9em;
     margin: 0;
     display: flex;
@@ -799,23 +799,23 @@ input[type="submit"]:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
-footer > div:nth-child(1) > a {
+footer > div:nth-child(2) > a {
   color: #8f8e8e;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
 }
 
-footer > div:nth-child(1) > a:hover {
+footer > div:nth-child(2) > a:hover {
   color: #fff;
   text-decoration: none;
 }
 
-footer > div:nth-child(2) {
+footer > div:nth-child(3) {
   display: flex;
   gap: 12px;
 }
 
-footer > div:nth-child(2) > a {
+footer > div:nth-child(3) > a {
   display: inline-block;
   font-size: 1.2em;
   color: #8f8e8e;
@@ -823,7 +823,7 @@ footer > div:nth-child(2) > a {
   transition-duration: .15s;
 }
 
-footer > div:nth-child(2) > a:hover {
+footer > div:nth-child(3) > a:hover {
   color: #fff;
 }
 
@@ -961,4 +961,11 @@ input:-webkit-autofill:active{
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.open-source-notice {
+  font-size: 1.0em;
+  text-align: center; /* Center-align the text */
+  margin: 0 auto; /* Optional: to ensure it has no default margin */
+  width: 100%; /* Ensures the element spans the full width */
 }
