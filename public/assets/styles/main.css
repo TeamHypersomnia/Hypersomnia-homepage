@@ -53,7 +53,7 @@ p:last-child {
 }
 
 a {
-  color: #22CC22;
+  color: #33CC33;
   text-decoration: none;
 }
 
@@ -669,7 +669,7 @@ nav a:hover {
 }
 
 nav a.active {
-  color: #44EE44;
+  color: #50FF50;
 }
 
 nav > .flex {
