@@ -9,7 +9,7 @@ const moment = require('moment-timezone');
 
 function isWeekendEveningTime(isoTimestamp, location_id) {
   const timeZoneMap = {
-    "aus": "Australia/Sydney", // Sydney, Australia - GMT+10 (AEST, GMT+11 when observing AEDT)
+    "au": "Australia/Sydney", // Sydney, Australia - GMT+10 (AEST, GMT+11 when observing AEDT)
     "ru": "Europe/Moscow", // St. Petersburg, Russia - GMT+3 (MSK, no daylight saving time)
     "de": "Europe/Berlin", // Berlin, Germany - GMT+1 (CET, GMT+2 when observing CEST)
     "us-central": "America/Chicago", // Central US - GMT-6 (CST, GMT-5 when observing CDT)

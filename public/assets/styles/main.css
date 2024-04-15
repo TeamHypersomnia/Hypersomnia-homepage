@@ -789,6 +789,10 @@ input[type="submit"]:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
+footer {
+  border-top: 1px dashed #323235;
+}
+
 footer > div:nth-child(1) > a {
   color: #8f8e8e;
   transition-timing-function: cubic-bezier(.4,0,.2,1);

@@ -5,6 +5,7 @@ const moment = require('moment');
 const dbPath = process.env.DB_PATH;
 const { lose_severity, severityToString } = require('./lose_severity');
 const formatMMRDelta = require('./format_delta');
+const ranks = require('./ranks_info');
 
 function escapeHtml(unsafe) {
   return unsafe
@@ -22,10 +23,17 @@ router.get('/:user', function (req, res) {
 
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
     const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
+    const rankTeam = ranks.getRank(parseInt(userTeam.mmr));
+    userTeam.rankImg = rankTeam.rankImg;
+    userTeam.rankName = rankTeam.rankName;
 
     const stmtFFA = db.prepare('SELECT * FROM mmr_ffa WHERE account_id = ?');
     const userFFA = stmtFFA.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
+    const rankFFA = ranks.getRank(parseInt(userFFA.mmr));
+    userFFA.rankImg = rankFFA.rankImg;
+    userFFA.rankName = rankFFA.rankName;
 
+    
     const stmtMatches = db.prepare(`
       SELECT match_id, match_end_date, winners, losers, lose_score, win_score, event_match_multiplier
       FROM matches 
