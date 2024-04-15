@@ -18,8 +18,8 @@
 <body>
   <nav>
     <div class="container flex">
-      <a href="/"<% if(page == 'Index'){ %> class="active"<% } %> aria-label="Hypersomnia">
-        <span class="desktop">Hypersomnia</span><span class="mobile"><i class="fa-solid fa-house"></i></span>
+      <a href="/" class="logo<% if(page == 'Index'){ %> active<% } %>" aria-label="Hypersomnia">
+        <span class="desktop"><img src="/assets/images/menu_game_logo.png" alt="Logo"></span><span class="mobile"><i class="fa-solid fa-house"></i></span>
       </a>
       <a href="/guide"<% if(page == 'Guide'){ %> class="active"<% } %> aria-label="Guide">
         <span class="desktop">Guide</span><span class="mobile"><i class="fa-solid fa-book"></i></span>
@@ -30,7 +30,7 @@
       <a href="/leaderboards"<% if(page == 'Leaderboards'){ %> class="active"<% } %> aria-label="Leaderboards">
         <span class="desktop">Leaderboards</span><span class="mobile"><i class="fa-solid fa-ranking-star"></i></span>
       </a>
-      <a href="/matches"<% if(page == 'Matches'){ %> class="active"<% } %> aria-label="Leaderboards">
+      <a href="/matches"<% if(page == 'Matches'){ %> class="active"<% } %> aria-label="Matches">
         <span class="desktop">Matches</span><span class="mobile"><i class="fa-solid fa-users"></i></span>
       </a>
       <a href="/arenas"<% if(page == 'Arenas'){ %> class="active"<% } %> aria-label="Arenas">
@@ -38,6 +38,9 @@
       </a>
       <a href="/servers"<% if(page == 'Servers'){ %> class="active"<% } %> aria-label="Servers">
         <span class="desktop">Servers</span><span class="mobile"><i class="fa-solid fa-server"></i></span>
+      </a>
+      <a href="/download"<% if(page == 'Download'){ %> class="active"<% } %> aria-label="Download">
+        <span class="desktop">Download</span><span class="mobile"><i class="fa-solid fa-download"></i></span>
       </a>
       <% if (!user) { %>
         <a href="/auth/steam" class="right steam" aria-label="Sign in with Steam">

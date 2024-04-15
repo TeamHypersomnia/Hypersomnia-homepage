@@ -1,61 +1,35 @@
 <%- include('overall_header'); %>
 
-<div class="parent">
-  <div>
-    <h1>Hypersomnia</h1>
-    <img src="/assets/images/gif_460x310.avif" alt="Hypersomnia" class="responsive" width="460" height="310">
-    <p><i>Hypersomnia</i> is a competitive arena released as free software.</p>
-    <p>The game has been online and playable since 2017. It brings together:</p>
-    <ul>
-      <li>the tactics of <i>Counter-Strike</i>,</li>
-      <li>the dynamics of <i>Hotline Miami</i>,</li>
-      <li>the pixel art nostalgia of oldschool RPGs..</li>
-      <li>..and the potential for endless creativity thanks to an in-game map editor!</li>
-    </ul>
-    <p><i>Hypersomnia</i> aims to be <strong>the ultimate open-source 2D shooter</strong> - a grand community project extensible without limit.</p>
-    <p>Declare allegiance to one of the three factions whose apple of discord is a disparity between prevailing notions of moral excellence:</p>
-    <p><strong>Metropolis. Atlantis. Resistance.</strong></p>
-    <p>Will you take revenge for the unethical simulation of an inferior universe? Will you support the cruel experiments to win total control over metempsychosis? Or will you join the underground civilization that awaits the end of war in this dangerous afterlife reality?</p>
-    <h2>Gameplay & Dev Journals</h2>
-    <ul class="yt">
-      <li data-code="L4zSA34fD_E"></li>
-      <li data-code="CHLPzZqANlM"></li>
-      <li data-code="Nlh_dyd_V7w"></li>
-    </ul>
-  </div>
-  <div>
-    <div class="panel">
-      <h3>Download</h3>
-      <p>Free and built on open source.</p>
-      <div class="three">
-        <a href="/builds/latest/Hypersomnia-for-Windows.zip" class="os">
-          <img src="/assets/images/os/win.svg" alt="Windows">
-          <span>Windows</span>
-          <small>Download zip</small>
-        </a>
-        <a href="/builds/latest/Hypersomnia-for-MacOS.dmg" class="os">
-          <img src="/assets/images/os/mac.svg" alt="macOS">
-          <span>macOS</span>
-          <small>Download dmg</small>
-        </a>
-        <a href="/builds/latest/Hypersomnia.AppImage" class="os">
-        <img src="/assets/images/os/tux.svg" alt="Linux">
-          <span>Linux</span>
-          <small>Download AppImage</small>
-        </a>
-      </div>
-      <p class="subname">Archives are <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/src/signing_keys.h" target="_blank">digitally signed</a>.<br>
-      You can <a href="https://hypersomnia.xyz/builds/latest/" target="_blank">verify signatures</a>.</p>
-    </div>
-    <div class="panel">
-      <h3>Latest Commits</h3>
-      <ul class="none">
-      <% Object.values(commits).forEach(v => { %>
-        <li><a href="https://github.com/TeamHypersomnia/Hypersomnia/commit/<%= v.sha %>" target="_blank"><%= v.msg %><br><i class="subname"><%= v.date %></i></a></li>
-      <% }); %>  
-      </ul>
-    </div>
-  </div>
-</div>
+<h1>Hypersomnia</h1>
+<p><i>Hypersomnia</i> is a hardcore arena mixing eSports with pixely nostalgia.<br>
+Every match will be unforgiving - every duel a psychological battle.</p>
+
+<p>More of a peaceful soul?<br>
+Unleash your creativity in the <strong>WYSIWYG in-game map Editor</strong> that lets you instantly playtest your maps online.</p>
+
+<p>It's all free and open-source.<br>
+Written without a game engine, in bare C++. Only 50 MB.<br>
+Feel free to build it yourself from GitHub and modify <i>Hypersomnia</i> to your heart's content.</p>
+
+<p>Features:
+<ul>
+<li>24 unique firearms.</li>
+<li>2 game modes: Bomb defusal (team-based) and Gun game (free-for all).</li>
+<li>6 magic spells, 4 grenade types and 7 melee weapons.</li>
+<li>An in-game map editor that lets you host a work-in-progress map to test with your friends in a single click. Quickly iterate your map unlike in any game engine.</li>
+</ul></p>
+
+<p>Declare allegiance to one of the three factions whose apple of discord is a disparity between prevailing notions of moral excellence:</p>
+
+<p><strong>Metropolis. Atlantis. Resistance.</strong></p>
+
+<p>Will you take revenge for the unethical simulation of an inferior universe? Will you support the cruel experiments to win total control over metempsychosis? Or will you join the underground civilization that awaits the end of war in this dangerous afterlife reality?</p>
+
+<h2>Gameplay & Dev Journals</h2>
+<ul class="yt">
+  <li data-code="L4zSA34fD_E"></li>
+  <li data-code="CHLPzZqANlM"></li>
+  <li data-code="Nlh_dyd_V7w"></li>
+</ul>
 
 <%- include('overall_footer'); %>
