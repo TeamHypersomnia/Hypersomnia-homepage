@@ -8,8 +8,14 @@
 body {
   margin: 0;
   color: rgba(255, 255, 255, 0.81);
-  background-color: rgb(25, 25, 25);
+  background-color: rgb(25, 25, 25); /* Ensure this is the background color */
   font-size: 0.92rem;
+  background-image: 
+    linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgb(0, 8, 5) 60%), /* Adjusted for more aggressive fade */
+    url('/assets/images/horizontal_banner.png'); /* Replace with your actual image URL */
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 h1, h2 {
@@ -47,7 +53,7 @@ p:last-child {
 }
 
 a {
-  color: #44e8c3;
+  color: #22CC22;
   text-decoration: none;
 }
 
@@ -124,7 +130,7 @@ strong, th, td:nth-child(1), label, dt, b {
 }
 
 a.os {
-  background-color: #3c3c3c;
+  background-color: rgba(30, 30, 30, 0.5);
   border: 1px solid rgb(100 100 111 / 25%);
   cursor: pointer;
   display: grid;
@@ -209,7 +215,7 @@ a.os > small {
   font-size: 0.9em;
   border-radius: 4px;
   border: 1px solid #38383b;
-  background: #2a2a2a;
+  background: rgba(25, 25, 25, 0.4);
 }
 
 .panel:last-child {
@@ -518,7 +524,7 @@ table {
 }
 
 tr:nth-child(even) {
-  background-color: #1e1e1e;
+  background-color: rgba(0,20,0,0.5);
 }
 
 th, td {
@@ -642,7 +648,7 @@ thead > tr {
 }
 
 nav {
-  background-color: #2d2e31;
+  background-color: rgba(0, 0, 0, 0.5);
   box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
 }
 
@@ -650,9 +656,9 @@ nav a {
   display: block;
   color: rgba(255, 255, 255, 0.7);
   text-align: center;
-  padding: 20px 15px;
+  padding: 20px 20px;
   text-decoration: none;
-  font-size: 0.9em;
+  font-size: 1.15em;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
 }
@@ -663,7 +669,7 @@ nav a:hover {
 }
 
 nav a.active {
-  color: #44e8c3;
+  color: #44EE44;
 }
 
 nav > .flex {
@@ -854,7 +860,7 @@ footer > div:nth-child(2) > a:hover {
 }
 
 .btn a:hover, .btn button:hover {
-  background: #2c2c2c;
+  background: rgba(55,55,55,0.5);
 }
 
 .btn > button {
@@ -867,7 +873,7 @@ footer > div:nth-child(2) > a:hover {
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
   font-weight: 500;
-  background: #212121;
+  background: rgba(55,55,55,0.2);
   cursor: pointer;
   outline: none;
 }
@@ -926,4 +932,33 @@ input:-webkit-autofill:active{
   height: 16px;
   vertical-align: bottom;
   padding-right: 4px;
+}
+
+.full-width-banner {
+  position: relative;
+  width: 100%;
+  height: 180px; /* Adjust the height as needed */
+  overflow: hidden;
+}
+
+.banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 8, 0, 0.2); /* Black with 50% opacity */
+}
+
+.logo-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

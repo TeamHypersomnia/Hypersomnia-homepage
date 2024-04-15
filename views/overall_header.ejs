@@ -16,10 +16,16 @@
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
+  <div class="full-width-banner">
+    <div class="overlay"></div>
+    <div class="logo-center">
+      <a href="/"><img src="/assets/images/menu_game_logo.png" alt="Hypersomnia Logo"></a>
+    </div>
+  </div>
   <nav>
     <div class="container flex">
-      <a href="/" class="logo<% if(page == 'Index'){ %> active<% } %>" aria-label="Hypersomnia">
-        <span class="desktop"><img src="/assets/images/menu_game_logo.png" alt="Logo"></span><span class="mobile"><i class="fa-solid fa-house"></i></span>
+      <a href="/download"<% if(page == 'Download'){ %> class="active"<% } %> aria-label="Download">
+        <span class="desktop"><i class="fa-solid fa-download"></i> Download</span><span class="mobile"><i class="fa-solid fa-download"></i></span>
       </a>
       <a href="/guide"<% if(page == 'Guide'){ %> class="active"<% } %> aria-label="Guide">
         <span class="desktop">Guide</span><span class="mobile"><i class="fa-solid fa-book"></i></span>
@@ -38,9 +44,6 @@
       </a>
       <a href="/servers"<% if(page == 'Servers'){ %> class="active"<% } %> aria-label="Servers">
         <span class="desktop">Servers</span><span class="mobile"><i class="fa-solid fa-server"></i></span>
-      </a>
-      <a href="/download"<% if(page == 'Download'){ %> class="active"<% } %> aria-label="Download">
-        <span class="desktop">Download</span><span class="mobile"><i class="fa-solid fa-download"></i></span>
       </a>
       <% if (!user) { %>
         <a href="/auth/steam" class="right steam" aria-label="Sign in with Steam">
