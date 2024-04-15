@@ -295,6 +295,10 @@ dd {
 
 /* Desktop */
 @media screen and (min-width: 1300px) {
+  footer {
+    border-top: 1px dashed #323235;
+  }
+
   .panel {
     margin-bottom: 1.5em;
   }
@@ -789,10 +793,6 @@ input[type="submit"]:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
-footer {
-  border-top: 1px dashed #323235;
-}
-
 footer > div:nth-child(1) > a {
   color: #8f8e8e;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
@@ -926,10 +926,4 @@ input:-webkit-autofill:active{
   height: 16px;
   vertical-align: bottom;
   padding-right: 4px;
-}
-
-@media only screen and (max-width: 768px) {
-  .leaderboard-container {
-    flex-direction: column;
-  }
 }
