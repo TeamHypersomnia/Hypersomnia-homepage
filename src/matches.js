@@ -33,7 +33,7 @@ router.get('/', (req, res) => {
         win_score: match.win_score,
         lose_score: match.lose_score,
         match_end_date: match.match_end_date,
-        time_ago: moment(match.match_end_date, "YYYY-MM-DD HH:mm:ss").fromNow(),
+        time_ago: moment.utc(match.match_end_date).local().fromNow(),
         match_start_date: match.match_start_date,
         event_match_multiplier: match.event_match_multiplier,
         is_ffa: match.game_mode === 'FFA Gun Game'

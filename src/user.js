@@ -76,7 +76,7 @@ router.get('/:user', function (req, res) {
       return {
         prev_mmr: prev_loser_mmr,
         new_mmr: loser.new_mmr,
-        time_ago: moment(match.match_end_date, "YYYY-MM-DD HH:mm:ss").fromNow(),
+        time_ago: moment.utc(match.match_end_date).local().fromNow(),
         description: `<b>${multPreffix}${severityToString(lose_severity(match.win_score, match.lose_score))} ${loserDelta}</b> by ${formattedWinnerNicknames}.`
       };
     }).filter(match => match !== null);
