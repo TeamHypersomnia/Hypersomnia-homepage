@@ -118,7 +118,7 @@
           <td><%= i.fuse_delay.toFixed(2) %></td>
           <td><%= i.base_damage === -1 ? 'N/A' : i.base_damage %></td>
           <td>$<%= i.price %></td>
-          <td>$<%= i.kill_award === -1 ? 'N/A' : i.kill_award %></td>
+          <td><%= i.kill_award === -1 ? 'N/A' : '$' + i.kill_award %></td>
           <td><%= i.weight.toFixed(2) %></td>
         </tr>
       <% }); %>
@@ -149,7 +149,7 @@
           <td><%= i.cooldown %></td>
           <td><%= i.mana_required %></td>
           <td>$<%= i.price %></td>
-          <td>$<%= i.kill_award === -1 ? 'N/A' : i.kill_award %></td>
+          <td><%= i.kill_award === -1 ? 'N/A' : '$' + i.kill_award %></td>
         </tr>
       <% }); %>
     </tbody>
