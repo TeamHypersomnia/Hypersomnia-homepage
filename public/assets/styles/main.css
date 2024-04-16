@@ -783,7 +783,7 @@ input[type='text'], input[type='submit'], textarea, select, option {
   border: 1px solid #323235;
   padding: 8px 15px;
   border-radius: 4px;
-  background-color: #212121;
+  background-color: rgba(55,55,55,0.2);
   outline: none;
   font-size: 0.9em;
   margin-bottom: 8px;
@@ -883,7 +883,7 @@ footer > div:nth-child(3) > a:hover {
 }
 
 .btn > a.active, .btn > button.active {
-  color: #44e8c3;
+  color: #33CC33;
 }
 
 .btn > button > span {

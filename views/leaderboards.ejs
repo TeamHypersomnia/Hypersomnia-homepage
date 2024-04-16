@@ -23,7 +23,7 @@
         <tr>
           <td><%= index + 1 %>
             <%= index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '' %></td>
-          <td><a href="/user/<%= i.account_id %>"><img class="rank" src="/assets/images/ranks/<%= i.rankImg %>" alt="<%= i.rankName %>"><%= i.nickname %></a></td>
+          <td><a href="/user/<%= i.account_id %>"><img class="rank" src="//cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@master/hypersomnia/content/gfx/necessary/rank_9.png<%= i.rankImg %>" alt="<%= i.rankName %>"><%= i.nickname %></a></td>
           <td><%= i.mmr.toFixed(2) %></td>
           <td><%= i.mu.toFixed(3) %></td>
           <td><%= i.sigma.toFixed(3) %></td>
