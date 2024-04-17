@@ -337,7 +337,7 @@ dd {
     min-width: 100px;
   }
 
-  nav a.right {
+  .mininav > .right {
     margin-left: auto;
   }
 
@@ -417,6 +417,10 @@ dd {
 
 /* Mobile */
 @media screen and (max-width: 1300px) {
+  .mininav span {
+    padding: 8px 2px 2px 2px !important;
+  }
+
   .panel {
     margin-bottom: 1em;
   }
@@ -647,6 +651,34 @@ thead > tr {
   padding-right: 10px;
 }
 
+.mininav {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.mininav span {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding: 8px 12px 2px 22px;
+  text-decoration: none;
+  font-size: 0.82em;
+  transition-timing-function: cubic-bezier(.4,0,.2,1);
+  transition-duration: .15s;
+}
+
+.mininav span > a {
+  color: rgba(255, 255, 255, 0.5);
+  transition-timing-function: cubic-bezier(.4,0,.2,1);
+  transition-duration: .15s;
+}
+
+.mininav span > a:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
 nav {
   background-color: rgba(0, 0, 0, 0.5);
   box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
@@ -654,9 +686,9 @@ nav {
 
 nav a {
   display: block;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.8);
   text-align: center;
-  padding: 20px 20px;
+  padding: 20px 10px;
   text-decoration: none;
   font-size: 1.15em;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
@@ -675,6 +707,7 @@ nav a.active {
 nav > .flex {
   display: flex;
   flex-direction: row;
+  justify-content: space-around;
 }
 
 .tabcontent {
@@ -944,9 +977,8 @@ input:-webkit-autofill:active{
   margin: 0 auto;
   width: 100%;
   text-align: center;
-  padding-top: 35px;
-  padding-bottom: 25px;
   background-color: rgba(0, 8, 0, 0.2);
+  padding: 15px 10px;
 }
 
 .open-source-notice {

@@ -10,6 +10,8 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const UAParser = require('ua-parser-js');
+const servers = require('./src/servers');
+const visitor = require('./src/count_visitors');
 
 const github = 'https://github.com/TeamHypersomnia';
 const pressKit = `${github}/PressKit/blob/main/README.md#intro`;
@@ -132,6 +134,9 @@ app.use(minifyHTML({
 const ts = Math.floor(Date.now() / 1000);
 app.locals.version = ts;
 app.locals.alert = '';
+app.locals.website_visitor = 0;
+app.locals.players_ingame = 0;
+app.locals.online_servers = 0;
 try {
   const content = fs.readFileSync(`./private/settings.json`, 'utf8');
   const obj = JSON.parse(content);
@@ -190,13 +195,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// Timers
+servers.fetchServers(app);
+visitor.countVisitors(app, visitors);
+setInterval(() => servers.fetchServers(app), 15000); // 15s
+setInterval(() => visitor.countVisitors(app, visitors), 15000); // 15s
+
 // Routes
 app.use('/', require('./src/index'));
 app.use('/guide', require('./src/guide'));
 app.use('/arenas', require('./src/arenas'));
 app.use('/user', require('./src/user'));
 app.use('/weapons', require('./src/weapons'));
-app.use('/servers', require('./src/servers'));
+app.use('/servers', servers.router);
 app.use('/download', require('./src/download'));
 app.use('/profile', usr, require('./src/profile'));
 app.use('/logout', require('./src/logout'));

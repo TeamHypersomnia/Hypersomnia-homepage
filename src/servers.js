@@ -4,17 +4,23 @@ const axios = require('axios');
 const moment = require('moment');
 let servers = [];
 
-function fetchServers() {
+function fetchServers(app) {
   axios.get(process.env.SERVER_LIST_JSON)
     .then(response => {
       servers = response.data;
+      let totalServers = 0;
+      let totalPlayers = 0;
+      servers.forEach(sv => {
+        totalServers++;
+        totalPlayers += sv.num_playing + sv.num_spectating;
+      });
+      app.locals.players_ingame = totalPlayers;
+      app.locals.online_servers = totalServers;
     })
     .catch(error => {
       console.error(error.message);
     });
 }
-fetchServers();
-setInterval(fetchServers, 60000); // 1 min
 
 router.get('/', function (req, res) {
   servers.sort((a, b) => {
@@ -50,4 +56,4 @@ router.get('/:address', function (req, res) {
   });
 });
 
-module.exports = router;
+module.exports = { router, fetchServers };
