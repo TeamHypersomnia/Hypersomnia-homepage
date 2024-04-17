@@ -39,11 +39,9 @@
 </div>
 
 <h2>Melee weapons</h2>
-<div class="radio">
-  <input onchange="fast()" id="fast" type="radio" name="r" checked>
-  <label for="fast">Fast attack</label>
-  <input onchange="strong()" id="strong" type="radio" name="r">
-  <label for="strong">Strong attack</label>
+<div class="btn-group">
+  <div class="btn"><button class="fastBtn active" onclick="fast()"><span>Fast attack</span></button></div>
+  <div class="btn"><button class="strongBtn" onclick="strong()"><span>Strong attack</span></button></div>
 </div>
 <div class="table-responsive">
   <table class="sortable">

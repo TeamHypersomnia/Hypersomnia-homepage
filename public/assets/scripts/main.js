@@ -8,6 +8,11 @@ function opn(e, name) {
 }
 
 function fast() {
+  const fastBtn = document.querySelector('.fastBtn');
+  const strongBtn = document.querySelector('.strongBtn');
+  fastBtn.classList.add('active');
+  strongBtn.classList.remove('active');
+
   const fast = document.getElementsByClassName('fast');
   const strong = document.getElementsByClassName('strong');
   for (let i = 0; i < fast.length; i++) {
@@ -19,6 +24,11 @@ function fast() {
 }
 
 function strong() {
+  const fastBtn = document.querySelector('.fastBtn');
+  const strongBtn = document.querySelector('.strongBtn');
+  fastBtn.classList.remove('active');
+  strongBtn.classList.add('active');
+
   const fast = document.getElementsByClassName('fast');
   const strong = document.getElementsByClassName('strong');
   for (let i = 0; i < fast.length; i++) {

@@ -66,7 +66,9 @@ router.get('/bomb-defusal', (req, res) => {
         page: 'Leaderboards',
         user: req.user,
         leaderboard_name: 'Bomb Defusal',
-        leaderboards: leaderboards_team
+        leaderboards: leaderboards_team,
+        bomb_defusal: true,
+        ffa: false
       });
     }
   } catch (error) {
@@ -105,7 +107,9 @@ router.get('/ffa', (req, res) => {
         page: 'Leaderboards',
         user: req.user,
         leaderboard_name: 'FFA',
-        leaderboards: leaderboards_ffa
+        leaderboards: leaderboards_ffa,
+        bomb_defusal: false,
+        ffa: true
       });
     }
   } catch (error) {

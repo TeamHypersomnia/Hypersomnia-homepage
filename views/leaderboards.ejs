@@ -1,9 +1,9 @@
 <%- include('overall_header'); %>
 
-<h1>Leaderboards: <%= leaderboard_name %></h1>
+<h1>Leaderboards</h1>
 <div class="btn-group">
-  <div class="btn"><a href="/leaderboards/bomb-defusal"><span>Bomb Defusal</span></a></div>
-  <div class="btn"><a href="/leaderboards/ffa"><span>FFA</span></a></div>
+  <div class="btn"><a <% if (bomb_defusal) {%> class="active"<% } %>href="/leaderboards/bomb-defusal"><span>Bomb Defusal</span></a></div>
+  <div class="btn"><a <% if (ffa) {%> class="active"<% } %>href="/leaderboards/ffa"><span>FFA</span></a></div>
 </div>
 <div class="table-responsive">
   <table class="sortable">
