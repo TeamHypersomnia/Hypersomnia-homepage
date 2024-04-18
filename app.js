@@ -11,7 +11,6 @@ const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const UAParser = require('ua-parser-js');
 const servers = require('./src/servers');
-const visitor = require('./src/count_visitors');
 
 const github = 'https://github.com/TeamHypersomnia';
 const pressKit = `${github}/PressKit/blob/main/README.md#intro`;
@@ -192,14 +191,22 @@ app.use((req, res, next) => {
       referer: origin
     };
   }
+  const currentTime = Math.floor(Date.now() / 1000);
+  const fiveMinutesAgo = currentTime - (5 * 60);
+  let count = 0;
+  for (const visitorId in visitors) {
+    const lastSeen = visitors[visitorId].lastSeen;
+    if (lastSeen >= fiveMinutesAgo && lastSeen <= currentTime) {
+      count++;
+    }
+  }
+  app.locals.website_visitor = count;
   next();
 });
 
 // Timers
 servers.fetchServers(app);
-visitor.countVisitors(app, visitors);
 setInterval(() => servers.fetchServers(app), 15000); // 15s
-setInterval(() => visitor.countVisitors(app, visitors), 15000); // 15s
 
 // Routes
 app.use('/', require('./src/index'));
