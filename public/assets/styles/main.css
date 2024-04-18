@@ -417,6 +417,11 @@ dd {
 
 /* Mobile */
 @media screen and (max-width: 1300px) {
+  body {
+    background-size: 150% auto;
+    background-position: top center;
+  }
+  
   .mininav span {
     padding: 8px 2px 2px 2px !important;
   }
@@ -655,13 +660,14 @@ thead > tr {
   display: flex;
   justify-content: space-between;
   margin-bottom: 5px;
+  padding: 0 10px;
 }
 
 .mininav span {
   display: inline-block;
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
-  padding: 8px 12px 2px 22px;
+  padding: 8px 10px 2px 22px;
   text-decoration: none;
   font-size: 0.82em;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
