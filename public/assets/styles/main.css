@@ -8,13 +8,12 @@
 body {
   margin: 0;
   color: rgba(255, 255, 255, 0.81);
-  background-color: rgb(25, 25, 25); /* Ensure this is the background color */
   font-size: 0.92rem;
-  background-image: 
-    linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgb(0, 8, 5) 60%), /* Adjusted for more aggressive fade */
-    url('/assets/images/horizontal_banner.png'); /* Replace with your actual image URL */
+  background-image: url(/assets/images/bg.jpg);
   background-size: 100% auto;
+  background-position: top center;
   background-repeat: no-repeat;
+  background-color: #000805;
   background-attachment: fixed;
 }
 
