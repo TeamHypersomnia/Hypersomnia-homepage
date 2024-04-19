@@ -17,9 +17,9 @@
 </head>
 <body>
   <div class="container mininav">
-    <span><strong><%= website_visitor %></strong> Current <%= website_visitor === 1 ? 'Visitor' : 'Visitors' %></span>
-    <span><strong><%= players_ingame %></strong> <%= players_ingame === 1 ? 'Players' : 'Players' %> In-Game</span>
-    <span><a href="/servers"><strong><%= online_servers %></strong> Online <%= online_servers === 1 ? 'Server' : 'Servers' %></a></span>
+    <span><strong id="website_visitor"><%= website_visitor %></strong> Current <%= website_visitor === 1 ? 'Visitor' : 'Visitors' %></span>
+    <span><strong id="players_ingame"><%= players_ingame %></strong> <%= players_ingame === 1 ? 'Players' : 'Players' %> In-Game</span>
+    <span><a href="/servers"><strong id="online_servers"><%= online_servers %></strong> Online <%= online_servers === 1 ? 'Server' : 'Servers' %></a></span>
     <% if (!user) { %>
       <span class="right"><a href="/auth/steam" class="right steam" aria-label="Sign in with Steam">
         Sign in through <strong>Steam</strong>

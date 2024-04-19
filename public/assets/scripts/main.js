@@ -89,7 +89,27 @@ copyButtons.forEach(button => {
         button.innerHTML = '<i class="fa-solid fa-copy"></i>';
       }, 1000);
     }).catch(err => {
-      console.error('Unable to copy: ', err);
+      console.error(err);
     });
   });
 });
+
+const prot = (window.location.protocol === 'https:' ? 'wss:' : 'ws:')
+const host = window.location.hostname;
+const port = window.location.port;
+const ws = new WebSocket(prot + '//' + host + ':' + port);
+
+const website_visitor = document.getElementById('website_visitor');
+const players_ingame = document.getElementById('players_ingame');
+const online_servers = document.getElementById('online_servers');
+
+ws.onmessage = function(event) {
+  const d = JSON.parse(event.data);
+  website_visitor.textContent = d.website_visitor;
+  players_ingame.textContent = d.players_ingame;
+  online_servers.textContent = d.online_servers;
+};
+
+ws.onerror = function(event) {
+  console.error(event);
+};

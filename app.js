@@ -10,6 +10,7 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const UAParser = require('ua-parser-js');
+const expressWs = require('express-ws');
 const servers = require('./src/servers');
 
 const github = 'https://github.com/TeamHypersomnia';
@@ -191,12 +192,11 @@ app.use((req, res, next) => {
       referer: origin
     };
   }
-  const currentTime = Math.floor(Date.now() / 1000);
-  const fiveMinutesAgo = currentTime - (5 * 60);
+  const fiveMinutesAgo = ts - (5 * 60);
   let count = 0;
   for (const visitorId in visitors) {
     const lastSeen = visitors[visitorId].lastSeen;
-    if (lastSeen >= fiveMinutesAgo && lastSeen <= currentTime) {
+    if (lastSeen >= fiveMinutesAgo && lastSeen <= ts) {
       count++;
     }
   }
@@ -206,7 +206,30 @@ app.use((req, res, next) => {
 
 // Timers
 servers.fetchServers(app);
-setInterval(() => servers.fetchServers(app), 15000); // 15s
+setInterval(() => servers.fetchServers(app), 5000); // 5s
+
+// WebSocket
+var wsInstance = expressWs(app);
+app.ws('/', function(ws, req) {
+  ws.on('message', function(msg) {
+    console.log(msg);
+  });
+});
+
+setInterval(() => {
+  const clients = wsInstance.getWss().clients;
+  clients.forEach(client => {
+    if (client.readyState === client.OPEN) {
+      const message = {
+        website_visitor: app.locals.website_visitor,
+        players_ingame: app.locals.players_ingame,
+        online_servers: app.locals.online_servers
+      };
+      client.send(JSON.stringify(message));
+    }
+  });
+}, 5000); // 5s
+
 
 // Routes
 app.use('/', require('./src/index'));
