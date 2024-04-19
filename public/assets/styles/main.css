@@ -9,9 +9,9 @@ body {
   margin: 0;
   color: rgba(255, 255, 255, 0.81);
   font-size: 0.92rem;
-  background-image: url(/assets/images/bg.jpg);
+  background-image: url(/assets/images/bg_gradient.jpg);
   background-size: 100% auto;
-  background-position: top center;
+  background-position: cover;
   background-repeat: no-repeat;
   background-color: #000805;
   background-attachment: fixed;
@@ -983,7 +983,7 @@ input:-webkit-autofill:active{
   width: 100%;
   text-align: center;
   background-color: rgba(0, 8, 0, 0.2);
-  padding: 15px 10px;
+  padding: 15px 20px;
 }
 
 .open-source-notice {
