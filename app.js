@@ -209,21 +209,17 @@ servers.fetchServers(app);
 setInterval(() => servers.fetchServers(app), 5000); // 5s
 
 // WebSocket
-var wsInstance = expressWs(app);
-app.ws('/', function(ws, req) {
-  ws.on('message', function(msg) {
-    console.log(msg);
-  });
-});
+const wsInstance = expressWs(app);
+app.ws('/', function(ws, req) {});
 
 setInterval(() => {
   const clients = wsInstance.getWss().clients;
   clients.forEach(client => {
     if (client.readyState === client.OPEN) {
       const message = {
-        website_visitor: app.locals.website_visitor,
-        players_ingame: app.locals.players_ingame,
-        online_servers: app.locals.online_servers
+        visitors: app.locals.website_visitor,
+        players: app.locals.players_ingame,
+        servers: app.locals.online_servers
       };
       client.send(JSON.stringify(message));
     }

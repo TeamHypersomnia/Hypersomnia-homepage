@@ -99,15 +99,19 @@ const host = window.location.hostname;
 const port = window.location.port;
 const ws = new WebSocket(prot + '//' + host + ':' + port);
 
-const website_visitor = document.getElementById('website_visitor');
-const players_ingame = document.getElementById('players_ingame');
-const online_servers = document.getElementById('online_servers');
+const visitors = document.getElementById('website_visitor');
+const players = document.getElementById('players_ingame');
+const servers = document.getElementById('online_servers');
+
+function updateTextContent(element, count, singularText, pluralText) {
+  element.textContent = count + (count === 1 ? singularText : pluralText);
+}
 
 ws.onmessage = function(event) {
   const d = JSON.parse(event.data);
-  website_visitor.textContent = d.website_visitor;
-  players_ingame.textContent = d.players_ingame;
-  online_servers.textContent = d.online_servers;
+  updateTextContent(visitors, d.visitors, ' Current Visitor', ' Current Visitors');
+  updateTextContent(players, d.players, ' Player In-Game', ' Players In-Game');
+  updateTextContent(servers, d.servers, ' Online Server', ' Online Servers');
 };
 
 ws.onerror = function(event) {

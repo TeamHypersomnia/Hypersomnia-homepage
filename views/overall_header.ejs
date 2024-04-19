@@ -17,18 +17,16 @@
 </head>
 <body>
   <div class="container mininav">
-    <span><strong id="website_visitor"><%= website_visitor %></strong> Current <%= website_visitor === 1 ? 'Visitor' : 'Visitors' %></span>
-    <span><strong id="players_ingame"><%= players_ingame %></strong> <%= players_ingame === 1 ? 'Players' : 'Players' %> In-Game</span>
-    <span><a href="/servers"><strong id="online_servers"><%= online_servers %></strong> Online <%= online_servers === 1 ? 'Server' : 'Servers' %></a></span>
+    <span id="website_visitor"><%= website_visitor %> Current <%= website_visitor === 1 ? 'Visitor' : 'Visitors' %></span>
+    <span id="players_ingame"><%= players_ingame %> <%= players_ingame === 1 ? 'Player' : 'Players' %> In-Game</span>
+    <a href="/servers"><span id="online_servers"><%= online_servers %> Online <%= online_servers === 1 ? 'Server' : 'Servers' %></span></a>
+    <span class="right">
     <% if (!user) { %>
-      <span class="right"><a href="/auth/steam" class="right steam" aria-label="Sign in with Steam">
-        Sign in through <strong>Steam</strong>
-      </a></span>
+      <a href="/auth/steam" class="right steam" aria-label="Sign in with Steam">Sign in through <strong>Steam</strong></a>
     <% } else { %>
-      <span class="right"><a href="/profile" class="right<% if(page == 'Profile'){ %> active<% } %>" aria-label="Profile">
-        Signed in as <strong><%= user.displayName %></strong>
-      </a></span>
+      <a href="/profile" class="right<% if(page == 'Profile'){ %> active<% } %>" aria-label="Profile">Signed in as <strong><%= user.displayName %></strong></a>
     <% } %>
+    </span>
   </div>
   <div class="logo-center">
     <a href="/"><img class="responsive" src="/assets/images/menu_game_logo.png" alt="Hypersomnia Logo"></a>

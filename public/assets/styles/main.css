@@ -674,13 +674,13 @@ thead > tr {
   transition-duration: .15s;
 }
 
-.mininav span > a {
+.mininav a, .mininav a > span {
   color: rgba(255, 255, 255, 0.5);
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
 }
 
-.mininav span > a:hover {
+.mininav a:hover, .mininav a:hover > span {
   color: #fff;
   text-decoration: none;
 }
