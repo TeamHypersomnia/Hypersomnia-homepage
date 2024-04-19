@@ -9,9 +9,12 @@ body {
   margin: 0;
   color: rgba(255, 255, 255, 0.81);
   font-size: 0.92rem;
-  background-image: url(/assets/images/bg_gradient.jpg);
+  background-image: 
+    linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgb(0, 8, 5) 60%),
+    url('/assets/images/horizontal_banner.png');
+  background-image: url(/assets/images/bg.jpg);
   background-size: 100% auto;
-  background-position: center top;
+  background-position: top center;
   background-repeat: no-repeat;
   background-color: #000805;
   background-attachment: fixed;
@@ -417,10 +420,10 @@ dd {
 /* Mobile */
 @media screen and (max-width: 1300px) {
   body {
-    background-size: cover;
+    background-size: 150% auto;
     background-position: top center;
   }
-  
+
   .mininav span {
     padding: 8px 2px 2px 2px !important;
   }
