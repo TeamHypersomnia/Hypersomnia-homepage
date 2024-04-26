@@ -45,7 +45,7 @@ router.get('/:address', function (req, res) {
       time_last_heartbeat_ago: moment(v.time_last_heartbeat * 1000).fromNow()
     };
   });
-  const sv = data.find(v => v.ip === req.params.address);
+  const sv = data.find(v => v.site_displayed_address === req.params.address);
   if (!sv) {
     return res.redirect('/servers');
   }

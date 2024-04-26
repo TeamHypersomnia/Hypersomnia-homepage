@@ -21,7 +21,7 @@
         <td data-sort="<%= v.num_playing %>"><%= v.num_playing %>/<%= v.slots %></td>
         <td data-sort="<%= v.num_spectating %>"><%= v.num_spectating %>/<%= v.slots %></td>
         <td><%= v.arena %></td>
-        <td><a href="/servers/<%= v.ip %>"><%= v.ip %></a></td>
+        <td><a href="/servers/<%= v.site_displayed_address %>"><%= v.site_displayed_address %></a></td>
       </tr>
     <% }); %>
     </tbody>
