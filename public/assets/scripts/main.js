@@ -117,3 +117,5 @@ ws.onmessage = function(event) {
 ws.onerror = function(event) {
   console.error(event);
 };
+
+tippy('.browser', { content: 'Play in browser' });

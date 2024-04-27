@@ -1012,3 +1012,11 @@ input:-webkit-autofill:active{
     color: rgb(255, 0, 255);
   }
 }
+
+.fa-copy, .fa-right-to-bracket {
+  color: rgba(255, 255, 255, 0.81);
+}
+
+.fa-copy:hover, .fa-right-to-bracket:hover {
+  color: #fff;
+}
