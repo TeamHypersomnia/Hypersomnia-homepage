@@ -1013,10 +1013,21 @@ input:-webkit-autofill:active{
   }
 }
 
-.fa-copy, .fa-right-to-bracket {
+a.white {
   color: rgba(255, 255, 255, 0.81);
 }
 
-.fa-copy:hover, .fa-right-to-bracket:hover {
+.fa-copy:hover, a:hover.white {
   color: #fff;
+}
+
+.fa-steam, .fa-right-to-bracket {
+  padding-right: 5px;
+}
+
+.svname {
+  font-weight: 700;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 260px;
 }
