@@ -6,22 +6,26 @@
     <thead>
       <tr>
         <th>Name</th>
-        <th>Game Mode</th>
         <th>Players</th>
-        <th>Spectators</th>
         <th>Arena</th>
+        <th>Game Mode</th>
         <th>Address</th>
+        <th>Play in browser</th>
       </tr>
     </thead>
     <tbody>
     <% Object.values(servers).forEach(v => { %>
       <tr>
-        <td><%= v.name %></td>
-        <td><%= v.game_mode %></td>
+        <td data-sort="<%= v.name %>"><% if (v.is_ranked == true) { %>
+          <span class="ranked">RANKED</span>
+        <% } else { %>
+          <span class="casual">CASUAL</span>
+        <% } %><%= v.name %></td>
         <td data-sort="<%= v.num_playing %>"><%= v.num_playing %>/<%= v.slots %></td>
-        <td data-sort="<%= v.num_spectating %>"><%= v.num_spectating %>/<%= v.slots %></td>
         <td><%= v.arena %></td>
+        <td><%= v.game_mode %></td>
         <td><a href="/servers/<%= v.site_displayed_address %>"><%= v.site_displayed_address %></a></td>
+        <td><% if (v.is_ranked == false) { %><a href="https://hypersomnia.io/game/<%= v.webrtc_id %>">Play in browser</a><% } else { %>Not available yet<% } %></td>
       </tr>
     <% }); %>
     </tbody>

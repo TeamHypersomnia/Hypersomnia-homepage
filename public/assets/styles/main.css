@@ -994,3 +994,21 @@ input:-webkit-autofill:active{
   margin: 0 auto; /* Optional: to ensure it has no default margin */
   width: 100%; /* Ensures the element spans the full width */
 }
+
+.casual {
+  color: #7F7F7F;
+}
+
+.ranked {
+  color: rgb(0, 255, 255);
+  animation: colorChange 2s infinite alternate;
+}
+
+@keyframes colorChange {
+  0% {
+    color: rgb(0, 255, 255);
+  }
+  100% {
+    color: rgb(255, 0, 255);
+  }
+}
