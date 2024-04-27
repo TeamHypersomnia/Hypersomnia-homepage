@@ -81,16 +81,26 @@ const copyButtons = document.querySelectorAll('.copy');
 copyButtons.forEach(button => {
   button.addEventListener('click', () => {
     const closestTocopy = button.closest('.tocopy');
-    const contentToCopy = closestTocopy.querySelector('code').textContent;
-    const textItem = new ClipboardItem({ 'text/plain': new Blob([contentToCopy], { type: 'text/plain' }) });
-    navigator.clipboard.write([textItem]).then(() => {
-      button.innerHTML = '<i class="fa-solid fa-check"></i>';
-      setTimeout(() => {
-        button.innerHTML = '<i class="fa-solid fa-copy"></i>';
-      }, 1000);
-    }).catch(err => {
-      console.error(err);
-    });
+    if (closestTocopy) {
+      const contentToCopy = closestTocopy.querySelector('code').textContent;
+      if (contentToCopy) {
+        const tempTextarea = document.createElement('textarea');
+        tempTextarea.value = contentToCopy;
+        document.body.appendChild(tempTextarea);
+        tempTextarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextarea);
+
+        button.innerHTML = '<i class="fa-solid fa-check"></i>';
+        setTimeout(() => {
+          button.innerHTML = '<i class="fa-solid fa-copy"></i>';
+        }, 1000);
+      } else {
+        console.error('No content to copy.');
+      }
+    } else {
+      console.error('Could not find parent element with class "tocopy".');
+    }
   });
 });
 
@@ -119,3 +129,4 @@ ws.onerror = function(event) {
 };
 
 tippy('.browser', { content: 'Play in browser' });
+tippy('.copy', { content: 'Copy to clipboard' });
