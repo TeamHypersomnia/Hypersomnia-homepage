@@ -158,6 +158,8 @@ router.post('/', apiKeyAuth, (req, res) => {
         return 'mmr_team';
       })();
 
+      const is_tie = table_name === 'mmr_team' && win_score === 15 && lose_score === 15;
+
       const stmt_insert_player = db.prepare(`INSERT OR IGNORE INTO ${table_name} (account_id, mu, sigma) VALUES (?, ?, ?)`);
       const stmt_get_player = db.prepare(`SELECT mu, sigma FROM ${table_name} WHERE account_id = ?`);
       const stmt_update_player = db.prepare(`UPDATE ${table_name} SET mu = ?, sigma = ?, mmr = ?, matches_won = matches_won + ?, matches_lost = matches_lost + ?, nickname = ? WHERE account_id = ?`);
@@ -205,7 +207,6 @@ router.post('/', apiKeyAuth, (req, res) => {
           return [winnerRating, loserRatings];
         }
         else {
-          const is_tie = win_score === 15 && lose_score === 15;
           const won_by_abandon = !is_tie && win_score !== 16;
 
           const make_team_ratings = ((iterations, pov, count_nocontrib_winners, count_nocontrib_losers, force_loss_for = -1) => {
@@ -364,6 +365,11 @@ router.post('/', apiKeyAuth, (req, res) => {
           if (abandoned(player_infos[playerId])) {
             winIncrement = 0;
             lossIncrement = 1;
+          }
+
+          if (is_tie) {
+            winIncrement = 0;
+            lossIncrement = 0;
           }
 
           const mmr = ordinal(playerRating);
