@@ -61,6 +61,10 @@ const abandoned = ((player) => {
   return typeof player.abandoned_at_score === 'number' && player.abandoned_at_score >= 0;
 });
 
+function allAbandoned(playerInfos) {
+    return Object.values(playerInfos).every(abandoned);
+}
+
 const contributed_to_match = ((player, is_teammate) => {
   if (abandoned(player)) {
     if (is_teammate) {
@@ -131,6 +135,10 @@ router.post('/', apiKeyAuth, (req, res) => {
 
   if (win_players.length == 0 || lose_players.length == 0) {
     return res.status(400).json({ error: 'Invalid input format: lose/win players array is empty' });
+  }
+
+  if (allAbandoned(player_infos)) {
+    return res.json({ message: 'Skipping match report. All players abandoned the match' });
   }
 
   try {
