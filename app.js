@@ -257,6 +257,7 @@ app.use('/admin/visitors', adm, require('./src/admin/visitors')(visitors));
 app.use('/admin/users', adm, require('./src/admin/users'));
 app.use('/admin/creators', adm, require('./src/admin/creators'));
 app.use('/admin/settings', adm, require('./src/admin/settings')(app.locals));
+app.use('/revoke_discord', require('./src/revoke_discord'));
 app.use((req, res) => res.status(404).render('404', {
   page: 'Not Found',
   user: req.user

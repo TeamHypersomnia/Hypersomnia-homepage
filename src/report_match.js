@@ -326,8 +326,8 @@ router.post('/', apiKeyAuth, (req, res) => {
           const ratings_for_present_winners = make_team_ratings(severity, "winner", false, false)[0];
           const ratings_for_present_losers  = make_team_ratings(severity, "loser" , false, false)[1];
 
-          const ratings_for_abandons_in_winners = make_team_ratings(3, "winner", true, true, 0)[0];
-          const ratings_for_abandons_in_losers  = make_team_ratings(3, "loser" , true, true, 1)[1];
+          const ratings_for_abandons_in_winners = make_team_ratings(2, "winner", true, true, 0)[0];
+          const ratings_for_abandons_in_losers  = make_team_ratings(2, "loser" , true, true, 1)[1];
 
           const updated_winners = [];
           const updated_losers = [];
