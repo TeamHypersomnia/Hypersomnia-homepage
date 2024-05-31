@@ -249,6 +249,7 @@ app.use('/upload', require('./src/upload'));
 app.use('/report_match', require('./src/report_match'));
 app.use('/revert_match', require('./src/revert_match'));
 app.use('/adjust_negative_mmrs', require('./src/adjust_negative_mmrs'));
+app.use('/revoke_discord', require('./src/revoke_discord'));
 app.use('/leaderboards', require('./src/leaderboards'));
 app.use('/matches', require('./src/matches'));
 app.get('/admin', adm, (req, res) => res.redirect('/admin/system'));
