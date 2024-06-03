@@ -70,6 +70,13 @@ if (!fs.existsSync(dbPath)) {
         match_end_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS associations (
+        steam_id TEXT UNIQUE,
+        discord_id TEXT UNIQUE
+      )
+    `);
   });
 
   // Close the database connection

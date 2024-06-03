@@ -56,7 +56,7 @@ module.exports = function(passport) {
         users[req.user.id] = data;
       }
       saveUsers(users);
-      res.redirect('/');
+      res.redirect('/profile');
     }
   );
 
