@@ -5,6 +5,7 @@
   "game_mode": "Bomb Defusal",
   "win_score": 1,
   "lose_score": 15,
+  "losers_abandoned": true,
   "player_infos": {
     "steam_1v1_win_by_abandon_at_end0": {
       "nickname": "1v1_win_by_abandon_at_end0"

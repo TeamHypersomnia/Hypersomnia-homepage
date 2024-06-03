@@ -95,6 +95,7 @@ router.post('/', apiKeyAuth, (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
   const { match_start_date, server_name, arena, game_mode, win_score, lose_score, win_players, lose_players, player_infos } = req.body;
+  let { losers_abandoned } = req.body;
 
   // Validate input
   if (typeof win_score === 'undefined') {
@@ -103,6 +104,10 @@ router.post('/', apiKeyAuth, (req, res) => {
 
   if (typeof lose_score === 'undefined') {
     return res.status(400).json({ error: 'Missing lose_score' });
+  }
+
+  if (typeof losers_abandoned === 'undefined') {
+    losers_abandoned = false;
   }
 
   if (!win_players) {
@@ -215,7 +220,7 @@ router.post('/', apiKeyAuth, (req, res) => {
           return [winnerRating, loserRatings];
         }
         else {
-          const won_by_abandon = !is_tie && win_score !== 16;
+          const won_by_abandon = losers_abandoned;
 
           const make_team_ratings = ((iterations, pov, count_nocontrib_winners, count_nocontrib_losers, force_loss_for = -1) => {
             const purge_nocontrib_winners = !count_nocontrib_winners; 
@@ -269,7 +274,7 @@ router.post('/', apiKeyAuth, (req, res) => {
                   /*
                    * Force a win regardless of if the remaining team 
                    * was currently losing 1:5, or tying 7:7.
-                   * In the input, the abandoning team always properly marked as lose_players and lose_score.
+                   * In the input, the abandoning team is always properly marked as lose_players and lose_score.
                    *
                    * Therefore, the scores might seem "inverted" like 1:5,
                    * but still if the team with 5 points abandoned,
@@ -326,8 +331,8 @@ router.post('/', apiKeyAuth, (req, res) => {
           const ratings_for_present_winners = make_team_ratings(severity, "winner", false, false)[0];
           const ratings_for_present_losers  = make_team_ratings(severity, "loser" , false, false)[1];
 
-          const ratings_for_abandons_in_winners = make_team_ratings(3, "winner", true, true, 0)[0];
-          const ratings_for_abandons_in_losers  = make_team_ratings(3, "loser" , true, true, 1)[1];
+          const ratings_for_abandons_in_winners = make_team_ratings(2, "winner", true, true, 0)[0];
+          const ratings_for_abandons_in_losers  = make_team_ratings(2, "loser" , true, true, 1)[1];
 
           const updated_winners = [];
           const updated_losers = [];
