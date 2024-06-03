@@ -30,7 +30,7 @@ module.exports = function(passport) {
       failureRedirect: '/'
     }),
     function (req, res) {
-      res.redirect('/');
+      res.redirect('/profile');
     }
   );
 
