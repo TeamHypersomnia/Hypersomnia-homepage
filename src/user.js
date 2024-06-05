@@ -20,6 +20,13 @@ router.get('/:user', function (req, res) {
   try {
     const db = new Database(dbPath);
     const userid = req.params.user;
+    
+    const isSteamUser = userid.startsWith('steam_');
+    const platformName = isSteamUser ? 'Steam' : 'Discord';
+    const profileUrl = isSteamUser 
+      ? `https://steamcommunity.com/profiles/${userid.split('_')[1]}`
+      : `https://discord.com/users/${userid.split('_')[1]}`;
+    const platformIconClass = isSteamUser ? 'fa-brands fa-steam' : 'fa-brands fa-discord';
 
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
     const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
@@ -85,7 +92,9 @@ router.get('/:user', function (req, res) {
       page: userTeam.nickname || userFFA.nickname,
       user: req.user,
       nickname: userTeam.nickname || userFFA.nickname,
-      steamId: userid.split('_')[1],
+      platformName: platformName,
+      profileUrl: profileUrl,
+      platformIconClass: platformIconClass,
       teamData: userTeam,
       ffaData: userFFA,
       matches: matches
