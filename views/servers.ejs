@@ -10,7 +10,7 @@
         <th>Arena</th>
         <th>Game Mode</th>
         <th>Address</th>
-        <th>Play in browser</th>
+        <th>Play in Browser!</th>
       </tr>
     </thead>
     <tbody>
@@ -25,7 +25,7 @@
         <td><%= v.arena %></td>
         <td><%= v.game_mode %></td>
         <td><a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam"></i><%= v.site_displayed_address %></a></td>
-        <td><% if (v.is_ranked == false) { %><a href="https://hypersomnia.io/game/<%= v.webrtc_id %>"><i class="fa-solid fa-right-to-bracket"></i>Play in browser</a><% } else { %>&nbsp<% } %></td>
+        <td><a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser!</a></td>
       </tr>
     <% }); %>
     </tbody>
