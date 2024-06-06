@@ -28,6 +28,27 @@ router.get('/:user', function (req, res) {
       : `https://discord.com/users/${userid.split('_')[1]}`;
     const platformIconClass = isSteamUser ? 'fa-brands fa-steam' : 'fa-brands fa-discord';
 
+    // Check for associations
+    let associationType = null;
+    let associatedProfileUrl = null;
+    let associatedId = null;
+
+    const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
+    const childAssociation  = db.prepare('SELECT child_id FROM associations WHERE parent_id = ?').get(userid);
+
+    if (parentAssociation) {
+      const Id = parentAssociation.parent_id;
+      associationType = 'Primary account';
+      associatedProfileUrl = `/user/${Id}`;
+      associatedId = Id;
+    }
+    else if (childAssociation) {
+      const Id = childAssociation.child_id;
+      associationType = 'Secondary account';
+      associatedProfileUrl = `/user/${Id}`;
+      associatedId = Id;
+    }
+
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
     const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
     const rankTeam = ranks.getRank(parseInt(userTeam.mmr));
@@ -97,7 +118,10 @@ router.get('/:user', function (req, res) {
       platformIconClass: platformIconClass,
       teamData: userTeam,
       ffaData: userFFA,
-      matches: matches
+      matches: matches,
+      associationType: associationType,
+      associatedProfileUrl: associatedProfileUrl,
+      associatedId: associatedId
     };
 
     res.render('user', render_data);
