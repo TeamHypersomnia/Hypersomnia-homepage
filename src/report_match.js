@@ -91,11 +91,35 @@ function apiKeyAuth(req, res, next) {
   }
 }
 
+function mapIdArray(playerIds, db) {
+  const originalIdsSet = new Set(playerIds);
+  return playerIds.map(id => {
+    const association = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(id);
+    if (association && !originalIdsSet.has(association.parent_id)) {
+      return association.parent_id;
+    }
+    return id;
+  });
+}
+
+function mapPlayerInfos(playerInfos, db) {
+  const updatedPlayerInfos = {};
+  const originalIdsSet = new Set(Object.keys(playerInfos));
+
+  for (const [id, info] of Object.entries(playerInfos)) {
+    const association = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(id);
+    const parentId = association && !originalIdsSet.has(association.parent_id) ? association.parent_id : id;
+    updatedPlayerInfos[parentId] = info;
+  }
+  return updatedPlayerInfos;
+}
+
 router.post('/', apiKeyAuth, (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-  const { match_start_date, server_name, arena, game_mode, win_score, lose_score, win_players, lose_players, player_infos } = req.body;
+  const { match_start_date, server_name, arena, game_mode, win_score, lose_score } = req.body;
   let { losers_abandoned } = req.body;
+  let { win_players, lose_players, player_infos } = req.body;
 
   // Validate input
   if (typeof win_score === 'undefined') {
@@ -148,6 +172,10 @@ router.post('/', apiKeyAuth, (req, res) => {
 
   try {
     const db = new Database(dbPath);
+
+    win_players = mapIdArray(win_players, db);
+    lose_players = mapIdArray(lose_players, db);
+    player_infos = mapPlayerInfos(player_infos, db);
 
     db.transaction(() => {
       const is_happy_hours = isWeekendEveningTime(match_start_date, req.server_id);

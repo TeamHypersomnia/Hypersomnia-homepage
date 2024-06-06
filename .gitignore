@@ -129,3 +129,6 @@ dist
 # Extra
 private
 public/arenas
+
+pythagtest.json
+pythagcollidtest.json
