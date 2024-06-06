@@ -936,6 +936,22 @@ footer > div:nth-child(3) > a:hover {
   height: 24px;;
 }
 
+.btn .btn-disconnect {
+  color: #ff4d4d;
+  border: 1px solid #ff4d4d;
+}
+
+.btn .btn-disconnect:hover {
+  background: rgba(255, 77, 77, 0.5);
+  color: #fff;
+}
+
+.notice {
+  font-size: 0.85em;
+  color: #e7e7e7;
+  margin-top: 10px;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
