@@ -25,10 +25,13 @@ router.get('/', async (req, res) => {
     }
   }
 
+  const success = req.query.success === 'true';
+
   res.render('profile', {
     page: 'Profile',
     user: req.user,
-    discordData
+    discordData,
+    success
   });
 });
 

@@ -6,6 +6,11 @@
     </div>
   </div>
 </form>
+
+<% if (success) { %>
+  <h1 style="text-align: center; font-size: 2.00em">Success!<br>Go back to the game and press:<br><br><i class="fa-brands fa-discord"> </i> Sign in with Discord<br><br></h1>
+<% } %>
+
 <h1><i class="fa-brands fa-steam"></i> Steam</h1>
 <a href="https://steamcommunity.com/profiles/<%= user.id %>">
   <img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="184" height="184">

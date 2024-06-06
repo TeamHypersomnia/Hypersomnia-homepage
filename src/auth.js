@@ -149,8 +149,8 @@ module.exports = function(passport) {
         console.log('Association already exists for Discord ID: ' + discordUser.id);
       }
 
-      // Redirect to profile
-      res.redirect('/profile');
+      // Redirect to profile with success flag
+      res.redirect('/profile?success=true');
     } catch (error) {
       console.error(error.message);
       res.redirect('/profile');
