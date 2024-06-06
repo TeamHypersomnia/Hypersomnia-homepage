@@ -3,8 +3,8 @@ const axios = require('axios');
 const router = express.Router();
 
 const API_ENDPOINT = 'https://discord.com/api/v10';
-const CLIENT_ID = '1189671952479158403';
-const CLIENT_SECRET = process.env.DISCORD_SECRET;  // Ensure this is set in your environment variables
+const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 
 router.post('/', async (req, res) => {
     const { access_token } = req.body;

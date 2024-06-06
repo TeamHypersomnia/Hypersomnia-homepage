@@ -73,8 +73,8 @@ if (!fs.existsSync(dbPath)) {
 
     db.run(`
       CREATE TABLE IF NOT EXISTS associations (
-        steam_id TEXT UNIQUE,
-        discord_id TEXT UNIQUE
+        discord_id TEXT UNIQUE,
+        steam_id TEXT UNIQUE
       )
     `);
   });
