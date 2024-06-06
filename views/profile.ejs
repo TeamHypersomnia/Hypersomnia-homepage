@@ -10,14 +10,6 @@
 <% if (success) { %>
   <h1 style="text-align: center; font-size: 2.00em">Success!<br>Go back to the game and press:<br><br><i class="fa-brands fa-discord"> </i> Sign in with Discord<br><br></h1>
 <% } %>
-
-<h1><i class="fa-brands fa-steam"></i> Steam</h1>
-<a href="https://steamcommunity.com/profiles/<%= user.id %>">
-  <img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="184" height="184">
-</a>
-<h3><a href="https://steamcommunity.com/profiles/<%= user.id %>"><%= user.displayName %></a></h3>
-<dl>
-  <dd><strong>Steam ID:</strong> <span class="tocopy"><code><%= user.id %></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></dd>
   
   <h1><i class="fa-brands fa-discord"></i> Discord</h1>
   <% if (discordData) { %>
@@ -41,9 +33,9 @@
   <% } else { %>
     <dd>
       <form action="/auth/discord" method="get">
-        <div class="btn-group">
+        <div class="btn-group" style="font-size: 1.5em">
           <div class="btn">
-            <button type="submit" aria-label="Connect Discord Account"><i class="fa-brands fa-discord"></i> Connect Discord Account</button>
+            <button type="submit" aria-label="Connect Discord Account"><i class="fa-brands fa-discord"></i> Connect Discord account</button>
           </div>
         </div>
       </form>
@@ -55,4 +47,11 @@ No merging ever takes place.<br>You may later disconnect the two accounts withou
   <% } %>
 </dl>
 
+<h1><i class="fa-brands fa-steam"></i> Steam</h1>
+<a href="https://steamcommunity.com/profiles/<%= user.id %>">
+  <img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="184" height="184">
+</a>
+<h3><a href="https://steamcommunity.com/profiles/<%= user.id %>"><%= user.displayName %></a></h3>
+<dl>
+  <dd><strong>Steam ID:</strong> <span class="tocopy"><code><%= user.id %></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></dd>
 <%- include('overall_footer'); %>
