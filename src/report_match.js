@@ -14,7 +14,8 @@ function isWeekendEveningTime(isoTimestamp, location_id) {
     "de": "Europe/Berlin", // Berlin, Germany - GMT+1 (CET, GMT+2 when observing CEST)
     "us-central": "America/Chicago", // Central US - GMT-6 (CST, GMT-5 when observing CDT)
     "pl": "Europe/Warsaw", // Warsaw, Poland - GMT+1 (CET, GMT+2 when observing CEST)
-    "ch": "Europe/Zurich"
+    "ch": "Europe/Zurich",
+    "nl": "Europe/Amsterdam" // Eygelshoven, Netherlands - GMT+1 (CET, GMT+2 when observing CEST)
   };
 
   // Get the corresponding time zone for the location_id
