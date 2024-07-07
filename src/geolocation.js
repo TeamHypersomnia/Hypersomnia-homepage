@@ -2,8 +2,6 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-const PORT = process.env.PORT || 3000;
-
 const IPINFO_TOKEN = process.env.IPINFO_API_TOKEN;
 
 router.get('/', async (req, res) => {

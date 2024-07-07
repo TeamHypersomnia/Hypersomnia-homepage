@@ -13,7 +13,14 @@
         <tr>
           <td style="min-width: 150px;">External profile</td>
           <td style="min-width: 300px;">
-            <a href="<%= profileUrl %>" target="_blank"><i class="<%= platformIconClass %>"></i> <%= platformName %><span class="external-link-icon" aria-hidden="true"></span></a>
+            <a href="<%= profileUrl %>" target="_blank" style="display: flex; align-items: center;">
+              <% if (platformName === 'CrazyGames') { %>
+                <img src="/assets/images/social_crazygames.png" alt="CrazyGames" style="width: 1.3em; height: 1.3em; margin-right: 0.3em;">
+              <% } else { %>
+                <i class="<%= platformIconClass %>" style="margin-right: 0.3em;"></i>
+              <% } %>
+              <%= platformName %><span class="external-link-icon" aria-hidden="true"></span>
+            </a>
         </tr>
         <% if (associationType && associatedProfileUrl && associatedId) { %>
         <tr>

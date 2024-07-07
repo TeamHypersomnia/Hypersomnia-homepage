@@ -13,7 +13,7 @@ function escapeHtml(unsafe) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    .replace(/'/g, "&#039;");
 }
 
 router.get('/:user', function (req, res) {
@@ -22,11 +22,32 @@ router.get('/:user', function (req, res) {
     const userid = req.params.user;
     
     const isSteamUser = userid.startsWith('steam_');
-    const platformName = isSteamUser ? 'Steam' : 'Discord';
-    const profileUrl = isSteamUser 
-      ? `https://steamcommunity.com/profiles/${userid.split('_')[1]}`
-      : `https://discord.com/users/${userid.split('_')[1]}`;
-    const platformIconClass = isSteamUser ? 'fa-brands fa-steam' : 'fa-brands fa-discord';
+    const isDiscordUser = userid.startsWith('discord_');
+    const isCrazyGamesUser = userid.startsWith('crazygames_');
+    let platformName, profileUrl, platformIconClass;
+
+    if (isSteamUser) {
+      platformName = 'Steam';
+      profileUrl = `https://steamcommunity.com/profiles/${userid.split('_')[1]}`;
+      platformIconClass = 'fa-brands fa-steam';
+    }
+    else if (isDiscordUser) {
+      platformName = 'Discord';
+      profileUrl = `https://discord.com/users/${userid.split('_')[1]}`;
+      platformIconClass = 'fa-brands fa-discord';
+    }
+    else if (isCrazyGamesUser) {
+      platformName = 'CrazyGames';
+      profileUrl = `https://www.crazygames.com/uid/${userid.split('_')[1]}`;
+
+      /* A crazygames image will be used instead */
+      platformIconClass = '';
+    }
+    else {
+      platformName = 'Unknown';
+      profileUrl = '#';
+      platformIconClass = 'fa-question';
+    }
 
     // Check for associations
     let associationType = null;
