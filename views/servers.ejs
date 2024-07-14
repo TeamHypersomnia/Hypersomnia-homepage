@@ -16,12 +16,15 @@
     <tbody>
     <% Object.values(servers).forEach(v => { %>
       <tr>
-        <td class="svname" data-sort="<%= v.name %>"><% if (v.is_ranked == true) { %>
-          <span class="ranked">RANKED</span>
-        <% } else { %>
-          <span class="casual">CASUAL</span>
-        <% } %><a class="white" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a></td>
-        <td data-sort="<%= v.num_playing %>"><%= v.num_playing %>/<%= v.slots %></td>
+        <td class="svname" data-sort="<%= v.name %>">
+          <% if (v.is_ranked == true) { %>
+            <span class="ranked">RANKED</span>
+          <% } else { %>
+            <span class="casual">CASUAL</span>
+          <% } %>
+          <a class="white" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a>
+        </td>
+        <td class="<%= v.num_playing === 0 ? 'zeroplayers' : '' %>" data-sort="<%= v.num_playing %>"><%= v.num_playing %>/<%= v.slots %></td>
         <td><%= v.arena %></td>
         <td><%= v.game_mode %></td>
         <td><a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam"></i><%= v.site_displayed_address %></a></td>

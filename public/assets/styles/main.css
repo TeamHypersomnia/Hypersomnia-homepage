@@ -1015,6 +1015,10 @@ input:-webkit-autofill:active{
   color: #7F7F7F;
 }
 
+.zeroplayers {
+  color: #7F7F7F;
+}
+
 .ranked {
   color: rgb(0, 255, 255);
   animation: colorChange 2s infinite alternate;
