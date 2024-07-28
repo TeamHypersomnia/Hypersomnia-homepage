@@ -1,29 +1,46 @@
 <%- include('overall_header'); %>
 
-<h1>Hypersomnia</h1>
-<p><i>Hypersomnia</i> is a hardcore arena mixing eSports with pixely nostalgia.<br>
-Every match will be unforgiving - every duel a psychological battle.</p>
+<div class="parent">
+  <div>
+    <p><strong>Hypersomnia</strong> is a hardcore <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank">free and open-source</a> <strong>eSports shooter.</strong><br>It combines the intensity of <i>Counter-Strike</i> with mechanics of <i>Hotline Miami</i>.</p>
 
-<p>More of a peaceful soul?<br>
-Unleash your creativity in the <strong>WYSIWYG in-game map Editor</strong> that lets you instantly playtest your maps online.</p>
-
-<p>It's all free and open-source.<br>
-Written without a game engine, in bare C++. Only 50 MB.<br>
-Feel free to build it yourself from GitHub and modify <i>Hypersomnia</i> to your heart's content.</p>
-
-<p>Features:
-<ul>
-<li>24 unique firearms.</li>
-<li>2 game modes: Bomb defusal (team-based) and Gun game (free-for all).</li>
-<li>6 magic spells, 4 grenade types and 7 melee weapons.</li>
-<li>An in-game map editor that lets you host a work-in-progress map to test with your friends in a single click. Quickly iterate your map unlike in any game engine.</li>
-</ul></p>
-
-<p>Declare allegiance to one of the three factions whose apple of discord is a disparity between prevailing notions of moral excellence:</p>
-
-<p><strong>Metropolis. Atlantis. Resistance.</strong></p>
-
-<p>Will you take revenge for the unethical simulation of an inferior universe? Will you support the cruel experiments to win total control over metempsychosis? Or will you join the underground civilization that awaits the end of war in this dangerous afterlife reality?</p>
+    <p><strong><a href="https://store.steampowered.com/app/2660970/Hypersomnia/" target="_blank">Play for free on Steam!</a></strong><br>Available for Windows, Linux, and MacOS. <strong>It's just 50 MB.</strong></p><br>
+    <iframe src="https://store.steampowered.com/widget/2660970/" frameborder="0" width="646" height="190" style="border:0;overflow:hidden;width:100%"></iframe>
+    <iframe src="https://steambase.io/embed/games/2660970/players" height="375" loading="lazy" style="margin-top:1em;border:0;width:100%"></iframe>
+  </div>
+  <div>
+    <div class="panel">
+      <p><strong>Don't have Steam? Just unzip & play!</strong></p>
+      <div class="three">
+        <a href="/builds/latest/Hypersomnia-for-Windows.zip" class="os">
+          <img src="/assets/images/os/win.svg" alt="Windows">
+          <span>Windows</span>
+          <small>Download zip</small>
+        </a>
+        <a href="/builds/latest/Hypersomnia-for-MacOS.dmg" class="os">
+          <img src="/assets/images/os/mac.svg" alt="macOS">
+          <span>macOS</span>
+          <small>Download dmg</small>
+        </a>
+        <a href="/builds/latest/Hypersomnia.AppImage" class="os">
+        <img src="/assets/images/os/tux.svg" alt="Linux">
+          <span>Linux</span>
+          <small>Download AppImage</small>
+        </a>
+      </div>
+      <p class="subname">Archives are <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/src/signing_keys.h" target="_blank">digitally signed</a>.<br>
+      You can <a href="https://hypersomnia.xyz/builds/latest/" target="_blank">verify signatures</a>.</p>
+    </div>
+    <div class="panel">
+      <p><strong>Latest Commits</strong></p>
+      <ul class="none">
+      <% Object.values(commits).forEach(v => { %>
+        <li><a href="https://github.com/TeamHypersomnia/Hypersomnia/commit/<%= v.sha %>" target="_blank"><%= v.msg %><br><i class="subname"><%= v.date %></i></a></li>
+      <% }); %>  
+      </ul>
+    </div>
+  </div>
+</div>
 
 <h2>Gameplay & Dev Journals</h2>
 <ul class="yt">
