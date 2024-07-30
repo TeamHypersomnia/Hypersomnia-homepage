@@ -5,6 +5,7 @@ const path = require('path');
 const moment = require('moment');
 const chokidar = require('chokidar');
 const dirPath = __dirname + '/../public/arenas';
+const unplayablePath = __dirname + '/../private/unplayable.json';;
 let arenas = [];
 
 function getFolderSize(folderPath) {
@@ -26,7 +27,16 @@ function getFolderSize(folderPath) {
   return sizeInMegabytes.toFixed(2) + ' MB';
 }
 
+function loadUnplayableMaps() {
+  if (fs.existsSync(unplayablePath)) {
+    const unplayableContent = fs.readFileSync(unplayablePath, 'utf8');
+    return JSON.parse(unplayableContent);
+  }
+  return [];
+}
+
 function loadArenas() {
+  const unplayableMaps = loadUnplayableMaps();
   const files = fs.readdirSync(dirPath, { withFileTypes: true });
   const directories = files.filter(file => file.isDirectory());
   const arenas = [];
@@ -51,6 +61,8 @@ function loadArenas() {
         full_description = obj.about.full_description;
       }
 
+      const playable = !unplayableMaps.includes(obj.meta.name);
+
       arenas.push({
         name: obj.meta.name,
         author: obj.about.author,
@@ -58,7 +70,8 @@ function loadArenas() {
         full_description: full_description,
         version_timestamp: obj.meta.version_timestamp,
         updated: timeAgo,
-        size: size
+        size: size,
+        playable: playable
       });
     }
   });
@@ -68,24 +81,39 @@ function loadArenas() {
 
 arenas = loadArenas();
 
-const watcher = chokidar.watch(`${dirPath}/**/*.json`, {
+const arenaWatcher = chokidar.watch(`${dirPath}/**/*.json`, {
   ignoreInitial: true,
   persistent: true,
   recursive: true,
   ignored: '**/editor_view.json'
 });
 
-watcher.on('all', (event, path) => {
+arenaWatcher.on('all', (event, path) => {
   console.log(event, path);
   arenas = loadArenas();
 });
 
-watcher.on('error', (error) => {
+arenaWatcher.on('error', (error) => {
+  console.error(`Watcher error: ${error}`);
+});
+
+const unplayableWatcher = chokidar.watch(unplayablePath, {
+  ignoreInitial: true,
+  persistent: true
+});
+
+unplayableWatcher.on('change', (path) => {
+  console.log(`Unplayable maps file changed: ${path}`);
+  arenas = loadArenas();
+});
+
+unplayableWatcher.on('error', (error) => {
   console.error(`Watcher error: ${error}`);
 });
 
 process.on('SIGINT', () => {
-  watcher.close();
+  arenaWatcher.close();
+  unplayableWatcher.close();
   process.exit();
 });
 
