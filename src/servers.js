@@ -7,13 +7,14 @@ let servers = [];
 function fetchServers(app) {
   axios.get(process.env.SERVER_LIST_JSON)
     .then(response => {
-      servers = response.data;
-      let totalServers = 0;
-      let totalPlayers = 0;
-      servers.forEach(sv => {
-        totalServers++;
-        totalPlayers += sv.num_playing + sv.num_spectating;
-      });
+      servers = response.data.map(server => ({
+        ...server,
+        num_online: server.num_playing + server.num_spectating
+      }));
+      
+      let totalServers = servers.length;
+      let totalPlayers = servers.reduce((acc, sv) => acc + sv.num_online, 0);
+      
       app.locals.players_ingame = totalPlayers;
       app.locals.online_servers = totalServers;
     })
@@ -24,8 +25,8 @@ function fetchServers(app) {
 
 router.get('/', function (req, res) {
   servers.sort((a, b) => {
-    if (a.num_playing !== b.num_playing) {
-      return b.num_playing - a.num_playing;
+    if (a.num_online !== b.num_online) {
+      return b.num_online - a.num_online;
     } else {
       return a.name.localeCompare(b.name);
     }

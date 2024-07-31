@@ -214,7 +214,7 @@ app.use((req, res, next) => {
 
 // Timers
 servers.fetchServers(app);
-setInterval(() => servers.fetchServers(app), 5000); // 5s
+setInterval(() => servers.fetchServers(app), 3000);
 
 // WebSocket
 const wsInstance = expressWs(app);
