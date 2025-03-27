@@ -27,6 +27,9 @@ jobs:
         # WATCH OUT!!! DO NOT ADD SPACES INSIDE BRACES BETWEEN ARGUMENTS OR THE ENTIRE WEBSITE WILL BE WIPED OUT!
         run: rsync --exclude={'public/arenas','private','node_modules','.git','.github','.env'} -avzP . ubuntu@hypersomnia.xyz:/var/www/app --delete-after
 
+      - name: Install Dependencies
+        run: npm install --production
+
       - name: Restart PM2
         run: |
           ssh ubuntu@hypersomnia.xyz "pm2 restart app"
