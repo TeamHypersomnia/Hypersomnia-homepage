@@ -4,69 +4,58 @@
 <div class="box">
   <div class="table-responsive">
     <table>
-      <thead>
-        <tr>
-          <th>Key</th>
-          <th>Value</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Key</th><th>Value</th></tr><div></div></thead>
       <tbody>
         <tr>
-          <th>Server version</th>
+          <td>Server version</td>
           <td><%= sv.server_version %></td>
         </tr>
         <tr>
-          <th>Name</th>
+          <td>Name</td>
           <td><%= sv.name %></td>
         </tr>
         <tr>
-          <th>Address</th>
+          <td>Address</td>
           <td><span class="tocopy"><code><%= sv.ip %></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></td>
         </tr>
         <tr>
-          <th>First appeared</th>
+          <td>First appeared</td>
           <td><%= sv.time_hosted_ago %></td>
         </tr>
         <tr>
-          <th>Last heartbeat</th>
+          <td>Last heartbeat</td>
           <td><%= sv.time_last_heartbeat_ago %></td>
         </tr>
         <tr>
-          <th>Arena</th>
+          <td>Arena</td>
           <td><%= sv.arena %></td>
         </tr>
         <tr>
-          <th>Game mode</th>
+          <td>Game mode</td>
           <td><%= sv.game_mode %></td>
         </tr>
         <tr>
-          <th>Players</th>
+          <td>Players</td>
           <td><%= sv.num_playing %>/<%= sv.slots %></td>
         </tr>
         <tr>
-          <th>Spectators</th>
+          <td>Spectators</td>
           <td><%= sv.num_spectating %>/<%= sv.slots %></td>
         </tr>
         <tr>
-          <th>Score resistance</th>
+          <td>Score resistance</td>
           <td><%= sv.score_resistance %></td>
         </tr>
         <tr>
-          <th>Score metropolis</th>
+          <td>Score metropolis</td>
           <td><%= sv.score_metropolis %></td>
         </tr>
       </tbody>
     </table>
   </div>
   <div class="table-responsive">
-    <table class="sortable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Score</th>
-          <th>Deaths</th>
-        </tr>
-      </thead>
+    <table>
+      <thead><tr><th>Name</th><th>Score</th><th>Deatds</th></tr><div></div></thead>
       <tbody>
         <% if (sv.num_online == 0) { %>
           <tr>
@@ -77,21 +66,21 @@
             <tr>
               <td class="resistance"><%= v.nickname %></td>
               <td><%= v.score %></td>
-              <td><%= v.deaths %></td>
+              <td><%= v.deatds %></td>
             </tr>
           <% }); %>
           <% sv.players_metropolis.forEach(function(v) { %>
             <tr>
               <td class="metropolis"><%= v.nickname %></td>
               <td><%= v.score %></td>
-              <td><%= v.deaths %></td>
+              <td><%= v.deatds %></td>
             </tr>
           <% }); %>
           <% sv.players_spectating.forEach(function(v) { %>
             <tr>
               <td class="spectator"><%= v.nickname %></td>
               <td><%= v.score %></td>
-              <td><%= v.deaths %></td>
+              <td><%= v.deatds %></td>
             </tr>
           <% }); %>
         <% } %>

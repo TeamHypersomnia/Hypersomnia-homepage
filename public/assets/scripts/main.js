@@ -1,12 +1,3 @@
-function opn(e, name) {
-  const tabcontents = document.querySelectorAll('.tabcontent');
-  tabcontents.forEach(tabcontent => tabcontent.style.display = 'none');
-  const tablinks = document.querySelectorAll('.tablinks');
-  tablinks.forEach(tablink => tablink.classList.remove('active'));
-  document.getElementById(name).style.display = 'block';
-  e.currentTarget.classList.add('active');
-}
-
 function fast() {
   const fastBtn = document.querySelector('.fastBtn');
   const strongBtn = document.querySelector('.strongBtn');
@@ -66,15 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
       countdown(countdownElement, countdownContent);
     }, 1000);
   }
-  const videoList = document.querySelectorAll('.yt li');
-  videoList.forEach(videoItem => {
-    const code = videoItem.getAttribute('data-code');
-    videoItem.style.backgroundImage = `url(https://i.ytimg.com/vi_webp/${code}/hqdefault.webp)`;
-    videoItem.addEventListener('click', () => {
-      const youtubeURL = `//www.youtube.com/watch?v=${code}`;
-      window.open(youtubeURL, '_blank');
-    });
-  });
 });
 
 const copyButtons = document.querySelectorAll('.copy');
@@ -103,30 +85,3 @@ copyButtons.forEach(button => {
     }
   });
 });
-
-const prot = (window.location.protocol === 'https:' ? 'wss:' : 'ws:')
-const host = window.location.hostname;
-const port = window.location.port;
-const ws = new WebSocket(prot + '//' + host + ':' + port);
-
-const visitors = document.getElementById('website_visitor');
-const players = document.getElementById('players_ingame');
-const servers = document.getElementById('online_servers');
-
-function updateTextContent(element, count, singularText, pluralText) {
-  element.textContent = count + (count === 1 ? singularText : pluralText);
-}
-
-ws.onmessage = function(event) {
-  const d = JSON.parse(event.data);
-  updateTextContent(visitors, d.visitors, ' Current Visitor', ' Current Visitors');
-  updateTextContent(players, d.players, ' Player In-Game', ' Players In-Game');
-  updateTextContent(servers, d.servers, ' Online Server', ' Online Servers');
-};
-
-ws.onerror = function(event) {
-  console.error(event);
-};
-
-tippy('.browser', { content: 'Play in browser' });
-tippy('.copy', { content: 'Copy to clipboard' });

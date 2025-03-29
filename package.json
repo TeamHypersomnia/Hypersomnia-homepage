@@ -9,7 +9,6 @@
     "express": "*",
     "express-minify-html-2": "*",
     "express-session": "*",
-    "express-ws": "*",
     "moment": "*",
     "moment-timezone": "*",
     "multer": "*",

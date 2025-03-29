@@ -1,51 +1,35 @@
 <%- include('overall_header'); %>
 
-<div class="parent">
-  <div>
-    <p><strong>Hypersomnia</strong> is a hardcore <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank">free and open-source</a> <strong>eSports shooter.</strong><br>It combines the intensity of <i>Counter-Strike</i> with mechanics of <i>Hotline Miami</i>.</p>
+<h1>Hypersomnia</h1>
+<p>Experience the intensity of <em>Counter-Strike</em> combined with the fast-paced mechanics of <em>Hotline Miami</em>.</p>
+<p>Available for <strong>Windows, Linux, and macOS</strong>. <strong>Just 50 MB!</strong></p>
 
-    <p><strong><a href=https://hypersomnia.io/><i class="fa-solid fa-right-to-bracket"></i>Play in your browser!</a><br><a href="https://store.steampowered.com/app/2660970/Hypersomnia/" target="_blank"><i class="fa-brands fa-steam"></i>Play for free on Steam!</a></strong><br>Available for Windows, Linux, and MacOS. <strong>It's just 50 MB.</strong><br></p><br>
-    <iframe src="https://store.steampowered.com/widget/2660970/" frameborder="0" width="646" height="190" style="border:0;overflow:hidden;width:100%"></iframe>
-  </div>
-  <div>
-    <div class="panel">
-      <p><strong>Don't have Steam? Just unzip & play!</strong></p>
-      <div class="three">
-        <a href="/builds/latest/Hypersomnia-for-Windows.zip" class="os">
-          <img src="/assets/images/os/win.svg" alt="Windows">
-          <span>Windows</span>
-          <small>Download zip</small>
-        </a>
-        <a href="/builds/latest/Hypersomnia-for-MacOS.dmg" class="os">
-          <img src="/assets/images/os/mac.svg" alt="macOS">
-          <span>macOS</span>
-          <small>Download dmg</small>
-        </a>
-        <a href="/builds/latest/Hypersomnia.AppImage" class="os">
-        <img src="/assets/images/os/tux.svg" alt="Linux">
-          <span>Linux</span>
-          <small>Download AppImage</small>
-        </a>
-      </div>
-      <p class="subname">Archives are <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/src/signing_keys.h" target="_blank">digitally signed</a>.<br>
-      You can <a href="https://hypersomnia.xyz/builds/latest/" target="_blank">verify signatures</a>.</p>
-    </div>
-    <div class="panel">
-      <p><strong>Latest Commits</strong></p>
-      <ul class="none">
-      <% Object.values(commits).forEach(v => { %>
-        <li><a href="https://github.com/TeamHypersomnia/Hypersomnia/commit/<%= v.sha %>" target="_blank"><%= v.msg %><br><i class="subname"><%= v.date %></i></a></li>
-      <% }); %>  
-      </ul>
-    </div>
-  </div>
-</div>
-
-<h2>Gameplay & Dev Journals</h2>
-<ul class="yt">
-  <li data-code="L4zSA34fD_E"></li>
-  <li data-code="CHLPzZqANlM"></li>
-  <li data-code="Nlh_dyd_V7w"></li>
-</ul>
+<section class="downloads">
+  <a href="https://hypersomnia.io/" target="_blank" class="dl div1">
+    <img src="/assets/images/os/browser.svg" alt="Browser">
+    <h3>Play Instantly in Your Browser</h3>
+    <span>The quickest way to experience Hypersomnia</span>
+  </a>
+  <a href="https://store.steampowered.com/app/2660970/Hypersomnia/" target="_blank" class="dl div2">
+    <img src="/assets/images/os/steam.svg" alt="Steam">
+    <h3>Get It Free on Steam</h3>
+    <span>Recommended if you have Steam</span>
+  </a>
+  <a href="https://hypersomnia.xyz/builds/latest/Hypersomnia-for-Windows.zip" target="_blank" class="dl div3">
+    <img src="/assets/images/os/win.svg" alt="Windows">
+    <h3>Download for Windows</h3>
+    <code>Hypersomnia-for-Windows.zip</code>
+  </a>
+  <a href="https://hypersomnia.xyz/builds/latest/Hypersomnia.AppImage" target="_blank" class="dl div4">
+    <img src="/assets/images/os/tux.svg" alt="Linux">
+    <h3>Download for Linux</h3>
+    <code>Hypersomnia.AppImage</code>
+  </a>
+  <a href="https://hypersomnia.xyz/builds/latest/Hypersomnia-for-MacOS.dmg" target="_blank" class="dl div5">
+    <img src="/assets/images/os/mac.svg" alt="macOS">
+    <h3>Download for macOS</h3>
+    <code>Hypersomnia-for-MacOS.dmg</code>
+  </a>
+</section>
 
 <%- include('overall_footer'); %>

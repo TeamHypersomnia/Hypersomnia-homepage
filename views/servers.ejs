@@ -1,6 +1,6 @@
 <%- include('overall_header'); %>
 
-<h1>Server List</h1>
+<h2>Ranked Servers</h2>
 <div class="table-responsive">
   <table class="sortable">
     <thead>
@@ -9,12 +9,12 @@
         <th>Players</th>
         <th>Arena</th>
         <th>Game Mode</th>
-        <th>Address</th>
-        <th>Play in Browser!</th>
+        <th>Play on Steam</th>
+        <th>Play in Browser</th>
       </tr>
     </thead>
     <tbody>
-    <% Object.values(servers).forEach(v => { %>
+    <% Object.values(ranked_servers).forEach(v => { %>
       <tr>
         <td class="svname" data-sort="<%= v.name %>">
           <% if (v.is_ranked == true) { %>
@@ -27,52 +27,47 @@
         <td class="<%= v.num_online === 0 ? 'zeroplayers' : '' %>" data-sort="<%= v.num_online %>"><%= v.num_online %>/<%= v.slots %></td>
         <td><%= v.arena %></td>
         <td><%= v.game_mode %></td>
-        <td><a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam"></i><%= v.site_displayed_address %></a></td>
-        <td><a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser!</a></td>
+        <td><a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam mr"></i>Play on Steam</a></td>
+        <td><a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket mr"></i>Play in Browser</a></td>
       </tr>
     <% }); %>
     </tbody>
   </table>
 </div>
 
-<h2>Host Dedicated Server</h2>
-<div class="btn-group">
-  <div class="btn">
-    <button class="tablinks active" onclick="javascript:opn(event,'debian')">
-      <span>Ubuntu/Debian</span>
-    </button>
-  </div>
-  <div class="btn">
-    <button class="tablinks" onclick="javascript:opn(event,'centos')">
-      <span>CentOS</span>
-    </button>
-  </div>
-  <div class="btn">
-    <button class="tablinks" onclick="javascript:opn(event,'arch')">
-      <span>Arch Linux</span>
-    </button>
-  </div>
-  <div class="btn">
-    <button class="tablinks" onclick="javascript:opn(event,'fedora')">
-      <span>Fedora</span>
-    </button>
-  </div>
+<h2>Casual Servers</h2>
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Players</th>
+        <th>Arena</th>
+        <th>Game Mode</th>
+        <th>Play on Steam</th>
+        <th>Play in Browser</th>
+      </tr>
+    </thead>
+    <tbody>
+    <% Object.values(casual_servers).forEach(v => { %>
+      <tr>
+        <td class="svname" data-sort="<%= v.name %>">
+          <% if (v.is_ranked == true) { %>
+            <span class="ranked">RANKED</span>
+          <% } else { %>
+            <span class="casual">CASUAL</span>
+          <% } %>
+          <a class="white" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a>
+        </td>
+        <td class="<%= v.num_online === 0 ? 'zeroplayers' : '' %>" data-sort="<%= v.num_online %>"><%= v.num_online %>/<%= v.slots %></td>
+        <td><%= v.arena %></td>
+        <td><%= v.game_mode %></td>
+        <td><a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam mr"></i>Play on Steam</a></td>
+        <td><a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket mr"></i>Play in Browser</a></td>
+      </tr>
+    <% }); %>
+    </tbody>
+  </table>
 </div>
-
-<div class="tutorial">
-  <span class="txt"># Update packages & install fuse</span>
-  <span class="tocopy tabcontent" id="debian" style="display:block;"><code>sudo apt update <span class="operators">&&</span> sudo apt install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="tocopy tabcontent" id="centos"><code>sudo yum makecache <span class="operators">&&</span>  sudo yum install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="tocopy tabcontent" id="arch"><code>sudo pacman -Sy <span class="operators">&&</span>  sudo pacman -S --noconfirm fuse2</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="tocopy tabcontent" id="fedora"><code>sudo dnf makecache <span class="operators">&&</span>  sudo dnf install -y fuse</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="txt"># Download Hypersomnia-Headless</span>
-  <span class="tocopy"><code>wget https://hypersomnia.xyz/builds/latest/Hypersomnia-Headless.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="txt"># Grant execution permission</span>
-  <span class="tocopy"><code>chmod +x Hypersomnia-Headless.AppImage</code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-  <span class="txt"># Run the server in the background</span>
-  <span class="tocopy"><code>nohup ./Hypersomnia-Headless.AppImage --daily-autoupdate <span class="operators">></span> /dev/null <span class="operators">2>&1 &</span></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span>
-</div>
-<p>To be able to manage your server, remember to set the master_rcon_password in ~/.config/Hypersomnia/user/config.force.lua - see default_config.lua for reference. Open your game client. Setup your RCON password in Settings -> Client. Then, press F8 when you're on your server to open the administration panel.</p>
-<p>"--daily-autoupdate" flag causes the server to <b>update itself</b> every 24 hours at 03:00 AM (your local time), if a newer game version is available. This flag is highly recommended so you don't have to keep up with frequent game updates (the game is in active development). You can also set the flag in RCON settings (press F8 and go to Vars tab).</p>
 
 <%- include('overall_footer'); %>

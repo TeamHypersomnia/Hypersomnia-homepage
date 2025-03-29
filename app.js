@@ -10,7 +10,6 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const UAParser = require('ua-parser-js');
-const expressWs = require('express-ws');
 const servers = require('./src/servers');
 
 const github = 'https://github.com/TeamHypersomnia';
@@ -216,28 +215,8 @@ app.use((req, res, next) => {
 servers.fetchServers(app);
 setInterval(() => servers.fetchServers(app), 3000);
 
-// WebSocket
-const wsInstance = expressWs(app);
-app.ws('/', function(ws, req) {});
-
-setInterval(() => {
-  const clients = wsInstance.getWss().clients;
-  clients.forEach(client => {
-    if (client.readyState === client.OPEN) {
-      const message = {
-        visitors: app.locals.website_visitor,
-        players: app.locals.players_ingame,
-        servers: app.locals.online_servers
-      };
-      client.send(JSON.stringify(message));
-    }
-  });
-}, 5000); // 5s
-
-
 // Routes
 app.use('/', require('./src/index'));
-app.use('/guide', require('./src/guide'));
 app.use('/arenas', require('./src/arenas'));
 app.use('/user', require('./src/user'));
 app.use('/weapons', require('./src/weapons'));
@@ -248,7 +227,6 @@ app.use('/logout', require('./src/logout'));
 app.use('/auth', require('./src/auth')(passport));
 app.use('/disclaimer', require('./src/disclaimer'));
 app.use('/cookie-policy', require('./src/cookie_policy'));
-app.use('/contact', require('./src/contact'));
 app.get('/press', (req, res) => res.redirect(pressKit));
 app.get('/credits', (req, res) => res.redirect(credits));
 app.get('/steam', (req, res) => res.redirect(steam));
