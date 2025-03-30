@@ -13,27 +13,27 @@
         </thead>
         <tbody>
           <tr>
-            <th>Machine type</th>
+            <td>Machine type</td>
             <td><%= machine %></td>
           </tr>
           <tr>
-            <th>Operating system</th>
+            <td>Operating system</td>
             <td><%= type %> <%= release %></td>
           </tr>
           <tr>
-            <th>Host name</th>
+            <td>Host name</td>
             <td><%= hostname %></td>
           </tr>
           <tr>
-            <th>System uptime</th>
+            <td>System uptime</td>
             <td><%= uptime %></td>
           </tr>
           <tr>
-            <th>Load avg</th>
+            <td>Load avg</td>
             <td><%= loadavg.map(v => v.toFixed(2)).join(' ') %></td>
           </tr>
           <tr>
-            <th>RAM usage</th>
+            <td>RAM usage</td>
             <td><%= Math.floor(usedmem / (1024 * 1024)) %>/<%= Math.floor(totalmem / (1024 * 1024)) %> MB</td>
           </tr>
         </tbody>
@@ -51,11 +51,11 @@
         </thead>
         <tbody>
           <tr>
-            <th>Node.js version</th>
+            <td>Node.js version</td>
             <td><%= node %></td>
           </tr>
           <tr>
-            <th>Node.js uptime</th>
+            <td>Node.js uptime</td>
             <td><%= appuptime %></td>
           </tr>
         </tbody>

@@ -22,7 +22,7 @@
       <% firearms.forEach(i => { %>
         <tr>
           <td><%= i.display_name %></td>
-          <td><img src="//cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@master/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@latest/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
           <td><%= i.damage %></td>
           <td><%= i.headshot_damage %></td>
           <td><%= i.penetration %></td>
@@ -64,7 +64,7 @@
       <% melees.forEach(i => { %>
         <tr>
           <td><%= i.display_name %></td>
-          <td><img src="//raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@latest/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
           <td>
             <span class="fast"><%= i.fast_swings_per_second.toFixed(2) %></span>
             <span class="strong"><%= i.strong_swings_per_second.toFixed(2) %></span>
@@ -111,7 +111,7 @@
       <% explosives.forEach(i => { %>
         <tr>
           <td><%= i.display_name %></td>
-          <td><img src="//raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@latest/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
           <td><%= i.notes %></td>
           <td><%= i.fuse_delay.toFixed(2) %></td>
           <td><%= i.base_damage === -1 ? 'N/A' : i.base_damage %></td>
@@ -142,7 +142,7 @@
       <% spells.forEach(i => { %>
         <tr>
           <td><%= i.display_name %></td>
-          <td><img src="//raw.githubusercontent.com/TeamHypersomnia/Hypersomnia/master/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@latest/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
           <td><%= i.notes %></td>
           <td><%= i.cooldown %></td>
           <td><%= i.mana_required %></td>

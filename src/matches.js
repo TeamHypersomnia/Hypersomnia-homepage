@@ -4,15 +4,14 @@ const formatMMRDelta = require('./format_delta');
 const moment = require('moment');
 
 const router = express.Router();
-const dbPath = process.env.DB_PATH;
 
 router.get('/', (req, res) => {
   try {
     // Open the database connection
-    const db = new Database(dbPath);
+    const db = new Database(process.env.DB_PATH);
 
     // Prepare and execute the query to fetch all matches
-    const stmt = db.prepare('SELECT * FROM matches');
+    const stmt = db.prepare('SELECT * FROM matches ORDER BY match_id DESC LIMIT 100');
     const rows = stmt.all();
 
     // Create a response array with detailed match information

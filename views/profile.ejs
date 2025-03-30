@@ -1,23 +1,19 @@
 <%- include('overall_header'); %>
-<form method="POST" action="/logout">
-  <div class="btn-group">
-    <div class="btn">
-      <button type="submit" aria-label="Logout">Logout</button>
-    </div>
-  </div>
-</form>
 
 <% if (success) { %>
   <h1 style="text-align: center; font-size: 2.00em">Success!<br>Go back to the game and press:<br><br><i class="fa-brands fa-discord"> </i> Sign in with Discord<br><br></h1>
 <% } %>
-  
-  <h1><i class="fa-brands fa-discord"></i> Discord</h1>
+
+<h2>Discord</h2>
+<dl>
   <% if (discordData) { %>
-    <a href="https://discord.com/users/<%= discordData.id %>">
-      <img class="avatar" src="https://cdn.discordapp.com/avatars/<%= discordData.id %>/<%= discordData.avatar %>.png" alt="discord avatar" width="184" height="184">
-    </a>
-    <h3><a href="https://discord.com/users/<%= discordData.id %>"><%= discordData.username %>#<%= discordData.discriminator %></a></h3>
-    <dd><strong>Discord ID:</strong> <span class="tocopy"><code><%= discordData.id %></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></dd>
+    <dt>
+      <a href="https://discord.com/users/<%= discordData.id %>">
+        <img class="avatar" src="https://cdn.discordapp.com/avatars/<%= discordData.id %>/<%= discordData.avatar %>.png" alt="discord avatar" width="64" height="64">
+      </a>
+      <h3><a href="https://discord.com/users/<%= discordData.id %>"><%= discordData.username %>#<%= discordData.discriminator %></a></h3>
+    </dt>
+    <dd><strong>Discord ID:</strong> <code><%= discordData.id %></code></dd>
     <dd>
       <form action="/auth/discord/disconnect" method="post">
         <div class="btn-group">
@@ -43,15 +39,26 @@
 
     <dt>Matches played with Discord account<br>will count towards your Steam account.</dt>
     <dd class="notice">
-No merging ever takes place.<br>You may later disconnect the two accounts without losing any progress.</dd>
+      No merging ever takes place.<br>You may later disconnect the two accounts without losing any progress.
+    </dd>
   <% } %>
 </dl>
 
-<h1><i class="fa-brands fa-steam"></i> Steam</h1>
+<h2>Steam</h2>
 <a href="https://steamcommunity.com/profiles/<%= user.id %>">
-  <img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="184" height="184">
+  <img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="64" height="64">
 </a>
 <h3><a href="https://steamcommunity.com/profiles/<%= user.id %>"><%= user.displayName %></a></h3>
 <dl>
-  <dd><strong>Steam ID:</strong> <span class="tocopy"><code><%= user.id %></code><button class="copy"><i class="fa-solid fa-copy"></i></button></span></dd>
+  <dd><strong>Steam ID:</strong> <code><%= user.id %></code></dd>
+
+  <form method="POST" action="/logout">
+    <div class="btn-group">
+      <div class="btn">
+        <button type="submit" aria-label="Logout">Logout</button>
+      </div>
+    </div>
+  </form>
+</dl>
+
 <%- include('overall_footer'); %>

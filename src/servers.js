@@ -16,12 +16,6 @@ function fetchServers(app) {
 
       ranked_servers = servers.filter(server => server.is_ranked)
       casual_servers = servers.filter(server => !server.is_ranked)
-
-      let totalServers = servers.length
-      let totalPlayers = servers.reduce((acc, sv) => acc + sv.num_online, 0)
-
-      app.locals.players_ingame = totalPlayers
-      app.locals.online_servers = totalServers
     })
     .catch(error => {
       console.error(error.message)

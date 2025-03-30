@@ -141,13 +141,11 @@ app.use(minifyHTML({
 const ts = Math.floor(Date.now() / 1000);
 app.locals.version = ts;
 app.locals.alert = '';
-app.locals.website_visitor = 0;
-app.locals.players_ingame = 0;
 app.locals.online_servers = 0;
 try {
   const content = fs.readFileSync(`./private/settings.json`, 'utf8');
   const obj = JSON.parse(content);
-  app.locals.version = obj.version ? obj.version : ts;
+  app.locals.version = 1743315641;
   app.locals.alert = obj.alert ? obj.alert : '';
 } catch (error) {
   console.error(error.message);
@@ -207,13 +205,12 @@ app.use((req, res, next) => {
       count++;
     }
   }
-  app.locals.website_visitor = count;
   next();
 });
 
 // Timers
 servers.fetchServers(app);
-setInterval(() => servers.fetchServers(app), 3000);
+setInterval(() => servers.fetchServers(app), 10000);
 
 // Routes
 app.use('/', require('./src/index'));

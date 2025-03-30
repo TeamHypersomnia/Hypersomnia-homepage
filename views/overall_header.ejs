@@ -11,20 +11,18 @@
   <meta property="og:description" content="<% if (typeof arena !== 'undefined' && arena) { %><%= arena.short_description.replace(/\n/g, ' ') %><% } else { %>An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.<% } %>">
   <title><% if (page === 'Index') { %>Free Multiplayer Top-Down Shooter<% } else { %><%= page %><% } %> - Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/4.1.0/inter.min.css">
   <link rel="stylesheet" href="/assets/styles/main.css?v=<%= version %>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/4.1.0/inter.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
   <div class="container mininav">
-    <span><a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank">Hypersomnia is free and <i class="fa fa-brands fa-github mr" aria-hidden="true"></i>open-source</a></span>
-    <span class="right">
+    <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank"><i class="fa fa-brands fa-github mr" aria-hidden="true"></i>Forever Free and Open-Source</a>
     <% if (!user) { %>
-      <a href="/auth/steam" class="right steam" aria-label="Sign in with Steam">Sign in through <i class="fa fa-brands fa-steam mr" aria-hidden="true"></i>Steam</a>
+      <a href="/auth/steam" class="right steam" aria-label="Sign in with Steam"><i class="fa fa-brands fa-steam mr" aria-hidden="true"></i>Sign in through Steam</a>
     <% } else { %>
-      <a href="/profile" class="right<% if(page == 'Profile'){ %> active<% } %>" aria-label="Profile">Signed in as <%= user.displayName %></a>
+      <a href="/profile" class="right<% if(page == 'Profile'){ %> active<% } %>" aria-label="Profile"><i class="fa fa-brands fa-steam mr" aria-hidden="true"></i>Signed in as <%= user.displayName %></a>
     <% } %>
-    </span>
   </div>
   <div class="logo-center">
     <a href="/"><img height="104" class="responsive" src="/assets/images/menu_game_logo.png" alt="Hypersomnia Logo"></a>

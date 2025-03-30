@@ -6,7 +6,7 @@
   <div class="btn"><a <% if (ffa) {%> class="active"<% } %>href="/leaderboards/ffa"><span>FFA</span></a></div>
 </div>
 <div class="table-responsive">
-  <table class="sortable">
+  <table class="sortable maxwidth">
     <thead>
       <tr>
         <th>Place</th>
@@ -21,8 +21,7 @@
     <tbody>
       <% leaderboards.forEach((i, index) => { %>
         <tr>
-          <td><%= index + 1 %>
-            <%= index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '' %></td>
+          <td><%= index > 3 ? index + 1 : ['🏆', '🥈', '🥉'][index] || '' %></td>
           <td><a href="/user/<%= i.account_id %>"><img class="rank" src="//cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@master/hypersomnia/content/gfx/necessary/<%= i.rankImg %>" alt="<%= i.rankName %>"><%= i.nickname %></a></td>
           <td><%= i.mmr.toFixed(2) %></td>
           <td><%= i.mu.toFixed(3) %></td>

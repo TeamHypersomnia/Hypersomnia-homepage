@@ -30,58 +30,7 @@ function strong() {
   }
 }
 
-function countdown(countdownElement, countdownContent) {
-  const targetDate = new Date(countdownElement.getAttribute('data-date'));
-  const currentDate = new Date();
-  const timeRemaining = targetDate - currentDate;
-  if (timeRemaining > 0) {
-    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-    const formatTime = (value) => (value < 10 ? "0" : "") + value;
-    const timeString = (days > 0 ? `${days} days, ` : "") + `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
-    countdownElement.textContent = countdownContent + ' ' + timeString;
-  } else {
-    const endText = new Date(countdownElement.getAttribute('data-end'));
-    countdownElement.textContent = endText;
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-  const countdownElement = document.querySelector('.countdown');
-  if (countdownElement) {
-    const countdownContent = countdownElement.textContent;
-    countdown(countdownElement, countdownContent);
-    setInterval(function() {
-      countdown(countdownElement, countdownContent);
-    }, 1000);
-  }
-});
-
-const copyButtons = document.querySelectorAll('.copy');
-copyButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    const closestTocopy = button.closest('.tocopy');
-    if (closestTocopy) {
-      const contentToCopy = closestTocopy.querySelector('code').textContent;
-      if (contentToCopy) {
-        const tempTextarea = document.createElement('textarea');
-        tempTextarea.value = contentToCopy;
-        document.body.appendChild(tempTextarea);
-        tempTextarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempTextarea);
-
-        button.innerHTML = '<i class="fa-solid fa-check"></i>';
-        setTimeout(() => {
-          button.innerHTML = '<i class="fa-solid fa-copy"></i>';
-        }, 1000);
-      } else {
-        console.error('No content to copy.');
-      }
-    } else {
-      console.error('Could not find parent element with class "tocopy".');
-    }
-  });
-});
+/* Sortable */
+document.addEventListener("click",function(c){try{function h(b,a){return b.nodeName===a?b:h(b.parentNode,a)}var w=c.shiftKey||c.altKey,d=h(c.target,"TH"),m=d.parentNode,n=m.parentNode,g=n.parentNode;function p(b,a){b.classList.remove("dir-d");b.classList.remove("dir-u");a&&b.classList.add(a)}function q(b){var a;return w?b.dataset.sortAlt:null!==(a=b.dataset.sort)&&void 0!==a?a:b.textContent}if("THEAD"===n.nodeName&&g.classList.contains("sortable")&&!d.classList.contains("no-sort")){var r,f=m.cells,
+  t=parseInt(d.dataset.sortTbr);for(c=0;c<f.length;c++)f[c]===d?r=parseInt(d.dataset.sortCol)||c:p(f[c],"");f="dir-d";if(d.classList.contains("dir-d")||g.classList.contains("asc")&&!d.classList.contains("dir-u"))f="dir-u";p(d,f);var x="dir-u"===f,y=g.classList.contains("n-last"),u=function(b,a,e){a=q(a.cells[e]);b=q(b.cells[e]);if(y){if(""===a&&""!==b)return-1;if(""===b&&""!==a)return 1}e=Number(a)-Number(b);a=isNaN(e)?a.localeCompare(b):e;return x?-a:a};for(c=0;c<g.tBodies.length;c++){var k=g.tBodies[c],
+  v=[].slice.call(k.rows,0);v.sort(function(b,a){var e=u(b,a,r);return 0!==e||isNaN(t)?e:u(b,a,t)});var l=k.cloneNode();l.append.apply(l,v);g.replaceChild(l,k)}}}catch(h){}});

@@ -23,12 +23,10 @@ h1, h2 {
   margin: 0.25em 0 0.75em 0;
   padding-bottom: 0.3em;
   font-weight: 600;
-  line-height: 1.25;
   overflow: hidden;
   text-wrap: nowrap;
-  color: #ddd;
-  font-size: 1.225em;
-  margin-top: 1.9em;
+  font-size: 1.3em;
+  margin-top: 1.5em;
 }
 
 p, li {
@@ -37,8 +35,6 @@ p, li {
 }
 
 p {
-  margin-top: 1.5em;
-  margin-bottom: 1em;
   word-break: break-word;
 }
 
@@ -57,10 +53,6 @@ a:hover {
   text-decoration: none;
 }
 
-canvas {
-  margin-top: 15px;
-}
-
 code {
   font-size: .875em;
   color: rgb(230, 133, 181);
@@ -73,7 +65,8 @@ article > div > div:nth-child(1) > img {
 }
 
 ul {
-  padding-left: 2em;
+  padding-left: 1.6em;
+  list-style-type: disclosure-closed;
 }
 
 ul.none {
@@ -130,18 +123,6 @@ strong, th, td:nth-child(1), label, dt, b {
   cursor: pointer;
 }
 
-.copy, #like, .icon {
-  background: transparent;
-  border: none;
-  color: #e7e7e7;
-  cursor: pointer;
-  padding-left: 6px;
-}
-
-.copy:hover, #like:hover {
-  color: #fff;
-}
-
 .strong {
   display: none;
 }
@@ -189,15 +170,8 @@ strong, th, td:nth-child(1), label, dt, b {
   margin-bottom: 0;
 }
 
-.arenas > a > div.subname {
-  height: 1px;
-  font-size: 0.8em;
-  margin-top: 2px;
-  color: rgb(156 156 156 / 90%);
-}
-
 .arenas > a {
-  padding: 50px 0;
+  padding: 25px 0;
   text-align: center;
   text-decoration: none;
 }
@@ -240,7 +214,7 @@ dt, dd {
 dt {
   font-size: 0.9em;
   display: inline;
-  color: #fff;
+  color: #ddd;
 }
 
 dd {
@@ -249,7 +223,7 @@ dd {
 }
 
 /* Desktop */
-@media screen and (min-width: 1300px) {
+@media screen and (min-width: 1100px) {
   th {
     min-width: 80px;
   }
@@ -297,10 +271,6 @@ dd {
 
   .btn a {
     min-width: 100px;
-  }
-
-  .mininav > .right {
-    margin-left: auto;
   }
 
   nav a.steam {
@@ -352,35 +322,41 @@ dd {
 
   footer {
     width: 100%;
-    padding: 1em 0;
+    padding: 1.5em 0;
     margin: 5em 0;
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    align-content: flex-start;
+    align-items: center;
+    align-content: center;
     justify-content: space-between;
   }
 
   footer > div:nth-child(1) {
     display: inline-flex;
-    gap: 12px;
+    gap: 1.25em;
   }
 
-  footer > div:nth-child(1) > a:hover {
-    color: #fff;
+  footer > div:nth-child(2) {
+    display: flex;
+    gap: 1em;
   }
 }
 
 /* Mobile */
-@media screen and (max-width: 1300px) {
+@media screen and (max-width: 1100px) {
   body {
     background-size: 150% auto;
     background-position: top center;
     background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgb(0, 8, 5) 200px), url('/assets/images/horizontal_banner.png');
   }
 
-  .mininav span {
-    padding: 8px 2px 2px 2px !important;
+  .downloads {
+    margin: 1.5rem 0;
+  }
+
+  .mininav a {
+    padding: 0.75rem 0.5rem !important;
+    width: 50%;
   }
 
   .panel {
@@ -434,6 +410,7 @@ dd {
     width: 100%;
     height: auto;
     border-radius: 4px;
+    max-width: 400px;
   }
 
   .arenas {
@@ -451,7 +428,7 @@ dd {
   footer > div:nth-child(1) {
     margin: 0;
     display: flex;
-    gap: 12px;
+    gap: 1.5em;
     flex-direction: column;
     flex-wrap: wrap;
     justify-content: center;
@@ -474,7 +451,20 @@ dd {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24px;
+    gap: 2em;
+  }
+
+  footer > div:nth-child(1) {
+    display: inline-flex;
+    gap: 0.5rem;
+  }
+
+  footer > div:nth-child(2) {
+    gap: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 175px;
+    justify-content: center;
   }
 }
 
@@ -497,6 +487,13 @@ th, td {
   white-space: nowrap;
 }
 
+.maxwidth > tbody > tr > td {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 th {
   padding: 12px 8px;
   text-align: left;
@@ -508,7 +505,7 @@ th {
 }
 
 td, tr {
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgb(38, 50, 40);
 }
 
 thead > tr {
@@ -536,9 +533,6 @@ thead > tr {
   cursor: pointer;
   vertical-align: baseline;
   white-space: nowrap;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
 }
 
 .sortable th:hover::after {
@@ -598,22 +592,19 @@ thead > tr {
   padding: 0 10px;
 }
 
-.mininav span {
+.mininav a {
   display: inline-block;
   text-align: center;
-  padding: 12px 0;
+  padding: 9px 0;
   text-decoration: none;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
-}
-
-.mininav span > a {
   color: #aaa;
   font-weight: 600;
 }
 
-.mininav a:hover, .mininav a:hover > span {
+.mininav a:hover {
   color: #fff;
   text-decoration: none;
 }
@@ -682,7 +673,7 @@ nav > .flex {
   margin-bottom: 8px;
   display: block;
   color: #8f8e8e;
-  font-size: 0.75em;
+  font-size: 0.8em;
 }
 
 .checkbox {
@@ -699,10 +690,10 @@ nav > .flex {
 input[type='text'], input[type='submit'], textarea, select, option {
   color: #e7e7e7;
   text-decoration: none;
-  border: 1px solid #323235;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 8px 15px;
   border-radius: 4px;
-  background-color: rgba(55,55,55,0.2);
+  background-color: rgba(55,55,55,0.1);
   outline: none;
   font-size: 0.9em;
   margin-bottom: 8px;
@@ -718,6 +709,11 @@ input[type="submit"]:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
+footer > div:nth-child(1) > a > i {
+  font-size: 0.96em;
+  margin-right: 0.25em;
+}
+
 footer > div:nth-child(1) > a {
   color: #8f8e8e;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
@@ -731,7 +727,6 @@ footer > div:nth-child(1) > a:hover {
 
 footer > div:nth-child(2) {
   display: flex;
-  gap: 12px;
 }
 
 footer > div:nth-child(2) > a {
@@ -751,8 +746,6 @@ footer > div:nth-child(2) > a:hover {
   display: flex;
   margin-top: 16px;
   margin-bottom: 16px;
-  flex-direction: row;
-  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -763,19 +756,25 @@ footer > div:nth-child(2) > a:hover {
   font-weight: 600;
 }
 
+.btn {
+  width: 100%;
+}
+
 .btn > a > span > i, .btn > button > span > i {
-  font-size: 1.5em;
+  font-size: 1.75em;
 }
 
 .btn a, .btn button {
   font-size: 0.9em;
   color: #cccccc;
   text-decoration: none;
-  border: 1px solid #323235;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 8px 10px 6px 10px;
   display: inline-block;
   border-radius: 4px;
   min-width: 90px;
+  background-color: rgba(55,55,55,0.1);
+  width: 100%;
 }
 
 .btn a:hover, .btn button:hover {
@@ -785,14 +784,14 @@ footer > div:nth-child(2) > a:hover {
 .btn > button {
   font-size: 0.9em;
   text-decoration: none;
-  border: 1px solid #323235;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 8px 15px;
   display: inline-block;
   border-radius: 4px;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
   font-weight: 500;
-  background: rgba(55,55,55,0.2);
+  background: rgba(55,55,55,0.1);
   cursor: pointer;
   outline: none;
 }
@@ -909,7 +908,7 @@ a.white {
   color: rgba(255, 255, 255, 0.81);
 }
 
-.fa-copy:hover, a:hover.white {
+a.white:hover {
   color: #fff;
 }
 
@@ -928,12 +927,12 @@ a.white {
 .downloads a {
   text-decoration: none;
   color: inherit;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dl {
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 2rem;
+  background-color: rgba(55,55,55,0.1);
+  padding: 1.5rem;
   border-radius: 4px;
   text-align: center;
   display: block;
@@ -950,7 +949,7 @@ a.white {
   margin: 0;
 }
 .dl > span {
-  font-size: 0.9em;
+  font-size: .8em;
   font-style: italic;
 }
 .dl > img {
