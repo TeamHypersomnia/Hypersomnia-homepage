@@ -1,73 +1,57 @@
 <%- include('overall_header'); %>
 
-<h2>Ranked Servers</h2>
-<div class="table-responsive">
-  <table class="sortable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Players</th>
-        <th>Arena</th>
-        <th>Game Mode</th>
-        <th class="no-sort">Play on Steam</th>
-        <th class="no-sort">Play in Browser</th>
-      </tr>
-    </thead>
-    <tbody>
-    <% Object.values(ranked_servers).forEach(v => { %>
-      <tr>
-        <td class="svname" data-sort="<%= v.name %>">
-          <% if (v.is_ranked == true) { %>
-            <span class="ranked">RANKED</span>
-          <% } else { %>
-            <span class="casual">CASUAL</span>
-          <% } %>
-          <a class="white" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a>
-        </td>
-        <td class="<%= v.num_online === 0 ? 'zeroplayers' : '' %>" data-sort="<%= v.num_online %>"><%= v.num_online %>/<%= v.slots %></td>
-        <td><%= v.arena %></td>
-        <td><%= v.game_mode %></td>
-        <td><a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam mr"></i>Play on Steam</a></td>
-        <td><a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket mr"></i>Play in Browser</a></td>
-      </tr>
-    <% }); %>
-    </tbody>
-  </table>
+<h1>Servers</h1>
+
+<div class="server-list">
+  <% Object.values(ranked_servers).forEach(v=> { %>
+  <div class="server-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
+    <div class="server-header">
+      <a href="/servers/<%= v.site_displayed_address %>" class="server-link">
+        <h2 class="server-heading"><span class="ranked">RANKED</span> <%= v.name %></h2>
+      </a>
+    </div>
+    <div class="server-info">
+      <div class="server-details">
+        <span class="server-game-mode">Players <strong><%= v.num_online %>/<%= v.slots %></strong></span>
+        <div class="server-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div>
+      </div>
+      <div class="server-details">
+        <span class="server-game-mode"><%= v.arena %></span>
+        <div class="server-players"><%= v.game_mode %></div>
+      </div>
+      <div class="server-actions">
+        <a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam mr"></i>Connect via Steam</a>
+        <a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket mr"></i>Play in Browser</a>
+      </div>
+    </div>
+  </div>
+  <% }); %>
 </div>
 
-<h2>Casual Servers</h2>
-<div class="table-responsive">
-  <table class="sortable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Players</th>
-        <th>Arena</th>
-        <th>Game Mode</th>
-        <th class="no-sort">Play on Steam</th>
-        <th class="no-sort">Play in Browser</th>
-      </tr>
-    </thead>
-    <tbody>
-    <% Object.values(casual_servers).forEach(v => { %>
-      <tr>
-        <td class="svname" data-sort="<%= v.name %>">
-          <% if (v.is_ranked == true) { %>
-            <span class="ranked">RANKED</span>
-          <% } else { %>
-            <span class="casual">CASUAL</span>
-          <% } %>
-          <a class="white" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a>
-        </td>
-        <td class="<%= v.num_online === 0 ? 'zeroplayers' : '' %>" data-sort="<%= v.num_online %>"><%= v.num_online %>/<%= v.slots %></td>
-        <td><%= v.arena %></td>
-        <td><%= v.game_mode %></td>
-        <td><a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam mr"></i>Play on Steam</a></td>
-        <td><a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket mr"></i>Play in Browser</a></td>
-      </tr>
-    <% }); %>
-    </tbody>
-  </table>
+<div class="server-list">
+  <% Object.values(casual_servers).forEach(v=> { %>
+  <div class="server-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
+    <div class="server-header">
+      <a href="/servers/<%= v.site_displayed_address %>" class="server-link">
+        <h2 class="server-heading"><span class="casual">CASUAL</span> <%= v.name %></h2>
+      </a>
+    </div>
+    <div class="server-info">
+      <div class="server-details">
+        <span class="server-game-mode">Players <strong><%= v.num_online %>/<%= v.slots %></strong></span>
+        <div class="server-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div>
+      </div>
+      <div class="server-details">
+        <span class="server-game-mode"><%= v.arena %></span>
+        <div class="server-players"><%= v.game_mode %></div>
+      </div>
+      <div class="server-actions">
+        <a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam mr"></i>Connect via Steam</a>
+        <a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket mr"></i>Play in Browser</a>
+      </div>
+    </div>
+  </div>
+  <% }); %>
 </div>
 
 <%- include('overall_footer'); %>
