@@ -1,12 +1,13 @@
 <%- include('overall_header'); %>
 
+<div class="mt-2 btn-group">
+  <div class="btn"><a href="/arenas/<%= prev %>"><span><i class="fa-solid fa-arrow-left"></i></span><span>Previous</span></a></div>
+  <div class="btn"><a href="/arenas/<%= next %>"><span><i class="fa-solid fa-arrow-right"></i></span><span>Next</span></a></div>
+</div>
+
 <h1><%= arena.name %></h1>
 <div class="arena">
   <div class="details">
-    <div class="btn-group">
-      <div class="btn"><a href="/arenas/<%= prev %>"><span><i class="fa-solid fa-arrow-left"></i></span><span>Previous</span></a></div>
-      <div class="btn"><a href="/arenas/<%= next %>"><span><i class="fa-solid fa-arrow-right"></i></span><span>Next</span></a></div>
-    </div>
     <dl>
       <dt>Short description</dt>
       <dd><%= arena.short_description %></dd>

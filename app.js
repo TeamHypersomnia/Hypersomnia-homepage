@@ -145,7 +145,7 @@ app.locals.online_servers = 0;
 try {
   const content = fs.readFileSync(`./private/settings.json`, 'utf8');
   const obj = JSON.parse(content);
-  app.locals.version = 1743346133;
+  app.locals.version = 1743356127;
   app.locals.alert = obj.alert ? obj.alert : '';
 } catch (error) {
   console.error(error.message);

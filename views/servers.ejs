@@ -1,13 +1,12 @@
 <%- include('overall_header'); %>
 
-<h1>Servers</h1>
-
+<h2>Ranked Servers</h2>
 <div class="server-list">
   <% Object.values(ranked_servers).forEach(v=> { %>
   <div class="server-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
     <div class="server-header">
       <a href="/servers/<%= v.site_displayed_address %>" class="server-link">
-        <h2 class="server-heading"><span class="ranked">RANKED</span> <%= v.name %></h2>
+        <i class="server-heading"><%= v.name %></i>
       </a>
     </div>
     <div class="server-info">
@@ -28,12 +27,13 @@
   <% }); %>
 </div>
 
+<h2>Casual Servers</h2>
 <div class="server-list">
   <% Object.values(casual_servers).forEach(v=> { %>
   <div class="server-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
     <div class="server-header">
       <a href="/servers/<%= v.site_displayed_address %>" class="server-link">
-        <h2 class="server-heading"><span class="casual">CASUAL</span> <%= v.name %></h2>
+        <i class="server-heading"><%= v.name %></i>
       </a>
     </div>
     <div class="server-info">
