@@ -20,14 +20,14 @@ body {
 h1, h2 {
   padding: 0;
   font-weight: 700;
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
   color: #ddd;
 }
 
 p, li {
   line-height: 1.5;
-  font-size: 0.95em;
+  font-size: 0.96em;
   margin-top: 0;
 }
 
@@ -51,10 +51,7 @@ a:hover {
 }
 
 code {
-  font-size: 0.9em;
-  color: rgb(125, 221, 149);
   word-wrap: break-word;
-  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 article > div > div:nth-child(1) > img {
@@ -177,8 +174,8 @@ dt {
 }
 
 dd {
-  margin: 5px 0 15px 0;
-  line-height: 20px;
+  margin: 0 0 15px 0;
+  line-height: 1.5;
 }
 
 /* Desktop */
@@ -217,6 +214,7 @@ dd {
 
   footer {
     border-top: 1px solid rgba(143, 142, 142, 0.35);
+    font-size: 0.9em;
   }
 
   .panel {
@@ -310,7 +308,7 @@ dd {
   footer {
     width: 100%;
     padding: 1.5em 0;
-    margin: 2.5em 0;
+    margin: 3em 0;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -328,8 +326,13 @@ dd {
     background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgb(0, 8, 5) 300px), url('/assets/images/2660970.jpg');
 
   }
+
   .server-row-card {
     width: 100%;
+  }
+
+  .server-actions {
+    display: none !important;
   }
 
   .dl {
@@ -340,13 +343,13 @@ dd {
     height: 32px;
     width: auto;
   }
-
-  small, code {
-    font-size: 0.8em;
-  }
   
-  p, dd, dt {
-    font-size: 0.95em;
+  p {
+    font-size: 0.9em;
+  }
+
+  dd, dt {
+    font-size: 0.8em;
   }
 
   h1, h2 {
@@ -394,7 +397,6 @@ dd {
   nav > .flex {
     height: auto;
     justify-content: center;
-    padding: 0.5rem;
   }
 
   .flex > a {
@@ -444,7 +446,7 @@ dd {
 
   footer {
     box-sizing: border-box;
-    margin: 30px 0;
+    margin: 5em 0;
     padding: 0 1.5em;
     justify-content: space-between;
     width: 100%;
@@ -452,6 +454,7 @@ dd {
     grid-template-columns: 1fr 1fr;
     gap: 1em;
     align-items: center;
+    font-size: 0.9em;
   }
 }
 
@@ -518,6 +521,14 @@ td, tr {
   cursor: pointer;
   vertical-align: baseline;
   white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.sortable th:hover {
+  color: #fff;
 }
 
 .sortable th:hover::after {
@@ -698,6 +709,7 @@ footer > a {
   color: #8f8e8e;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
+  font-weight: 600;
 }
 
 footer > a:hover {
@@ -714,23 +726,12 @@ footer > a:hover {
   flex-wrap: wrap;
 }
 
-.btn > a > span, .btn > button > span {
-  display: block;
-  text-align: center;
-  font-size: 0.9em;
-  font-weight: 600;
-}
-
 .btn {
   flex: 1 0 10%;
-}
-
-.btn > a > span > i, .btn > button > span > i {
-  font-size: 1.75em;
+  font-size: 0.9em;
 }
 
 .btn a, .btn button {
-  font-size: 0.9em;
   color: #cccccc;
   text-decoration: none;
   display: inline-block;
@@ -740,14 +741,18 @@ footer > a:hover {
   padding: 0.75em;
   background: linear-gradient(135deg, rgba(0, 51, 60, 0.6) 0%, rgba(0, 49, 58, 0.9) 100%);
   border: 1px solid rgb(0, 49, 58);
+  text-align: center;
+  display: flex;
+  gap: 0.25em;
+  justify-content: center;
 }
 
 .btn a:hover, .btn button:hover {
+  color: #ddd;
   border-color: rgba(255, 255, 255, 0.2);
 }
 
 .btn > button {
-  font-size: 0.9em;
   text-decoration: none;
   display: inline-block;
   border-radius: 4px;
@@ -762,12 +767,11 @@ footer > a:hover {
 }
 
 .btn > button:hover {
-  color: #fff;
+  color: #ddd;
 }
 
 .btn > a.active, .btn > button.active {
   color: #fff;
-  font-weight: 700;
 }
 
 .btn > button > span {
@@ -806,15 +810,11 @@ input:-webkit-autofill:active{
 }
 
 .alert {
-  margin: 1.5em 0;
-  font-size: 0.85em;
   color: #b8dc89;
-  background: linear-gradient(60deg, #395021 5%,#283e18 95%);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-  line-height: 20px;
-  padding: 1rem 1em;
-  border: 1px solid transparent;
-  border-radius: 0.25em;
+  background: linear-gradient(61.2deg, #395021 5%,#283e18 95%);
+  line-height: 1.5;
+  padding: 1em;
+  font-size: 0.95em;
 }
 
 .alert > a {
@@ -853,7 +853,7 @@ input:-webkit-autofill:active{
 
 .zeroplayers {
   color: #a7a7a7 !important;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .ranked {
@@ -917,7 +917,7 @@ a.white:hover {
   color: rgb(224, 227, 231);
   margin: 0;
 }
-.dl > span {
+.dl > span, .dl > code {
   font-size: .8em;
   font-style: italic;
 }
@@ -962,7 +962,12 @@ a.white:hover {
 .server-heading {
   font-size: 0.95em;
   margin: 0;
-  color: rgba(255, 255, 255, 0.81);
+  color: #ddd;
+  display: block;
+}
+
+.server-heading:hover {
+  color: #fff;
 }
 
 .server-info {

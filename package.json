@@ -15,7 +15,6 @@
     "openskill": "*",
     "passport": "*",
     "passport-steam": "*",
-    "sqlite3": "*",
-    "ua-parser-js": "*"
+    "sqlite3": "*"
   }
 }

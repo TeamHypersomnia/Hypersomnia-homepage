@@ -9,7 +9,6 @@ const minifyHTML = require('express-minify-html-2');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
-const UAParser = require('ua-parser-js');
 const servers = require('./src/servers');
 
 const github = 'https://github.com/TeamHypersomnia';
@@ -141,11 +140,10 @@ app.use(minifyHTML({
 const ts = Math.floor(Date.now() / 1000);
 app.locals.version = ts;
 app.locals.alert = '';
-app.locals.online_servers = 0;
 try {
   const content = fs.readFileSync(`./private/settings.json`, 'utf8');
   const obj = JSON.parse(content);
-  app.locals.version = 1743521902;
+  app.locals.version = 1743526820;
   app.locals.alert = obj.alert ? obj.alert : '';
 } catch (error) {
   console.error(error.message);
@@ -176,34 +174,9 @@ app.use((req, res, next) => {
   if (visitors.hasOwnProperty(ip)) {
     visitors[ip].lastSeen = ts;
   } else {
-    const parser = new UAParser();
-    const userAgent = req.headers['user-agent'];
-    const result = parser.setUA(userAgent).getResult();
-    const referer = req.get('Referer');
-    let origin = '';
-    if (referer) {
-      try {
-        const url = new URL(referer);
-        origin = url.origin;
-      } catch (error) {
-        console.error(error.message);
-      }
-    }
-    visitors[ip] = {
-      lastSeen: ts,
-      ip: ip,
-      os: result.os,
-      browser: result.browser,
-      referer: origin
-    };
-  }
-  const fiveMinutesAgo = ts - (5 * 60);
-  let count = 0;
-  for (const visitorId in visitors) {
-    const lastSeen = visitors[visitorId].lastSeen;
-    if (lastSeen >= fiveMinutesAgo && lastSeen <= ts) {
-      count++;
-    }
+    const userAgent = req.headers['user-agent'] ?? '';
+    const referer = req.headers['referer'] ?? '';
+    visitors[ip] = { lastSeen: ts, ip, userAgent, referer };
   }
   next();
 });
