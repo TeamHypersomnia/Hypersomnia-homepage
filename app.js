@@ -143,7 +143,7 @@ app.locals.alert = '';
 try {
   const content = fs.readFileSync(`./private/settings.json`, 'utf8');
   const obj = JSON.parse(content);
-  app.locals.version = 1743526820;
+  app.locals.version = 1743530792;
   app.locals.alert = obj.alert ? obj.alert : '';
 } catch (error) {
   console.error(error.message);
@@ -175,8 +175,7 @@ app.use((req, res, next) => {
     visitors[ip].lastSeen = ts;
   } else {
     const userAgent = req.headers['user-agent'] ?? '';
-    const referer = req.headers['referer'] ?? '';
-    visitors[ip] = { lastSeen: ts, ip, userAgent, referer };
+    visitors[ip] = { lastSeen: ts, ip, userAgent };
   }
   next();
 });

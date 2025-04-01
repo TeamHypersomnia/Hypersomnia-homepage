@@ -21,7 +21,7 @@ h1, h2 {
   padding: 0;
   font-weight: 700;
   margin-top: 2em;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.75em;
   color: #ddd;
 }
 
@@ -91,7 +91,7 @@ small {
 }
 
 strong, th, td:nth-child(1), label, dt, b {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .center {
@@ -119,8 +119,7 @@ strong, th, td:nth-child(1), label, dt, b {
 }
 
 .avatar {
-  margin-top: 15px;
-  border-radius: 50%;
+  border-radius: 4px;
 }
 
 .arenas > a {
@@ -140,9 +139,8 @@ strong, th, td:nth-child(1), label, dt, b {
 
 .arena_name {
   display: block;
-  font-size: 0.9em;
-  margin-top: 2px;
-  color: #ddd;
+  margin-top: 0.5em;
+  color: #bbb;
   font-weight: 500;
 }
 
@@ -181,8 +179,17 @@ dd {
 /* Desktop */
 @media screen and (min-width: 1100px) {
   .server-row-card {
-    width: calc(50% - 0.5em);
+    width: calc(33% - 0.5em);
   }
+
+  .arena_name {
+    font-size: 0.9em;
+  }
+
+  .arena_author {
+    font-size: 0.85em;
+  }
+
   .dl {
     padding: 1.25em;
   }
@@ -268,7 +275,7 @@ dd {
   }
 
   th, td {
-    font-size: 0.9em;
+    font-size: 0.85em;
   }
 
   .container {
@@ -324,7 +331,14 @@ dd {
     background-size: 150% auto;
     background-position: top center;
     background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgb(0, 8, 5) 300px), url('/assets/images/2660970.jpg');
+  }
 
+  .arena_name {
+    font-size: 0.85em;
+  }
+
+  .arena_author {
+    font-size: 0.8em;
   }
 
   .server-row-card {
@@ -474,7 +488,7 @@ tr:nth-child(even) {
 
 th, td {
   padding: 8px;
-  white-space: nowrap;
+  white-space: wrap;
 }
 
 .maxwidth > tbody > tr > td {
@@ -682,14 +696,21 @@ nav > .flex {
 input[type='text'], input[type='submit'], textarea, select, option {
   color: #e7e7e7;
   text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 15px;
+  border: 1px solid rgb(0, 49, 58);
+  padding: 0.75em;
   border-radius: 4px;
-  background-color: rgba(55,55,55,0.1);
   outline: none;
-  font-size: 0.9em;
+  font-size: 0.85em;
   margin-bottom: 8px;
   width: 100%;
+}
+
+input[type='text'], textarea, select, option {
+  background-color: rgb(0, 14, 13);
+}
+
+input[type='submit'] {
+  background: linear-gradient(135deg, rgba(0, 51, 60, 0.6) 0%, rgba(0, 49, 58, 0.9) 100%);
 }
 
 input[type="submit"] {
@@ -698,7 +719,7 @@ input[type="submit"] {
 }
 
 input[type="submit"]:hover {
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 footer > a > i {
@@ -728,7 +749,7 @@ footer > a:hover {
 
 .btn {
   flex: 1 0 10%;
-  font-size: 0.9em;
+  font-size: 0.85em;
 }
 
 .btn a, .btn button {
@@ -745,6 +766,7 @@ footer > a:hover {
   display: flex;
   gap: 0.25em;
   justify-content: center;
+  font-size: inherit;
 }
 
 .btn a:hover, .btn button:hover {
@@ -764,6 +786,7 @@ footer > a:hover {
   padding: 0.75em;
   background: linear-gradient(135deg, rgba(0, 51, 60, 0.6) 0%, rgba(0, 49, 58, 0.9) 100%);
   border: 1px solid rgb(0, 49, 58);
+  font-size: inherit;
 }
 
 .btn > button:hover {
@@ -844,7 +867,14 @@ input:-webkit-autofill:active{
   margin: 0 auto;
   text-align: center;
   background-color: rgba(0, 8, 0, 0.2);
-  padding: 0.75rem 1em;
+}
+
+.logo-center > a {
+  display: block;
+  padding-top: 1.5em;
+  padding-bottom: 1em;
+  padding-left: 1em;
+  padding-right: 1em;
 }
 
 .casual {
@@ -853,7 +883,7 @@ input:-webkit-autofill:active{
 
 .zeroplayers {
   color: #a7a7a7 !important;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .ranked {
@@ -980,7 +1010,7 @@ a.white:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.9em;
+  font-size: 0.85em;
 }
 
 .server-player-count {
@@ -988,7 +1018,7 @@ a.white:hover {
 }
 
 .server-actions {
-  font-size: 0.9em;
+  font-size: 0.85em;
   gap: 1rem;
   display: flex;
   justify-content: space-between;

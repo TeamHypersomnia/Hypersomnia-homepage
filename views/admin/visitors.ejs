@@ -5,10 +5,9 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th width="25%">IP Address</th>
-        <th width="25%">Last Seen</th>
-        <th width="25%">User Agent</th>
-        <th width="25%">HTTP referer</th>
+        <th>IP Address</th>
+        <th>Last Seen</th>
+        <th>User Agent</th>
       </tr>
     </thead>
     <tbody>
@@ -18,7 +17,6 @@
         <td><a href="https://db-ip.com/<%= v.ip %>" target="_blank"><%= v.ip %></a></td>
         <td data-sort="<%= v.lastSeen %>"><%= v.lastSeenAgo %></td>
         <td><%= v.userAgent %></td>
-        <td><%= v.referer %></td>
       </tr>
       <% }); %>
     </tbody>

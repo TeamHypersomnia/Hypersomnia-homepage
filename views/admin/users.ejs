@@ -5,24 +5,20 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th width="16%">Steam ID</th>
-        <th width="20%">Display name</th>
-        <th width="16%">IP address</th>
-        <th width="16%">Last login</th>
-        <th width="16%">Browser</th>
-        <th width="16%">Operating system</th>
+        <th>User</th>
+        <th>IP Address</th>
+        <th>Last Login</th>
+        <th>User Agent</th>
       </tr>
     </thead>
     <tbody>
       <% Object.keys(users).forEach((k) => { %>
       <% const v = users[k]; %>
       <tr>
-        <td><a href="https://steamcommunity.com/profiles/<%= k %>" target="_blank"><%= k %></a></td>
-        <td><%= v.name %></td>
+        <td><a href="https://steamcommunity.com/profiles/<%= k %>" target="_blank"><%= v.name %></a></td>
         <td><a href="https://db-ip.com/<%= v.ip %>" target="_blank"><%= v.ip %></a></td>
         <td data-sort="<%= v.lastLogin %>"><%= v.lastLoginAgo %></td>
-        <td><%= v.browser.name %> <%= v.browser.major %></td>
-        <td><%= v.os.name %> <%= v.os.version %></td>
+        <td><%= v.userAgent %></td>
       </tr>
       <% }); %>
     </tbody>
