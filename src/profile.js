@@ -27,11 +27,18 @@ router.get('/', async (req, res) => {
 
   const success = req.query.success === 'true';
 
+  let is_admin = false;
+  const admins = process.env.ADMINS.split(',');
+  if (admins.includes(req.user.id)) {
+    is_admin = true;
+  }
+
   res.render('profile', {
     page: 'Profile',
     user: req.user,
     discordData,
-    success
+    success,
+    is_admin
   });
 });
 

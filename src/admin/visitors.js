@@ -5,13 +5,15 @@ const moment = require('moment');
 module.exports = function(visitors) {
   router.get('/', (req, res) => {
     const updatedVisitors = Object.fromEntries(
-      Object.entries(visitors).map(([k, v]) => [
-        k,
-        {
-          ...v,
-          lastSeenAgo: moment(v.lastSeen * 1000).fromNow()
-        }
-      ])
+      Object.entries(visitors)
+        .slice(0, 100)
+        .map(([k, v]) => [
+          k,
+          {
+            ...v,
+            lastSeenAgo: moment(v.lastSeen * 1000).fromNow()
+          }
+        ])
     );
     res.render('admin/visitors', {
       page: 'Visitors',

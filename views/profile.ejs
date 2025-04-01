@@ -12,6 +12,29 @@
 
 <div class="box">
   <div>
+    <a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank">
+      <img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="64" height="64">
+    </a>
+    <h3>
+      <a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank">
+        <%= user.displayName %>
+      </a>
+    </h3>
+    <form method="POST" action="/logout">
+      <div class="btn-group">
+        <% if (admin == true) { %>
+        <div class="btn">
+          <a href="/admin"><span>Admin Panel</span></a>
+        </div>
+        <% } %>
+        <div class="btn">
+          <button type="submit" aria-label="Logout">Logout from website</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div>
     <dl>
       <% if (discordData) { %>
         <dt>
@@ -19,7 +42,7 @@
             <img class="avatar" 
                  src="https://cdn.discordapp.com/avatars/<%= discordData.id %>/<%= discordData.avatar %>.png" 
                  alt="Discord avatar" 
-                 width="128" height="128">
+                 width="64" height="64">
           </a>
           <h3>
             <a href="https://discord.com/users/<%= discordData.id %>" target="_blank">
@@ -61,24 +84,6 @@
         </dd>
       <% } %>
     </dl>
-  </div>
-  
-  <div>
-    <a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank">
-      <img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="128" height="128">
-    </a>
-    <h3>
-      <a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank">
-        <%= user.displayName %>
-      </a>
-    </h3>
-    <form method="POST" action="/logout">
-      <div class="btn-group">
-        <div class="btn">
-          <button type="submit" aria-label="Logout">Logout from website</button>
-        </div>
-      </div>
-    </form>
   </div>
 </div>
 
