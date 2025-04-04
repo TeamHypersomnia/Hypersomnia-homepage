@@ -16,10 +16,6 @@
           <td><%= sv.server_version %></td>
         </tr>
         <tr>
-          <td>Address</td>
-          <td><code><%= sv.ip %></code></td>
-        </tr>
-        <tr>
           <td>First appeared</td>
           <td><%= sv.time_hosted_ago %></td>
         </tr>
@@ -51,6 +47,16 @@
           <td>Score metropolis</td>
           <td><%= sv.score_metropolis %></td>
         </tr>
+        <tr>
+          <td>IP address</td>
+          <td><code><%= sv.ip %></code></td>
+        </tr>
+        <tr>
+          <td rowspan="2">Join server</td>
+          <td><a href="steam://run/2660970//<%= sv.site_displayed_address %>/"><i class="fa-brands fa-steam mr"></i>Connect via Steam</a></td>
+        </tr>
+        <tr>
+          <td><a href="https://hypersomnia.io/game/<%= sv.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket mr"></i>Play in Browser</a></td>
       </tbody>
     </table>
   </div>

@@ -12,7 +12,9 @@
     <div class="server-info">
       <div class="server-details">
         <span class="server-game-mode">Players <strong><%= v.num_online %>/<%= v.slots %></strong></span>
-        <div class="server-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div>
+        <% if (v.num_online > 0) { %>
+          <div class="server-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div>
+        <% } %>
       </div>
       <div class="server-details">
         <span class="server-game-mode"><%= v.arena %></span>
@@ -39,7 +41,9 @@
     <div class="server-info">
       <div class="server-details">
         <span class="server-game-mode">Players <strong><%= v.num_online %>/<%= v.slots %></strong></span>
-        <div class="server-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div>
+        <% if (v.num_online > 0) { %>
+          <div class="server-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div>
+        <% } %>
       </div>
       <div class="server-details">
         <span class="server-game-mode"><%= v.arena %></span>

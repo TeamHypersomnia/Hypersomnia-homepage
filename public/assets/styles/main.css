@@ -52,6 +52,9 @@ a:hover {
 
 code {
   word-wrap: break-word;
+  color: rgb(230, 133, 181);
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: .875em;
 }
 
 article > div > div:nth-child(1) > img {
@@ -962,9 +965,14 @@ a.white:hover {
   color: rgb(224, 227, 231);
   margin: 0;
 }
-.dl > span, .dl > code {
-  font-size: .8em;
-  font-style: italic;
+
+.dl > span {
+  font-size: .875em;
+}
+
+.dl > code {
+  font-size: .875em;
+  color: rgb(230, 133, 181);
 }
 .dl > img {
   margin-bottom: 0.25em;
@@ -995,13 +1003,14 @@ a.white:hover {
 }
 
 .server-row-card {
-  border-radius: 8px;
+  border-radius: .375em;
   padding: 1em;
   display: flex;
   flex-direction: column;
   gap: 0.5em;
   background: linear-gradient(135deg, rgba(0, 51, 60, 0.6) 0%, rgba(0, 49, 58, 0.9) 100%);
-  border: 1px solid rgb(0, 86, 102);
+  border: 1px solid #00A68E;
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
 }
 
 .server-heading {
