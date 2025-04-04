@@ -18,7 +18,7 @@
       <% matches.forEach(i => { %>
         <tr>
           <td><%= i.match_id %></td>
-          <td><%= i.arena %></td>
+          <td><a href="/arena/<%= i.arena %>/"><%= i.arena %></a></td>
           <td>
             <% i.winners.forEach(player => { %>
               <%- formatMMRDelta(player.mmr_delta, true) %>
@@ -29,9 +29,9 @@
             <% }); %>
           </td>
           <% if (i.is_ffa) { %>
-            <td><i>FFA</i></td>
+            <td><b>FFA</b></td>
             <% } else { %>
-            <td><%= i.win_score %>:<%= i.lose_score %></td>
+            <td><b><%= i.win_score %>:<%= i.lose_score %></b></td>
             <% } %>
           <td>
             <% i.losers.forEach(player => { %>

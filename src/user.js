@@ -84,49 +84,61 @@ router.get('/:user', function (req, res) {
 
     
     const stmtMatches = db.prepare(`
-      SELECT match_id, match_end_date, winners, losers, lose_score, win_score, event_match_multiplier
+      SELECT *
       FROM matches 
-      WHERE losers LIKE ? AND game_mode = 'Bomb Defusal'
+      WHERE (winners LIKE ? OR losers LIKE ?)
       ORDER BY match_id DESC
     `);
-    const matches = stmtMatches.all(`%${userid}%`).map(match => {
+    
+    const matches = stmtMatches.all(`%${userid}%`, `%${userid}%`).map(match => {
+      const winnersArray = JSON.parse(match.winners);
       const losersArray = JSON.parse(match.losers);
+    
+      const winner = winnersArray.find(w => w.id === userid);
       const loser = losersArray.find(l => l.id === userid);
-
-      if (loser === undefined) {
-        return null;
-      }
-
-      const winnersArrayUnfiltered = JSON.parse(match.winners);
-      const winnersArray = winnersArrayUnfiltered.filter((winner) => (winner.contributed_as_enemy));
-
-      const winnerNicknames = winnersArray.map((winner, idx) => {
-        const delta = formatMMRDelta(winner.mmr_delta);
-        const escapedWinnerNickname = escapeHtml(winner.nickname);
-
-        const link = `<a href="/user/${winner.id}">${escapedWinnerNickname}</a> ${delta}`;
-        return link;
+    
+      const isWin = !!winner;
+      const playerData = isWin ? winner : loser;
+    
+      if (!playerData) return null;
+    
+      const opponentArray = isWin
+      ? losersArray
+      : winnersArray.filter(w => w.contributed_as_enemy);    
+    
+      const opponentLinks = opponentArray.map(opponent => {
+        const delta = formatMMRDelta(opponent.mmr_delta);
+        const escapedNickname = escapeHtml(opponent.nickname);
+        return `${delta} <a href="/user/${opponent.id}">${escapedNickname}</a>`;
       });
-
-      const formattedWinnerNicknames = winnerNicknames.length > 1 
-        ? winnerNicknames.slice(0, -1).join(', ') + ' and ' + winnerNicknames.slice(-1)
-        : winnerNicknames.join('');
-
-      // Assume loserDelta is also needed, using similar logic
-      const loserDelta = formatMMRDelta(loser.mmr_delta);
-      const prev_loser_mmr = (loser.new_mmr - loser.mmr_delta).toFixed(2);
-
+    
+      const formattedOpponentLinks = opponentLinks.join('<br>');
+    
+      const mmrDelta = formatMMRDelta(playerData.mmr_delta);
+      const prevMMR = (playerData.new_mmr - playerData.mmr_delta).toFixed(2);
+    
       let multPreffix = '';
-
       if (match.event_match_multiplier !== 1) {
-        multPreffix = `<b style="color: orange">(${match.event_match_multiplier}x)</b> `;
+        multPreffix = `<b style="color: orange">x${match.event_match_multiplier}</b> `;
       }
 
+      const mmr_change = `${mmrDelta}`;
+      const result = isWin ? `<b style="color:chartreuse;">${match.win_score}:${match.lose_score}</b>` : `<b style="color:#f85e73;">${match.win_score}:${match.lose_score}</b>`;
+    
       return {
-        prev_mmr: prev_loser_mmr,
-        new_mmr: loser.new_mmr,
+        match_id: match.match_id,
+        server_id: match.server_id,
+        game_mode: match.game_mode,
+        win_score: match.win_score,
+        lose_score: match.lose_score,
+        arena: match.arena,
+        prev_mmr: prevMMR,
+        new_mmr: (playerData.new_mmr).toFixed(2),
         time_ago: moment.utc(match.match_end_date).local().fromNow(),
-        description: `<b>${multPreffix}${severityToString(lose_severity(match.win_score, match.lose_score))} ${loserDelta}</b> by ${formattedWinnerNicknames}.`
+        mmr_change,
+        multPreffix,
+        result,
+        formattedOpponentLinks
       };
     }).filter(match => match !== null);
 

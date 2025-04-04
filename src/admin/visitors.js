@@ -6,6 +6,7 @@ module.exports = function(visitors) {
   router.get('/', (req, res) => {
     const updatedVisitors = Object.fromEntries(
       Object.entries(visitors)
+        .sort(([, a], [, b]) => b.lastSeen - a.lastSeen)
         .slice(0, 100)
         .map(([k, v]) => [
           k,
@@ -14,7 +15,7 @@ module.exports = function(visitors) {
             lastSeenAgo: moment(v.lastSeen * 1000).fromNow()
           }
         ])
-    );
+    );    
     res.render('admin/visitors', {
       page: 'Visitors',
       user: req.user,

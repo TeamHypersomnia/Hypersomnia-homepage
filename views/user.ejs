@@ -1,13 +1,19 @@
 <%- include('overall_header'); %>
 <h1><%= nickname %></h1>
+
 <div class="box">
   <div class="table-responsive">
     <table>
-      <thead><tr><th>Key</th><th>Value</th></tr></thead>
+      <thead>
+        <tr>
+          <th width="50%">Key</th>
+          <th width="50%">Value</th>
+        </tr>
+      </thead>
       <tbody>
         <tr>
-          <td style="min-width: 150px;">External profile</td>
-          <td style="min-width: 300px;">
+          <td>External profile</td>
+          <td>
             <a href="<%= profileUrl %>" target="_blank" style="display: flex; align-items: center;">
               <% if (platformName === 'CrazyGames') { %>
                 <img src="/assets/images/social_crazygames.png" alt="CrazyGames" style="width: 1.3em; height: 1.3em; margin-right: 0.3em;">
@@ -17,30 +23,47 @@
               <%= platformName %><span class="external-link-icon" aria-hidden="true"></span>
             </a>
         </tr>
-        <% if (associationType && associatedProfileUrl && associatedId) { %>
         <tr>
-          <td style="min-width: 150px;"><%= associationType %></td>
-          <td style="min-width: 300px;">
-            <a href="<%= associatedProfileUrl %>"><%= associatedId %></a>
+          <td>
+            <% if (associationType && associatedProfileUrl && associatedId) { %>
+              <%= associationType %>
+            <% } else { %>
+              Secondary account
+            <% } %>
           </td>
-        </tr>
-        <% } %>
-        <tr>
-          <td style="min-width: 150px;">Name</td>
-          <td style="min-width: 300px;"><%= nickname %></td>
+          <td>
+            <% if (associationType && associatedProfileUrl && associatedId) { %>
+              <a href="<%= associatedProfileUrl %>"><%= associatedId %></a>
+            <% } else { %>
+              N/A
+            <% } %>
+          </td>
         </tr>
         <tr>
           <td>MMR</td>
           <td>
-            <img class="rank" src="//cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@master/hypersomnia/content/gfx/necessary/<%= teamData.rankImg %>" alt="<%= teamData.rankName %>"><%= teamData.mmr.toFixed(6) %>
+            <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= teamData.rankImg %>" alt="<%= teamData.rankName %>"><abbr title="μ = <%= teamData.mu.toFixed(3) %> / σ = <%= teamData.sigma.toFixed(3) %>"><%= teamData.mmr.toFixed(6) %></abbr>
           </td>
         </tr>
         <tr>
           <td>MMR (FFA)</td>
           <td>
-            <img class="rank" src="//cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia@master/hypersomnia/content/gfx/necessary/<%= ffaData.rankImg %>" alt="<%= ffaData.rankName %>"><%= ffaData.mmr.toFixed(6) %>
+            <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= ffaData.rankImg %>" alt="<%= ffaData.rankName %>"><abbr title="μ = <%= ffaData.mu.toFixed(3) %> / σ = <%= ffaData.sigma.toFixed(3) %>"><%= ffaData.mmr.toFixed(6) %></abbr>
           </td>
         </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th width="50%">Key</th>
+          <th width="50%">Value</th>
+        </tr>
+      </thead>
+      <tbody>
         <tr>
           <td>Matches won</td>
           <td>
@@ -65,31 +88,45 @@
             <b><%= ffaData.matches_lost %></b> 
           </td>
         </tr>
-        <tr>
-          <td>Details</td>
-          <td>
-            <span style="font-family: monospace;">μ = <%= teamData.mu.toFixed(3) %><br>σ = <%= teamData.sigma.toFixed(3) %></span>
-            <span style="font-family: monospace;"><br>μ (ffa) = <%= ffaData.mu.toFixed(3) %><br>σ (ffa) = <%= ffaData.sigma.toFixed(3) %></span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="table-responsive">
-    <table>
-      <thead><tr><th>Time</th><th>MMR</th><th>Description</th></tr></thead>
-      <tbody>
-        <% matches.forEach(match => { %>
-          <tr>
-            <td style="min-width: 150px;"><%= match.time_ago %></td>
-            <td><%= match.prev_mmr %></td>
-            <td style="min-width: 200px; max-width: 400px; white-space: normal;"><%- match.description %></td>
-          </tr>
-        <% }); %>
       </tbody>
     </table>
   </div>
 </div>
+
+
+
+<div class="table-responsive">
+  <table class="sortable">
+    <thead>
+      <tr>
+        <th width="5%">ID</th>
+        <th width="20%">Arena</th>
+        <th width="20%">MMR change</th>
+        <th class="no-sort" width="10%">Score</th>
+        <th class="no-sort" width="25%">Opponents</th>
+        <th width="10%">Time ago</th>
+        <th width="10%">Server</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% matches.forEach(v => { %>
+        <tr>
+          <td><%= v.match_id %></td>
+          <td><a href="/arena/<%= v.arena %>/"><%= v.arena %></a></td>
+          <td><%- v.mmr_change %> <%= v.prev_mmr %>→<%= v.new_mmr %></td>
+          <% if (v.game_mode === 'FFA Gun Game') { %>
+            <td><b>FFA</b></td>
+          <% } else { %>
+            <td><%- v.result %></td>
+          <% } %>
+          <td><%- v.formattedOpponentLinks %></td>
+          <td><%= v.time_ago %></td>
+          <td><%= v.server_id %> <%- v.multPreffix %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
 
 <%- include('overall_footer'); %>

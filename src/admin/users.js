@@ -17,14 +17,16 @@ function loadUsers() {
 
 router.get('/', (req, res) => {
   const updatedUsers = Object.fromEntries(
-    Object.entries(loadUsers()).map(([k, v]) => [
-      k,
-      {
-        ...v,
-        lastLoginAgo: moment(v.lastLogin * 1000).fromNow()
-      }
-    ])
-  );
+    Object.entries(loadUsers())
+      .sort(([, a], [, b]) => b.lastLogin - a.lastLogin)
+      .map(([k, v]) => [
+        k,
+        {
+          ...v,
+          lastLoginAgo: moment(v.lastLogin * 1000).fromNow()
+        }
+      ])
+  );  
   res.render('admin/users', {
     page: 'Users',
     user: req.user,
