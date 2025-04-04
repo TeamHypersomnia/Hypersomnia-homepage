@@ -26,7 +26,8 @@ router.get('/', (req, res) => {
     usedmem: os.totalmem() - os.freemem(),
     totalmem: os.totalmem(),
     node: process.version,
-    appuptime: formatUptime(process.uptime())
+    appuptime: formatUptime(process.uptime()),
+    memoryUsage: process.memoryUsage()
   });
 });
 

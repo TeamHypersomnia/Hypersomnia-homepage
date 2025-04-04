@@ -34,7 +34,7 @@
           </tr>
           <tr>
             <td>RAM usage</td>
-            <td><%= Math.floor(usedmem / (1024 * 1024)) %>/<%= Math.floor(totalmem / (1024 * 1024)) %> MB</td>
+            <td><%= Math.floor(usedmem / (1024 * 1024)) %> / <%= Math.floor(totalmem / (1024 * 1024)) %> MB</td>
           </tr>
         </tbody>
       </table>
@@ -58,6 +58,22 @@
             <td>Node.js uptime</td>
             <td><%= appuptime %></td>
           </tr>
+          <tr>
+            <td>RSS</td>
+            <td><%= (memoryUsage.rss / (1024 * 1024)).toFixed(2) %> MB</td>
+          </tr>
+          <tr>
+            <td>Heap Total</td>
+            <td><%= (memoryUsage.heapTotal / (1024 * 1024)).toFixed(2) %> MB</td>
+          </tr>
+          <tr>
+            <td>Heap Used</td>
+            <td><%= (memoryUsage.heapUsed / (1024 * 1024)).toFixed(2) %> MB</td>
+          </tr>
+          <tr>
+            <td>External</td>
+            <td><%= (memoryUsage.external / (1024 * 1024)).toFixed(2) %> MB</td>
+          </tr>          
         </tbody>
       </table>
     </div>
