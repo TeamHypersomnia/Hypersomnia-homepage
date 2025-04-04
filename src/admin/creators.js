@@ -42,6 +42,9 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
+  if (!req.body.shorthand || req.body.shorthand.trim() === '') {
+    return res.redirect('/admin/creators')
+  }
   const obj = loadCreators();
   obj[randomString(50)] = {
     shorthand: req.body.shorthand,

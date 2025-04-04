@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const sqlite3 = require('sqlite3');
+const Database = require('better-sqlite3');
 const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
@@ -10,75 +10,56 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const servers = require('./src/servers');
-
-const github = 'https://github.com/TeamHypersomnia';
-const pressKit = `${github}/PressKit/blob/main/README.md#intro`;
-const credits = `https://teamhypersomnia.github.io/PressKit/credits`;
-const steam = `https://store.steampowered.com/app/2660970/Hypersomnia/`;
-const discord = `https://discord.com/invite/YC49E4G`;
-const browser = `https://hypersomnia.io`;
 const app = express();
-const port = 3000;
 const visitors = {};
 
-const dbPath = process.env.DB_PATH;
-
-// Check if the database file exists, if not, initialize it
-if (!fs.existsSync(dbPath)) {
-  const db = new sqlite3.Database(dbPath);
-
-  // Create the players table if it doesn't exist
-  db.serialize(() => {
-    db.run(`
-      CREATE TABLE IF NOT EXISTS mmr_team (
-        account_id TEXT UNIQUE,
-        nickname TEXT,
-        mmr FLOAT DEFAULT 0,
-        mu FLOAT DEFAULT 0,
-        sigma FLOAT DEFAULT 0,
-        matches_won INTEGER DEFAULT 0,
-        matches_lost INTEGER DEFAULT 0
-      )
-    `);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS mmr_ffa (
-        account_id TEXT UNIQUE,
-        nickname TEXT,
-        mmr FLOAT DEFAULT 0,
-        mu FLOAT DEFAULT 0,
-        sigma FLOAT DEFAULT 0,
-        matches_won INTEGER DEFAULT 0,
-        matches_lost INTEGER DEFAULT 0
-      )
-    `);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS matches (
-        match_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        server_name TEXT,
-        server_id TEXT,
-        arena TEXT,
-        game_mode TEXT,
-        winners TEXT,
-        losers TEXT,
-        win_score INTEGER,
-        lose_score INTEGER,
-        event_match_multiplier FLOAT DEFAULT 1,
-        match_start_date TIMESTAMP,
-        match_end_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS associations (
-        child_id TEXT UNIQUE,
-        parent_id TEXT UNIQUE
-      )
-    `);
-  });
-
-  // Close the database connection
+if (!fs.existsSync(process.env.DB_PATH)) {
+  console.log('Database does not exist, creating a new one...');
+  const db = new Database(process.env.DB_PATH);
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS mmr_team (
+      account_id TEXT UNIQUE,
+      nickname TEXT,
+      mmr FLOAT DEFAULT 0,
+      mu FLOAT DEFAULT 0,
+      sigma FLOAT DEFAULT 0,
+      matches_won INTEGER DEFAULT 0,
+      matches_lost INTEGER DEFAULT 0
+    )
+  `).run();
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS mmr_ffa (
+      account_id TEXT UNIQUE,
+      nickname TEXT,
+      mmr FLOAT DEFAULT 0,
+      mu FLOAT DEFAULT 0,
+      sigma FLOAT DEFAULT 0,
+      matches_won INTEGER DEFAULT 0,
+      matches_lost INTEGER DEFAULT 0
+    )
+  `).run();
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS matches (
+      match_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      server_name TEXT,
+      server_id TEXT,
+      arena TEXT,
+      game_mode TEXT,
+      winners TEXT,
+      losers TEXT,
+      win_score INTEGER,
+      lose_score INTEGER,
+      event_match_multiplier FLOAT DEFAULT 1,
+      match_start_date TIMESTAMP,
+      match_end_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `).run();
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS associations (
+      child_id TEXT UNIQUE,
+      parent_id TEXT UNIQUE
+    )
+  `).run();
   db.close();
 }
 
@@ -143,7 +124,7 @@ app.locals.alert = '';
 try {
   const content = fs.readFileSync(`./private/settings.json`, 'utf8');
   const obj = JSON.parse(content);
-  app.locals.version = 1743530792;
+  app.locals.version = 1743790092;
   app.locals.alert = obj.alert ? obj.alert : '';
 } catch (error) {
   console.error(error.message);
@@ -196,11 +177,11 @@ app.use('/logout', require('./src/logout'));
 app.use('/auth', require('./src/auth')(passport));
 app.use('/disclaimer', require('./src/disclaimer'));
 app.use('/cookie-policy', require('./src/cookie_policy'));
-app.get('/press', (req, res) => res.redirect(pressKit));
-app.get('/credits', (req, res) => res.redirect(credits));
-app.get('/steam', (req, res) => res.redirect(steam));
-app.get('/discord', (req, res) => res.redirect(discord));
-app.get('/browser', (req, res) => res.redirect(browser));
+app.get('/press', (req, res) => res.redirect('https://github.com/TeamHypersomnia/PressKit/blob/main/README.md#intro'));
+app.get('/credits', (req, res) => res.redirect('https://teamhypersomnia.github.io/PressKit/credits'));
+app.get('/steam', (req, res) => res.redirect('https://store.steampowered.com/app/2660970/Hypersomnia/'));
+app.get('/discord', (req, res) => res.redirect('https://discord.com/invite/YC49E4G'));
+app.get('/browser', (req, res) => res.redirect('https://hypersomnia.io'));
 app.use('/upload', require('./src/upload'));
 app.use('/report_match', require('./src/report_match'));
 app.use('/revert_match', require('./src/revert_match'));
@@ -221,6 +202,6 @@ app.use((req, res) => res.status(404).render('404', {
 }));
 
 // Start
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
+const server = app.listen(process.env.PORT || 3000, () => {
+  console.log(`App listening on port ${server.address().port}`);
 });
