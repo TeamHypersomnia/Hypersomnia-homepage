@@ -12,6 +12,10 @@
       </thead>
       <tbody>
         <tr>
+          <td>IP address</td>
+          <td><code><%= sv.ip %></code></td>
+        </tr>
+        <tr>
           <td>Version</td>
           <td><%= sv.server_version %></td>
         </tr>
@@ -25,7 +29,7 @@
         </tr>
         <tr>
           <td>Arena</td>
-          <td><%= sv.arena %></td>
+          <td><a href="/arenas/<%= sv.arena %>/"><%= sv.arena %></a></td>
         </tr>
         <tr>
           <td>Game mode</td>
@@ -46,10 +50,6 @@
         <tr>
           <td>Score metropolis</td>
           <td><%= sv.score_metropolis %></td>
-        </tr>
-        <tr>
-          <td>IP address</td>
-          <td><code><%= sv.ip %></code></td>
         </tr>
         <tr>
           <td rowspan="2">Join server</td>

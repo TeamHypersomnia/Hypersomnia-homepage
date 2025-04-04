@@ -112,7 +112,7 @@
       <% matches.forEach(v => { %>
         <tr>
           <td><%= v.match_id %></td>
-          <td><a href="/arena/<%= v.arena %>/"><%= v.arena %></a></td>
+          <td><a href="/arenas/<%= v.arena %>/"><%= v.arena %></a></td>
           <td><%- v.mmr_change %> <%= v.prev_mmr %>→<%= v.new_mmr %></td>
           <% if (v.game_mode === 'FFA Gun Game') { %>
             <td><b>FFA</b></td>

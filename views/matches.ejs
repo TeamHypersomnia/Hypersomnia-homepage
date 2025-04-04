@@ -18,7 +18,7 @@
       <% matches.forEach(i => { %>
         <tr>
           <td><%= i.match_id %></td>
-          <td><a href="/arena/<%= i.arena %>/"><%= i.arena %></a></td>
+          <td><a href="/arenas/<%= i.arena %>/"><%= i.arena %></a></td>
           <td>
             <% i.winners.forEach(player => { %>
               <%- formatMMRDelta(player.mmr_delta, true) %>
