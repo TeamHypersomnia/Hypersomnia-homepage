@@ -2,21 +2,20 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const ranks = require('./ranks_info');
 const router = express.Router();
-const dbPath = process.env.DB_PATH;
 
 router.get('/', (req, res) => {
   try {
-    const db = new Database(dbPath);
-    const rows_team = db.prepare('SELECT * FROM mmr_team').all();
-    const rows_ffa = db.prepare('SELECT * FROM mmr_ffa').all();
+    const db = new Database(process.env.DB_PATH);
+    const rows_team = db.prepare('SELECT account_id, nickname, mmr FROM mmr_team').all();
+    const rows_ffa = db.prepare('SELECT account_id, nickname, mmr FROM mmr_ffa').all();
     const row_reader = (row) => ({
       account_id: row.account_id,
       nickname: row.nickname,
-      mmr: row.mmr,
-      mu: row.mu,
-      sigma: row.sigma,
-      matches_won: row.matches_won,
-      matches_lost: row.matches_lost
+      mmr: row.mmr.toFixed(2),
+      //mu: row.mu,
+      //sigma: row.sigma,
+      //matches_won: row.matches_won,
+      //matches_lost: row.matches_lost
     });
 
     const leaderboards_team = rows_team.map(row_reader);
@@ -38,7 +37,7 @@ router.get('/', (req, res) => {
 
 router.get('/bomb-defusal', (req, res) => {
   try {
-    const db = new Database(dbPath);
+    const db = new Database(process.env.DB_PATH);
     const rows_team  = db.prepare('SELECT account_id, mmr, mu, sigma, matches_won, matches_lost, nickname FROM mmr_team').all();
 
     const row_reader = (row) => {
@@ -60,7 +59,7 @@ router.get('/bomb-defusal', (req, res) => {
     leaderboards_team.sort((a, b) => b.mmr - a.mmr);
 
     if (req.query.format !== undefined && req.query.format == 'json') {
-      return res.status(200).json({ leaderboards_team, leaderboards_ffa });
+      return res.status(200).json({ leaderboards_team });
     } else {
       res.render('leaderboards', {
         page: 'Leaderboards',
@@ -79,7 +78,7 @@ router.get('/bomb-defusal', (req, res) => {
 
 router.get('/ffa', (req, res) => {
   try {
-    const db = new Database(dbPath);
+    const db = new Database(process.env.DB_PATH);
     const rows_ffa = db.prepare('SELECT account_id, mmr, mu, sigma, matches_won, matches_lost, nickname FROM mmr_ffa').all();
 
     const row_reader = (row) => {
@@ -101,7 +100,7 @@ router.get('/ffa', (req, res) => {
     leaderboards_ffa.sort( (a, b) => b.mmr - a.mmr);
 
     if (req.query.format !== undefined && req.query.format == 'json') {
-      return res.status(200).json({ leaderboards_team, leaderboards_ffa });
+      return res.status(200).json({ leaderboards_ffa });
     } else {
       res.render('leaderboards', {
         page: 'Leaderboards',

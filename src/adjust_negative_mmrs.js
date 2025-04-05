@@ -5,7 +5,6 @@ const express = require('express');
 const Database = require('better-sqlite3');
 
 const router = express.Router();
-const dbPath = process.env.DB_PATH;
 
 const authorizedServersPath = `${__dirname}/../private/authorized_ranked_servers.json`;
 const authorizedServersData = fs.readFileSync(authorizedServersPath, {
@@ -54,7 +53,7 @@ router.post('/', apiKeyAuth, (req, res) => {
   let db;
 
   try {
-    db = new Database(dbPath);
+    db = new Database(process.env.DB_PATH);
 
     const updateMu = db.transaction(() => {
       const updateTeamMu = db.prepare(`

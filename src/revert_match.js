@@ -7,7 +7,6 @@ const { lose_severity, severityToString } = require('./lose_severity');
 const moment = require('moment-timezone');
 
 const router = express.Router();
-const dbPath = process.env.DB_PATH;
 
 const authorizedServersPath = `${__dirname}/../private/authorized_ranked_servers.json`;
 const authorizedServersData = fs.readFileSync(authorizedServersPath, {
@@ -36,7 +35,7 @@ router.post('/', apiKeyAuth, (req, res) => {
   const { match_id } = req.body;
 
   try {
-    const db = new Database(dbPath);
+    const db = new Database(process.env.DB_PATH);
 
     db.transaction(() => {
       // Fetch the match data

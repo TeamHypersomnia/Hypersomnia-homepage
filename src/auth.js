@@ -7,8 +7,6 @@ const Database = require('better-sqlite3');
 const axios = require('axios');
 const querystring = require('querystring');
 
-const dbPath = process.env.DB_PATH;
-
 const discordClientId = process.env.DISCORD_CLIENT_ID;
 const discordClientSecret = process.env.DISCORD_CLIENT_SECRET;
 const redirectUri = process.env.URL + 'auth/discord/return';
@@ -72,7 +70,7 @@ module.exports = function(passport) {
 
   // Route to disconnect Discord account
   router.post('/discord/disconnect', async (req, res) => {
-    const db = new Database(dbPath);
+    const db = new Database(process.env.DB_PATH);
     const steamId = 'steam_' + req.user.id;
 
     try {
@@ -128,7 +126,7 @@ module.exports = function(passport) {
       });
 
       // Store the association in the database
-      const db = new Database(dbPath);
+      const db = new Database(process.env.DB_PATH);
 
       const discordId = 'discord_' + discordUser.id;
       const steamId = 'steam_' + req.user.id;

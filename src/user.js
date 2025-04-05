@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Database = require('better-sqlite3');
 const moment = require('moment');
-const dbPath = process.env.DB_PATH;
 const { lose_severity, severityToString } = require('./lose_severity');
 const formatMMRDelta = require('./format_delta');
 const ranks = require('./ranks_info');
@@ -18,7 +17,7 @@ function escapeHtml(unsafe) {
 
 router.get('/:user', function (req, res) {
   try {
-    const db = new Database(dbPath);
+    const db = new Database(process.env.DB_PATH);
     const userid = req.params.user;
     
     const isSteamUser = userid.startsWith('steam_');
@@ -61,13 +60,13 @@ router.get('/:user', function (req, res) {
       const Id = parentAssociation.parent_id;
       associationType = 'Primary account';
       associatedProfileUrl = `/user/${Id}`;
-      associatedId = Id;
+      associatedId = Id.split('_')[0];
     }
     else if (childAssociation) {
       const Id = childAssociation.child_id;
       associationType = 'Secondary account';
       associatedProfileUrl = `/user/${Id}`;
-      associatedId = Id;
+      associatedId = Id.split('_')[0];
     }
 
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
@@ -126,7 +125,6 @@ router.get('/:user', function (req, res) {
       const result = isWin ? `<b style="color:chartreuse;">${match.win_score}:${match.lose_score}</b>` : `<b style="color:#f85e73;">${match.win_score}:${match.lose_score}</b>`;
     
       return {
-        match_id: match.match_id,
         server_id: match.server_id,
         game_mode: match.game_mode,
         win_score: match.win_score,

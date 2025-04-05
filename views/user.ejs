@@ -99,19 +99,17 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th width="5%">ID</th>
         <th width="20%">Arena</th>
-        <th width="20%">MMR change</th>
-        <th class="no-sort" width="10%">Score</th>
+        <th width="25%">MMR change</th>
+        <th class="no-sort" width="6%">Score</th>
         <th class="no-sort" width="25%">Opponents</th>
-        <th width="10%">Time ago</th>
-        <th width="10%">Server</th>
+        <th width="12%">Time ago</th>
+        <th width="12%">Server</th>
       </tr>
     </thead>
     <tbody>
       <% matches.forEach(v => { %>
         <tr>
-          <td><%= v.match_id %></td>
           <td><a href="/arenas/<%= v.arena %>/"><%= v.arena %></a></td>
           <td><%- v.mmr_change %> <%= v.prev_mmr %>→<%= v.new_mmr %></td>
           <% if (v.game_mode === 'FFA Gun Game') { %>

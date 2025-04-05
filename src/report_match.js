@@ -43,7 +43,6 @@ function isWeekendEveningTime(isoTimestamp, location_id) {
 }
 
 const router = express.Router();
-const dbPath = process.env.DB_PATH;
 
 const MIN_SCORE_AS_TEAMMATE_TO_CONRIBUTE = 13;
 const MIN_SCORE_AS_ENEMY_TO_CONTRIBUTE = 4;
@@ -172,7 +171,7 @@ router.post('/', apiKeyAuth, (req, res) => {
   }
 
   try {
-    const db = new Database(dbPath);
+    const db = new Database(process.env.DB_PATH);
 
     win_players = mapIdArray(win_players, db);
     lose_players = mapIdArray(lose_players, db);

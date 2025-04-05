@@ -60,19 +60,19 @@
           </tr>
           <tr>
             <td>RSS</td>
-            <td><%= (memoryUsage.rss / (1024 * 1024)).toFixed(2) %> MB</td>
+            <td><%= Math.floor(memoryUsage.rss / (1024 * 1024)) %> MB</td>
           </tr>
           <tr>
             <td>Heap Total</td>
-            <td><%= (memoryUsage.heapTotal / (1024 * 1024)).toFixed(2) %> MB</td>
+            <td><%= Math.floor(memoryUsage.heapTotal / (1024 * 1024)) %> MB</td>
           </tr>
           <tr>
             <td>Heap Used</td>
-            <td><%= (memoryUsage.heapUsed / (1024 * 1024)).toFixed(2) %> MB</td>
+            <td><%= Math.floor(memoryUsage.heapUsed / (1024 * 1024)) %> MB</td>
           </tr>
           <tr>
             <td>External</td>
-            <td><%= (memoryUsage.external / (1024 * 1024)).toFixed(2) %> MB</td>
+            <td><%= Math.floor(memoryUsage.external / (1024 * 1024)) %> MB</td>
           </tr>          
         </tbody>
       </table>

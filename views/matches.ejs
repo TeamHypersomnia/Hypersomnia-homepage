@@ -5,19 +5,17 @@
   <table class="sortable maxwidth">
     <thead>
       <tr>
-        <th width="5%">ID</th>
-        <th width="15%">Arena</th>
+        <th width="20%">Arena</th>
         <th class="no-sort" width="25%">Winning team</th>
-        <th class="no-sort" width="10%">Score</th>
+        <th class="no-sort" width="6%">Score</th>
         <th class="no-sort" width="25%">Losing team</th>
-        <th width="15%">Time ago</th>
-        <th width="5%">Server</th>
+        <th width="12%">Time ago</th>
+        <th width="12%">Server</th>
       </tr>
     </thead>
     <tbody>
       <% matches.forEach(i => { %>
         <tr>
-          <td><%= i.match_id %></td>
           <td><a href="/arenas/<%= i.arena %>/"><%= i.arena %></a></td>
           <td>
             <% i.winners.forEach(player => { %>
