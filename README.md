@@ -13,7 +13,7 @@ Website
 ```bash
 cd /var/www/app
 npm install
-sudo npm install -g pm2
+sudo npm install -g pm2 uglify-js uglifycss
 pm2 start app.js
 ```
 

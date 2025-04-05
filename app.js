@@ -119,6 +119,7 @@ app.use(minifyHTML({
 const ts = Math.floor(Date.now() / 1000);
 app.locals.version = ts;
 app.locals.alert = '';
+app.locals.NODE_ENV = process.env.NODE_ENV || 'development';
 try {
   const content = fs.readFileSync(`./private/settings.json`, 'utf8');
   const obj = JSON.parse(content);

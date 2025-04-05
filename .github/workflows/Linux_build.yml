@@ -30,6 +30,11 @@ jobs:
       - name: Install Dependencies
         run: npm install --production
 
+      - name: Minify JS and CSS
+        run: |
+          uglifyjs public/assets/scripts/main.js -o public/assets/scripts/main.min.js
+          uglifycss public/assets/styles/main.css --output public/assets/styles/main.min.css
+
       - name: Restart PM2
         run: |
           ssh ubuntu@hypersomnia.xyz "pm2 restart app"
