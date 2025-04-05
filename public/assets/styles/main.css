@@ -779,6 +779,7 @@ footer > a:hover {
   font-size: inherit;
   width: 100%;
   text-align: center;
+  white-space: nowrap;
 }
 
 .btn a:hover, .btn button:hover {
@@ -1049,4 +1050,17 @@ a.white:hover {
   gap: 1rem;
   display: flex;
   justify-content: space-between;
+}
+
+
+.name-with-image {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+
+.weapon-name {
+  flex-grow: 1;
+  text-align: left;
 }

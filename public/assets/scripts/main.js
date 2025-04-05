@@ -1,33 +1,68 @@
-function fast() {
-  const fastBtn = document.querySelector('.fastBtn');
-  const strongBtn = document.querySelector('.strongBtn');
-  fastBtn.classList.add('active');
-  strongBtn.classList.remove('active');
+if (document.querySelector('#firearms')) {
+  const weaponCategories = {
+    pistols: ["Sn69", "Kek9", "Bulwark", "Calico", "Ao44", "Covert", "Deagle"],
+    rifles: ["Galilea", "Hunter", "Baka47", "Datum", "Amplifier arm", "Awka", "BullDup 2000", "Bilmer2000", "Szturm"],
+    submachineGuns: ["Szczur", "Zamieć", "Cyberspray", "Pro90"],
+    heavyGuns: ["Lews II", "Rocket Launcher ELON"],
+    shotguns: ["Gradobicie", "Warx"]
+  };
 
-  const fast = document.getElementsByClassName('fast');
-  const strong = document.getElementsByClassName('strong');
-  for (let i = 0; i < fast.length; i++) {
-    fast[i].style.display = 'inline';
-  }
-  for (let i = 0; i < strong.length; i++) {
-    strong[i].style.display = 'none';
-  }
-}
+  function fast() {
+    const fastBtn = document.querySelector('.fastBtn');
+    const strongBtn = document.querySelector('.strongBtn');
+    fastBtn.classList.add('active');
+    strongBtn.classList.remove('active');
 
-function strong() {
-  const fastBtn = document.querySelector('.fastBtn');
-  const strongBtn = document.querySelector('.strongBtn');
-  fastBtn.classList.remove('active');
-  strongBtn.classList.add('active');
+    const fast = document.getElementsByClassName('fast');
+    const strong = document.getElementsByClassName('strong');
+    for (let i = 0; i < fast.length; i++) {
+      fast[i].style.display = 'inline';
+    }
+    for (let i = 0; i < strong.length; i++) {
+      strong[i].style.display = 'none';
+    }
+  }
 
-  const fast = document.getElementsByClassName('fast');
-  const strong = document.getElementsByClassName('strong');
-  for (let i = 0; i < fast.length; i++) {
-    fast[i].style.display = 'none';
+  function strong() {
+    const fastBtn = document.querySelector('.fastBtn');
+    const strongBtn = document.querySelector('.strongBtn');
+    fastBtn.classList.remove('active');
+    strongBtn.classList.add('active');
+
+    const fast = document.getElementsByClassName('fast');
+    const strong = document.getElementsByClassName('strong');
+    for (let i = 0; i < fast.length; i++) {
+      fast[i].style.display = 'none';
+    }
+    for (let i = 0; i < strong.length; i++) {
+      strong[i].style.display = 'inline';
+    }
   }
-  for (let i = 0; i < strong.length; i++) {
-    strong[i].style.display = 'inline';
+
+  function filterWeapons(category) {
+    const rows = document.querySelectorAll('#firearms tbody tr');
+    rows.forEach(row => {
+      const weaponName = row.querySelector('td').innerText.trim();
+      const isVisible = category === "all" || weaponCategories[category].includes(weaponName);
+      row.style.display = isVisible ? "" : "none";
+    });
+
+    const buttons = document.querySelectorAll('.btn button');
+    buttons.forEach(button => {
+      if (button.classList.contains(category)) {
+        button.classList.add('active');
+      } else {
+        button.classList.remove('active');
+      }
+    });
   }
+
+  document.querySelector('.all').addEventListener('click', () => filterWeapons("all"));
+  document.querySelector('.pistols').addEventListener('click', () => filterWeapons("pistols"));
+  document.querySelector('.rifles').addEventListener('click', () => filterWeapons("rifles"));
+  document.querySelector('.submachineGuns').addEventListener('click', () => filterWeapons("submachineGuns"));
+  document.querySelector('.heavyGuns').addEventListener('click', () => filterWeapons("heavyGuns"));
+  document.querySelector('.shotguns').addEventListener('click', () => filterWeapons("shotguns"));
 }
 
 /* Sortable */
