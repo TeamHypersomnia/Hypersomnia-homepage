@@ -42,13 +42,13 @@
         <tr>
           <td>MMR</td>
           <td>
-            <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= teamData.rankImg %>" alt="<%= teamData.rankName %>"><abbr title="μ = <%= teamData.mu.toFixed(3) %> / σ = <%= teamData.sigma.toFixed(3) %>"><%= teamData.mmr.toFixed(6) %></abbr>
+            <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= teamData.rankImg %>" alt="<%= teamData.rankName %>"><abbr title="μ = <%= teamData.mu.toFixed(3) %> / σ = <%= teamData.sigma.toFixed(3) %>"><%= teamData.mmr.toFixed(2) %></abbr>
           </td>
         </tr>
         <tr>
           <td>MMR (FFA)</td>
           <td>
-            <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= ffaData.rankImg %>" alt="<%= ffaData.rankName %>"><abbr title="μ = <%= ffaData.mu.toFixed(3) %> / σ = <%= ffaData.sigma.toFixed(3) %>"><%= ffaData.mmr.toFixed(6) %></abbr>
+            <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= ffaData.rankImg %>" alt="<%= ffaData.rankName %>"><abbr title="μ = <%= ffaData.mu.toFixed(3) %> / σ = <%= ffaData.sigma.toFixed(3) %>"><%= ffaData.mmr.toFixed(2) %></abbr>
           </td>
         </tr>
       </tbody>
@@ -96,15 +96,15 @@
 
 
 <div class="table-responsive">
-  <table class="sortable">
+  <table class="sortable maxwidth">
     <thead>
       <tr>
         <th width="20%">Arena</th>
         <th width="25%">MMR change</th>
-        <th class="no-sort" width="6%">Score</th>
+        <th class="no-sort" width="10%">Score</th>
         <th class="no-sort" width="25%">Opponents</th>
-        <th width="12%">Time ago</th>
-        <th width="12%">Server</th>
+        <th width="10%">Time ago</th>
+        <th width="10%">Server</th>
       </tr>
     </thead>
     <tbody>
@@ -112,11 +112,7 @@
         <tr>
           <td><a href="/arenas/<%= v.arena %>/"><%= v.arena %></a></td>
           <td><%- v.mmr_change %> <%= v.prev_mmr %>→<%= v.new_mmr %></td>
-          <% if (v.game_mode === 'FFA Gun Game') { %>
-            <td><b>FFA</b></td>
-          <% } else { %>
-            <td><%- v.result %></td>
-          <% } %>
+          <td><% if (v.game_mode === 'FFA Gun Game') { %>FFA<% } else { %><%- v.result %><% } %></td>
           <td><%- v.formattedOpponentLinks %></td>
           <td><%= v.time_ago %></td>
           <td><%= v.server_id %> <%- v.multPreffix %></td>

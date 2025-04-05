@@ -1,3 +1,4 @@
+/* Firearms */
 if (document.querySelector('#firearms')) {
   const weaponCategories = {
     pistols: ["Sn69", "Kek9", "Bulwark", "Calico", "Ao44", "Covert", "Deagle"],
@@ -63,6 +64,78 @@ if (document.querySelector('#firearms')) {
   document.querySelector('.submachineGuns').addEventListener('click', () => filterWeapons("submachineGuns"));
   document.querySelector('.heavyGuns').addEventListener('click', () => filterWeapons("heavyGuns"));
   document.querySelector('.shotguns').addEventListener('click', () => filterWeapons("shotguns"));
+}
+
+/* Leaderboards */
+if (document.querySelector('#leaderboard')) {
+  function leaderboards(mode) {
+    const buttons = document.querySelectorAll('.btn button')
+    buttons.forEach(button => button.classList.remove('active'))
+    const selectedButton = document.querySelector(`.${mode}`)
+    if (selectedButton) {
+      selectedButton.classList.add('active')
+    }
+
+    let url = ''
+    if (mode === 'bomb_defusal') {
+      url = '/leaderboards/bomb-defusal?format=json'
+      history.replaceState({ mode: mode }, '', `/leaderboards/bomb-defusal`)
+    } else if (mode === 'ffa') {
+      url = '/leaderboards/ffa?format=json'
+      history.replaceState({ mode: mode }, '', `/leaderboards/ffa`)
+    } else {
+      return
+    }
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const container = document.querySelector('#leaderboard')
+        const placeIcons = ['🏆', '🥈', '🥉']
+        const cdn = 'https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/'
+
+        let table = `
+          <table class="sortable maxwidth">
+            <thead>
+              <tr>
+                <th width="10%"><span class="desktop">Place</span><span class="mobile">#</span></th>
+                <th width="40%">Name</th>
+                <th width="10%">MMR</th>
+                <th width="10%">Mu</th>
+                <th width="10%">Sigma</th>
+                <th width="10%">Won</th>
+                <th width="10%">Lost</th>
+              </tr>
+            </thead>
+            <tbody>
+        `
+
+        data.forEach((player, i) => {
+          const place = placeIcons[i] || (i + 1)
+          const imgSrc = `${cdn}${player.rankImg}`
+          const userLink = `/user/${player.account_id}`
+          const nickname = player.nickname.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+          table += `
+            <tr>
+              <td>${place}</td>
+              <td><a href="${userLink}"><img class="rank" src="${imgSrc}" alt="">${nickname}</a></td>
+              <td>${player.mmr.toFixed(2)}</td>
+              <td>${player.mu.toFixed(3)}</td>
+              <td>${player.sigma.toFixed(3)}</td>
+              <td>${player.matches_won}</td>
+              <td>${player.matches_lost}</td>
+            </tr>
+          `
+        })
+
+        table += `</tbody></table>`
+        container.innerHTML = table
+      })
+      .catch(err => {
+        console.error('Failed to load leaderboard:', err)
+      })
+  }
 }
 
 /* Sortable */

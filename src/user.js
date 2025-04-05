@@ -122,13 +122,11 @@ router.get('/:user', function (req, res) {
       }
 
       const mmr_change = `${mmrDelta}`;
-      const result = isWin ? `<b style="color:chartreuse;">${match.win_score}:${match.lose_score}</b>` : `<b style="color:#f85e73;">${match.win_score}:${match.lose_score}</b>`;
+      const result = isWin ? `<span style="color:chartreuse;">${match.win_score}:${match.lose_score}</span>` : `<span style="color:#f85e73;">${match.win_score}:${match.lose_score}</span>`;
     
       return {
         server_id: match.server_id,
         game_mode: match.game_mode,
-        win_score: match.win_score,
-        lose_score: match.lose_score,
         arena: match.arena,
         prev_mmr: prevMMR,
         new_mmr: (playerData.new_mmr).toFixed(2),

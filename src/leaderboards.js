@@ -11,11 +11,7 @@ router.get('/', (req, res) => {
     const row_reader = (row) => ({
       account_id: row.account_id,
       nickname: row.nickname,
-      mmr: row.mmr.toFixed(2),
-      //mu: row.mu,
-      //sigma: row.sigma,
-      //matches_won: row.matches_won,
-      //matches_lost: row.matches_lost
+      mmr: row.mmr
     });
 
     const leaderboards_team = rows_team.map(row_reader);
@@ -59,7 +55,7 @@ router.get('/bomb-defusal', (req, res) => {
     leaderboards_team.sort((a, b) => b.mmr - a.mmr);
 
     if (req.query.format !== undefined && req.query.format == 'json') {
-      return res.status(200).json({ leaderboards_team });
+      return res.status(200).json(leaderboards_team);
     } else {
       res.render('leaderboards', {
         page: 'Leaderboards',
@@ -100,7 +96,7 @@ router.get('/ffa', (req, res) => {
     leaderboards_ffa.sort( (a, b) => b.mmr - a.mmr);
 
     if (req.query.format !== undefined && req.query.format == 'json') {
-      return res.status(200).json({ leaderboards_ffa });
+      return res.status(200).json(leaderboards_ffa);
     } else {
       res.render('leaderboards', {
         page: 'Leaderboards',

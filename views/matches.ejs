@@ -7,10 +7,10 @@
       <tr>
         <th width="20%">Arena</th>
         <th class="no-sort" width="25%">Winning team</th>
-        <th class="no-sort" width="6%">Score</th>
+        <th class="no-sort" width="10%">Score</th>
         <th class="no-sort" width="25%">Losing team</th>
-        <th width="12%">Time ago</th>
-        <th width="12%">Server</th>
+        <th width="10%">Time ago</th>
+        <th width="10%">Server</th>
       </tr>
     </thead>
     <tbody>
@@ -26,11 +26,7 @@
               <% if (i.winners.indexOf(player) < i.winners.length - 1) { %><br><% } %>
             <% }); %>
           </td>
-          <% if (i.is_ffa) { %>
-            <td><b>FFA</b></td>
-            <% } else { %>
-            <td><b><%= i.win_score %>:<%= i.lose_score %></b></td>
-            <% } %>
+          <td><% if (i.is_ffa) { %>FFA<% } else { %><%= i.win_score %>:<%= i.lose_score %><% } %></td>
           <td>
             <% i.losers.forEach(player => { %>
               <%- formatMMRDelta(player.mmr_delta, true) %>

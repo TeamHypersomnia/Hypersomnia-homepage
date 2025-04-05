@@ -2,10 +2,19 @@
 
 <h1>Leaderboards</h1>
 <div class="btn-group">
-  <div class="btn"><a <% if (bomb_defusal) {%> class="active"<% } %>href="/leaderboards/bomb-defusal"><span>Bomb Defusal</span></a></div>
-  <div class="btn"><a <% if (ffa) {%> class="active"<% } %>href="/leaderboards/ffa"><span>FFA</span></a></div>
+  <div class="btn">
+    <button class="bomb_defusal<% if (bomb_defusal) {%> active<% } %>" onclick="leaderboards('bomb_defusal')">
+      <span>Bomb Defusal</span>
+    </button>
+  </div>
+  <div class="btn">
+    <button class="ffa<% if (ffa) {%> active<% } %>" onclick="leaderboards('ffa')">
+      <span>FFA</span>
+    </button>
+  </div>
 </div>
-<div class="table-responsive">
+
+<div id="leaderboard" class="table-responsive">
   <table class="sortable maxwidth">
     <thead>
       <tr>
