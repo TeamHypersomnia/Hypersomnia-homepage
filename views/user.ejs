@@ -14,11 +14,11 @@
         <tr>
           <td>External profile</td>
           <td>
-            <a href="<%= profileUrl %>" target="_blank" style="display: flex; align-items: center;">
+            <a href="<%= profileUrl %>" target="_blank" style="display:flex;align-items:center;gap:0.25em;">
               <% if (platformName === 'CrazyGames') { %>
-                <img src="/assets/images/social_crazygames.png" alt="CrazyGames" style="width: 1.3em; height: 1.3em; margin-right: 0.3em;">
+                <img width="16" height="16" src="/assets/images/social_crazygames.png" alt="CrazyGames">
               <% } else { %>
-                <i class="<%= platformIconClass %>" style="margin-right: 0.3em;"></i>
+                <i class="<%= platformIconClass %>"></i>
               <% } %>
               <%= platformName %><span class="external-link-icon" aria-hidden="true"></span>
             </a>
@@ -110,7 +110,7 @@
     <tbody>
       <% matches.forEach(v => { %>
         <tr>
-          <td><a href="/arenas/<%= v.arena %>/"><%= v.arena %></a></td>
+          <td><%= v.arena %></td>
           <td><%- v.mmr_change %> <%= v.prev_mmr %>→<%= v.new_mmr %></td>
           <td><% if (v.game_mode === 'FFA Gun Game') { %>FFA<% } else { %><%- v.result %><% } %></td>
           <td><%- v.formattedOpponentLinks %></td>

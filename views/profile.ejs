@@ -1,90 +1,58 @@
 <%- include('overall_header'); %>
 
 <h1>Profile</h1>
-
 <% if (success) { %>
-  <p>
-    Success!<br>
-    Go back to the game and press:<br><br>
-    <i class="fa-brands fa-discord"></i> Sign in with Discord<br><br>
-  </p>
+<p>Success! Go back to the game and press: <i class="fa-brands fa-discord"></i> Sign in with Discord</p>
 <% } %>
 
-<div class="box">
-  <div>
-    <a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank">
-      <img class="avatar" src="<%= user.photos[2].value %>" alt="avatar" width="64" height="64">
-    </a>
-    <h3>
-      <a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank">
-        <%= user.displayName %>
-      </a>
-    </h3>
-    <form method="POST" action="/logout">
-      <div class="btn-group">
-        <% if (is_admin == true) { %>
-        <div class="btn">
-          <a href="/admin"><span>Admin Dashboard</span></a>
-        </div>
-        <% } %>
-        <div class="btn">
-          <button type="submit" aria-label="Logout">Logout</button>
-        </div>
-      </div>
-    </form>
+<div class="btn-group">
+  <% if (is_admin == true) { %>
+  <div class="btn">
+    <a href="/admin"><span>Admin</span></a>
   </div>
-
-  <div>
-    <dl>
-      <% if (discordData) { %>
-        <dt>
-          <a href="https://discord.com/users/<%= discordData.id %>" target="_blank">
-            <img class="avatar" 
-                 src="https://cdn.discordapp.com/avatars/<%= discordData.id %>/<%= discordData.avatar %>.png" 
-                 alt="Discord avatar" 
-                 width="64" height="64">
-          </a>
-          <h3>
-            <a href="https://discord.com/users/<%= discordData.id %>" target="_blank">
-              <%= discordData.username %>
-            </a>
-          </h3>
-        </dt>
-        <dd>
-          <form action="/auth/discord/disconnect" method="post">
-            <div class="btn-group">
-              <div class="btn">
-                <button type="submit" class="btn-disconnect" aria-label="Disconnect Discord Account">
-                  <i class="fa-brands fa-discord"></i> Disconnect Discord Account
-                </button>
-              </div>
-            </div>
-          </form>
-        </dd>
-        <dd class="notice">
-          Once you disconnect, your Steam and Discord accounts will exist separately again.<br>
-          No ranks or MMR will be lost.
-        </dd>
-      <% } else { %>
-        <dd>
-          <form action="/auth/discord" method="get">
-            <div class="btn-group">
-              <div class="btn">
-                <button type="submit" aria-label="Connect Discord Account">
-                  <i class="fa-brands fa-discord"></i> Connect Discord account
-                </button>
-              </div>
-            </div>
-          </form>
-        </dd>
-        <dt>Matches played with Discord account will count towards your Steam account.</dt>
-        <dd class="notice">
-          No merging ever takes place.<br>
-          You may later disconnect the two accounts without losing any progress.
-        </dd>
-      <% } %>
-    </dl>
-  </div>
+  <% } %>
+  <% if (discordData) { %>
+  <form class="btn" method="POST" action="/auth/discord/disconnect">
+    <button type="submit" aria-label="Disconnect account">
+      <i class="fa-brands fa-discord mr"></i>Disconnect account*
+    </button>
+  </form>
+  <% } else { %>
+  <form class="btn" method="GET" action="/auth/discord">
+    <button type="submit" aria-label="Connect account">
+      <i class="fa-brands fa-discord mr"></i>Connect account*
+    </button>
+  </form>
+  <% } %>
+  <form class="btn" method="POST" action="/logout">
+    <button type="submit" aria-label="Logout">Logout</button>
+  </form>
 </div>
+
+<div class="table-responsive">
+  <table>
+    <thead>
+      <tr>
+        <th width="50%">Key</th>
+        <th width="50%">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Steam name</td>
+        <td><%= user.displayName %></td>
+      </tr>
+      <tr>
+        <td>Steam ID</td>
+        <td><a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank"><%= user.id %></a></td>
+      </tr>
+      <tr>
+        <td>Discord</td>
+        <td><% if (discordData) { %><%= discordData.username %><% } else { %>Not connected<% } %></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<small>*<% if (discordData) { %>After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.<% } else { %>Discord matches count towards your Steam account. No merging happens, and you can disconnect anytime without losing progress.<% } %></small>
 
 <%- include('overall_footer'); %>

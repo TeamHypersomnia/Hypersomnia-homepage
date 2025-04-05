@@ -3,16 +3,17 @@
 <div class="btn-group">
   <div class="btn"><button class="all active"><span>All</span></button></div>
   <div class="btn"><button class="pistols"><span>Pistols</span></button></div>
-  <div class="btn"><button class="rifles"><span>Rifles</span></button></div>
-  <div class="btn"><button class="submachineGuns"><span>Submachine Guns</span></button></div>
-  <div class="btn"><button class="heavyGuns"><span>Heavy Guns</span></button></div>
   <div class="btn"><button class="shotguns"><span>Shotguns</span></button></div>
+  <div class="btn"><button class="submachineGuns"><span>SMG</span></button></div>
+  <div class="btn"><button class="rifles"><span>Rifles</span></button></div>
+  <div class="btn"><button class="heavyGuns"><span>Heavy</span></button></div>
 </div>
 <div class="table-responsive">
   <table id="firearms" class="sortable">
     <thead>
       <tr>
-        <th width="25%">Weapon</th>
+        <th>Name</th>
+        <th class="no-sort">Weapon</th>
         <th>DMG</th>
         <th>HS DMG</th>
         <th><abbr title="Penetration Value">PV</abbr></th>
@@ -27,12 +28,8 @@
     <tbody>
       <% firearms.forEach(i => { %>
         <tr>
-          <td>
-            <div class="name-with-image">
-              <span class="weapon-name"><%= i.display_name %></span>
-              <img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>">
-            </div>
-          </td>
+          <td><%= i.display_name %></td>
+          <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
           <td><%= i.damage %></td>
           <td><%= i.headshot_damage %></td>
           <td><%= i.penetration %></td>
@@ -57,7 +54,8 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th>Weapon</th>
+        <th>Name</th>
+        <th class="no-sort">Weapon</th>
         <th>Swings/s</th>
         <th>DMG</th>
         <th>HS DMG</th>
@@ -72,12 +70,8 @@
     <tbody>
       <% melees.forEach(i => { %>
         <tr>
-          <td>
-            <div class="name-with-image">
-              <span class="weapon-name"><%= i.display_name %></span>
-              <img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>">
-            </div>
-          </td>
+          <td><%= i.display_name %></td>
+          <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
           <td>
             <span class="fast"><%= i.fast_swings_per_second.toFixed(2) %></span>
             <span class="strong"><%= i.strong_swings_per_second.toFixed(2) %></span>
@@ -110,7 +104,8 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th>Item</th>
+        <th>Name</th>
+        <th class="no-sort">Item</th>
         <th class="no-sort">Notes</th>
         <th>Fuse delay</th>
         <th>Base DMG</th>
@@ -122,12 +117,8 @@
     <tbody>
       <% explosives.forEach(i => { %>
         <tr>
-          <td>
-            <div class="name-with-image">
-              <span class="weapon-name"><%= i.display_name %></span>
-              <img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>">
-            </div>
-          </td>
+          <td><%= i.display_name %></td>
+          <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
           <td><%= i.notes %></td>
           <td><%= i.fuse_delay.toFixed(2) %></td>
           <td><%= i.base_damage === -1 ? 'N/A' : i.base_damage %></td>
@@ -145,7 +136,8 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th>Spell</th>
+        <th>Name</th>
+        <th class="no-sort">Spell</th>
         <th class="no-sort">Notes</th>
         <th>Cooldown</th>
         <th>Mana</th>
@@ -156,12 +148,8 @@
     <tbody>
       <% spells.forEach(i => { %>
         <tr>
-          <td>
-            <div class="name-with-image">
-              <span class="weapon-name"><%= i.display_name %></span>
-              <img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>">
-            </div>
-          </td>
+          <td><%= i.display_name %></td>
+          <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
           <td><%= i.notes %></td>
           <td><%= i.cooldown %></td>
           <td><%= i.mana_required %></td>

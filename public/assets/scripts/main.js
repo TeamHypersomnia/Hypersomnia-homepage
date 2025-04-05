@@ -66,14 +66,24 @@ if (document.querySelector('#firearms')) {
   document.querySelector('.shotguns').addEventListener('click', () => filterWeapons("shotguns"));
 }
 
+
+
 /* Leaderboards */
 if (document.querySelector('#leaderboard')) {
   function leaderboards(mode) {
     const buttons = document.querySelectorAll('.btn button')
-    buttons.forEach(button => button.classList.remove('active'))
+    
+    buttons.forEach(button => {
+      button.classList.remove('active')
+      button.disabled = true
+      button.dataset.originalText = button.textContent 
+    })
+
     const selectedButton = document.querySelector(`.${mode}`)
     if (selectedButton) {
       selectedButton.classList.add('active')
+      selectedButton.disabled = true
+      selectedButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...'
     }
 
     let url = ''
@@ -131,12 +141,22 @@ if (document.querySelector('#leaderboard')) {
 
         table += `</tbody></table>`
         container.innerHTML = table
+        buttons.forEach(button => {
+          button.disabled = false
+          button.textContent = button.dataset.originalText
+        })
       })
       .catch(err => {
         console.error('Failed to load leaderboard:', err)
+        buttons.forEach(button => {
+          button.disabled = false
+          button.textContent = button.dataset.originalText
+        })
       })
   }
 }
+
+
 
 /* Sortable */
 document.addEventListener("click",function(c){try{function h(b,a){return b.nodeName===a?b:h(b.parentNode,a)}var w=c.shiftKey||c.altKey,d=h(c.target,"TH"),m=d.parentNode,n=m.parentNode,g=n.parentNode;function p(b,a){b.classList.remove("dir-d");b.classList.remove("dir-u");a&&b.classList.add(a)}function q(b){var a;return w?b.dataset.sortAlt:null!==(a=b.dataset.sort)&&void 0!==a?a:b.textContent}if("THEAD"===n.nodeName&&g.classList.contains("sortable")&&!d.classList.contains("no-sort")){var r,f=m.cells,

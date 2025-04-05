@@ -4,8 +4,18 @@ const fs = require('fs');
 const express = require('express');
 const Database = require('better-sqlite3');
 const { rating, rate, ordinal } = require('openskill');
-const { lose_severity, severityToString } = require('./lose_severity');
 const moment = require('moment-timezone');
+
+function lose_severity(win, lose) {
+  const diff = win - lose;
+  if (diff >= 13) {
+    return 3;
+  }
+  if (diff >= 8) {
+    return 2;
+  }
+  return 1;
+}
 
 function isWeekendEveningTime(isoTimestamp, location_id) {
   const timeZoneMap = {

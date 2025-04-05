@@ -1,9 +1,7 @@
-function formatMMRDelta(mmr_delta, monospace = false) {
+function formatMMRDelta(mmr_delta) {
   const deltaSymbol = mmr_delta >= 0 ? '↑' : '↓';
-  const deltaColor = mmr_delta >= 0 ? 'chartreuse' : '#f85e73';
-  // Adjust the font size when monospace is true
-  const fontFamily = monospace ? '' : '';
-  return `<span style="color:${deltaColor}; ${fontFamily}">${deltaSymbol}${Math.abs(mmr_delta).toFixed(2)}</span>`;
+  const className = mmr_delta >= 0 ? 'up' : 'down';
+  return `<span class="${className}">${deltaSymbol}${Math.abs(mmr_delta).toFixed(2)}</span>`;
 }
 
 module.exports = formatMMRDelta;

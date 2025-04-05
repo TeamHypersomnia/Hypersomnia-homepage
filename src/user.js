@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Database = require('better-sqlite3');
 const moment = require('moment');
-const { lose_severity, severityToString } = require('./lose_severity');
 const formatMMRDelta = require('./format_delta');
 const ranks = require('./ranks_info');
 
@@ -122,7 +121,7 @@ router.get('/:user', function (req, res) {
       }
 
       const mmr_change = `${mmrDelta}`;
-      const result = isWin ? `<span style="color:chartreuse;">${match.win_score}:${match.lose_score}</span>` : `<span style="color:#f85e73;">${match.win_score}:${match.lose_score}</span>`;
+      const result = isWin ? `<span class="up">${match.win_score}:${match.lose_score}</span>` : `<span class="down">${match.win_score}:${match.lose_score}</span>`;
     
       return {
         server_id: match.server_id,
@@ -139,9 +138,9 @@ router.get('/:user', function (req, res) {
     }).filter(match => match !== null);
 
     const render_data = {
-      page: userTeam.nickname || userFFA.nickname,
+      page: userTeam.nickname || userFFA.nickname || 'Unknown',
       user: req.user,
-      nickname: userTeam.nickname || userFFA.nickname,
+      nickname: userTeam.nickname || userFFA.nickname || 'Unknown',
       platformName: platformName,
       profileUrl: profileUrl,
       platformIconClass: platformIconClass,

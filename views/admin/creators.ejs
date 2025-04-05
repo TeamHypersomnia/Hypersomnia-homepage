@@ -1,6 +1,15 @@
 <%- include('../overall_header'); %>
 <%- include('nav'); %>
 
+<form class="form-inline" method="POST">
+  <div class="form-group">
+    <input type="text" id="shorthand" name="shorthand" spellcheck="false" placeholder="Shorthand" required>
+  </div>
+  <div class="form-group">
+    <input type="submit" value="Add">
+  </div>
+</form>
+
 <div class="table-responsive">
   <table class="sortable">
     <thead>
@@ -8,7 +17,7 @@
         <th width="25%">Shorthand</th>
         <th width="25%">Allow creating new</th>
         <th width="25%">Arenas</th>
-        <th width="25%">API Key</th>
+        <th class="no-sort" width="25%">API Key</th>
       </tr>
     </thead>
     <tbody>
@@ -24,15 +33,5 @@
     </tbody>
   </table>
 </div>
-
-<form class="form-inline" method="POST">
-  <div class="form-group">
-    <label for="shorthand">Shorthand</label>
-    <input type="text" id="shorthand" name="shorthand" spellcheck="false">
-  </div>
-  <div class="form-group">
-    <input type="submit" value="Add">
-  </div>
-</form>
 
 <%- include('../overall_footer'); %>

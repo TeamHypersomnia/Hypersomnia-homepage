@@ -3,8 +3,6 @@ const assert = require('assert');
 const fs = require('fs');
 const express = require('express');
 const Database = require('better-sqlite3');
-const { lose_severity, severityToString } = require('./lose_severity');
-const moment = require('moment-timezone');
 
 const router = express.Router();
 

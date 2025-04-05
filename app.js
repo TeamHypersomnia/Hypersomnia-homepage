@@ -84,9 +84,6 @@ passport.use(new SteamStrategy({
 }));
 
 // Configuration
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
-
 app.use(session({
   store: new SQLiteStore({
     dir: __dirname + '/private',
@@ -96,9 +93,10 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: true,
   saveUninitialized: true,
-  cookie: { maxAge: 365 * 24 * 60 * 60 * 1000 } // 1 year
+  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
 }));
-
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(__dirname + '/public'));
