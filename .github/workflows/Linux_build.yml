@@ -32,7 +32,7 @@ jobs:
 
       - name: Minify JS and CSS
         run: |
-          npm install uglify-js uglifycss
+          npm install -g uglify-js uglifycss
           uglifyjs public/assets/scripts/main.js -o public/assets/scripts/main.min.js
           uglifycss public/assets/styles/main.css --output public/assets/styles/main.min.css
 
