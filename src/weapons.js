@@ -11,14 +11,16 @@ function getWeapons(file) {
   return JSON.parse(data);
 }
 
+const firearms = getWeapons('firearms');
+const melees = getWeapons('melees');
+const explosives = getWeapons('explosives');
+const spells = getWeapons('spells');
+
 router.get('/', function (req, res) {
   res.render('weapons', {
     page: 'Weapons',
     user: req.user,
-    firearms: getWeapons('firearms'),
-    melees: getWeapons('melees'),
-    explosives: getWeapons('explosives'),
-    spells: getWeapons('spells')
+    firearms, melees, explosives, spells
   });
 });
 

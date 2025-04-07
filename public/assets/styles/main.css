@@ -20,7 +20,7 @@ body {
 h1, h2 {
   padding: 0;
   font-weight: 700;
-  margin-top: 2em;
+  margin-top: 1.5em;
   margin-bottom: 0.75em;
   color: #ddd;
 }
@@ -160,7 +160,7 @@ strong, th, label, dt, b {
 
 dl {
   margin-top: 0;
-  margin-bottom: 0.5em;
+  margin-bottom: 0;
 }
 
 dt {
@@ -170,7 +170,7 @@ dt {
 }
 
 dd {
-  margin: 0 0 15px 0;
+  margin: 0 0 1.5em 0;
 }
 
 .info-list {
@@ -178,6 +178,10 @@ dd {
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
   justify-content: space-between;
+}
+
+.arena {
+  padding-top: 0.5em;
 }
 
 /* Desktop */
@@ -358,8 +362,12 @@ dd {
     font-size: 0.85em;
   }
 
-  .arena_author, .btn {
+  .arena_author {
     font-size: 0.8em;
+  }
+
+  .btn {
+    font-size: 0.85em;
   }
 
   .server-row-card {
@@ -380,11 +388,11 @@ dd {
   }
   
   p {
-    font-size: 0.9em;
+    font-size: 0.9rem;
   }
 
   dd, dt {
-    font-size: 0.8em;
+    font-size: 0.9rem;
   }
 
   h1, h2 {

@@ -48,7 +48,7 @@ if (document.querySelector('#firearms')) {
       row.style.display = isVisible ? "" : "none";
     });
 
-    const buttons = document.querySelectorAll('.btn button');
+    const buttons = document.querySelectorAll('.firearms .btn button');
     buttons.forEach(button => {
       if (button.classList.contains(category)) {
         button.classList.add('active');
