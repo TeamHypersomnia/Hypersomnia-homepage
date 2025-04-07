@@ -8,17 +8,33 @@
 <h1><%= arena.name %></h1>
 <div class="arena">
   <div class="details">
+    <dl class="info-list">
+      <div class="info-pair">
+        <dt><i class="fa-solid fa-user mr"></i>Author</dt>
+        <dd>Pythagoras</dd>
+      </div>
+      <div class="info-pair">
+        <dt><i class="fa-solid fa-calendar mr"></i>Updated</dt>
+        <dd>2 years ago</dd>
+      </div>
+      <div class="info-pair">
+        <dt><i class="fa-solid fa-weight-hanging mr"></i>Size</dt>
+        <dd>0.12 MB</dd>
+      </div>
+    </dl>
     <dl>
-      <dt>Short description</dt>
-      <dd><%= arena.short_description %></dd>
-      <dt>Full description</dt>
-      <dd><%= arena.full_description %></dd>
-      <dt>Author</dt>
-      <dd><%= arena.author %></dd>
-      <dt>Updated</dt>
-      <dd><%= arena.updated %></dd>
-      <dt>Size</dt>
-      <dd><%= arena.size %></dd>
+      <dt><i class="fa-solid fa-align-center mr"></i>Description</dt>
+      <% const short = arena.short_description; %>
+      <% const full = arena.full_description; %>
+      <% if (short !== 'N/A' && full !== 'N/A') { %>
+        <dd><p><%= short %></p><p><%= full %></p></dd>
+      <% } else if (short !== 'N/A') { %>
+        <dd><p><%= short %></p></dd>
+      <% } else if (full !== 'N/A') { %>
+        <dd><p><%= full %></p></dd>
+      <% } else { %>
+        <dd><p>N/A</p></dd>
+      <% } %>
     </dl>
   </div>
   <div class="miniature"><img src="/arenas/<%= arena.name %>/miniature.png" alt="<%= arena.name %>"></div>

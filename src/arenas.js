@@ -5,7 +5,7 @@ const path = require('path');
 const moment = require('moment');
 const chokidar = require('chokidar');
 const dirPath = __dirname + '/../public/arenas';
-const unplayablePath = __dirname + '/../private/unplayable.json';;
+const unplayablePath = __dirname + '/../private/unplayable.json';
 let arenas = [];
 
 function getFolderSize(folderPath) {
