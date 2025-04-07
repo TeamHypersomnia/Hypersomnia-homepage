@@ -14,6 +14,8 @@
     "multer": "*",
     "openskill": "*",
     "passport": "*",
-    "passport-steam": "*"
+    "passport-steam": "*",
+    "uglify-js": "*",
+    "uglifycss": "*"
   }
 }

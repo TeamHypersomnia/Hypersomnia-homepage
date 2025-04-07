@@ -200,7 +200,21 @@ app.use((req, res) => res.status(404).render('404', {
   user: req.user
 }));
 
-// Start
+if (app.locals.NODE_ENV === 'production') {
+  const uglifyJS = require('uglify-js');
+  const uglifyCSS = require('uglifycss');
+  const jsInput = __dirname + '/public/assets/scripts/main.js';
+  const jsOutput = __dirname + '/public/assets/scripts/main.min.js';
+  const jsCode = fs.readFileSync(jsInput, 'utf8');
+  const minifiedJS = uglifyJS.minify(jsCode);
+  fs.writeFileSync(jsOutput, minifiedJS.code);
+  const cssInput = __dirname + '/public/assets/styles/main.css';
+  const cssOutput = __dirname + '/public/assets/styles/main.min.css';
+  const cssCode = fs.readFileSync(cssInput, 'utf8');
+  const minifiedCSS = uglifyCSS.processString(cssCode);
+  fs.writeFileSync(cssOutput, minifiedCSS);
+}
+
 const server = app.listen(process.env.PORT || 3000, () => {
   console.log(`App listening on port ${server.address().port}`);
 });

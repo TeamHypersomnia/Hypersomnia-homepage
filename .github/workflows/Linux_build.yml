@@ -27,15 +27,6 @@ jobs:
         # WATCH OUT!!! DO NOT ADD SPACES INSIDE BRACES BETWEEN ARGUMENTS OR THE ENTIRE WEBSITE WILL BE WIPED OUT!
         run: rsync --exclude={'public/arenas','private','node_modules','.git','.github','.env'} -avzP . ubuntu@hypersomnia.xyz:/var/www/app --delete-after
 
-      - name: Install Dependencies
-        run: npm install --production
-
-      - name: Minify JS and CSS
-        run: |
-          npm install -g uglify-js uglifycss
-          uglifyjs public/assets/scripts/main.js -o public/assets/scripts/main.min.js
-          uglifycss public/assets/styles/main.css --output public/assets/styles/main.min.css
-
       - name: Restart PM2
         run: |
           ssh ubuntu@hypersomnia.xyz "pm2 restart app"
