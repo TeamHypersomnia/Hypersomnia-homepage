@@ -5,17 +5,24 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th width="25%">IP address</th>
-        <th width="50%">User agent</th>
-        <th width="25%">Last seen</th>
+        <th width="20%">IP address</th>
+        <th width="30%">User agent</th>
+        <th width="30%">Last visited URL</th>
+        <th width="20%">Last seen</th>
       </tr>
     </thead>
     <tbody>
       <% Object.keys(visitors).forEach((k) => { %>
       <% const v = visitors[k]; %>
+      <% const lastVisitedUrl = v.lastUrl ? v.lastUrl : 'N/A'; %>
       <tr>
         <td><a href="https://db-ip.com/<%= v.ip %>" target="_blank"><%= v.ip %></a></td>
-        <td title="<%= v.userAgent.length > 70 ? v.userAgent : '' %>"><%= v.userAgent.length > 70 ? v.userAgent.substring(0, 70) + '...' : v.userAgent %></td>
+        <td title="<%= v.userAgent.length > 40 ? v.userAgent : '' %>"><%= v.userAgent.length > 40 ? v.userAgent.substring(0, 40) + '...' : v.userAgent %></td>
+        <td>
+          <a href="<%= lastVisitedUrl %>" target="_blank" title="<%= lastVisitedUrl.length > 40 ? lastVisitedUrl : '' %>">
+            <%= lastVisitedUrl.length > 40 ? lastVisitedUrl.substring(0, 40) + '...' : lastVisitedUrl %>
+          </a>
+        </td>
         <td data-sort="<%= v.lastSeen %>"><%= v.lastSeenAgo %></td>
       </tr>
       <% }); %>

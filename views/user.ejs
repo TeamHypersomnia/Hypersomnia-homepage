@@ -93,8 +93,6 @@
   </div>
 </div>
 
-
-
 <div class="table-responsive">
   <table class="sortable maxwidth">
     <thead>
@@ -112,7 +110,7 @@
         <tr>
           <td><%= v.arena %></td>
           <td class="serif"><%- v.mmr_change %> <%= v.new_mmr %></td>
-          <td><% if (v.game_mode === 'FFA Gun Game') { %><span class="serif">FFA</span><% } else { %><%- v.result %><% } %></td>
+          <td class="serif"><% if (v.game_mode === 'FFA Gun Game') { %>FFA<% } else { %><%- v.result %><% } %></td>
           <td><%- v.formattedOpponentLinks %></td>
           <td><%= v.time_ago %></td>
           <td class="extra"><%= v.server_emoji %><% if (v.multPreffix !== 1) { %><abbr class="flame" title="Event match multiplier x<%= v.multPreffix %>"><i class="fa-solid fa-fire-flame-curved"></i>x<%= v.multPreffix %></abbr><% } %></td>
@@ -121,6 +119,5 @@
     </tbody>
   </table>
 </div>
-
 
 <%- include('overall_footer'); %>

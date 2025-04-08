@@ -149,13 +149,16 @@ function adm(req, res, next) {
 }
 
 app.use((req, res, next) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+  const ip = (rawIp.match(/^[^,]+/) || [rawIp])[0];
   const ts = Math.floor(Date.now() / 1000);
+  const urlPath = req.originalUrl;
   if (visitors.hasOwnProperty(ip)) {
     visitors[ip].lastSeen = ts;
+    visitors[ip].lastUrl = urlPath;
   } else {
     const userAgent = req.headers['user-agent'] ?? '';
-    visitors[ip] = { lastSeen: ts, ip, userAgent };
+    visitors[ip] = { lastSeen: ts, ip, userAgent, lastUrl: urlPath };
   }
   next();
 });
