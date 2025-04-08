@@ -173,7 +173,6 @@ app.use('/arenas', require('./src/arenas'));
 app.use('/user', require('./src/user'));
 app.use('/weapons', require('./src/weapons'));
 app.use('/servers', servers.router);
-app.use('/download', require('./src/download'));
 app.use('/profile', usr, require('./src/profile'));
 app.use('/logout', require('./src/logout'));
 app.use('/auth', require('./src/auth')(passport));
