@@ -2,6 +2,8 @@
 https://hypersomnia.xyz/
 
 ## Installation
+NGINX https://nginx.org/en/linux_packages.html#Ubuntu
+
 Node.js
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_23.x -o nodesource_setup.sh
