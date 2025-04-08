@@ -2,11 +2,9 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-const IPINFO_TOKEN = process.env.IPINFO_API_TOKEN;
-
 router.get('/', async (req, res) => {
     // Get client's IP address from request headers
-    let clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     // Handle cases where the IP address might be in IPv6 format or contain multiple IPs
     if (clientIp.includes(',')) {
@@ -18,7 +16,7 @@ router.get('/', async (req, res) => {
 
     try {
         console.log("Requesting geolocation for " + clientIp);
-        const response = await axios.get(`https://ipinfo.io/${clientIp}/json?token=${IPINFO_TOKEN}`, {
+        const response = await axios.get(`https://ipinfo.io/${clientIp}/json?token=${process.env.IPINFO_API_TOKEN}`, {
             headers: {
                 'Accept': 'application/json',
             }

@@ -182,8 +182,19 @@ dd {
 .info-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1rem;
   justify-content: space-between;
+}
+
+.info-list > div {
+  width: 33.33%;
+}
+
+.info-list > div:nth-child(2) {
+  text-align: center;
+}
+
+.info-list > div:nth-child(3) {
+  text-align: right;
 }
 
 .arena {
@@ -207,6 +218,10 @@ dd {
 
 /* Desktop */
 @media screen and (min-width: 1100px) {
+  .flag {
+    font-size: 1.1em;
+  }
+
   dt, dd {
     font-size: 0.95em;
   }
@@ -365,6 +380,18 @@ dd {
 
 /* Mobile */
 @media screen and (max-width: 1100px) {
+  .flag {
+    font-size: 1em;
+  }
+
+  .extra {
+    font-size: 0.8em;
+  }
+
+  .flame {
+    font-size: 0.8em;
+  }
+
   .btn {
     flex: 1 0 25%;
   }  
@@ -423,7 +450,6 @@ dd {
   h3 {
     font-size: 1em;
   }
-
 
   .downloads {
     margin: 1.5rem 0;
@@ -542,7 +568,7 @@ th, td {
 }
 
 .maxwidth > tbody > tr > td {
-  max-width: 150px;
+  max-width: 175px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -936,6 +962,26 @@ input:-webkit-autofill:active{
   border: 1px solid rgb(0, 27, 32) !important;
 }
 
+.zeroplayers > div > a > .server-heading {
+  color: #999;
+}
+
+.zeroplayers > div > a > .server-heading:hover {
+  color: #b3b3b3
+}
+
+.zeroplayers > div > a > .flag {
+  opacity: 0.5;
+}
+
+.zeroplayers > div > .server-actions > a {
+  color: #39736a;
+}
+
+.zeroplayers > div > .server-actions > a:hover {
+  color: #4f968b;
+}
+
 .ranked {
   color: rgb(0, 255, 255);
   animation: colorChange 2s infinite alternate;
@@ -1037,11 +1083,15 @@ a.white:hover {
   box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
 }
 
+.server-link {
+  display: flex;
+  gap: 0.25em;
+  align-items: self-start;
+  justify-content: space-between;
+}
+
 .server-heading {
-  font-size: 0.9em;
   color: #ccc;
-  display: block;
-  font-weight: 500;
 }
 
 .server-heading:hover {

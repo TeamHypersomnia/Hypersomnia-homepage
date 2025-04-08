@@ -6,7 +6,7 @@
   <div class="server-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
     <div class="server-header">
       <a href="/servers/<%= v.site_displayed_address %>" class="server-link">
-        <i class="server-heading"><%= v.name %></i>
+        <i class="server-heading"><%= v.name %></i><span class="flag"><%= v.emoji %></span>
       </a>
     </div>
     <div class="server-info">
@@ -35,7 +35,7 @@
   <div class="server-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
     <div class="server-header">
       <a href="/servers/<%= v.site_displayed_address %>" class="server-link">
-        <i class="server-heading"><%= v.name %></i>
+        <i class="server-heading"><%= v.name %></i><span class="flag"><%= v.emoji %></span>
       </a>
     </div>
     <div class="server-info">
@@ -57,5 +57,6 @@
   </div>
   <% }); %>
 </div>
+
 
 <%- include('overall_footer'); %>

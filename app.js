@@ -161,8 +161,8 @@ app.use((req, res, next) => {
 });
 
 // Timers
-servers.fetchServers(app);
-setInterval(() => servers.fetchServers(app), 10000);
+servers.fetchServers();
+setInterval(() => servers.fetchServers(), 10000);
 
 // Routes
 app.use('/', require('./src/index'));
