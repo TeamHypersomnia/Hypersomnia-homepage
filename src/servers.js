@@ -43,6 +43,10 @@ function fetchServers() {
     });
 }
 
+setInterval(fetchServers, 10000);
+fetchServers();
+
+
 router.get('/', function (req, res) {
   servers.sort((a, b) => {
     if (b.num_online !== a.num_online) {
@@ -81,4 +85,4 @@ router.get('/:address', function (req, res) {
   });
 });
 
-module.exports = { router, fetchServers };
+module.exports = router;

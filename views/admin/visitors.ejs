@@ -16,7 +16,7 @@
       <% const v = visitors[k]; %>
       <% const lastVisitedUrl = v.lastUrl ? v.lastUrl : 'N/A'; %>
       <tr>
-        <td><a href="https://db-ip.com/<%= v.ip %>" target="_blank"><%= v.ip %></a></td>
+        <td><a href="https://db-ip.com/<%= k %>" target="_blank"><%= k %></a></td>
         <td title="<%= v.userAgent.length > 40 ? v.userAgent : '' %>"><%= v.userAgent.length > 40 ? v.userAgent.substring(0, 40) + '...' : v.userAgent %></td>
         <td>
           <a href="<%= lastVisitedUrl %>" target="_blank" title="<%= lastVisitedUrl.length > 40 ? lastVisitedUrl : '' %>">
