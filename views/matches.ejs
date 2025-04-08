@@ -9,8 +9,8 @@
         <th class="no-sort" width="25%">Winning team</th>
         <th class="no-sort" width="10%">Score</th>
         <th class="no-sort" width="25%">Losing team</th>
-        <th class="dir-d" width="10%">Time ago</th>
-        <th width="10%">Server</th>
+        <th class="dir-d" width="14%">Time ago</th>
+        <th width="6%">Server</th>
       </tr>
     </thead>
     <tbody>
@@ -37,12 +37,7 @@
             <% }); %>
           </td>
           <td data-sort="<%= i.match_end_date %>"><%= i.time_ago %></td>
-          <td>
-          <%= i.server_id %>
-          <% if (i.event_match_multiplier !== 1) { %>
-          <b style="color: orange;">x<%= i.event_match_multiplier %></b>
-          <% } %>
-          </td>
+          <td class="extra"><%= i.server_emoji %><% if (i.event_match_multiplier !== 1) { %><abbr class="flame" title="Event match multiplier x<%= i.event_match_multiplier %>"><i class="fa-solid fa-fire-flame-curved"></i>x<%= i.event_match_multiplier %></abbr><% } %></td>
         </tr>
       <% }); %>
     </tbody>

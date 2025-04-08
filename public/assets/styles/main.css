@@ -52,10 +52,16 @@ a:hover {
 
 .up {
   color: #7fff00;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .down {
   color: #f85e73;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.serif {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 code {
@@ -182,6 +188,21 @@ dd {
 
 .arena {
   padding-top: 0.5em;
+}
+
+.extra {
+  font-size: 1.1em;
+}
+
+.flame {
+  color: #D38038;
+  font-weight: 700;
+  font-size: 0.9em !important;
+}
+
+.flame > i {
+  margin-left: 0.4em;
+  margin-right: 0.1em;
 }
 
 /* Desktop */

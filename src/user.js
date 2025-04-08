@@ -4,6 +4,7 @@ const Database = require('better-sqlite3');
 const moment = require('moment');
 const formatMMRDelta = require('./format_delta');
 const ranks = require('./ranks_info');
+const { countryCodeEmoji } = require('country-code-emoji');
 
 function escapeHtml(unsafe) {
   return unsafe
@@ -114,24 +115,20 @@ router.get('/:user', function (req, res) {
     
       const mmrDelta = formatMMRDelta(playerData.mmr_delta);
       const prevMMR = (playerData.new_mmr - playerData.mmr_delta).toFixed(2);
-    
-      let multPreffix = '';
-      if (match.event_match_multiplier !== 1) {
-        multPreffix = `<b style="color: orange">x${match.event_match_multiplier}</b> `;
-      }
 
       const mmr_change = `${mmrDelta}`;
       const result = isWin ? `<span class="up">${match.win_score}:${match.lose_score}</span>` : `<span class="down">${match.win_score}:${match.lose_score}</span>`;
     
       return {
         server_id: match.server_id,
+        server_emoji: countryCodeEmoji(match.server_id.slice(0, 2)),
         game_mode: match.game_mode,
         arena: match.arena,
         prev_mmr: prevMMR,
         new_mmr: (playerData.new_mmr).toFixed(2),
         time_ago: moment.utc(match.match_end_date).local().fromNow(),
         mmr_change,
-        multPreffix,
+        multPreffix: match.event_match_multiplier,
         result,
         formattedOpponentLinks
       };

@@ -2,6 +2,7 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const formatMMRDelta = require('./format_delta');
 const moment = require('moment');
+const { countryCodeEmoji } = require('country-code-emoji');
 
 const router = express.Router();
 
@@ -25,6 +26,7 @@ router.get('/', (req, res) => {
         match_id: match.match_id,
         server_name: match.server_name,
         server_id: match.server_id,
+        server_emoji: countryCodeEmoji(match.server_id.slice(0, 2)),
         arena: match.arena,
         game_mode: match.game_mode,
         winners,

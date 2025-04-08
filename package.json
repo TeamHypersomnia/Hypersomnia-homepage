@@ -4,6 +4,7 @@
     "better-sqlite3": "*",
     "chokidar": "*",
     "connect-sqlite3": "*",
+    "country-code-emoji": "*",
     "dotenv": "*",
     "ejs": "*",
     "express": "*",
