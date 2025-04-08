@@ -3,12 +3,12 @@
 <h1>Leaderboards</h1>
 <div class="btn-group">
   <div class="btn">
-    <button class="bomb_defusal<% if (bomb_defusal) {%> active<% } %>" onclick="leaderboards('bomb_defusal')">
+    <button class="bomb_defusal<% if (leaderboard_name == 'Bomb Defusal') {%> active<% } %>" onclick="leaderboards('bomb_defusal')">
       <span>Bomb Defusal</span>
     </button>
   </div>
   <div class="btn">
-    <button class="ffa<% if (ffa) {%> active<% } %>" onclick="leaderboards('ffa')">
+    <button class="ffa<% if (leaderboard_name == 'FFA') {%> active<% } %>" onclick="leaderboards('ffa')">
       <span>FFA</span>
     </button>
   </div>
