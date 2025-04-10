@@ -138,11 +138,13 @@ function adm(req, res, next) {
 }
 
 app.use((req, res, next) => {
+  const originalUrl = req.originalUrl.replace(/\/\?$/, '').replace(/\?.*$/, '');
   visitors[req.ip] = {
     userAgent: req.headers['user-agent'] ?? '',
     lastSeen: Math.floor(Date.now() / 1000),
-    lastUrl: req.originalUrl,
+    lastUrl: originalUrl,
   }
+  res.locals.ogUrl = `https://${req.hostname}${originalUrl}`;
   next();
 });
 

@@ -2,7 +2,7 @@
 <h1><%= nickname %></h1>
 
 <div class="box">
-  <div class="table-responsive">
+  <div class="responsive">
     <table>
       <thead>
         <tr>
@@ -20,7 +20,7 @@
               <% } else { %>
                 <i class="<%= platformIconClass %>"></i>
               <% } %>
-              <%= platformName %><span class="external-link-icon" aria-hidden="true"></span>
+              <%= platformName %><span class="external-link-icon"></span>
             </a>
         </tr>
         <tr>
@@ -55,7 +55,7 @@
     </table>
   </div>
 
-  <div class="table-responsive">
+  <div class="responsive">
     <table>
       <thead>
         <tr>
@@ -66,34 +66,26 @@
       <tbody>
         <tr>
           <td>Matches won</td>
-          <td>
-            <b><%= teamData.matches_won %></b> 
-          </td>
+          <td><%= teamData.matches_won %></td>
         </tr>
         <tr>
           <td>Matches lost</td>
-          <td>
-            <b><%= teamData.matches_lost %></b> 
-          </td>
+          <td><%= teamData.matches_lost %></td>
         </tr>
         <tr>
           <td>Matches won (FFA)</td>
-          <td>
-            <b><%= ffaData.matches_won %></b> 
-          </td>
+          <td><%= ffaData.matches_won %></td>
         </tr>
         <tr>
           <td>Matches lost (FFA)</td>
-          <td>
-            <b><%= ffaData.matches_lost %></b> 
-          </td>
+          <td><%= ffaData.matches_lost %></td>
         </tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<div class="table-responsive">
+<div class="responsive">
   <table class="sortable maxwidth">
     <thead>
       <tr>

@@ -117,7 +117,7 @@ router.get('/:user', function (req, res) {
       const prevMMR = (playerData.new_mmr - playerData.mmr_delta).toFixed(2);
 
       const mmr_change = `${mmrDelta}`;
-      const result = isWin ? `<span class="up">${match.win_score}:${match.lose_score}</span>` : `<span class="down">${match.win_score}:${match.lose_score}</span>`;
+      const result = isWin ? `<span class="u">${match.win_score}:${match.lose_score}</span>` : `<span class="d">${match.win_score}:${match.lose_score}</span>`;
     
       return {
         server_id: match.server_id,

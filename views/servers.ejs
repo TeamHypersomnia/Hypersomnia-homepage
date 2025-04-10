@@ -1,28 +1,24 @@
 <%- include('overall_header'); %>
 
 <h2>Ranked Servers</h2>
-<div class="server-list">
+<div class="sv-list">
   <% Object.values(ranked_servers).forEach(v=> { %>
-  <div class="server-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
-    <div class="server-header">
-      <a href="/servers/<%= v.site_displayed_address %>" class="server-link">
-        <i class="server-heading"><%= v.name %></i><span class="flag"><%= v.emoji %></span>
-      </a>
-    </div>
-    <div class="server-info">
-      <div class="server-details">
-        <span class="server-game-mode">Players <strong><%= v.num_online %>/<%= v.slots %></strong></span>
-        <% if (v.num_online > 0) { %>
-          <div class="server-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div>
-        <% } %>
+  <div class="sv-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
+    <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
+      <i><%= v.name %></i><span class="flag"><%= v.emoji %></span>
+    </a>
+    <div class="sv-info">
+      <div>
+        <span>Players <strong><%= v.num_online %>/<%= v.slots %></strong></span>
+        <% if (v.num_online > 0) { %><div class="sv-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div><% } %>
       </div>
-      <div class="server-details">
-        <span class="server-game-mode"><%= v.arena %></span>
-        <div class="server-players"><%= v.game_mode %></div>
+      <div>
+        <span><%= v.arena %></span>
+        <div class="sv-players"><%= v.game_mode %></div>
       </div>
-      <div class="server-actions">
-        <a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam mr"></i>Connect via Steam</a>
-        <a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket mr"></i>Play in Browser</a>
+      <div>
+        <a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam"></i>Connect via Steam</a>
+        <a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser</a>
       </div>
     </div>
   </div>
@@ -30,28 +26,25 @@
 </div>
 
 <h2>Casual Servers</h2>
-<div class="server-list">
+<div class="sv-list">
   <% Object.values(casual_servers).forEach(v=> { %>
-  <div class="server-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
-    <div class="server-header">
-      <a href="/servers/<%= v.site_displayed_address %>" class="server-link">
-        <i class="server-heading"><%= v.name %></i><span class="flag"><%= v.emoji %></span>
-      </a>
-    </div>
-    <div class="server-info">
-      <div class="server-details">
-        <span class="server-game-mode">Players <strong><%= v.num_online %>/<%= v.slots %></strong></span>
-        <% if (v.num_online > 0) { %>
-          <div class="server-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div>
-        <% } %>
+  <div class="sv-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
+    <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
+      <i><%= v.name %></i>
+      <span class="flag"><%= v.emoji %></span>
+    </a>
+    <div class="sv-info">
+      <div>
+        <span>Players <b><%= v.num_online %>/<%= v.slots %></b></span>
+        <% if (v.num_online > 0) { %><span>Score <b><%= v.score_resistance %>-<%= v.score_metropolis %></b></span><% } %>
       </div>
-      <div class="server-details">
-        <span class="server-game-mode"><%= v.arena %></span>
-        <div class="server-players"><%= v.game_mode %></div>
+      <div>
+        <span><%= v.arena %></span>
+        <span><%= v.game_mode %></span>
       </div>
-      <div class="server-actions">
-        <a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam mr"></i>Connect via Steam</a>
-        <a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket mr"></i>Play in Browser</a>
+      <div>
+        <a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam"></i>Connect via Steam</a>
+        <a href="https://hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser</a>
       </div>
     </div>
   </div>
