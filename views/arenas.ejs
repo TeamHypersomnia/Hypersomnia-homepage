@@ -4,7 +4,7 @@
 <div class="arenas">
 <% Object.values(arenas).forEach(arena => { %>
   <a href="/arenas/<%= arena.name %>">
-    <img class="arena_miniature" src="/arenas/<%= arena.name %>/miniature.png" alt="<%= arena.name %>">
+    <img class="arena_miniature" src="<%= CDN %>/arenas/<%= arena.name %>/miniature.png" alt="<%= arena.name %>">
     <div class="arena_name"><%= arena.name %></div>
     <div class="arena_author"><%= arena.author %></div>
   </a>

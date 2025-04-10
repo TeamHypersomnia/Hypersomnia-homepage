@@ -117,6 +117,7 @@ app.use(minifyHTML({
 app.locals.version = Math.floor(Date.now() / 1000);
 app.locals.alert = '';
 app.locals.NODE_ENV = process.env.NODE_ENV || 'development';
+app.locals.CDN = process.env.CDN || '';
 
 // Middleware
 function usr(req, res, next) {
