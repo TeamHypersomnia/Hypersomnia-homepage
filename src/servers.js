@@ -8,13 +8,13 @@ let servers = [];
 
 function getIp(clientIp, server) {
   if (geoCache[clientIp]) {
-    server.emoji = countryCodeEmoji(geoCache[clientIp]);
+    server.flag = countryCodeEmoji(geoCache[clientIp]);
     return;
   }
   axios.get(`https://ipinfo.io/${clientIp}?token=${process.env.IPINFO_API_TOKEN}`)
     .then(response => {
       geoCache[clientIp] = response.data.country;
-      server.emoji = countryCodeEmoji(response.data.country);
+      server.flag = countryCodeEmoji(response.data.country);
     })
     .catch(error => {
       console.error('GeoIP lookup failed:', error.message);
@@ -24,18 +24,28 @@ function getIp(clientIp, server) {
 function fetchServers() {
   axios.get(process.env.SERVER_LIST_JSON)
     .then(response => {
-      servers = response.data.map(server => {
-        const regex = /\[([A-Z]{2})\]/;
-        const match = server.name.match(regex);
-        if (match) {
-          server.emoji = countryCodeEmoji(match[1]);
+      const newServerList = response.data;
+      newServerList.forEach(newServer => {
+        const existing = servers.find(s => s.ip === newServer.ip);
+        newServer.num_online = newServer.num_playing + newServer.num_spectating;
+        if (existing) {
+          // Update all properties but keep the flag
+          Object.assign(existing, newServer);
         } else {
-          server.emoji = '🏴';
-          getIp(server.ip.split(':')[0], server);
+          // New server, set flag or fallback
+          const regex = /\[([A-Z]{2})\]/;
+          const match = newServer.name.match(regex);
+          if (match) {
+            newServer.flag = countryCodeEmoji(match[1]);
+          } else {
+            newServer.flag = '🏴';
+            getIp(newServer.ip.split(':')[0], newServer);
+          }
+          servers.push(newServer);
         }
-        server.num_online = server.num_playing + server.num_spectating;
-        return server;
       });
+      // Remove servers that no longer exist
+      servers = servers.filter(s => newServerList.some(n => n.ip === s.ip));
     })
     .catch(error => {
       console.error('Error fetching server list:', error.message);
@@ -44,7 +54,6 @@ function fetchServers() {
 
 setInterval(fetchServers, 10000);
 fetchServers();
-
 
 router.get('/', function (req, res) {
   servers.sort((a, b) => {

@@ -121,8 +121,6 @@ function mapPlayerInfos(playerInfos, db) {
 }
 
 router.post('/', apiKeyAuth, (req, res) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-
   const { match_start_date, server_name, arena, game_mode, win_score, lose_score } = req.body;
   let { losers_abandoned } = req.body;
   let { win_players, lose_players, player_infos } = req.body;

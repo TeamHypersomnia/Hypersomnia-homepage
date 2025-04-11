@@ -1,20 +1,21 @@
 <%- include('overall_header'); %>
 
 <h2>Ranked Servers</h2>
-<div class="sv-list">
+<div id="ranked_servers" class="sv-list">
   <% Object.values(ranked_servers).forEach(v=> { %>
   <div class="sv-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
     <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
-      <i><%= v.name %></i><span class="flag"><%= v.emoji %></span>
+      <i><%= v.name %></i>
+      <span class="flag"><%= v.flag %></span>
     </a>
     <div class="sv-info">
       <div>
-        <span>Players <strong><%= v.num_online %>/<%= v.slots %></strong></span>
-        <% if (v.num_online > 0) { %><div class="sv-players">Score <strong><%= v.score_resistance %>-<%= v.score_metropolis %></strong></div><% } %>
+        <span>Players <b><%= v.num_online %>/<%= v.slots %></b></span>
+        <% if (v.num_online > 0) { %><span>Score <b><%= v.score_resistance %>-<%= v.score_metropolis %></b></span><% } %>
       </div>
       <div>
         <span><%= v.arena %></span>
-        <div class="sv-players"><%= v.game_mode %></div>
+        <span><%= v.game_mode %></span>
       </div>
       <div>
         <a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam"></i>Connect via Steam</a>
@@ -26,12 +27,12 @@
 </div>
 
 <h2>Casual Servers</h2>
-<div class="sv-list">
+<div id="casual_servers" class="sv-list">
   <% Object.values(casual_servers).forEach(v=> { %>
   <div class="sv-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
     <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
       <i><%= v.name %></i>
-      <span class="flag"><%= v.emoji %></span>
+      <span class="flag"><%= v.flag %></span>
     </a>
     <div class="sv-info">
       <div>

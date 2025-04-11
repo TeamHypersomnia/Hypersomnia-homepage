@@ -11,10 +11,9 @@ router.get('/', (req, res) => {
   try {
     const db = new Database(process.env.DB_PATH);
     const leaderboards = {
-      leaderboards_team: db.prepare(`SELECT account_id, nickname, mmr FROM mmr_team ORDER BY mmr DESC`).all(),
-      leaderboards_ffa: db.prepare(`SELECT account_id, nickname, mmr FROM mmr_ffa ORDER BY mmr DESC`).all()
+      leaderboards_team: db.prepare('SELECT account_id, nickname, mmr FROM mmr_team ORDER BY mmr DESC').all(),
+      leaderboards_ffa: db.prepare('SELECT account_id, nickname, mmr FROM mmr_ffa ORDER BY mmr DESC').all()
     };
-
     return res.json(leaderboards);
   } catch (err) {
     console.error(err.message);
@@ -25,10 +24,10 @@ router.get('/', (req, res) => {
 router.get('/bomb-defusal', (req, res) => {
   try {
     const db = new Database(process.env.DB_PATH);
-    const rows = db.prepare(`SELECT * FROM mmr_team ORDER BY mmr DESC`).all();
+    const rows = db.prepare('SELECT * FROM mmr_team ORDER BY mmr DESC').all();
     const leaderboards = rows.map(row => ({
       ...row,
-      ...getRank(Number(row.mmr))
+      ...getRank(row.mmr)
     }));
 
     if (req.query?.format === 'json') {
@@ -50,10 +49,10 @@ router.get('/bomb-defusal', (req, res) => {
 router.get('/ffa', (req, res) => {
   try {
     const db = new Database(process.env.DB_PATH);
-    const rows = db.prepare(`SELECT * FROM mmr_ffa ORDER BY mmr DESC`).all();
+    const rows = db.prepare('SELECT * FROM mmr_ffa ORDER BY mmr DESC').all();
     const leaderboards = rows.map(row => ({
       ...row,
-      ...getRank(Number(row.mmr))
+      ...getRank(row.mmr)
     }));
 
     if (req.query?.format === 'json') {

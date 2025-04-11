@@ -60,13 +60,13 @@ router.get('/:user', function (req, res) {
 
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
     const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
-    const rankTeam = getRank(parseInt(userTeam.mmr));
+    const rankTeam = getRank(userTeam.mmr);
     userTeam.rankImg = rankTeam.rankImg;
     userTeam.rankName = rankTeam.rankName;
 
     const stmtFFA = db.prepare('SELECT * FROM mmr_ffa WHERE account_id = ?');
     const userFFA = stmtFFA.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
-    const rankFFA = getRank(parseInt(userFFA.mmr));
+    const rankFFA = getRank(userFFA.mmr);
     userFFA.rankImg = rankFFA.rankImg;
     userFFA.rankName = rankFFA.rankName;
 
@@ -78,7 +78,6 @@ router.get('/:user', function (req, res) {
       const loser = losersArray.find(l => l.id === userid);
       const isWin = !!winner;
       const playerData = isWin ? winner : loser;
-      if (!playerData) return null;
       const opponentArray = isWin ? losersArray : winnersArray.filter(w => w.contributed_as_enemy);
       const result = isWin ? `<span class="u">${match.win_score}:${match.lose_score}</span>` : `<span class="d">${match.win_score}:${match.lose_score}</span>`;
       return {
@@ -92,9 +91,9 @@ router.get('/:user', function (req, res) {
         result,
         opponentArray
       };
-    }).filter(match => match !== null);
+    });
 
-    const render_data = {
+    res.render('user', {
       page: userTeam.nickname || userFFA.nickname || 'Unknown',
       user: req.user,
       nickname: userTeam.nickname || userFFA.nickname || 'Unknown',
@@ -108,9 +107,7 @@ router.get('/:user', function (req, res) {
       associatedProfileUrl: associatedProfileUrl,
       associatedId: associatedId,
       formatMMRDelta: formatMMRDelta
-    };
-
-    res.render('user', render_data);
+    });
   } catch (error) {
     console.error(error.message);
     return res.status(500).json({ error: 'Internal Server Error' });

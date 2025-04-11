@@ -15,8 +15,6 @@ function writeFileWithDirectory(filePath, content) {
 }
 
 router.post('/', upload.single('upload'), (req, res) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-
   const apikey = req.body.apikey;
   const arena = req.body.arena;
   const filename = req.body.filename;
@@ -35,7 +33,7 @@ router.post('/', upload.single('upload'), (req, res) => {
   }
   
   let allowCreatingNew = false;
-  if (authorizedMappers[apikey].allow_creating_new === 1) {
+  if (authorizedMappers[apikey].allow_creating_new == true) {
     allowCreatingNew = true;
   }
   

@@ -26,8 +26,6 @@ function apiKeyAuth(req, res, next) {
 }
 
 router.post('/', apiKeyAuth, (req, res) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-
   const { multiplier } = req.body;
 
   if (!multiplier) {
