@@ -36,10 +36,13 @@ function loadUnplayableMaps() {
 }
 
 function loadArenas() {
+  const startTime = Date.now();
+
   const unplayableMaps = loadUnplayableMaps();
   const files = fs.readdirSync(dirPath, { withFileTypes: true });
   const directories = files.filter(file => file.isDirectory());
   const arenas = [];
+
   directories.forEach(d => {
     const arenaPath = `${dirPath}/${d.name}/${d.name}.json`;
     if (fs.existsSync(arenaPath)) {
@@ -75,17 +78,25 @@ function loadArenas() {
       });
     }
   });
-  console.log(`Loaded ${arenas.length} arenas successfully`);
+
+  const endTime = Date.now();
+  const elapsed = endTime - startTime;
+
+  console.log(`Loaded ${arenas.length} arenas successfully in ${elapsed}ms`);
   return arenas;
 }
 
 arenas = loadArenas();
 
-const arenaWatcher = chokidar.watch(`${dirPath}/**/*.json`, {
+const arenaWatcher = chokidar.watch(dirPath, {
   ignoreInitial: true,
   persistent: true,
   recursive: true,
-  ignored: '**/editor_view.json'
+  ignored: (path, stats) => {
+    if (!stats?.isFile()) return false
+    if (path.endsWith('editor_view.json')) return true
+    return !path.endsWith('.json')
+  }
 });
 
 arenaWatcher.on('all', (event, path) => {
