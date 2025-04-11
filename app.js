@@ -175,6 +175,7 @@ app.use('/admin/settings', adm, require('./src/admin/settings')(app.locals));
 app.use((req, res) => res.status(404).render('404', { page: 'Not Found', user: req.user }));
 
 if (app.locals.NODE_ENV === 'production') {
+  // Minify JavaScript & CSS for production
   const uglifyJS = require('uglify-js');
   const uglifyCSS = require('uglifycss');
   const jsInput = __dirname + '/public/assets/scripts/main.js';
@@ -187,6 +188,45 @@ if (app.locals.NODE_ENV === 'production') {
   const cssCode = fs.readFileSync(cssInput, 'utf8');
   const minifiedCSS = uglifyCSS.processString(cssCode);
   fs.writeFileSync(cssOutput, minifiedCSS);
+
+  // Purge cache on BunnyCDN if BUNNYCDN_API is set
+  if (process.env.BUNNYCDN_API) {
+    const axios = require('axios');
+    axios.post('https://api.bunny.net/pullzone/3594361/purgeCache', {}, {
+      headers: {
+        'Content-Type': 'application/json',
+        AccessKey: process.env.BUNNYCDN_API
+      }
+    })
+    .then(res => {
+      if (res.status === 204) {
+        console.log('Cache was successfully purged');
+      } else {
+        console.log(`Unexpected status: ${res.status}`);
+      }
+    })
+    .catch(err => {
+      if (err.response) {
+        switch (err.response.status) {
+          case 401:
+            console.error('Authorization failed. Check your BUNNYCDN_API key.');
+            break;
+          case 404:
+            console.error('The Pull Zone with the requested ID does not exist.');
+            break;
+          case 500:
+            console.error('Internal server error. Try again later.');
+            break;
+          default:
+            console.error(`Unexpected error: ${err.response.status}`);
+        }
+      } else {
+        console.error('Error purging cache:', err.message);
+      }
+    });
+  } else {
+    console.log('BUNNYCDN_API not set, skipping cache purge');
+  }
 }
 
 const server = app.listen(process.env.PORT || 3000, () => {

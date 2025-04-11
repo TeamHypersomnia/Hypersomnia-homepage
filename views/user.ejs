@@ -14,13 +14,13 @@
         <tr>
           <td>External profile</td>
           <td>
-            <a href="<%= profileUrl %>" target="_blank" style="display:flex;align-items:center;gap:0.25em;">
+            <a href="<%= profileUrl %>" target="_blank">
               <% if (platformName === 'CrazyGames') { %>
-                <img width="16" height="16" src="/assets/images/social_crazygames.png" alt="CrazyGames">
+                <img width="16" height="16" src="<%= CDN %>/assets/images/social_crazygames.png" alt="CrazyGames">
               <% } else { %>
                 <i class="<%= platformIconClass %>"></i>
               <% } %>
-              <%= platformName %><span class="external-link-icon"></span>
+              <%= platformName %>
             </a>
         </tr>
         <tr>
