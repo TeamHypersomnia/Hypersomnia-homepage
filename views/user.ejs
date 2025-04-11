@@ -101,9 +101,17 @@
       <% matches.forEach(v => { %>
         <tr>
           <td><%= v.arena %></td>
-          <td class="serif"><%- v.mmr_change %> <%= v.new_mmr %></td>
+          <td class="serif"><%- formatMMRDelta(v.mmrDelta) %> <%= v.new_mmr %></td>
           <td class="serif"><% if (v.game_mode === 'FFA Gun Game') { %>FFA<% } else { %><%- v.result %><% } %></td>
-          <td><%- v.formattedOpponentLinks %></td>
+          <td>
+            <% v.opponentArray.forEach(player => { %>
+              <%- formatMMRDelta(player.mmr_delta) %>
+              <a href="/user/<%= player.id %>">
+                <%= player.nickname %>
+              </a>
+              <% if (v.opponentArray.indexOf(player) < v.opponentArray.length - 1) { %><br><% } %>
+            <% }); %>
+          </td>
           <td><%= v.time_ago %></td>
           <td class="extra"><%= v.server_emoji %><% if (v.multPreffix !== 1) { %><abbr class="flame" title="Event match multiplier x<%= v.multPreffix %>"><i class="fa-solid fa-fire-flame-curved"></i>x<%= v.multPreffix %></abbr><% } %></td>
         </tr>

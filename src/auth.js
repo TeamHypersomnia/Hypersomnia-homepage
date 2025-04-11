@@ -1,19 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-const path = `${__dirname}/../private/users.json`;
-
 const Database = require('better-sqlite3');
 const axios = require('axios');
 const querystring = require('querystring');
 
-const discordClientId = process.env.DISCORD_CLIENT_ID;
-const discordClientSecret = process.env.DISCORD_CLIENT_SECRET;
-const redirectUri = process.env.URL + 'auth/discord/return';
-
 function loadUsers() {
   try {
-    const d = fs.readFileSync(path, 'utf8');
+    const d = fs.readFileSync(`${__dirname}/../private/users.json`, 'utf8');
     const obj = JSON.parse(d);
     return obj;
   } catch (error) {
@@ -25,7 +19,7 @@ function loadUsers() {
 function saveUsers(obj) {
   try {
     const json = JSON.stringify(obj, null, 2);
-    fs.writeFileSync(path, json, 'utf8');
+    fs.writeFileSync(`${__dirname}/../private/users.json`, json, 'utf8');
   } catch (error) {
     console.error(error.message);
   }
@@ -64,7 +58,7 @@ module.exports = function(passport) {
 
   // Route to initiate Discord OAuth
   router.get('/discord', (req, res) => {
-    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&redirect_uri=${redirectUri}&response_type=code&scope=identify`;
+    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.URL}auth/discord/return&response_type=code&scope=identify`;
     res.redirect(authUrl);
   });
 
@@ -93,11 +87,11 @@ module.exports = function(passport) {
     try {
       // Exchange code for access token
       const tokenResponse = await axios.post('https://discord.com/api/oauth2/token', querystring.stringify({
-        client_id: discordClientId,
-        client_secret: discordClientSecret,
+        client_id: process.env.DISCORD_CLIENT_ID,
+        client_secret: process.env.DISCORD_CLIENT_SECRET,
         grant_type: 'authorization_code',
         code,
-        redirect_uri: redirectUri
+        redirect_uri: process.env.URL + 'auth/discord/return'
       }), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
@@ -117,8 +111,8 @@ module.exports = function(passport) {
 
       await axios.post('https://discord.com/api/oauth2/token/revoke', querystring.stringify({
         token: access_token,
-        client_id: discordClientId,
-        client_secret: discordClientSecret
+        client_id: process.env.DISCORD_CLIENT_ID,
+        client_secret: process.env.DISCORD_CLIENT_SECRET
       }), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'

@@ -138,35 +138,35 @@ function adm(req, res, next) {
 }
 
 app.use((req, res, next) => {
-  const originalUrl = req.originalUrl.replace(/\/\?$/, '').replace(/\?.*$/, '');
+  const url = req.originalUrl.replace(/\/\?$/, '').replace(/\?.*$/, '');
   visitors[req.ip] = {
     userAgent: req.headers['user-agent'] ?? '',
     lastSeen: Math.floor(Date.now() / 1000),
-    lastUrl: originalUrl,
+    lastUrl: url,
   }
-  res.locals.ogUrl = `https://${req.hostname}${originalUrl}`;
+  res.locals.ogUrl = `https://${req.hostname}${url}`;
   next();
 });
 
 // Routes
-app.use('/', require('./src/index'));
-app.use('/arenas', require('./src/arenas'));
-app.use('/user', require('./src/user'));
+app.get('/', (req, res) => res.render('index', { page: false, user: req.user }));
+app.get('/disclaimer', (req, res) => res.render('disclaimer', { page: 'Disclaimer', user: req.user }));
+app.get('/cookie-policy', (req, res) => res.render('cookie_policy', { page: 'Cookie Policy', user: req.user }));
 app.use('/weapons', require('./src/weapons'));
+app.use('/leaderboards', require('./src/leaderboards'));
+app.use('/matches', require('./src/matches'));
+app.use('/arenas', require('./src/arenas'));
 app.use('/servers', require('./src/servers'));
-app.use('/profile', usr, require('./src/profile'));
-app.use('/logout', require('./src/logout'));
+app.use('/user', require('./src/user'));
 app.use('/auth', require('./src/auth')(passport));
-app.use('/disclaimer', require('./src/disclaimer'));
-app.use('/cookie-policy', require('./src/cookie_policy'));
+app.use('/profile', usr, require('./src/profile'));
+app.post('/logout', (req, res) => req.logout(() => res.redirect('/')));
 app.use('/upload', require('./src/upload'));
 app.use('/report_match', require('./src/report_match'));
 app.use('/revert_match', require('./src/revert_match'));
 app.use('/adjust_negative_mmrs', require('./src/adjust_negative_mmrs'));
 app.use('/revoke_discord', require('./src/revoke_discord'));
 app.use('/geolocation', require('./src/geolocation'));
-app.use('/leaderboards', require('./src/leaderboards'));
-app.use('/matches', require('./src/matches'));
 app.use('/admin/system', adm, require('./src/admin/system'));
 app.use('/admin/visitors', adm, require('./src/admin/visitors')(visitors));
 app.use('/admin/users', adm, require('./src/admin/users'));

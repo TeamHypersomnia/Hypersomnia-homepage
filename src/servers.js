@@ -3,9 +3,8 @@ const router = express.Router();
 const axios = require('axios');
 const moment = require('moment');
 const { countryCodeEmoji } = require('country-code-emoji');
-
-let servers = [];
 const geoCache = {};
+let servers = [];
 
 function getIp(clientIp, server) {
   if (geoCache[clientIp]) {

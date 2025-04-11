@@ -3,20 +3,9 @@ const axios = require('axios');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-    // Get client's IP address from request headers
-    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-
-    // Handle cases where the IP address might be in IPv6 format or contain multiple IPs
-    if (clientIp.includes(',')) {
-        clientIp = clientIp.split(',')[0];
-    }
-    if (clientIp.includes('::ffff:')) {
-        clientIp = clientIp.split('::ffff:')[1];
-    }
-
     try {
-        console.log("Requesting geolocation for " + clientIp);
-        const response = await axios.get(`https://ipinfo.io/${clientIp}/json?token=${process.env.IPINFO_API_TOKEN}`, {
+        console.log("Requesting geolocation for " + req.ip);
+        const response = await axios.get(`https://ipinfo.io/${req.ip}/json?token=${process.env.IPINFO_API_TOKEN}`, {
             headers: {
                 'Accept': 'application/json',
             }

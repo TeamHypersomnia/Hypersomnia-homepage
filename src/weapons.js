@@ -4,11 +4,7 @@ const fs = require('fs');
 
 function getWeapons(file) {
   const path = `${__dirname}/../public/weapons/${file}.json`;
-  const data = fs.readFileSync(path, {
-    encoding: 'utf8',
-    flag: 'r'
-  });
-  return JSON.parse(data);
+  return JSON.parse(fs.readFileSync(path, 'utf8'));
 }
 
 const firearms = getWeapons('firearms');

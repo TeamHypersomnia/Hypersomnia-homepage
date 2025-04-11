@@ -1,18 +1,10 @@
 const assert = require('assert');
-
 const fs = require('fs');
 const express = require('express');
 const Database = require('better-sqlite3');
-
 const router = express.Router();
-
 const authorizedServersPath = `${__dirname}/../private/authorized_ranked_servers.json`;
-const authorizedServersData = fs.readFileSync(authorizedServersPath, {
-  encoding: 'utf8',
-  flag: 'r'
-});
-
-const authorizedServers = JSON.parse(authorizedServersData);
+const authorizedServers = JSON.parse(fs.readFileSync(authorizedServersPath, 'utf8'));
 
 // Middleware for API key authentication
 function apiKeyAuth(req, res, next) {

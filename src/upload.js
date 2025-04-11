@@ -26,10 +26,7 @@ router.post('/', upload.single('upload'), (req, res) => {
     });
   }
 
-  const d = fs.readFileSync(__dirname + '/../private/authorized_mappers.json', {
-    encoding: 'utf8',
-    flag: 'r'
-  });
+  const d = fs.readFileSync(__dirname + '/../private/authorized_mappers.json', 'utf8');
   const authorizedMappers = JSON.parse(d);
   if (!authorizedMappers[apikey]) {
     return res.status(400).json({

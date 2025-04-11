@@ -1,6 +1,6 @@
 const express = require('express');
 const Database = require('better-sqlite3');
-const ranks = require('./ranks_info');
+const { getRank } = require('./utils');
 const router = express.Router();
 
 router.get('/', (req, res) => {
@@ -28,7 +28,7 @@ router.get('/bomb-defusal', (req, res) => {
     const rows = db.prepare(`SELECT * FROM mmr_team ORDER BY mmr DESC`).all();
     const leaderboards = rows.map(row => ({
       ...row,
-      ...ranks.getRank(Number(row.mmr))
+      ...getRank(Number(row.mmr))
     }));
 
     if (req.query?.format === 'json') {
@@ -53,7 +53,7 @@ router.get('/ffa', (req, res) => {
     const rows = db.prepare(`SELECT * FROM mmr_ffa ORDER BY mmr DESC`).all();
     const leaderboards = rows.map(row => ({
       ...row,
-      ...ranks.getRank(Number(row.mmr))
+      ...getRank(Number(row.mmr))
     }));
 
     if (req.query?.format === 'json') {

@@ -1,5 +1,4 @@
 const assert = require('assert');
-
 const fs = require('fs');
 const express = require('express');
 const Database = require('better-sqlite3');
@@ -60,10 +59,7 @@ const MIN_SCORE_AS_ENEMY_TO_CONTRIBUTE = 4;
 const MIN_ROUNDS_TO_COUNT_WINS = 5;
 
 const authorizedServersPath = `${__dirname}/../private/authorized_ranked_servers.json`;
-const authorizedServersData = fs.readFileSync(authorizedServersPath, {
-  encoding: 'utf8',
-  flag: 'r'
-});
+const authorizedServersData = fs.readFileSync(authorizedServersPath, 'utf8');
 
 const authorizedServers = JSON.parse(authorizedServersData);
 

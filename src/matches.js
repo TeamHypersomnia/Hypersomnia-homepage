@@ -1,8 +1,8 @@
 const express = require('express');
 const Database = require('better-sqlite3');
-const formatMMRDelta = require('./format_delta');
 const moment = require('moment');
 const { countryCodeEmoji } = require('country-code-emoji');
+const { formatMMRDelta } = require('./utils');
 
 const router = express.Router();
 

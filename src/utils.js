@@ -24,8 +24,13 @@ function getRank(score) {
       break;
     }
   }
-
   return { name: rankName, rankImg: rankImg };
 }
 
-module.exports = { getRank };
+function formatMMRDelta(mmr) {
+  const name = mmr >= 0 ? 'u' : 'd';
+  const symbol = mmr >= 0 ? '↑' : '↓';
+  return `<span class="${name}">${symbol}${Math.abs(mmr).toFixed(2)}</span>`;
+}
+
+module.exports = { getRank, formatMMRDelta };
