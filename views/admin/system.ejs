@@ -62,21 +62,33 @@
 
 <% if (accessLogs && accessLogs.length > 0) { %>
 <div class="responsive">
-  <table class="maxwidth">
+  <table>
     <thead>
       <tr>
-        <th>IP address</th>
-        <th>Request</th>
-        <th>User-Agent</th>
-        <th>Time ago</th>
+        <th width="25%">IP address</th>
+        <th width="25%">Request</th>
+        <th width="25%">User-Agent</th>
+        <th width="25%">Time ago</th>
       </tr>
     </thead>
     <tbody>
       <% accessLogs.forEach(log => { %>
         <tr>
           <td><a href="https://db-ip.com/<%= log.ip %>" target="_blank"><%= log.ip %></a></td>
-          <td><%= log.request %></td>
-          <td><%= log.userAgent %></td>
+          <td>
+            <% if (log.request.length > 30) { %>
+              <abbr title="<%= log.request %>"><%= log.request.substring(0, 30) + '...' %></abbr>
+            <% } else { %>
+              <%= log.request %>
+            <% } %>
+          </td>
+          <td>
+            <% if (log.userAgent.length > 30) { %>
+              <abbr title="<%= log.userAgent %>"><%= log.userAgent.substring(0, 30) + '...' %></abbr>
+            <% } else { %>
+              <%= log.userAgent %>
+            <% } %>
+          </td>          
           <td><%= log.timestamp %></td>
         </tr>
       <% }); %>

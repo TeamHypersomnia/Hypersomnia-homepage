@@ -16,24 +16,23 @@
           <td>
             <a href="<%= profileUrl %>" target="_blank">
               <% if (platformName === 'CrazyGames') { %>
-                <img class="rank" src="<%= CDN %>/assets/images/social_crazygames.png" alt="CrazyGames">
+                <img class="fa-brands rank" src="<%= CDN %>/assets/images/social_crazygames.png" alt="CrazyGames"><%= platformName %>
               <% } else { %>
-                <i class="<%= platformIconClass %>"></i>
+                <i class="<%= platformIconClass %>"></i><%= platformName %>
               <% } %>
-              <%= platformName %>
             </a>
         </tr>
         <tr>
           <td>
-            <% if (associationType && associatedProfileUrl && associatedId) { %>
+            <% if (associationType && associatedId) { %>
               <%= associationType %>
             <% } else { %>
               Secondary account
             <% } %>
           </td>
           <td>
-            <% if (associationType && associatedProfileUrl && associatedId) { %>
-              <a href="<%= associatedProfileUrl %>"><%= associatedId %></a>
+            <% if (associationType && associatedId) { %>
+              <a href="/user/<%= associatedId %>"><%= associatedId.split('_')[0] %></a>
             <% } else { %>
               N/A
             <% } %>

@@ -44,18 +44,13 @@ router.get('/:user', function (req, res) {
     const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
     const childAssociation  = db.prepare('SELECT child_id FROM associations WHERE parent_id = ?').get(userid);
     let associationType = null;
-    let associatedProfileUrl = null;
     let associatedId = null;
     if (parentAssociation) {
-      const Id = parentAssociation.parent_id;
       associationType = 'Primary account';
-      associatedProfileUrl = `/user/${Id}`;
-      associatedId = Id.split('_')[0];
+      associatedId = parentAssociation.parent_id;
     } else if (childAssociation) {
-      const Id = childAssociation.child_id;
       associationType = 'Secondary account';
-      associatedProfileUrl = `/user/${Id}`;
-      associatedId = Id.split('_')[0];
+      associatedId = childAssociation.child_id;
     }
 
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
@@ -124,7 +119,6 @@ router.get('/:user', function (req, res) {
       ffaData: userFFA,
       matches: matches,
       associationType: associationType,
-      associatedProfileUrl: associatedProfileUrl,
       associatedId: associatedId,
       formatMMRDelta: formatMMRDelta,
       longestWinStreak,

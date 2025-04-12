@@ -4,7 +4,13 @@ const os = require('os');
 const fs = require('fs');
 const readline = require('readline');
 const moment = require('moment');
-const logFilePath = '/var/log/nginx/access.log';
+
+let logFilePath;
+if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
+  logFilePath = '/var/log/nginx/access.log';
+} else {
+  logFilePath = './private/access.log';
+}
 
 function formatUptime(uptime) {
   const d = Math.floor(uptime / (3600 * 24));
@@ -36,7 +42,7 @@ function parseNginxLogLine(line) {
   }
 }
 
-function tailLogFile(n = 25) {
+function tailLogFile(n = 30) {
   if (!fs.existsSync(logFilePath)) {
     return [];
   }
@@ -75,7 +81,7 @@ router.get('/', async (req, res) => {
     totalmem: os.totalmem(),
     node: process.version,
     appuptime: formatUptime(process.uptime()),
-    accessLogs: logs
+    accessLogs: logs.reverse()
   });
 });
 

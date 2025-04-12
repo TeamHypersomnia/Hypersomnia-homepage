@@ -795,14 +795,13 @@ input:-webkit-autofill:active{
 
 .alert {
   padding: 1em;
-  font-size: 0.9em;
-  color: #ddd;
-  border-radius: .375em;
-  margin-top: 2.5em;
-  line-height: 1.5;
-  background: linear-gradient(135deg, rgba(0, 51, 60, 0.6) 0%, rgba(0, 49, 58, 0.9) 100%);
-  font-weight: 500;
+  font-size: 0.85em;
+  border-radius: 3px;
+  margin-top: 1.5em;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgb(255, 218, 106);
+  background-image: linear-gradient(rgba(187, 128, 9, 0.15), rgba(187, 128, 9, 0.15));
+  line-height: 1.5;
 }
 
 .alert > a {

@@ -214,6 +214,8 @@ if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
   } else {
     console.log('BUNNYCDN_API not set, skipping cache purge');
   }
+} else {
+  app.locals.alert = 'Node environment is not set to production. If testing locally, it\'s fine, but set it to production for live deployment to ensure optimal performance and security.';
 }
 
 const server = app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
