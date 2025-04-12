@@ -89,9 +89,29 @@ router.get('/:user', function (req, res) {
         mmrDelta: playerData.mmr_delta,
         multPreffix: match.event_match_multiplier,
         result,
-        opponentArray
+        opponentArray,
+        isWin
       };
     });
+
+    let longestWinStreak = 0;
+    let currentWinStreak = 0;
+    matches.forEach(match => {
+      if (match.isWin) {
+        currentWinStreak++;
+        longestWinStreak = Math.max(longestWinStreak, currentWinStreak);
+      } else {
+        currentWinStreak = 0;
+      }
+    });
+
+    const arenaCounts = {};
+    matches.forEach(match => {
+      const arena = match.arena;
+      arenaCounts[arena] = (arenaCounts[arena] || 0) + 1;
+    });
+    const mostPlayedArena = Object.keys(arenaCounts).reduce((a, b) => arenaCounts[a] > arenaCounts[b] ? a : b, null);
+    const mostPlayedArenaCount = mostPlayedArena ? arenaCounts[mostPlayedArena] : 0;
 
     res.render('user', {
       page: userTeam.nickname || userFFA.nickname || 'Unknown',
@@ -106,7 +126,10 @@ router.get('/:user', function (req, res) {
       associationType: associationType,
       associatedProfileUrl: associatedProfileUrl,
       associatedId: associatedId,
-      formatMMRDelta: formatMMRDelta
+      formatMMRDelta: formatMMRDelta,
+      longestWinStreak,
+      mostPlayedArena,
+      mostPlayedArenaCount
     });
   } catch (error) {
     console.error(error.message);

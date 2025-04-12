@@ -16,7 +16,7 @@
           <td>
             <a href="<%= profileUrl %>" target="_blank">
               <% if (platformName === 'CrazyGames') { %>
-                <img width="16" height="16" src="<%= CDN %>/assets/images/social_crazygames.png" alt="CrazyGames">
+                <img class="rank" src="<%= CDN %>/assets/images/social_crazygames.png" alt="CrazyGames">
               <% } else { %>
                 <i class="<%= platformIconClass %>"></i>
               <% } %>
@@ -65,20 +65,20 @@
       </thead>
       <tbody>
         <tr>
-          <td>Matches won</td>
-          <td><%= teamData.matches_won %></td>
+          <td>Most Played Arena</td>
+          <td><abbr title="<%= mostPlayedArenaCount %> matches played"><%= mostPlayedArena %></abbr></td>
         </tr>
         <tr>
-          <td>Matches lost</td>
-          <td><%= teamData.matches_lost %></td>
+          <td>Longest Win Streak</td>
+          <td><%= longestWinStreak %></td>
         </tr>
         <tr>
-          <td>Matches won (FFA)</td>
-          <td><%= ffaData.matches_won %></td>
+          <td>Wins-Losses</td>
+          <td><%= teamData.matches_won %>-<%= teamData.matches_lost %></td>
         </tr>
         <tr>
-          <td>Matches lost (FFA)</td>
-          <td><%= ffaData.matches_lost %></td>
+          <td>Wins-Losses (FFA)</td>
+          <td><%= ffaData.matches_won %>-<%= ffaData.matches_lost %></td>
         </tr>
       </tbody>
     </table>

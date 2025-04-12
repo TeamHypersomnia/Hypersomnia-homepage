@@ -19,10 +19,10 @@ const ranks = [
 function getRank(score) {
   for (const rank of ranks) {
     if (score >= rank.scoreThreshold) {
-      return { name: rank.name, rankImg: rank.img };
+      return { rankName: rank.name, rankImg: rank.img };
     }
   }
-  return { name: 'Bronze', rankImg: 'rank_1.png' };
+  return { rankName: 'Bronze', rankImg: 'rank_1.png' };
 }
 
 function formatMMRDelta(mmr) {
