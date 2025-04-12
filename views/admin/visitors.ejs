@@ -17,10 +17,10 @@
       <% const lastVisitedUrl = v.lastUrl ? v.lastUrl : 'N/A'; %>
       <tr>
         <td><a href="https://db-ip.com/<%= k %>" target="_blank"><%= k %></a></td>
-        <td title="<%= v.userAgent.length > 40 ? v.userAgent : '' %>"><%= v.userAgent.length > 40 ? v.userAgent.substring(0, 40) + '...' : v.userAgent %></td>
+        <td title="<%= v.userAgent.length > 30 ? v.userAgent : '' %>"><%= v.userAgent.length > 30 ? v.userAgent.substring(0, 30) + '...' : v.userAgent %></td>
         <td>
-          <a href="<%= lastVisitedUrl %>" target="_blank" title="<%= lastVisitedUrl.length > 40 ? lastVisitedUrl : '' %>">
-            <%= lastVisitedUrl.length > 40 ? lastVisitedUrl.substring(0, 40) + '...' : lastVisitedUrl %>
+          <a href="<%= lastVisitedUrl %>" target="_blank" title="<%= lastVisitedUrl.length > 30 ? lastVisitedUrl : '' %>">
+            <%= lastVisitedUrl.length > 30 ? lastVisitedUrl.substring(0, 30) + '...' : lastVisitedUrl %>
           </a>
         </td>
         <td data-sort="<%= v.lastSeen %>"><%= v.lastSeenAgo %></td>

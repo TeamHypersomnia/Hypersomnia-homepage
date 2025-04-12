@@ -6,6 +6,12 @@ const { countryCodeEmoji } = require('country-code-emoji');
 const geoCache = {};
 let servers = [];
 
+if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
+  fetchServers('http://127.0.0.1:8410/server_list_json');
+} else {
+  fetchServers('https://hypersomnia.xyz:8420/server_list_json');
+}
+
 function getIp(clientIp, server) {
   if (geoCache[clientIp]) {
     server.flag = countryCodeEmoji(geoCache[clientIp]);
@@ -21,8 +27,8 @@ function getIp(clientIp, server) {
     });
 }
 
-function fetchServers() {
-  axios.get(process.env.SERVER_LIST_JSON)
+function fetchServers(url) {
+  axios.get(url)
     .then(response => {
       const newServerList = response.data;
       newServerList.forEach(newServer => {
@@ -49,11 +55,13 @@ function fetchServers() {
     })
     .catch(error => {
       console.error('Error fetching server list:', error.message);
+    })
+    .finally(() => {
+      setTimeout(() => {
+        fetchServers(url);
+      }, 10000);
     });
 }
-
-setInterval(fetchServers, 10000);
-fetchServers();
 
 router.get('/', function (req, res) {
   servers.sort((a, b) => {

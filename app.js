@@ -174,7 +174,7 @@ app.use('/admin/creators', adm, require('./src/admin/creators'));
 app.use('/admin/settings', adm, require('./src/admin/settings')(app.locals));
 app.use((req, res) => res.status(404).render('404', { page: 'Not Found', user: req.user }));
 
-if (app.locals.NODE_ENV === 'production') {
+if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
   // Minify JavaScript & CSS for production
   const uglifyJS = require('uglify-js');
   const uglifyCSS = require('uglifycss');
@@ -229,6 +229,6 @@ if (app.locals.NODE_ENV === 'production') {
   }
 }
 
-const server = app.listen(process.env.PORT || 3000, () => {
+const server = app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
   console.log(`App listening on port ${server.address().port}`);
 });
