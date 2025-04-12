@@ -1,20 +1,30 @@
 require('dotenv').config();
 
-const Database = require('better-sqlite3');
-const fs = require('fs');
 const express = require('express');
+const fs = require('fs');
 const session = require('express-session');
+const passport = require('passport');
+const Database = require('better-sqlite3');
 const SQLiteStore = require('connect-sqlite3')(session);
 const minifyHTML = require('express-minify-html-2');
 const bodyParser = require('body-parser');
-const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
+const axios = require('axios');
+const uglifyJS = require('uglify-js');
+const uglifyCSS = require('uglifycss');
 const app = express();
-const admins = process.env.ADMINS.split(',');
 
+// Environment settings
+app.locals.alert = '';
+app.locals.version = Math.floor(Date.now() / 1000);
+app.locals.NODE_ENV = process.env.NODE_ENV || 'development';
+app.locals.CDN = process.env.CDN || '';
+
+// Database setup
 if (!fs.existsSync(process.env.DB_PATH)) {
   console.log('Database does not exist, creating a new one...');
   const db = new Database(process.env.DB_PATH);
+  
   db.prepare(`
     CREATE TABLE IF NOT EXISTS mmr_team (
       account_id TEXT UNIQUE,
@@ -62,15 +72,51 @@ if (!fs.existsSync(process.env.DB_PATH)) {
   db.close();
 }
 
-// Passport
-passport.serializeUser((user, done) => {
-  done(null, user);
-});
+// Minification for production environment
+if (process.env.NODE_ENV === 'production') {
+  const jsInput = __dirname + '/public/assets/scripts/main.js';
+  const jsOutput = __dirname + '/public/assets/scripts/main.min.js';
+  const jsCode = fs.readFileSync(jsInput, 'utf8');
+  const minifiedJS = uglifyJS.minify(jsCode);
+  fs.writeFileSync(jsOutput, minifiedJS.code);
 
-passport.deserializeUser((obj, done) => {
-  done(null, obj);
-});
+  const cssInput = __dirname + '/public/assets/styles/main.css';
+  const cssOutput = __dirname + '/public/assets/styles/main.min.css';
+  const cssCode = fs.readFileSync(cssInput, 'utf8');
+  const minifiedCSS = uglifyCSS.processString(cssCode);
+  fs.writeFileSync(cssOutput, minifiedCSS);
 
+  // Purge CDN cache if necessary
+  if (process.env.BUNNYCDN_API) {
+    axios.post('https://api.bunny.net/pullzone/3594361/purgeCache', {}, {
+      headers: {
+        'Content-Type': 'application/json',
+        AccessKey: process.env.BUNNYCDN_API
+      }
+    })
+    .then(res => {
+      if (res.status === 204) {
+        console.log('Cache was successfully purged');
+      } else {
+        console.log(`Unexpected status: ${res.status}`);
+      }
+    })
+    .catch(err => {
+      if (err.response) {
+        console.error('Error response status:', err.response.status);
+      } else {
+        console.error('Error purging cache:', err.message);
+      }
+    });
+  }
+} else {
+  app.locals.alert = 'Node environment is not set to production. If testing locally, it\'s fine, but set it to production for live deployment to ensure optimal performance and security.';
+  app.use(express.static(__dirname + '/public'));
+}
+
+// Passport authentication setup
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((obj, done) => done(null, obj));
 passport.use(new SteamStrategy({
   returnURL: process.env.URL + 'auth/steam/return',
   realm: process.env.URL,
@@ -82,7 +128,7 @@ passport.use(new SteamStrategy({
   });
 }));
 
-// Configuration
+// Session management
 app.use(session({
   store: new SQLiteStore({
     dir: __dirname + '/private',
@@ -95,11 +141,12 @@ app.use(session({
   cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
 }));
 app.set('trust proxy', true);
+
+// Express setup
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(minifyHTML({
@@ -113,12 +160,8 @@ app.use(minifyHTML({
     removeEmptyAttributes: true
   }
 }));
-app.locals.version = Math.floor(Date.now() / 1000);
-app.locals.alert = '';
-app.locals.NODE_ENV = process.env.NODE_ENV || 'development';
-app.locals.CDN = process.env.CDN || '';
 
-// Middleware
+// Middleware for user authentication
 function usr(req, res, next) {
   if (!req.isAuthenticated()) {
     return res.redirect('/auth/steam');
@@ -159,65 +202,11 @@ app.use('/admin/system', adm, require('./src/admin/system'));
 app.use('/admin/users', adm, require('./src/admin/users'));
 app.use('/admin/creators', adm, require('./src/admin/creators'));
 app.use('/admin/settings', adm, require('./src/admin/settings')(app.locals));
+
+// 404 route
 app.use((req, res) => res.status(404).render('404', { page: 'Not Found', user: req.user }));
 
-if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
-  // Minify JavaScript & CSS for production
-  const uglifyJS = require('uglify-js');
-  const uglifyCSS = require('uglifycss');
-  const jsInput = __dirname + '/public/assets/scripts/main.js';
-  const jsOutput = __dirname + '/public/assets/scripts/main.min.js';
-  const jsCode = fs.readFileSync(jsInput, 'utf8');
-  const minifiedJS = uglifyJS.minify(jsCode);
-  fs.writeFileSync(jsOutput, minifiedJS.code);
-  const cssInput = __dirname + '/public/assets/styles/main.css';
-  const cssOutput = __dirname + '/public/assets/styles/main.min.css';
-  const cssCode = fs.readFileSync(cssInput, 'utf8');
-  const minifiedCSS = uglifyCSS.processString(cssCode);
-  fs.writeFileSync(cssOutput, minifiedCSS);
-
-  // Purge cache on BunnyCDN if BUNNYCDN_API is set
-  if (process.env.BUNNYCDN_API) {
-    const axios = require('axios');
-    axios.post('https://api.bunny.net/pullzone/3594361/purgeCache', {}, {
-      headers: {
-        'Content-Type': 'application/json',
-        AccessKey: process.env.BUNNYCDN_API
-      }
-    })
-    .then(res => {
-      if (res.status === 204) {
-        console.log('Cache was successfully purged');
-      } else {
-        console.log(`Unexpected status: ${res.status}`);
-      }
-    })
-    .catch(err => {
-      if (err.response) {
-        switch (err.response.status) {
-          case 401:
-            console.error('Authorization failed. Check your BUNNYCDN_API key.');
-            break;
-          case 404:
-            console.error('The Pull Zone with the requested ID does not exist.');
-            break;
-          case 500:
-            console.error('Internal server error. Try again later.');
-            break;
-          default:
-            console.error(`Unexpected error: ${err.response.status}`);
-        }
-      } else {
-        console.error('Error purging cache:', err.message);
-      }
-    });
-  } else {
-    console.log('BUNNYCDN_API not set, skipping cache purge');
-  }
-} else {
-  app.locals.alert = 'Node environment is not set to production. If testing locally, it\'s fine, but set it to production for live deployment to ensure optimal performance and security.';
-}
-
-const server = app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
-  console.log(`App listening on port ${server.address().port}`);
+// Start the server
+app.listen(process.env.PORT || 3000, '0.0.0.0', () => {
+  console.log(`App listening on port ${process.env.PORT || 3000}`);
 });
