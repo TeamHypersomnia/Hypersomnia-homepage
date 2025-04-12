@@ -12,6 +12,9 @@ function getFolderSize(folderPath) {
   let totalSize = 0;
   function calculateSize(currentPath) {
     const stats = fs.statSync(currentPath);
+    if (path.basename(currentPath) === 'miniature.png') {
+      return;
+    }
     if (stats.isFile()) {
       totalSize += stats.size;
     } else if (stats.isDirectory()) {
