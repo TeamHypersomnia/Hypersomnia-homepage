@@ -1,7 +1,6 @@
 <% 
 const d = "An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.";
 const description = typeof arena !== 'undefined' && arena ? arena.short_description.replace(/\n/g, ' ') : d;
-const ogImage = typeof arena !== 'undefined' && arena ? `arenas/${arena.name}/miniature.png` : 'assets/images/hypersomnia3x4.png';
 const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
 %>
 <!DOCTYPE html>
@@ -11,10 +10,12 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="<%= description %>">
   <meta name="keywords" content="hypersomnia, hypersomnia shooter, teamhypersomnia, open source shooter, free shooter, free 2d shooter, 2d topdown, pixel art, competitive shooter, online shooter, indie shooter, top-down shooter">
+  <% if (typeof arena !== 'undefined') { %>
   <meta property="og:title" content="<%= pageTitle %> - Hypersomnia">
   <meta property="og:description" content="<%= description %>">
-  <meta property="og:image" content="https://hypersomnia.xyz/<%= ogImage %>">
-  <meta property="og:url" content="<%= ogUrl %>">
+  <meta property="og:image" content="https://hypersomnia.xyz/arenas/<%= arena.name %>/miniature.png">
+  <meta property="og:url" content="https://hypersomnia.xyz/arenas/<%= arena.name %>">
+  <% } %>
   <title><%= pageTitle %> - Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="<%= NODE_ENV === 'production' ? CDN + '/assets/styles/main.min.css?' + version : '/assets/styles/main.css?' + version %>">

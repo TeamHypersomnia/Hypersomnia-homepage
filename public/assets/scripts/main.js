@@ -83,7 +83,7 @@ if (document.querySelector('#leaderboard')) {
     if (selectedButton) {
       selectedButton.classList.add('active')
       selectedButton.disabled = true
-      selectedButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...'
+      selectedButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>Loading...'
     }
 
     let url = ''
@@ -145,6 +145,7 @@ if (document.querySelector('#leaderboard')) {
           button.disabled = false
           button.textContent = button.dataset.originalText
         })
+        selectedButton.disabled = true
       })
       .catch(err => {
         console.error('Failed to load leaderboard:', err)

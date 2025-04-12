@@ -2,82 +2,87 @@
 <%- include('nav'); %>
 
 <div class="box">
-  <div>
-    <div class="responsive">
-      <table>
-        <thead>
-          <tr>
-            <th width="50%">Key</th>
-            <th width="50%">Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Machine type</td>
-            <td><%= machine %></td>
-          </tr>
-          <tr>
-            <td>Operating system</td>
-            <td><%= type %> <%= release %></td>
-          </tr>
-          <tr>
-            <td>Host name</td>
-            <td><%= hostname %></td>
-          </tr>
-          <tr>
-            <td>System uptime</td>
-            <td><%= uptime %></td>
-          </tr>
-          <tr>
-            <td>Load avg</td>
-            <td><%= loadavg.map(v => v.toFixed(2)).join(' ') %></td>
-          </tr>
-          <tr>
-            <td>RAM usage</td>
-            <td><%= Math.floor(usedmem / (1024 * 1024)) %> / <%= Math.floor(totalmem / (1024 * 1024)) %> MB</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="responsive">
+    <table>
+      <thead>
+        <tr>
+          <th width="50%">Key</th>
+          <th width="50%">Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Machine type</td>
+          <td><%= machine %></td>
+        </tr>
+        <tr>
+          <td>Operating system</td>
+          <td><%= type %> <%= release %></td>
+        </tr>
+        <tr>
+          <td>Host name</td>
+          <td><%= hostname %></td>
+        </tr>
+        <tr>
+          <td>System uptime</td>
+          <td><%= uptime %></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-  <div>
-    <div class="responsive">
-      <table>
-        <thead>
-          <tr>
-            <th width="50%">Key</th>
-            <th width="50%">Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Node.js version</td>
-            <td><%= node %></td>
-          </tr>
-          <tr>
-            <td>Node.js uptime</td>
-            <td><%= appuptime %></td>
-          </tr>
-          <tr>
-            <td>RSS</td>
-            <td><%= Math.floor(memoryUsage.rss / (1024 * 1024)) %> MB</td>
-          </tr>
-          <tr>
-            <td>Heap Total</td>
-            <td><%= Math.floor(memoryUsage.heapTotal / (1024 * 1024)) %> MB</td>
-          </tr>
-          <tr>
-            <td>Heap Used</td>
-            <td><%= Math.floor(memoryUsage.heapUsed / (1024 * 1024)) %> MB</td>
-          </tr>
-          <tr>
-            <td>External</td>
-            <td><%= Math.floor(memoryUsage.external / (1024 * 1024)) %> MB</td>
-          </tr>          
-        </tbody>
-      </table>
-    </div>
+  <div class="responsive">
+    <table>
+      <thead>
+        <tr>
+          <th width="50%">Key</th>
+          <th width="50%">Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Node.js version</td>
+          <td><%= node %></td>
+        </tr>
+        <tr>
+          <td>Node.js uptime</td>
+          <td><%= appuptime %></td>
+        </tr>
+        <tr>
+          <td>Load average</td>
+          <td><%= loadavg.map(v => v.toFixed(2)).join(' ') %></td>
+        </tr>
+        <tr>
+          <td>RAM usage</td>
+          <td><%= Math.floor(usedmem / (1024 * 1024)) %> / <%= Math.floor(totalmem / (1024 * 1024)) %> MB</td>
+        </tr>  
+      </tbody>
+    </table>
   </div>
 </div>
+
+<% if (accessLogs && accessLogs.length > 0) { %>
+<div class="responsive">
+  <table class="maxwidth">
+    <thead>
+      <tr>
+        <th>IP address</th>
+        <th>Request</th>
+        <th>User-Agent</th>
+        <th>Time ago</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% accessLogs.forEach(log => { %>
+        <tr>
+          <td><a href="https://db-ip.com/<%= log.ip %>" target="_blank"><%= log.ip %></a></td>
+          <td><%= log.request %></td>
+          <td><%= log.userAgent %></td>
+          <td><%= log.timestamp %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+<% } %>
 
 <%- include('../overall_footer'); %>

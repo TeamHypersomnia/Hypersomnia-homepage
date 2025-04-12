@@ -10,7 +10,6 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const SteamStrategy = require('passport-steam').Strategy;
 const app = express();
-const visitors = {};
 const admins = process.env.ADMINS.split(',');
 
 if (!fs.existsSync(process.env.DB_PATH)) {
@@ -137,17 +136,6 @@ function adm(req, res, next) {
   return next();
 }
 
-app.use((req, res, next) => {
-  const url = req.originalUrl.replace(/\/\?$/, '').replace(/\?.*$/, '');
-  visitors[req.ip] = {
-    userAgent: req.headers['user-agent'] ?? '',
-    lastSeen: Math.floor(Date.now() / 1000),
-    lastUrl: url,
-  }
-  res.locals.ogUrl = `https://${req.hostname}${url}`;
-  next();
-});
-
 // Routes
 app.get('/', (req, res) => res.render('index', { page: false, user: req.user }));
 app.get('/disclaimer', (req, res) => res.render('disclaimer', { page: 'Disclaimer', user: req.user }));
@@ -168,7 +156,6 @@ app.use('/adjust_negative_mmrs', require('./src/adjust_negative_mmrs'));
 app.use('/revoke_discord', require('./src/revoke_discord'));
 app.use('/geolocation', require('./src/geolocation'));
 app.use('/admin/system', adm, require('./src/admin/system'));
-app.use('/admin/visitors', adm, require('./src/admin/visitors')(visitors));
 app.use('/admin/users', adm, require('./src/admin/users'));
 app.use('/admin/creators', adm, require('./src/admin/creators'));
 app.use('/admin/settings', adm, require('./src/admin/settings')(app.locals));

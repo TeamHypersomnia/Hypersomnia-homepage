@@ -7,27 +7,19 @@
 
 <div class="btn-group">
   <% if (is_admin == true) { %>
-  <div class="btn">
-    <a href="/admin/system"><span>Admin</span></a>
-  </div>
+  <div class="btn"><a href="/admin/system"><span>Admin</span></a></div>
   <% } %>
   <% if (discordData) { %>
   <form class="btn" method="POST" action="/auth/discord/disconnect">
-    <button type="submit">
-      <i class="fa-brands fa-discord"></i>Disconnect*
-    </button>
+    <button type="submit"><i class="fa-brands fa-discord"></i>Disconnect*</button>
   </form>
   <% } else { %>
   <form class="btn" method="GET" action="/auth/discord">
-    <button type="submit">
-      <i class="fa-brands fa-discord"></i>Connect*
-    </button>
+    <button type="submit"><i class="fa-brands fa-discord"></i>Connect*</button>
   </form>
   <% } %>
   <form class="btn" method="POST" action="/logout">
-    <button type="submit">
-      <i class="fa-solid fa-door-open"></i>Logout
-    </button>
+    <button type="submit">Logout</button>
   </form>
 </div>
 
@@ -55,7 +47,6 @@
     </tbody>
   </table>
 </div>
-<br>
 <small class="form-hint">*<% if (discordData) { %>After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.<% } else { %>Discord matches count towards your Steam account. No merging happens, and you can disconnect anytime without losing progress.<% } %></small>
 
 <%- include('overall_footer'); %>

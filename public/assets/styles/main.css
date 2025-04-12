@@ -242,9 +242,8 @@ dd {
 
   .box {
     display: grid;
-    grid-template-columns:50% calc(50% - 1em);
-    grid-gap: 1em;
-    margin-bottom: 1em;
+    grid-template-columns:50% calc(50% - 0.75em);
+    grid-gap: 0.75em;
   }
 
   .btn a {
@@ -362,7 +361,7 @@ dd {
     width: auto;
   }
   
-  p {
+  p, li {
     font-size: 0.85rem;
   }
 
@@ -428,8 +427,6 @@ dd {
 
   .box {
     display: grid;
-    grid-gap: 1em;
-    margin-bottom: 1em;
   }
 
   .logo-center > a > .responsive {
@@ -476,6 +473,7 @@ table {
 
 .responsive {
   overflow-x: auto;
+  margin-bottom: 0.75em;
 }
 
 tr:nth-child(even) {
@@ -502,10 +500,8 @@ th {
   white-space: nowrap;
   font-weight: 600;
   color: #ddd;
-  background:
-  #021719;
-    border:
-  1px solid #00313a;
+  background: #02262b;
+  border: 1px solid #193c42;
 }
 
 td, tr {
@@ -656,12 +652,8 @@ nav > .flex {
 }
 
 .form-group>label {
-  font-size: 0.9em;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  color: #fff;
-  font-size: 0.9em;
+  font-size: 0.85em;
+  color: #ddd;
   display: block;
   margin-bottom: 8px;
 }
@@ -728,7 +720,7 @@ footer > a:hover {
   width: 100%;
   display: flex;
   margin-top: 1em;
-  margin-bottom: 1em;
+  margin-bottom: 0.75em;
   gap: 0.5em;
   flex-wrap: wrap;
 }
@@ -754,8 +746,7 @@ footer > a:hover {
 
 .btn a:hover, 
 .btn button:not([disabled]):hover {
-  color: #ddd;
-  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
 .btn > button {
@@ -769,7 +760,7 @@ footer > a:hover {
   cursor: pointer;
   outline: none;
   padding: 12px 8px;
-  background: linear-gradient(135deg, rgba(0, 51, 60, 0.6) 0%, rgba(0, 49, 58, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(0, 51, 60, 0.6) 0%, rgba(0, 49, 58, 0.7) 100%);
   border: 1px solid rgb(0, 49, 58);
   font-size: inherit;
   width: 100%;
@@ -777,7 +768,10 @@ footer > a:hover {
 }
 
 .btn > a.active, .btn > button.active {
-  color: #fff !important;
+  color: #ddd !important;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(0, 51, 60, 0.9) 0%, rgba(0, 49, 58, 0.95) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .btn > button > span {
@@ -836,6 +830,10 @@ input:-webkit-autofill:active{
   padding-bottom: 1em;
   padding-left: 1em;
   padding-right: 1em;
+}
+
+.logo-center > a > .responsive {
+  margin-bottom: 0;
 }
 
 .casual {
@@ -907,11 +905,11 @@ input:-webkit-autofill:active{
 }
 
 .dl > span {
-  font-size: .875em;
+  font-size: .85em;
 }
 
 .dl > code {
-  font-size: .875em;
+  font-size: .85em;
   color: rgb(230, 133, 181);
 }
 .dl > img {
