@@ -13,19 +13,21 @@
   <% } %>
   <% if (discordData) { %>
   <form class="btn" method="POST" action="/auth/discord/disconnect">
-    <button type="submit" aria-label="Disconnect account">
-      <i class="fa-brands fa-discord"></i>Disconnect account*
+    <button type="submit">
+      <i class="fa-brands fa-discord"></i>Disconnect*
     </button>
   </form>
   <% } else { %>
   <form class="btn" method="GET" action="/auth/discord">
-    <button type="submit" aria-label="Connect account">
-      <i class="fa-brands fa-discord"></i>Connect account*
+    <button type="submit">
+      <i class="fa-brands fa-discord"></i>Connect*
     </button>
   </form>
   <% } %>
   <form class="btn" method="POST" action="/logout">
-    <button type="submit" aria-label="Logout">Logout</button>
+    <button type="submit">
+      <i class="fa-solid fa-door-open"></i>Logout
+    </button>
   </form>
 </div>
 

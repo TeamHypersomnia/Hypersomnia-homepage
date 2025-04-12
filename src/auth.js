@@ -44,7 +44,7 @@ module.exports = function(passport) {
       const data = {
         name: req.user.displayName,
         lastLogin: Math.floor(Date.now() / 1000),
-        ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress
+        ip: req.ip
       };
       if (users.hasOwnProperty(req.user.id)) {
         Object.assign(users[req.user.id], data);

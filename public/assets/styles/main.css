@@ -198,7 +198,7 @@ dd {
   }
 
   .arena_author, .btn {
-    font-size: 0.9em;
+    font-size: 0.85rem;
   }
 
   .dl {
@@ -363,11 +363,11 @@ dd {
   }
   
   p {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   dd, dt {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   h1, h2 {
@@ -502,8 +502,10 @@ th {
   white-space: nowrap;
   font-weight: 600;
   color: #ddd;
-  background: rgb(2, 23, 25);
-  border: 1px solid rgb(0, 49, 58);
+  background:
+  #021719;
+    border:
+  1px solid #00313a;
 }
 
 td, tr {
@@ -738,10 +740,10 @@ footer > a:hover {
   border-radius: 3px;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   outline: none;
-  padding: 0.75em 0.5em;
+  padding: 12px 8px;
   background: linear-gradient(135deg, rgba(0, 51, 60, 0.6) 0%, rgba(0, 49, 58, 0.9) 100%);
   border: 1px solid rgb(0, 49, 58);
   font-size: inherit;
@@ -752,7 +754,7 @@ footer > a:hover {
 
 .btn a:hover, 
 .btn button:not([disabled]):hover {
-  color: #fff;
+  color: #ddd;
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -763,10 +765,10 @@ footer > a:hover {
   border-radius: 3px;
   transition-timing-function: cubic-bezier(.4,0,.2,1);
   transition-duration: .15s;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   outline: none;
-  padding: 0.75em 0.5em;
+  padding: 12px 8px;
   background: linear-gradient(135deg, rgba(0, 51, 60, 0.6) 0%, rgba(0, 49, 58, 0.9) 100%);
   border: 1px solid rgb(0, 49, 58);
   font-size: inherit;
@@ -775,7 +777,7 @@ footer > a:hover {
 }
 
 .btn > a.active, .btn > button.active {
-  color: #fff;
+  color: #fff !important;
 }
 
 .btn > button > span {
