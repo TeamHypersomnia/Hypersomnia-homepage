@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
         'Accept': 'application/json',
       }
     });
-    res.json(response.data);
+    res.json({ loc: response.data.loc });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({
