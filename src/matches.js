@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', (req, res) => {
   try {
     const db = new Database(process.env.DB_PATH);
-    const rows = db.prepare('SELECT * FROM matches ORDER BY match_id DESC LIMIT 100').all();
+    const rows = db.prepare('SELECT * FROM matches ORDER BY match_id DESC LIMIT 50').all();
     const matches = rows.map(match => {
       const winners = JSON.parse(match.winners);
       const losers = JSON.parse(match.losers);

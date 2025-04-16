@@ -13,6 +13,7 @@ const axios = require('axios');
 const uglifyJS = require('uglify-js');
 const uglifyCSS = require('uglifycss');
 const app = express();
+const admins = process.env.ADMINS.split(',');
 
 // Environment settings
 app.locals.alert = '';
@@ -102,15 +103,14 @@ if (process.env.NODE_ENV === 'production') {
       }
     })
     .catch(err => {
-      if (err.response) {
-        console.error('Error response status:', err.response.status);
-      } else {
-        console.error('Error purging cache:', err.message);
-      }
+      console.error('Error purging cache:', err.message);
     });
   }
 } else {
-  app.locals.alert = 'Node environment is not set to production. If testing locally, it\'s fine, but set it to production for live deployment to ensure optimal performance and security.';
+  app.locals.alert =
+  'Node environment is not set to production. If testing locally, it\'s fine, ' +
+  'but set it to production for live deployment to ensure optimal performance ' +
+  'and security.';
   app.use(express.static(__dirname + '/public'));
 }
 

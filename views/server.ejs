@@ -6,8 +6,7 @@
     <table>
       <thead>
         <tr>
-          <th width="50%">Key</th>
-          <th width="50%">Value</th>
+          <th colspan="2">Server Details</th>
         </tr>
       </thead>
       <tbody>
@@ -37,19 +36,11 @@
         </tr>
         <tr>
           <td>Players</td>
-          <td><%= sv.num_playing %>/<%= sv.slots %></td>
+          <td><%= sv.num_online %>/<%= sv.slots %></td>
         </tr>
         <tr>
-          <td>Spectators</td>
-          <td><%= sv.num_spectating %>/<%= sv.slots %></td>
-        </tr>
-        <tr>
-          <td>Score resistance</td>
-          <td><%= sv.score_resistance %></td>
-        </tr>
-        <tr>
-          <td>Score metropolis</td>
-          <td><%= sv.score_metropolis %></td>
+          <td>Score</td>
+          <td><%= sv.score_resistance %>-<%= sv.score_metropolis %></td>
         </tr>
         <tr>
           <td rowspan="2">Join server</td>

@@ -8,8 +8,7 @@ const querystring = require('querystring');
 function loadUsers() {
   try {
     const d = fs.readFileSync(`${__dirname}/../private/users.json`, 'utf8');
-    const obj = JSON.parse(d);
-    return obj;
+    return JSON.parse(d);
   } catch (error) {
     console.error(error.message);
     return {};
