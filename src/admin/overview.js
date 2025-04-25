@@ -81,8 +81,8 @@ function tailLogFile(n = 30) {
 
 router.get('/', async (req, res) => {
   const logs = await tailLogFile();
-  res.render('admin/system', {
-    page: 'System',
+  res.render('admin/overview', {
+    page: 'Overview',
     user: req.user,
     hostname: os.hostname(),
     loadavg: os.loadavg(),

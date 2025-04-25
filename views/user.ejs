@@ -6,14 +6,13 @@
     <table>
       <thead>
         <tr>
-          <th width="50%">Key</th>
-          <th width="50%">Value</th>
+          <th colspan="2">Details</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>External profile</td>
-          <td>
+          <td width="50%">External profile</td>
+          <td width="50%">
             <a href="<%= profileUrl %>" target="_blank">
               <% if (platformName === 'CrazyGames') { %>
                 <img class="fa-brands rank" src="/assets/images/social_crazygames.png" alt="CrazyGames"><%= platformName %>
@@ -39,7 +38,7 @@
           </td>
         </tr>
         <tr>
-          <td>MMR</td>
+          <td>MMR (Bomb Defusal)</td>
           <td>
             <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= teamData.rankImg %>" alt="<%= teamData.rankName %>"><abbr title="μ = <%= teamData.mu.toFixed(3) %> / σ = <%= teamData.sigma.toFixed(3) %>"><%= teamData.mmr.toFixed(2) %></abbr>
           </td>
@@ -58,21 +57,20 @@
     <table>
       <thead>
         <tr>
-          <th width="50%">Key</th>
-          <th width="50%">Value</th>
+          <th colspan="2">Results</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Most Played Arena</td>
-          <td><abbr title="<%= mostPlayedArenaCount %> matches played"><%= mostPlayedArena %></abbr></td>
+          <td width="50%">Most Played Arena</td>
+          <td width="50%"><abbr title="<%= mostPlayedArenaCount %> matches played"><%= mostPlayedArena %></abbr></td>
         </tr>
         <tr>
           <td>Longest Win Streak</td>
           <td><%= longestWinStreak %></td>
         </tr>
         <tr>
-          <td>Wins-Losses</td>
+          <td>Wins-Losses (Bomb Defusal)</td>
           <td><%= teamData.matches_won %>-<%= teamData.matches_lost %></td>
         </tr>
         <tr>

@@ -19,7 +19,7 @@ h1,h2{
   padding:0;
   font-weight:700;
   margin-top:1.5em;
-  margin-bottom:.5em;
+  margin-bottom:.6em;
   color:#ddd
 }
 ul{
@@ -44,6 +44,9 @@ a{
 a:hover{
   color:#1FFFDF;
   text-decoration:none
+}
+.fa-check{
+  color:#ddd
 }
 .fa-solid,.fa-brands{
   padding-right:3px
@@ -146,238 +149,235 @@ dd{
 }
 @media screen and (min-width:1100px){
   .flag{
-      font-size:1.1em
+    font-size:1.1em
   }
   dt,dd{
-      font-size:.95em
+    font-size:.95em
   }
   .btn,button{
-      flex:1 0 10%;
-      font-size:.85rem
+    flex:1 0 10%;
+    font-size:.85rem
   }
   .sv-row-card{
-      width:calc(33% - 0.5em)
+    width:calc(33% - 0.5em)
   }
   .arena_name{
-      font-size:.9em
+    font-size:.9em
   }
   .arena_author{
-      font-size:.85rem
+    font-size:.85rem
   }
   .dl{
-      padding:1.25em
+    padding:1.25em
   }
   h1,h2{
-      font-size:1.2em
+    font-size:1.2em
   }
   h3{
-      font-size:1.1em
+    font-size:1.1em
   }
   .dl>img{
-      height:64px;
-      width:auto
+    height:64px;
+    width:auto
   }
   th{
-      min-width:80px
+    min-width:80px
   }
   .downloads{
-      display:grid;
-      grid-template-columns:repeat(6,1fr);
-      grid-template-rows:repeat(2,1fr);
-      grid-column-gap:1em;
-      margin:2rem 0
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    grid-template-rows:repeat(2,1fr);
+    grid-column-gap:1em;
+    margin:2rem 0
   }
   footer{
-      border-top:1px solid rgb(143 142 142 / .25);
-      font-size:.9em
+    border-top:1px solid rgb(143 142 142 / .25);
+    font-size:.9em
   }
   main{
-      margin-top:1em;
-      min-height:75vh
+    margin-top:1em;
+    min-height:75vh
   }
   .box{
-      display:grid;
-      grid-template-columns:50% calc(50% - 0.75em);
-      grid-gap:.75em
+    display:grid;
+    grid-template-columns:50% calc(50% - 0.75em);
+    grid-gap:.75em
   }
   .btn a{
-      min-width:100px
+    min-width:100px
   }
   nav a{
-      padding:20px 10px
+    padding:20px 10px
   }
   nav>div>form{
-      margin-left:0
+    margin-left:0
   }
   nav>.flex{
-      justify-content:space-between
+    justify-content:space-between
   }
   th,td{
-      padding:8px;
-      font-size:.85em
+    padding:8px;
+    font-size:.85em
   }
   .container{
-      width:1080px;
-      margin:0 auto
+    width:1080px;
+    margin:0 auto
   }
   .arenas{
-      display:flex;
-      flex-wrap:wrap;
-      align-items:flex-end;
-      gap:20px
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    gap:20px
   }
   .arenas>a{
-      width:calc(25% - 15px)
+    width:calc(25% - 15px)
   }
   .arena{
-      display:flex;
-      gap:.5em
+    display:flex;
+    gap:.5em
   }
   .miniature,.details{
-      width:50%
+    width:50%
   }
   footer{
-      width:100%;
-      padding:1.5em 0;
-      margin:3em 0;
-      display:flex;
-      flex-wrap:wrap;
-      align-items:center;
-      align-content:center;
-      justify-content:space-between;
-      gap:1.25em
+    width:100%;
+    padding:1.5em 0;
+    margin:3em 0;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    align-content:center;
+    justify-content:space-between;
+    gap:1.25em
   }
 }
 @media screen and (max-width:1100px){
   #leaderboard>table>thead>tr>th:nth-child(4),#leaderboard>table>tbody>tr>td:nth-child(4),#leaderboard>table>thead>tr>th:nth-child(5),#leaderboard>table>tbody>tr>td:nth-child(5),#leaderboard>table>thead>tr>th:nth-child(6),#leaderboard>table>tbody>tr>td:nth-child(6),#leaderboard>table>thead>tr>th:nth-child(7),#leaderboard>table>tbody>tr>td:nth-child(7){
-      display:none
-  }
-  .u,.d,.serif{
-      letter-spacing:-.5px
+    display:none
   }
   .flag{
-      font-size:1em
+    font-size:1em
   }
   .extra{
-      font-size:.8em
+    font-size:.8em
   }
   .flame{
-      font-size:.8em
+    font-size:.8em
   }
   .btn,button{
-      flex:1 0 25%;
-      font-size:.8rem
+    flex:1 0 25%;
+    font-size:.8rem
   }
   .alert{
-      margin:0 1em
+    margin:0 1em
   }
   body{
-      background-size:150% auto;
-      background-position:top center;
-      background-image:linear-gradient(to bottom,#fff0 0%,#000805 300px),url(/assets/images/bg.jpg)
+    background-size:150% auto;
+    background-position:top center;
+    background-image:linear-gradient(to bottom,#fff0 0%,#000805 300px),url(/assets/images/bg.jpg)
   }
   .arena_name,dt,dd{
-      font-size:.85em
+    font-size:.85em
   }
   .arena_author{
-      font-size:.8em
+    font-size:.8em
   }
   .sv-row-card{
-      width:100%
+    width:100%
   }
   .dl{
-      padding:1em
+    padding:1em
   }
   .dl>img{
-      height:32px;
-      width:auto
+    height:32px;
+    width:auto
   }
   p,li{
-      font-size:.85rem
+    font-size:.85rem
   }
   dd,dt{
-      font-size:.85rem
+    font-size:.85rem
   }
   h1,h2{
-      font-size:1.1em
+    font-size:1.1em
   }
   h3{
-      font-size:1em
+    font-size:1em
   }
   .downloads{
-      margin:1.5rem 0
+    margin:1.5rem 0
   }
   .mininav{
-      padding:0 2em
+    padding:0 2em
   }
   .mininav a{
-      padding:.75rem 0.5rem!important;
-      width:50%
+    padding:.75rem 0.5rem!important;
+    width:50%
   }
   .btn-group{
-      justify-content:center
+    justify-content:center
   }
   nav>div>a{
-      padding:1em
+    padding:1em
   }
   nav>.flex{
-      height:auto;
-      justify-content:center
+    height:auto;
+    justify-content:center
   }
   .flex>a{
-      font-size:.85em
+    font-size:.85em
   }
   .flex>form>button{
-      font-size:1em
+    font-size:1em
   }
   th,td{
-      font-size:.8em
+    font-size:.8em
   }
   .parent{
-      display:grid;
-      grid-template-columns:none
+    display:grid;
+    grid-template-columns:none
   }
   main{
-      margin-top:0;
-      padding:0 1em
+    margin-top:0;
+    padding:0 1em
   }
   .box{
-      display:grid
+    display:grid
   }
   .logo-center>a>.responsive{
-      width:100%;
-      height:auto;
-      border-radius:.375em;
-      max-width:400px
+    width:100%;
+    height:auto;
+    border-radius:.375em;
+    max-width:400px
   }
   .arenas{
-      display:grid;
-      grid-template-columns:none;
-      grid-gap:15px;
-      row-gap:15px
+    display:grid;
+    grid-template-columns:none;
+    grid-gap:15px;
+    row-gap:15px
   }
   .arenas{
-      display:flex;
-      flex-direction:column
+    display:flex;
+    flex-direction:column
   }
   .button{
-      padding:5px 0
+    padding:5px 0
   }
   footer{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:1em;
-      align-items:center;
-      font-size:.9em;
-      background:#000e0d;
-      margin-top:2.5em;
-      padding:2.5em 1.5em
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1em;
+    align-items:center;
+    font-size:.9em;
+    background:#000e0d;
+    margin-top:2.5em;
+    padding:2.5em 1.5em
   }
   .sv-info>div:nth-child(3){
-      display:none
+    display:none
   }
   td,th{
-      padding:8px 5px
+    padding:8px 6px
   }
 }
 table{
@@ -401,8 +401,8 @@ th,td{
   white-space:nowrap
 }
 th{
-  padding-top:12px;
-  padding-bottom:12px;
+  padding-top:10px;
+  padding-bottom:10px;
   text-align:left;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -414,6 +414,10 @@ th{
 }
 td,tr{
   border:1px solid #102326
+}
+tbody>tr>td:first-child {
+  font-weight:500;
+  color:#ddd
 }
 ::-webkit-scrollbar{
   width:4px;
@@ -439,19 +443,19 @@ td,tr{
 }
 .sortable th:hover::after{
   color:inherit;
-  content:"\025B8"
+  content:" \025B8"
 }
 .sortable th::after{
   color:#fff0;
-  content:"\025B8"
+  content:" \025B8"
 }
 .sortable th.dir-d::after{
   color:inherit;
-  content:"\025BE"
+  content:" \025BE"
 }
 .sortable th.dir-u::after{
   color:inherit;
-  content:"\025B4"
+  content:" \025B4"
 }
 .sortable th.no-sort{
   pointer-events:none
@@ -544,7 +548,7 @@ nav>.flex{
   margin-bottom:8px;
   display:block;
   color:#8f8e8e;
-  font-size:.85em
+  font-size:.8em
 }
 .checkbox{
   display:flex;
@@ -556,15 +560,22 @@ nav>.flex{
   cursor:pointer
 }
 input[type='text'],input[type='submit'],textarea,select,option{
-  color:#e7e7e7;
+  color:#aaa;
   text-decoration:none;
   border:1px solid #00313a;
-  padding:.75em;
-  border-radius:.375em;
+  padding:10px 8px;
+  border-radius:3px;
   outline:none;
   font-size:.85em;
   margin-bottom:8px;
-  width:100%
+  width:100%;
+}
+input[type='submit']{
+  font-weight:600;
+  font-size:.8rem
+}
+input:hover[type='submit']{
+  color:#fff
 }
 input[type='text'],textarea,select,option{
   background-color:#000e0d
@@ -603,7 +614,7 @@ footer>a:hover{
   font-weight:600;
   cursor:pointer;
   outline:none;
-  padding:12px 8px;
+  padding:10px 8px;
   background:linear-gradient(135deg,rgb(0 51 60 / .6) 0%,rgb(0 49 58 / .9) 100%);
   border:1px solid #00313a;
   width:100%;

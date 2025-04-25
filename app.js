@@ -177,7 +177,7 @@ app.use('/revert_match', require('./src/revert_match'));
 app.use('/adjust_negative_mmrs', require('./src/adjust_negative_mmrs'));
 app.use('/revoke_discord', require('./src/revoke_discord'));
 app.use('/geolocation', require('./src/geolocation'));
-app.use('/admin/system', adm, require('./src/admin/system'));
+app.use('/admin', adm, require('./src/admin/overview'));
 app.use('/admin/users', adm, require('./src/admin/users'));
 app.use('/admin/creators', adm, require('./src/admin/creators'));
 app.use('/admin/settings', adm, require('./src/admin/settings')(app.locals));
