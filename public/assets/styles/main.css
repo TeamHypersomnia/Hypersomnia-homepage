@@ -453,16 +453,18 @@ dd {
   }
 
   footer {
-    box-sizing: border-box;
-    margin: 5em 0;
-    padding: 0 1.5em;
-    justify-content: space-between;
-    width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1em;
     align-items: center;
     font-size: 0.9em;
+    background: #000e0d;
+    margin-top: 2.5em;
+    padding: 2.5em 1.5em;
+  }
+
+  .sv-info > div:nth-child(3) {
+    display: none;
   }
 }
 
@@ -639,6 +641,10 @@ nav > .flex {
   flex-wrap: wrap;
 }
 
+.strong {
+  display: none;
+}
+
 .form {
   display: flex;
   gap: 8px;
@@ -706,13 +712,11 @@ input[type="submit"]:hover {
 }
 
 footer > a {
-  color: #8f8e8e;
-  transition-timing-function: cubic-bezier(.4,0,.2,1);
-  transition-duration: .15s;
+  color: #484a4a;
 }
 
 footer > a:hover {
-  color: #fff;
+  color: #b3b3b3;
   text-decoration: none;
 }
 
