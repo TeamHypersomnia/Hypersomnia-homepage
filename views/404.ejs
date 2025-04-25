@@ -1,6 +1,9 @@
 <%- include('overall_header'); %>
 
 <h1>Not Found</h1>
-<p>We couldn't find the page you were looking for - it might be a broken link or a mistyped URL. <a href="/">Return to the homepage</a>.</p>
+<p>We couldn't find that page — it may be a typo or broken link. Redirecting to the <a href="/">homepage</a> in 5 seconds.</p>
+<script>
+setTimeout(() => location.href = '/', 5000)
+</script>
 
 <%- include('overall_footer'); %>
