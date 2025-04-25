@@ -2,7 +2,7 @@
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  font-family: "Inter", sans-serif;
+  font-family: Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans","Liberation Sans",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
   font-variation-settings: normal;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
@@ -263,6 +263,7 @@ dd {
   }
 
   th, td {
+    padding: 8px;
     font-size: 0.85em;
   }
 
@@ -466,6 +467,10 @@ dd {
   .sv-info > div:nth-child(3) {
     display: none;
   }
+
+  td, th {
+    padding: 8px 6px;
+  }
 }
 
 table {
@@ -483,7 +488,6 @@ tr:nth-child(even) {
 }
 
 th, td {
-  padding: 8px;
   white-space: nowrap;
 }
 
@@ -495,7 +499,8 @@ th, td {
 }
 
 th {
-  padding: 12px 8px;
+  padding-top: 12px;
+  padding-bottom: 12px;
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;

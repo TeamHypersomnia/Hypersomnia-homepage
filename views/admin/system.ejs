@@ -6,25 +6,22 @@
     <table>
       <thead>
         <tr>
-          <th width="50%">Key</th>
-          <th width="50%">Value</th>
+          <th colspan="2"><%= hostname %></th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Machine type</td>
-          <td><%= machine %></td>
+          <td width="50%">Load average</td>
+          <td width="50%"><%= loadavg.map(v => v.toFixed(2)).join(' ') %></td>
         </tr>
         <tr>
-          <td>Operating system</td>
-          <td><%= type %> <%= release %></td>
+          <td>RAM usage</td>
+          <td>
+            <%= Math.floor(usedmem / (1024 * 1024)) %> MB (<%= Math.floor((usedmem / totalmem) * 100) %>%)
+          </td>
         </tr>
         <tr>
-          <td>Host name</td>
-          <td><%= hostname %></td>
-        </tr>
-        <tr>
-          <td>System uptime</td>
+          <td>Uptime</td>
           <td><%= uptime %></td>
         </tr>
       </tbody>
@@ -34,27 +31,22 @@
     <table>
       <thead>
         <tr>
-          <th width="50%">Key</th>
-          <th width="50%">Value</th>
+          <th colspan="2"><%= runtime %></th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Node.js version</td>
-          <td><%= node %></td>
-        </tr>
-        <tr>
-          <td>Node.js uptime</td>
-          <td><%= appuptime %></td>
-        </tr>
-        <tr>
-          <td>Load average</td>
-          <td><%= loadavg.map(v => v.toFixed(2)).join(' ') %></td>
+          <td width="50%">Version</td>
+          <td width="50%"><%= appversion %></td>
         </tr>
         <tr>
           <td>RAM usage</td>
-          <td><%= Math.floor(usedmem / (1024 * 1024)) %> / <%= Math.floor(totalmem / (1024 * 1024)) %> MB</td>
-        </tr>  
+          <td><%= Math.floor(appusedmem / (1024 * 1024)) %> MB</td>
+        </tr>
+        <tr>
+          <td>Uptime</td>
+          <td><%= appuptime %></td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -65,10 +57,10 @@
   <table>
     <thead>
       <tr>
-        <th width="25%">IP address</th>
-        <th width="25%">Request</th>
-        <th width="25%">User-Agent</th>
-        <th width="25%">Time ago</th>
+        <th>IP address</th>
+        <th>Request</th>
+        <th>User-Agent</th>
+        <th>Time ago</th>
       </tr>
     </thead>
     <tbody>

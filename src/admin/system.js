@@ -4,12 +4,25 @@ const os = require('os');
 const fs = require('fs');
 const readline = require('readline');
 const moment = require('moment');
+const used = process.memoryUsage();
 
 let logFilePath;
 if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
   logFilePath = '/var/log/nginx/access.log';
 } else {
   logFilePath = './private/access.log';
+}
+
+function getRuntime() {
+  if (typeof Deno !== 'undefined' && typeof Deno.version !== 'undefined') {
+    return 'Deno'
+  } else if (typeof Bun !== 'undefined' && typeof Bun.version !== 'undefined') {
+    return 'Bun'
+  } else if (typeof process !== 'undefined' && process.versions?.node) {
+    return 'Node.js'
+  } else {
+    return 'Unknown'
+  }
 }
 
 function formatUptime(uptime) {
@@ -73,15 +86,14 @@ router.get('/', async (req, res) => {
     user: req.user,
     hostname: os.hostname(),
     loadavg: os.loadavg(),
-    machine: os.machine(),
-    type: os.type(),
-    release: os.release(),
     uptime: formatUptime(os.uptime()),
     usedmem: os.totalmem() - os.freemem(),
     totalmem: os.totalmem(),
-    node: process.version,
+    runtime: getRuntime(),
+    appversion: process.version,
     appuptime: formatUptime(process.uptime()),
-    accessLogs: logs.reverse()
+    appusedmem: used.rss,
+    accessLogs: logs.reverse(),
   });
 });
 
