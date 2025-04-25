@@ -17,8 +17,8 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
   <meta property="og:url" content="https://hypersomnia.xyz/arenas/<%= arena.name %>">
   <% } %>
   <title><%= pageTitle %> - Hypersomnia</title>
-  <link rel="icon" type="image/x-icon" href="<%= CDN %>/favicon.ico">
-  <link rel="stylesheet" href="<%= NODE_ENV === 'production' ? CDN + '/assets/styles/main.min.css?' + version : '/assets/styles/main.css?' + version %>">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="<%= NODE_ENV === 'production' ? '/assets/styles/main.min.css?' + version : '/assets/styles/main.css?' + version %>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/inter-ui@4.1.0/inter.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css">
 </head>
@@ -39,7 +39,7 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
   </div>
   <div class="logo-center">
     <a href="/">
-      <img height="104" class="responsive" src="<%= CDN %>/assets/images/menu_game_logo.png" alt="Hypersomnia Logo">
+      <img height="104" class="responsive" src="/assets/images/menu_game_logo.png" alt="Hypersomnia Logo">
     </a>
   </div>
   <nav>

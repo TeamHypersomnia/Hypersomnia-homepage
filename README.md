@@ -31,9 +31,6 @@ pm2 start app.js
 ## ⚙️ Configuration
 Create a `.env` file in your project root with the following contents:
 ```env
-URL="http://localhost:3000/"
-CDN="https://hypersomnia.b-cdn.net"
-BUNNYCDN_API="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 ADMINS="76561198051900812,76561198027854878"
 STEAM_APIKEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 SESSION_SECRET="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"

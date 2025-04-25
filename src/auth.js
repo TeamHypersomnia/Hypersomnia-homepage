@@ -5,6 +5,11 @@ const Database = require('better-sqlite3');
 const axios = require('axios');
 const querystring = require('querystring');
 
+let url = `http://localhost/${process.env.PORT || 3000}/auth/discord/return`;
+if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
+  url = 'https://hypersomnia.xyz/auth/discord/return';
+}
+
 function loadUsers() {
   try {
     const d = fs.readFileSync(`${__dirname}/../private/users.json`, 'utf8');
@@ -57,7 +62,7 @@ module.exports = function(passport) {
 
   // Route to initiate Discord OAuth
   router.get('/discord', (req, res) => {
-    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${process.env.URL}auth/discord/return&response_type=code&scope=identify`;
+    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${url}&response_type=code&scope=identify`;
     res.redirect(authUrl);
   });
 
@@ -90,7 +95,7 @@ module.exports = function(passport) {
         client_secret: process.env.DISCORD_CLIENT_SECRET,
         grant_type: 'authorization_code',
         code,
-        redirect_uri: process.env.URL + 'auth/discord/return'
+        redirect_uri: url
       }), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'

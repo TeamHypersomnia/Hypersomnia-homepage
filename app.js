@@ -19,7 +19,6 @@ const admins = process.env.ADMINS.split(',');
 app.locals.alert = '';
 app.locals.version = Math.floor(Date.now() / 1000);
 app.locals.NODE_ENV = process.env.NODE_ENV || 'development';
-app.locals.CDN = process.env.CDN || '';
 
 // Database setup
 if (!fs.existsSync(process.env.DB_PATH)) {
@@ -86,26 +85,6 @@ if (process.env.NODE_ENV === 'production') {
   const cssCode = fs.readFileSync(cssInput, 'utf8');
   const minifiedCSS = uglifyCSS.processString(cssCode);
   fs.writeFileSync(cssOutput, minifiedCSS);
-
-  // Purge CDN cache if necessary
-  if (process.env.BUNNYCDN_API) {
-    axios.post('https://api.bunny.net/pullzone/3594361/purgeCache', {}, {
-      headers: {
-        'Content-Type': 'application/json',
-        AccessKey: process.env.BUNNYCDN_API
-      }
-    })
-    .then(res => {
-      if (res.status === 204) {
-        console.log('Cache was successfully purged');
-      } else {
-        console.log(`Unexpected status: ${res.status}`);
-      }
-    })
-    .catch(err => {
-      console.error('Error purging cache:', err.message);
-    });
-  }
 } else {
   app.locals.alert =
   'Node environment is not set to production. If testing locally, it\'s fine, ' +
