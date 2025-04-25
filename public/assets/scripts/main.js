@@ -109,12 +109,13 @@ if (document.querySelector('#leaderboard')) {
             <thead>
               <tr>
                 <th class="dir-u" width="10%">#</th>
-                <th width="40%">Name</th>
+                <th width="30%">Name</th>
                 <th width="10%">MMR</th>
                 <th width="10%">Mu</th>
                 <th width="10%">Sigma</th>
-                <th width="10%">Won</th>
-                <th width="10%">Lost</th>
+                <th width="10%">Wins</th>
+                <th width="10%">Losses</th>
+                <th width="10%"><abbr title="The win-to-loss ratio">WTLR</abbr></th>
               </tr>
             </thead>
             <tbody>
@@ -135,6 +136,7 @@ if (document.querySelector('#leaderboard')) {
               <td>${player.sigma.toFixed(3)}</td>
               <td>${player.matches_won}</td>
               <td>${player.matches_lost}</td>
+              <td>${(player.matches_won + player.matches_lost === 0) ? '0%' : Math.round((player.matches_won / (player.matches_won + player.matches_lost)) * 100) + '%'}</td>
             </tr>
           `
         })

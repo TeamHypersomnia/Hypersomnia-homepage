@@ -19,12 +19,13 @@
     <thead>
       <tr>
         <th class="dir-u" width="10%">#</th>
-        <th width="40%">Name</th>
+        <th width="30%">Name</th>
         <th width="10%">MMR</th>
         <th width="10%">Mu</th>
         <th width="10%">Sigma</th>
-        <th width="10%">Won</th>
-        <th width="10%">Lost</th>
+        <th width="10%">Wins</th>
+        <th width="10%">Losses</th>
+        <th width="10%"><abbr title="The win-to-loss ratio">WTLR</abbr></th>
       </tr>
     </thead>
     <tbody>
@@ -37,6 +38,7 @@
           <td><%= i.sigma.toFixed(3) %></td>
           <td><%= i.matches_won %></td>
           <td><%= i.matches_lost %></td>
+          <td><%= (i.matches_won + i.matches_lost === 0) ? '0%' : Math.round((i.matches_won / (i.matches_won + i.matches_lost)) * 100) + '%' %></td>
         </tr>
       <% }); %>
     </tbody>
