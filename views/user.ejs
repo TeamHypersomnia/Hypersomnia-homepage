@@ -38,13 +38,13 @@
           </td>
         </tr>
         <tr>
-          <td>MMR (Bomb Defusal)</td>
+          <td><abbr title="Match Making Rating">MMR</abbr> (Bomb Defusal)</td>
           <td>
             <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= teamData.rankImg %>" alt="<%= teamData.rankName %>"><abbr title="μ = <%= teamData.mu.toFixed(3) %> / σ = <%= teamData.sigma.toFixed(3) %>"><%= teamData.mmr.toFixed(2) %></abbr>
           </td>
         </tr>
         <tr>
-          <td>MMR (FFA)</td>
+          <td><abbr title="Match Making Rating">MMR</abbr> (FFA Gun Game)</td>
           <td>
             <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= ffaData.rankImg %>" alt="<%= ffaData.rankName %>"><abbr title="μ = <%= ffaData.mu.toFixed(3) %> / σ = <%= ffaData.sigma.toFixed(3) %>"><%= ffaData.mmr.toFixed(2) %></abbr>
           </td>
@@ -70,11 +70,11 @@
           <td><%= longestWinStreak %></td>
         </tr>
         <tr>
-          <td>Wins-Losses (Bomb Defusal)</td>
+          <td><abbr title="Wins-Losses">W-L</abbr> (Bomb Defusal)</td>
           <td><%= teamData.matches_won %>-<%= teamData.matches_lost %></td>
         </tr>
         <tr>
-          <td>Wins-Losses (FFA)</td>
+          <td><abbr title="Wins-Losses">W-L</abbr> (FFA Gun Game)</td>
           <td><%= ffaData.matches_won %>-<%= ffaData.matches_lost %></td>
         </tr>
       </tbody>
@@ -87,7 +87,7 @@
     <thead>
       <tr>
         <th width="20%">Arena</th>
-        <th width="25%">MMR</th>
+        <th width="25%"><abbr title="Match Making Rating">MMR</abbr></th>
         <th class="no-sort" width="10%">Score</th>
         <th class="no-sort" width="25%">Opponents</th>
         <th class="dir-d" width="14%">Time ago</th>

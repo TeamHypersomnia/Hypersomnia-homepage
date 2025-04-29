@@ -109,13 +109,12 @@ if (document.querySelector('#leaderboard')) {
             <thead>
               <tr>
                 <th class="dir-u" width="10%">#</th>
-                <th width="30%">Name</th>
-                <th width="10%">MMR</th>
+                <th width="40%">Name</th>
+                <th width="10%"><abbr title="Match Making Rating">MMR</abbr></th>
                 <th width="10%">Mu</th>
                 <th width="10%">Sigma</th>
-                <th width="10%">Wins</th>
-                <th width="10%">Losses</th>
-                <th width="10%"><abbr title="The win-to-loss ratio">WTLR</abbr></th>
+                <th width="10%"><abbr title="Wins-Losses">W-L</abbr></th>
+                <th width="10%"><abbr title="Win-To-Loss Ratio">WTLR</abbr></th>
               </tr>
             </thead>
             <tbody>
@@ -134,8 +133,7 @@ if (document.querySelector('#leaderboard')) {
               <td>${player.mmr.toFixed(2)}</td>
               <td>${player.mu.toFixed(3)}</td>
               <td>${player.sigma.toFixed(3)}</td>
-              <td>${player.matches_won}</td>
-              <td>${player.matches_lost}</td>
+              <td data-sort="${player.matches_won - player.matches_lost}">${player.matches_won}-${player.matches_lost}</td>
               <td>${(player.matches_won + player.matches_lost === 0) ? '0%' : Math.round((player.matches_won / (player.matches_won + player.matches_lost)) * 100) + '%'}</td>
             </tr>
           `

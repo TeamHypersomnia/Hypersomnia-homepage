@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 
 function getWeapons(file) {
-  const path = `${__dirname}/../public/weapons/${file}.json`;
+  const path = `./public/weapons/${file}.json`;
   return JSON.parse(fs.readFileSync(path, 'utf8'));
 }
 

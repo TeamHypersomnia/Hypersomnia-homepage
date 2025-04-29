@@ -1,8 +1,7 @@
 # Hypersomnia Website
 https://hypersomnia.xyz/
 
-## 🚀 Installation Guide
-This guide walks you through setting up the Hypersomnia website, including installing NGINX and Node.js, securing access to port 3000, and deploying the app with PM2.
+## Installation
 ```bash
 # Install Mainline NGINX from Official Repository
 sudo apt install -y curl gnupg2 ca-certificates lsb-release ubuntu-keyring
@@ -25,16 +24,19 @@ sudo iptables -A INPUT -p tcp --dport 3000 -j DROP
 cd /var/www/app
 npm install
 sudo npm install -g pm2
+
+# Initialize SQLite Database (run this if the DB doesn't already exist)
+sqlite3 ./private/mmr.db < install.sql
+
+# Start the App
 pm2 start app.js
 ```
 
-## ⚙️ Configuration
-Create a `.env` file in your project root with the following contents:
+## Configuration
 ```env
 ADMINS="76561198051900812,76561198027854878"
 STEAM_APIKEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 SESSION_SECRET="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-DB_PATH="./private/mmr.db"
 REPORT_MATCH_APIKEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 DISCORD_CLIENT_SECRET="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 DISCORD_CLIENT_ID="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"

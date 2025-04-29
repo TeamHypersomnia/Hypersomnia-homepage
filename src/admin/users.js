@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const moment = require('moment');
 const fs = require('fs');
-const path = `${__dirname}/../../private/users.json`;
+const path = './private/users.json';
 
 function loadUsers() {
   try {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-const path = `${__dirname}/../../private/authorized_mappers.json`;
+const path = './private/authorized_mappers.json';
 
 function loadCreators() {
   try {

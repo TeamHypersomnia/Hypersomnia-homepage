@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-const path = `${__dirname}/../../private/settings.json`;
+const path = './private/settings.json';
 
 function loadSettings() {
   try {

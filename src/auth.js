@@ -5,14 +5,14 @@ const Database = require('better-sqlite3');
 const axios = require('axios');
 const querystring = require('querystring');
 
-let url = `http://localhost/${process.env.PORT || 3000}/auth/discord/return`;
-if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
+let url = `http://localhost:${process.env.PORT || 3000}/auth/discord/return`;
+if (process.env.NODE_ENV == 'production') {
   url = 'https://hypersomnia.xyz/auth/discord/return';
 }
 
 function loadUsers() {
   try {
-    const d = fs.readFileSync(`${__dirname}/../private/users.json`, 'utf8');
+    const d = fs.readFileSync('./private/users.json', 'utf8');
     return JSON.parse(d);
   } catch (error) {
     console.error(error.message);
@@ -23,7 +23,7 @@ function loadUsers() {
 function saveUsers(obj) {
   try {
     const json = JSON.stringify(obj, null, 2);
-    fs.writeFileSync(`${__dirname}/../private/users.json`, json, 'utf8');
+    fs.writeFileSync('./private/users.json', json, 'utf8');
   } catch (error) {
     console.error(error.message);
   }
@@ -68,7 +68,7 @@ module.exports = function(passport) {
 
   // Route to disconnect Discord account
   router.post('/discord/disconnect', async (req, res) => {
-    const db = new Database(process.env.DB_PATH);
+    const db = new Database('./private/mmr.db');
     const steamId = 'steam_' + req.user.id;
 
     try {
@@ -124,7 +124,7 @@ module.exports = function(passport) {
       });
 
       // Store the association in the database
-      const db = new Database(process.env.DB_PATH);
+      const db = new Database('./private/mmr.db');
 
       const discordId = 'discord_' + discordUser.id;
       const steamId = 'steam_' + req.user.id;

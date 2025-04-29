@@ -58,7 +58,7 @@ const MIN_SCORE_AS_ENEMY_TO_CONTRIBUTE = 4;
 
 const MIN_ROUNDS_TO_COUNT_WINS = 5;
 
-const authorizedServersPath = `${__dirname}/../private/authorized_ranked_servers.json`;
+const authorizedServersPath = './private/authorized_ranked_servers.json';
 const authorizedServersData = fs.readFileSync(authorizedServersPath, 'utf8');
 
 const authorizedServers = JSON.parse(authorizedServersData);
@@ -175,7 +175,7 @@ router.post('/', apiKeyAuth, (req, res) => {
   }
 
   try {
-    const db = new Database(process.env.DB_PATH);
+    const db = new Database('./private/mmr.db');
 
     win_players = mapIdArray(win_players, db);
     lose_players = mapIdArray(lose_players, db);

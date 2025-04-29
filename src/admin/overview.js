@@ -6,23 +6,9 @@ const readline = require('readline');
 const moment = require('moment');
 const used = process.memoryUsage();
 
-let logFilePath;
-if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
+let logFilePath = './private/access.log';
+if (process.env.NODE_ENV == 'production') {
   logFilePath = '/var/log/nginx/access.log';
-} else {
-  logFilePath = './private/access.log';
-}
-
-function getRuntime() {
-  if (typeof Deno !== 'undefined' && typeof Deno.version !== 'undefined') {
-    return 'Deno'
-  } else if (typeof Bun !== 'undefined' && typeof Bun.version !== 'undefined') {
-    return 'Bun'
-  } else if (typeof process !== 'undefined' && process.versions?.node) {
-    return 'Node.js'
-  } else {
-    return 'Unknown'
-  }
 }
 
 function formatUptime(uptime) {
@@ -89,7 +75,6 @@ router.get('/', async (req, res) => {
     uptime: formatUptime(os.uptime()),
     usedmem: os.totalmem() - os.freemem(),
     totalmem: os.totalmem(),
-    runtime: getRuntime(),
     appversion: process.version,
     appuptime: formatUptime(process.uptime()),
     appusedmem: used.rss,

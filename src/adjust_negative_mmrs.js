@@ -3,7 +3,7 @@ const fs = require('fs');
 const express = require('express');
 const Database = require('better-sqlite3');
 const router = express.Router();
-const authorizedServersPath = `${__dirname}/../private/authorized_ranked_servers.json`;
+const authorizedServersPath = './private/authorized_ranked_servers.json';
 const authorizedServers = JSON.parse(fs.readFileSync(authorizedServersPath, 'utf8'));
 
 // Middleware for API key authentication
@@ -43,7 +43,7 @@ router.post('/', apiKeyAuth, (req, res) => {
   let db;
 
   try {
-    db = new Database(process.env.DB_PATH);
+    db = new Database('./private/mmr.db');
 
     const updateMu = db.transaction(() => {
       const updateTeamMu = db.prepare(`

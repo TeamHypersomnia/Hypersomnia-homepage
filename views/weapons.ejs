@@ -17,8 +17,8 @@
         <th>DMG</th>
         <th>HS DMG</th>
         <th><abbr title="Penetration Value">PV</abbr></th>
-        <th><abbr title="Shots Per Second">SPS</abbr></th>
-        <th><abbr title="Damage Per Second">DPS</abbr></th>
+        <th>Shots/s</th>
+        <th>DMG/s</th>
         <th><abbr title="Bullet Speed">BS</abbr></th>
         <th class="dir-u">Price</th>
         <th>Award</th>
@@ -56,9 +56,9 @@
       <tr>
         <th>Name</th>
         <th class="no-sort">Weapon</th>
-        <th>Swings/s</th>
         <th>DMG</th>
         <th>HS DMG</th>
+        <th>Swings/s</th>
         <th>Stamina</th>
         <th>Throw DMG</th>
         <th>Throw HS DMG</th>
@@ -73,16 +73,16 @@
           <td><%= i.display_name %></td>
           <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
           <td>
-            <span class="fast"><%= i.fast_swings_per_second.toFixed(2) %></span>
-            <span class="strong"><%= i.strong_swings_per_second.toFixed(2) %></span>
-          </td>
-          <td>
             <span class="fast"><%= i.fast_damage %></span>
             <span class="strong"><%= i.strong_damage %></span>
           </td>
           <td>
             <span class="fast"><%= i.fast_hs_damage %></span>
             <span class="strong"><%= i.strong_hs_damage %></span>
+          </td>
+          <td>
+            <span class="fast"><%= i.fast_swings_per_second.toFixed(2) %></span>
+            <span class="strong"><%= i.strong_swings_per_second.toFixed(2) %></span>
           </td>
           <td>
             <span class="fast"><%= i.fast_stamina_required %></span>

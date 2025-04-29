@@ -252,9 +252,6 @@ dd{
   }
 }
 @media screen and (max-width:1100px){
-  #leaderboard>table>thead>tr>th:nth-child(4),#leaderboard>table>tbody>tr>td:nth-child(4),#leaderboard>table>thead>tr>th:nth-child(5),#leaderboard>table>tbody>tr>td:nth-child(5),#leaderboard>table>thead>tr>th:nth-child(6),#leaderboard>table>tbody>tr>td:nth-child(6),#leaderboard>table>thead>tr>th:nth-child(7),#leaderboard>table>tbody>tr>td:nth-child(7){
-    display:none
-  }
   .flag{
     font-size:1em
   }
@@ -391,14 +388,14 @@ table{
 tr:nth-child(even){
   background-color:#000e0d
 }
-th,td{
-  white-space:nowrap
-}
 .maxwidth>tbody>tr>td{
   max-width:180px;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap
+}
+#leaderboard>table>thead>tr>th:nth-child(1){
+  min-width: 38px
 }
 th{
   padding-top:10px;
@@ -431,7 +428,7 @@ tbody>tr>td:first-child {
 }
 .sortable th{
   cursor:pointer;
-  vertical-align:baseline;
+  vertical-align:bottom;
   white-space:nowrap;
   user-select:none;
   -webkit-user-select:none;

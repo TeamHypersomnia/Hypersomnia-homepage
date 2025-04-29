@@ -6,7 +6,7 @@ const { countryCodeEmoji } = require('country-code-emoji');
 const geoCache = {};
 let servers = [];
 
-if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV == 'production') {
   fetchServers('http://127.0.0.1:8410/server_list_json');
 } else {
   fetchServers('https://hypersomnia.xyz:8420/server_list_json');

@@ -40,7 +40,7 @@ router.get('/:user', function (req, res) {
     };
     const { name: platformName, url: profileUrl, icon: platformIconClass } = platforms[platform];    
 
-    const db = new Database(process.env.DB_PATH);
+    const db = new Database('./private/mmr.db');
     const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
     const childAssociation  = db.prepare('SELECT child_id FROM associations WHERE parent_id = ?').get(userid);
     let associationType = null;
