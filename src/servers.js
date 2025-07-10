@@ -34,6 +34,7 @@ function fetchServers(url) {
       newServerList.forEach(newServer => {
         const existing = servers.find(s => s.ip === newServer.ip);
         newServer.num_online = newServer.num_playing + newServer.num_spectating;
+        newServer.max_online = newServer.slots + newServer.num_playing - newServer.num_online_humans;
         if (existing) {
           // Update all properties but keep the flag
           Object.assign(existing, newServer);

@@ -3,14 +3,14 @@
 <h2>Ranked Servers</h2>
 <div id="ranked_servers" class="sv-list">
   <% Object.values(ranked_servers).forEach(v=> { %>
-  <div class="sv-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
+  <div class="sv-row-card<%= v.num_online_humans === 0 ? ' zeroplayers' : '' %>">
     <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
       <i><%= v.name %></i>
       <span class="flag"><%= v.flag %></span>
     </a>
     <div class="sv-info">
       <div>
-        <span>Players <b><%= v.num_online %>/<%= v.slots %></b></span>
+        <span>Players <b><%= v.num_online %>/<%= v.max_online %></b></span>
         <% if (v.num_online > 0) { %><span>Score <b><%= v.score_resistance %>-<%= v.score_metropolis %></b></span><% } %>
       </div>
       <div>
@@ -29,14 +29,14 @@
 <h2>Casual Servers</h2>
 <div id="casual_servers" class="sv-list">
   <% Object.values(casual_servers).forEach(v=> { %>
-  <div class="sv-row-card<%= v.num_online === 0 ? ' zeroplayers' : '' %>">
+  <div class="sv-row-card<%= v.num_online_humans === 0 ? ' zeroplayers' : '' %>">
     <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
       <i><%= v.name %></i>
       <span class="flag"><%= v.flag %></span>
     </a>
     <div class="sv-info">
       <div>
-        <span>Players <b><%= v.num_online %>/<%= v.slots %></b></span>
+        <span>Players <b><%= v.num_online %>/<%= v.max_online %></b></span>
         <% if (v.num_online > 0) { %><span>Score <b><%= v.score_resistance %>-<%= v.score_metropolis %></b></span><% } %>
       </div>
       <div>
