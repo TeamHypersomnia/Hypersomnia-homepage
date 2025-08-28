@@ -22,11 +22,14 @@ jobs:
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: hypersomnia.xyz
+          known_hosts: unnecessary
+
+      - name: Add hypersomnia.xyz to known hosts
+        run: ssh-keyscan -H hypersomnia.xyz >> ~/.ssh/known_hosts
 
       - name: Deploy via rsync, reload Nginx if needed, restart PM2
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@hypersomnia.xyz "
+          ssh ubuntu@hypersomnia.xyz "
             mkdir -p /var/www/app &&
             rsync -avzP \
               --exclude='public/arenas' \
