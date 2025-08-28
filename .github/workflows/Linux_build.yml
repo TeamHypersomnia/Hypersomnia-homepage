@@ -31,7 +31,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa ubuntu@hypersomnia.xyz "
             mkdir -p /var/www/app &&
-            rsync -avzP --update \
+            rsync -avzP \
               --exclude='public/arenas' \
               --exclude='private' \
               --exclude='node_modules' \
