@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to hypersomnia.xyz
 
 on:
   push:
@@ -12,42 +12,19 @@ jobs:
       NODE_ENV: production
 
     steps:
-      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
 
-      # 2. Cache Node modules for speed
-      - name: Cache Node.js modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # 3. Set up Node.js environment
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      # 4. Install SSH key
       - name: Set up SSH key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: unnecessary
+          known_hosts: hypersomnia.xyz
 
-      # 5. Ensure known hosts are added
-      - name: Add hypersomnia.xyz to known hosts
-        run: ssh-keyscan -H hypersomnia.xyz >> ~/.ssh/known_hosts
-
-      # 6. Deploy, build, reload Nginx if changed, and restart PM2
-      - name: Deploy and restart
+      - name: Deploy via rsync, reload Nginx, and restart PM2
         run: |
           ssh ubuntu@hypersomnia.xyz "
             mkdir -p /var/www/app &&
@@ -60,9 +37,6 @@ jobs:
               --exclude='.env' \
               --delete-after \
               ./ /var/www/app &&
-            cd /var/www/app &&
-            npm ci &&
-            npm run build &&
             if [ -f /var/www/app/nginx.conf ] && ! diff -q /etc/nginx/nginx.conf /var/www/app/nginx.conf >/dev/null; then
               sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup &&
               sudo mv /var/www/app/nginx.conf /etc/nginx/nginx.conf &&
