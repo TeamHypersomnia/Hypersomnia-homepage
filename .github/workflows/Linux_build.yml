@@ -2,8 +2,7 @@ name: Deploy to hypersomnia.xyz
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
 
 jobs:
   deploy:
@@ -12,13 +11,12 @@ jobs:
       NODE_ENV: production
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Set up SSH key
+      - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -27,23 +25,18 @@ jobs:
       - name: Add hypersomnia.xyz to known hosts
         run: ssh-keyscan -H hypersomnia.xyz >> ~/.ssh/known_hosts
 
-      - name: Deploy via rsync, install dependencies, reload Nginx, and restart PM2
+      - name: Deploy with rsync
+        run: rsync --exclude={'public/arenas','private','node_modules','.git','.github','.env'} -avzP --ignore-existing --update . ubuntu@hypersomnia.xyz:/var/www/app
+
+      - name: Install dependencies
+        run: ssh ubuntu@hypersomnia.xyz "cd /var/www/app && npm install"
+
+      - name: Reload Nginx and restart PM2
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@hypersomnia.xyz "
-            mkdir -p /var/www/app &&
-            rsync -avzP \
-              --exclude='public/arenas' \
-              --exclude='private' \
-              --exclude='node_modules' \
-              --exclude='.git' \
-              --exclude='.github' \
-              --exclude='.env' \
-              ./ /var/www/app &&
-            cd /var/www/app &&
-            npm install --production &&
+          ssh ubuntu@hypersomnia.xyz "
             if [ -f /var/www/app/nginx.conf ] && ! diff -q /etc/nginx/nginx.conf /var/www/app/nginx.conf >/dev/null; then
               sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup &&
-              sudo mv /var/www/app/nginx.conf /etc/nginx/nginx.conf &&
+              sudo cp /var/www/app/nginx.conf /etc/nginx/nginx.conf &&
               sudo nginx -t &&
               sudo systemctl reload nginx
             fi &&
