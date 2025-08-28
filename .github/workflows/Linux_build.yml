@@ -1,50 +1,24 @@
-name: Deploy to hypersomnia.xyz
-
-on:
-  push:
-    branches:
-      - master
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    env:
-      NODE_ENV: production
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Set up SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: unnecessary
-
-      - name: Add hypersomnia.xyz to known hosts
-        run: ssh-keyscan -H hypersomnia.xyz >> ~/.ssh/known_hosts
-
-      - name: Deploy, reload Nginx, and restart PM2
-        run: |
-          ssh ubuntu@hypersomnia.xyz "
-            mkdir -p /var/www/app &&
-            rsync -avzP \
-              --exclude='public/arenas' \
-              --exclude='private' \
-              --exclude='node_modules' \
-              --exclude='.git' \
-              --exclude='.github' \
-              --exclude='.env' \
-              --delete-after \
-              ./ /var/www/app &&
-            if [ -f /var/www/app/nginx.conf ] && ! diff -q /etc/nginx/nginx.conf /var/www/app/nginx.conf >/dev/null; then
-              sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup &&
-              sudo mv /var/www/app/nginx.conf /etc/nginx/nginx.conf &&
-              sudo nginx -t &&
-              sudo systemctl reload nginx
-            fi &&
-            pm2 restart app
-          "
+- name: Deploy, build, reload Nginx, and restart PM2
+  run: |
+    ssh ubuntu@hypersomnia.xyz "
+      mkdir -p /var/www/app &&
+      rsync -avzP \
+        --exclude='public/arenas' \
+        --exclude='private' \
+        --exclude='node_modules' \
+        --exclude='.git' \
+        --exclude='.github' \
+        --exclude='.env' \
+        --delete-after \
+        ./ /var/www/app &&
+      cd /var/www/app &&
+      npm ci &&
+      npm run build &&
+      if [ -f /var/www/app/nginx.conf ] && ! diff -q /etc/nginx/nginx.conf /var/www/app/nginx.conf >/dev/null; then
+        sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup &&
+        sudo mv /var/www/app/nginx.conf /etc/nginx/nginx.conf &&
+        sudo nginx -t &&
+        sudo systemctl reload nginx
+      fi &&
+      pm2 restart app
+    "
