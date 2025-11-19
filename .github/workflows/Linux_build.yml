@@ -40,5 +40,5 @@ jobs:
               sudo nginx -t &&
               sudo systemctl reload nginx
             fi &&
-            pm2 restart app
+            pm2 restart app >/dev/null 2>&1 || pm2 start app.js --name app
           "
