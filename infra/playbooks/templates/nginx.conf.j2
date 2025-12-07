@@ -52,10 +52,10 @@ http {
         listen [::]:443 ssl http2 reuseport;
         listen 443 quic reuseport;
         listen [::]:443 quic reuseport;
-        server_name hypersomnia.xyz www.hypersomnia.xyz;
+        server_name {{ domains.hub }} www.{{ domains.hub }};
 
-        ssl_certificate /etc/letsencrypt/live/hypersomnia.xyz/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/hypersomnia.xyz/privkey.pem;
+        ssl_certificate /etc/letsencrypt/live/{{ domains.hub }}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/{{ domains.hub }}/privkey.pem;
         ssl_session_cache shared:le_nginx_SSL:10m;
         ssl_session_timeout 1440m;
         ssl_session_tickets off;
@@ -72,7 +72,7 @@ http {
         add_header X-XSS-Protection "1; mode=block" always;
 
         # Redirect non-apex hosts to apex
-        if ($host != "hypersomnia.xyz") { return 301 https://hypersomnia.xyz$request_uri; }
+        if ($host != "{{ domains.hub }}") { return 301 https://{{ domains.hub }}$request_uri; }
 
         # -------------------------------
         # Exact redirects
@@ -110,7 +110,7 @@ http {
         # Builds
         # -------------------------------
         location /builds/ {
-            alias /var/www/html/builds/;
+            alias {{ paths.builds }}/;
             autoindex on;
             access_log off;
             proxy_cache STATIC;
@@ -124,7 +124,7 @@ http {
         # Arenas
         # -------------------------------
         location ~ ^/arenas/([^/]+)/(.+)$ {
-            alias /var/www/app/public/arenas/$1/$2;
+            alias /var/www/app/hosting/arenas/$1/$2;
             access_log off;
             proxy_cache STATIC;
             proxy_cache_valid 200 15m;
@@ -159,9 +159,9 @@ http {
     server {
         listen 80;
         listen [::]:80;
-        server_name hypersomnia.xyz www.hypersomnia.xyz;
+        server_name {{ domains.hub }} www.{{ domains.hub }};
 
-        return 301 https://hypersomnia.xyz$request_uri;
+        return 301 https://{{ domains.hub }}$request_uri;
         error_log /var/log/nginx/error.log crit;
         access_log off;
     }

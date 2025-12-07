@@ -1,0 +1,20 @@
+---
+# Restart serwerów (masterserver + gameserver)
+- name: Restart Hypersomnia Servers
+  hosts: web_servers
+  gather_facts: no
+
+  tasks:
+    - name: Restart masterserver
+      systemd:
+        name: hypersomnia-masterserver
+        state: restarted
+      become: yes
+      tags: [masterserver]
+
+    - name: Restart gameserver
+      systemd:
+        name: hypersomnia-gameserver-pl
+        state: restarted
+      become: yes
+      tags: [gameserver]

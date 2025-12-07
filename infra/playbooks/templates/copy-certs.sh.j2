@@ -1,0 +1,21 @@
+#!/bin/bash
+# Certbot renewal hook - copy certificates and restart services
+
+CERT_DIR="{{ paths.certs }}"
+DOMAIN="{{ domains.hub }}"
+
+# Copy certificates
+cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem $CERT_DIR/
+cp /etc/letsencrypt/live/$DOMAIN/privkey.pem $CERT_DIR/
+
+# Set ownership and permissions
+chown ubuntu:ubuntu $CERT_DIR/*.pem
+chmod 600 $CERT_DIR/*.pem
+
+# Restart masterserver to reload certificates
+if systemctl is-active --quiet hypersomnia-masterserver; then
+    systemctl restart hypersomnia-masterserver
+    echo "Masterserver restarted"
+fi
+
+echo "Certificates copied to $CERT_DIR"

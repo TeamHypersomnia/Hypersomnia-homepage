@@ -1,0 +1,23 @@
+---
+
+- name: Install gameserver systemd service
+  template:
+    src: ../templates/hypersomnia-gameserver-pl.service.j2
+    dest: /etc/systemd/system/hypersomnia-gameserver-pl.service
+    mode: '0644'
+  become: yes
+  notify: reload systemd
+
+- name: Enable gameserver service
+  systemd:
+    name: hypersomnia-gameserver-pl
+    enabled: yes
+    daemon_reload: yes
+  become: yes
+
+- name: Start gameserver service
+  systemd:
+    name: hypersomnia-gameserver-pl
+    state: started
+  become: yes
+  when: ansible_check_mode == false

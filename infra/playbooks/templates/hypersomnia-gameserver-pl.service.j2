@@ -1,0 +1,14 @@
+[Unit]
+Description=Hypersomnia Dedicated Server
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu
+ExecStart={{ paths.hypersomnia_bin }}/Hypersomnia-Headless.AppImage --as-service
+Restart=always
+RestartSec=0.5
+
+[Install]
+WantedBy=multi-user.target

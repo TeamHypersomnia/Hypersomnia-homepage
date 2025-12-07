@@ -9,14 +9,15 @@ const SteamStrategy = require('passport-steam').Strategy;
 const app = express();
 const admins = process.env.ADMINS.split(',');
 
-app.locals.url = 'https://hypersomnia.xyz/';
+const DOMAIN = process.env.DOMAIN;
+app.locals.url = DOMAIN;
 app.locals.alert = '';
 app.locals.version = Math.floor(Date.now() / 1000);
 if (process.env.NODE_ENV != 'production') {
   app.locals.url = `http://localhost:${process.env.PORT || 3000}/`;
   app.locals.alert =
-  'NODE_ENV is not set to production. If testing locally, ' +
-  'it\'s fine, but set it to production for live deployment.';
+    'NODE_ENV is not set to production. If testing locally, ' +
+    'it\'s fine, but set it to production for live deployment.';
   app.use(express.static('./public'));
 }
 

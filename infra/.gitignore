@@ -1,0 +1,12 @@
+# Ansible
+*.retry
+.vault_pass
+*.log
+
+# Backups (lokalne)
+backups/
+*.tar.gz
+
+# Binaries (za duże do gita)
+files/Hypersomnia-Headless.AppImage
+files/*.AppImage

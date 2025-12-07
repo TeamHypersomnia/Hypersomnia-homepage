@@ -1,0 +1,70 @@
+---
+# Homepage deployment
+- name: Create app directory
+  file:
+    path: "{{ paths.app_root }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+- name: Sync homepage files from local working directory
+  synchronize:
+    src: "{{ playbook_dir }}/../../"
+    dest: "{{ paths.app_root }}/"
+    delete: no
+    rsync_opts:
+      - "--exclude=infra"
+      - "--exclude=.git"
+      - "--exclude=.env"
+      - "--exclude=.github"
+      - "--exclude=node_modules"
+      - "--exclude=private"
+      - "--exclude=hosting/arenas"
+      - "--exclude=ecosystem.config.js"
+  become: yes
+  become_user: ubuntu
+
+- name: Create PM2 ecosystem config
+  template:
+    src: ../templates/ecosystem.config.js.j2
+    dest: "{{ paths.app_root }}/ecosystem.config.js"
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+  become: yes
+
+- name: Install npm dependencies
+  npm:
+    path: "{{ paths.app_root }}"
+    state: present
+  become: yes
+  become_user: ubuntu
+
+- name: Check if PM2 app is already running
+  command: pm2 list
+  register: pm2_list
+  changed_when: false
+  become: yes
+  become_user: ubuntu
+
+- name: Stop existing PM2 app if running
+  command: pm2 delete app
+  when: "'app' in pm2_list.stdout"
+  become: yes
+  become_user: ubuntu
+  ignore_errors: yes
+
+- name: Start app with PM2 ecosystem file
+  command: pm2 start ecosystem.config.js
+  args:
+    chdir: "{{ paths.app_root }}"
+  become: yes
+  become_user: ubuntu
+
+- name: Save PM2 configuration
+  command: pm2 save
+  become: yes
+  become_user: ubuntu
+  changed_when: false

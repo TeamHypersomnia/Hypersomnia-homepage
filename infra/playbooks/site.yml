@@ -1,0 +1,65 @@
+---
+- name: Deploy Hypersomnia Infrastructure
+  hosts: web_servers
+  gather_facts: yes
+
+  handlers:
+    - name: reload nginx
+      systemd:
+        name: nginx
+        state: reloaded
+      become: yes
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
+      become: yes
+
+    - name: restart masterserver
+      systemd:
+        name: hypersomnia-masterserver
+        state: restarted
+      become: yes
+
+    - name: restart gameserver
+      systemd:
+        name: hypersomnia-gameserver-pl
+        state: restarted
+      become: yes
+
+  tasks:
+    - name: Common setup
+      include_tasks: tasks/common.yml
+      tags: [common, setup]
+
+    - name: Node.js setup
+      include_tasks: tasks/nodejs.yml
+      tags: [nodejs, setup]
+
+    - name: Certbot setup
+      include_tasks: tasks/certbot.yml
+      tags: [certbot, setup]
+
+    - name: Nginx setup
+      include_tasks: tasks/nginx.yml
+      tags: [nginx, setup]
+
+    - name: Data setup
+      include_tasks: tasks/data.yml
+      tags: [data, setup]
+
+    - name: Homepage deployment
+      include_tasks: tasks/homepage.yml
+      tags: [homepage, app]
+
+    - name: Download Hypersomnia binary
+      include_tasks: tasks/hypersomnia_binary.yml
+      tags: [binary, servers]
+
+    - name: Masterserver setup
+      include_tasks: tasks/masterserver.yml
+      tags: [masterserver, servers]
+
+    - name: Gameserver setup
+      include_tasks: tasks/gameserver.yml
+      tags: [gameserver, servers]

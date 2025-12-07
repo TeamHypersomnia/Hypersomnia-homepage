@@ -1,0 +1,38 @@
+---
+- name: Create Hypersomnia config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  loop:
+    - /home/ubuntu/.config/Hypersomnia
+    - /home/ubuntu/.config/Hypersomnia/user
+    - /home/ubuntu/.config/Hypersomnia/user/conf.d
+  become: yes
+
+# Download Hypersomnia binary (shared by masterserver and gameserver)
+- name: Create hypersomnia binary directory
+  file:
+    path: "{{ paths.hypersomnia_bin }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+- name: Check if Hypersomnia-Headless.AppImage exists
+  stat:
+    path: "{{ paths.hypersomnia_bin }}/Hypersomnia-Headless.AppImage"
+  register: appimage_stat
+
+- name: Download Hypersomnia-Headless.AppImage
+  get_url:
+    url: "{{ hypersomnia_headless_url }}"
+    dest: "{{ paths.hypersomnia_bin }}/Hypersomnia-Headless.AppImage"
+    mode: '0755'
+    owner: ubuntu
+    group: ubuntu
+  become: yes
+  when: not appimage_stat.stat.exists

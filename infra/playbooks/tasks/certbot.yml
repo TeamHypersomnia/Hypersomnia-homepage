@@ -1,0 +1,42 @@
+---
+# Certbot setup
+- name: Create certificate directory for ubuntu user
+  file:
+    path: "{{ paths.certs }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+- name: Copy existing certificates if available
+  shell: |
+    cp -L /etc/letsencrypt/live/{{ domains.hub }}/fullchain.pem {{ paths.certs }}/fullchain.pem
+    cp -L /etc/letsencrypt/live/{{ domains.hub }}/privkey.pem {{ paths.certs }}/privkey.pem
+    chown ubuntu:ubuntu {{ paths.certs }}/*.pem
+    chmod 600 {{ paths.certs }}/*.pem
+  args:
+    creates: "{{ paths.certs }}/fullchain.pem"
+  become: yes
+  ignore_errors: yes
+
+- name: Create certbot renewal hook directory
+  file:
+    path: /etc/letsencrypt/renewal-hooks/deploy
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Install certbot renewal hook
+  template:
+    src: ../templates/copy-certs.sh.j2
+    dest: /etc/letsencrypt/renewal-hooks/deploy/copy-certs.sh
+    mode: '0755'
+  become: yes
+
+- name: Enable certbot renewal timer
+  systemd:
+    name: certbot.timer
+    enabled: yes
+    state: started
+  become: yes

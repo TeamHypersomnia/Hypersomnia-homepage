@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
 const chokidar = require('chokidar');
-const dirPath = './public/arenas';
+const dirPath = './hosting/arenas';
 const unplayablePath = './private/unplayable.json';
 let arenas = [];
 

@@ -1,0 +1,71 @@
+---
+all:
+  children:
+    web_servers:
+      hosts:
+        hub.hypersomnia.io:
+          ansible_host: hub.hypersomnia.io
+          ansible_user: ubuntu
+          ansible_python_interpreter: /usr/bin/python3
+      vars:
+        # Domeny
+        domains:
+          hub: hub.hypersomnia.io
+          main: hypersomnia.io
+          masterserver: masterserver.hypersomnia.io
+
+        # Ścieżki na serwerze
+        paths:
+          app_root: /var/www/app
+          hosting: /var/www/app/hosting
+          builds: /var/www/app/hosting/builds
+          web_arenas: /var/www/app/hosting/arenas
+          game_arenas: /home/ubuntu/.config/Hypersomnia/user/downloads
+          private: /var/www/app/private
+          hypersomnia_bin: /home/ubuntu/hypersomnia
+          certs: /home/ubuntu/certs
+
+        # Hypersomnia binary
+        hypersomnia_headless_url: https://hypersomnia.xyz/builds/latest/Hypersomnia-Headless.AppImage
+
+        # Certbot
+        certbot_email: ""  # Zostaw puste, certyfikaty generowane ręcznie
+
+        # Repository
+        repo_url: https://github.com/TeamHypersomnia/Hypersomnia-homepage.git
+        repo_branch: master
+
+        # Node.js
+        nodejs_version: "18"  # LTS
+
+        # Masterserver config
+        masterserver:
+          signalling_port: 8000
+          server_list_port_https: 8420
+          server_list_port_http: 8410
+          first_udp_port: 8430
+          num_udp_ports: 4
+          official_hosts:
+            - arena.hypersomnia.io
+            - arena-us.hypersomnia.io
+            - arena-de.hypersomnia.io
+            - arena-au.hypersomnia.io
+            - arena-ru.hypersomnia.io
+            - arena-ch.hypersomnia.io
+            - arena-fi.hypersomnia.io
+            - arena-nl.hypersomnia.io
+            - fossgralnia.hypersomnia.io
+
+        # Firewall ports
+        firewall_allowed_ports:
+          - 22/tcp    # SSH
+          - 80/tcp    # HTTP
+          - 443/tcp   # HTTPS
+          - 8000/udp  # Signalling server
+          - 8410/tcp  # HTTP server list
+          - 8420/tcp  # HTTPS server list
+          - 8412/udp  # Gameserver
+          - 8430/udp  # Masterserver commands
+          - 8431/udp  # Masterserver commands
+          - 8432/udp  # Masterserver commands
+          - 8433/udp  # Masterserver commands

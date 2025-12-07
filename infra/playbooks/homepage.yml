@@ -1,0 +1,10 @@
+---
+# Deploy tylko homepage
+- name: Deploy Hypersomnia Homepage
+  hosts: web_servers
+  gather_facts: yes
+
+  tasks:
+    - name: Homepage deployment
+      include_tasks: tasks/homepage.yml
+      tags: [homepage]

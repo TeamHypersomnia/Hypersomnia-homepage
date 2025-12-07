@@ -128,7 +128,8 @@ dist
 
 # Extra
 private
-public/arenas
+hosting/*
 
 pythagtest.json
 pythagcollidtest.json
+ansible/backups

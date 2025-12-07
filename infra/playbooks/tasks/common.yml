@@ -1,0 +1,51 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Upgrade all packages
+  apt:
+    upgrade: dist
+  become: yes
+
+- name: Install essential packages
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - ufw
+      - fail2ban
+      - htop
+      - vim
+    state: present
+  become: yes
+
+- name: Configure UFW - allow SSH
+  ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+  become: yes
+
+- name: Configure UFW - allow standard ports
+  ufw:
+    rule: allow
+    port: "{{ item.split('/')[0] }}"
+    proto: "{{ item.split('/')[1] }}"
+  loop: "{{ firewall_allowed_ports }}"
+  become: yes
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+  become: yes
+
+- name: Ensure fail2ban is running
+  systemd:
+    name: fail2ban
+    state: started
+    enabled: yes
+  become: yes

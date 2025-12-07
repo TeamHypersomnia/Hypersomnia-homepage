@@ -5,9 +5,10 @@ const Database = require('better-sqlite3');
 const axios = require('axios');
 const querystring = require('querystring');
 
+const DOMAIN = process.env.DOMAIN;
 let url = `http://localhost:${process.env.PORT || 3000}/auth/discord/return`;
 if (process.env.NODE_ENV == 'production') {
-  url = 'https://hypersomnia.xyz/auth/discord/return';
+  url = `${DOMAIN}/auth/discord/return`;
 }
 
 function loadUsers() {
@@ -29,7 +30,7 @@ function saveUsers(obj) {
   }
 }
 
-module.exports = function(passport) {
+module.exports = function (passport) {
   router.get('/steam',
     passport.authenticate('steam', {
       failureRedirect: '/'

@@ -73,7 +73,7 @@ router.post('/', upload.single('upload'), (req, res) => {
     }
   }
 
-  const filePath = `public/arenas/${arena}/${sanitizedFilename}`;
+  const filePath = `hosting/arenas/${arena}/${sanitizedFilename}`;
   writeFileWithDirectory(filePath, req.file.buffer);
   console.log(`File saved to ${filePath}`);
 

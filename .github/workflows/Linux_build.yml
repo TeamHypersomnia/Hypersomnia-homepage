@@ -1,4 +1,4 @@
-name: Deploy to hypersomnia.xyz
+name: Deploy to hub.hypersomnia.io
 
 on:
   push:
@@ -22,18 +22,18 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: unnecessary
 
-      - name: Add hypersomnia.xyz to known hosts
-        run: ssh-keyscan -H hypersomnia.xyz >> ~/.ssh/known_hosts
+      - name: Add hub.hypersomnia.io to known hosts
+        run: ssh-keyscan -H hub.hypersomnia.io >> ~/.ssh/known_hosts
 
       - name: Deploy with rsync
-        run: rsync --exclude={'public/arenas','private','node_modules','.git','.github','.env'} -avzP --ignore-existing --update . ubuntu@hypersomnia.xyz:/var/www/app
+        run: rsync --exclude={'hosting/arenas','private','node_modules','.git','.github','.env'} -avzP --ignore-existing --update . ubuntu@hub.hypersomnia.io:/var/www/app
 
       - name: Install dependencies
-        run: ssh ubuntu@hypersomnia.xyz "cd /var/www/app && npm install"
+        run: ssh ubuntu@hub.hypersomnia.io "cd /var/www/app && npm install"
 
       - name: Reload Nginx and restart PM2
         run: |
-          ssh ubuntu@hypersomnia.xyz "
+          ssh ubuntu@hub.hypersomnia.io "
             if [ -f /var/www/app/nginx.conf ] && ! diff -q /etc/nginx/nginx.conf /var/www/app/nginx.conf >/dev/null; then
               sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup &&
               sudo cp /var/www/app/nginx.conf /etc/nginx/nginx.conf &&

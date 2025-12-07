@@ -1,0 +1,14 @@
+{
+  "masterserver": {
+    "ssl_cert_path": "{{ paths.certs }}/fullchain.pem",
+    "ssl_private_key_path": "{{ paths.certs }}/privkey.pem",
+    "signalling_ssl_cert_path": "{{ paths.certs }}/fullchain.pem",
+    "signalling_ssl_private_key_path": "{{ paths.certs }}/privkey.pem",
+    "signalling_server_port": {{ masterserver.signalling_port }},
+    "first_udp_command_port": {{ masterserver.first_udp_port }},
+    "num_udp_command_ports": {{ masterserver.num_udp_ports }},
+    "server_list_port": {{ masterserver.server_list_port_https }},
+    "fallback_http_server_list_port": {{ masterserver.server_list_port_http }},
+    "official_hosts": {{ masterserver.official_hosts | to_json }}
+  }
+}

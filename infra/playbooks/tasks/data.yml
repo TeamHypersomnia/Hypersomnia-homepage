@@ -1,0 +1,65 @@
+---
+# Data setup - katalogi i backup
+- name: Create directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  loop:
+    - "{{ paths.private }}"
+    - "{{ paths.hosting }}"
+    - "{{ paths.builds }}"
+  become: yes
+
+- name: Create game downloads directory
+  file:
+    path: "{{ paths.game_arenas }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: yes
+
+- name: Remove existing arenas directory (to replace with symlink)
+  file:
+    path: "{{ paths.web_arenas }}"
+    state: absent
+  become: yes
+
+- name: Create symlink for arenas (web -> game)
+  file:
+    src: "{{ paths.game_arenas }}"
+    dest: "{{ paths.web_arenas }}"
+    state: link
+    owner: ubuntu
+    group: ubuntu
+    force: yes
+  become: yes
+
+- name: Check if backup archive is provided
+  stat:
+    path: "{{ backup_archive }}"
+  delegate_to: localhost
+  register: backup_file
+  when: backup_archive is defined
+
+- name: Upload and extract backup
+  unarchive:
+    src: "{{ backup_archive }}"
+    dest: "{{ paths.app_root }}"
+    owner: ubuntu
+    group: ubuntu
+  become: yes
+  when: 
+    - backup_archive is defined
+    - backup_file.stat.exists
+
+- name: Set permissions on private directory
+  file:
+    path: "{{ paths.private }}"
+    owner: ubuntu
+    group: ubuntu
+    recurse: yes
+  become: yes

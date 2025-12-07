@@ -1,0 +1,22 @@
+---
+# Node.js setup
+- name: Install Node.js and npm
+  apt:
+    name:
+      - nodejs
+      - npm
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Install PM2 globally
+  npm:
+    name: pm2
+    global: yes
+    state: present
+  become: yes
+
+- name: Setup PM2 startup script
+  command: pm2 startup systemd -u ubuntu --hp /home/ubuntu
+  become: yes
+  changed_when: false

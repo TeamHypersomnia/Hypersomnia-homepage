@@ -1,0 +1,46 @@
+---
+# Masterserver setup
+- name: Create Hypersomnia config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  loop:
+    - /home/ubuntu/.config/Hypersomnia
+    - /home/ubuntu/.config/Hypersomnia/user
+    - /home/ubuntu/.config/Hypersomnia/user/conf.d
+  become: yes
+
+- name: Create masterserver config
+  template:
+    src: ../templates/99_masterserver.json.j2
+    dest: /home/ubuntu/.config/Hypersomnia/user/conf.d/99_masterserver.json
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+  become: yes
+  notify: restart masterserver
+
+- name: Install masterserver systemd service
+  template:
+    src: ../templates/hypersomnia-masterserver.service.j2
+    dest: /etc/systemd/system/hypersomnia-masterserver.service
+    mode: '0644'
+  become: yes
+  notify: reload systemd
+
+- name: Enable masterserver service
+  systemd:
+    name: hypersomnia-masterserver
+    enabled: yes
+    daemon_reload: yes
+  become: yes
+
+- name: Start masterserver service
+  systemd:
+    name: hypersomnia-masterserver
+    state: started
+  become: yes
+  when: ansible_check_mode == false
