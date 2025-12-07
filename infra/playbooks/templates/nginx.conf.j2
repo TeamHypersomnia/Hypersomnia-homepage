@@ -109,7 +109,7 @@ http {
         # -------------------------------
         # Builds
         # -------------------------------
-        location /builds/ {
+        location /builds {
             alias {{ paths.builds }}/;
             autoindex on;
             access_log off;
