@@ -6,5 +6,5 @@
 
   tasks:
     - name: Homepage deployment
-      include_tasks: tasks/homepage.yml
+      import_tasks: tasks/homepage.yml
       tags: [homepage]

@@ -20,7 +20,7 @@ all:
           hosting: /var/www/app/hosting
           builds: /var/www/app/hosting/builds
           web_arenas: /var/www/app/hosting/arenas
-          game_arenas: /home/ubuntu/.config/Hypersomnia/user/downloads
+          game_arenas: /home/ubuntu/.config/Hypersomnia/user/downloads/arenas
           private: /var/www/app/private
           hypersomnia_bin: /home/ubuntu/hypersomnia
           certs: /home/ubuntu/certs
