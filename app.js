@@ -10,7 +10,7 @@ const app = express();
 const admins = process.env.ADMINS.split(',');
 
 const DOMAIN = process.env.DOMAIN;
-app.locals.url = DOMAIN;
+app.locals.url = DOMAIN.endsWith('/') ? DOMAIN : DOMAIN + '/';
 app.locals.alert = '';
 app.locals.version = Math.floor(Date.now() / 1000);
 if (process.env.NODE_ENV != 'production') {
