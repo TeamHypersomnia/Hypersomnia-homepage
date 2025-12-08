@@ -2,7 +2,7 @@
 # Certbot renewal hook - copy certificates and restart services
 
 CERT_DIR="{{ paths.certs }}"
-DOMAIN="{{ domains.hub }}"
+DOMAIN="{{ domains.masterserver }}"
 
 # Copy certificates
 cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem $CERT_DIR/

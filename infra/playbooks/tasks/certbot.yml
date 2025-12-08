@@ -9,16 +9,20 @@
     mode: '0755'
   become: yes
 
-- name: Copy existing certificates if available
-  shell: |
-    cp -L /etc/letsencrypt/live/{{ domains.hub }}/fullchain.pem {{ paths.certs }}/fullchain.pem
-    cp -L /etc/letsencrypt/live/{{ domains.hub }}/privkey.pem {{ paths.certs }}/privkey.pem
-    chown ubuntu:ubuntu {{ paths.certs }}/*.pem
-    chmod 600 {{ paths.certs }}/*.pem
-  args:
-    creates: "{{ paths.certs }}/fullchain.pem"
+- name: Copy cert files in loop
+  copy:
+    src: "/etc/letsencrypt/live/{{ domains.masterserver }}/{{ item }}"
+    dest: "{{ paths.certs }}/{{ item }}"
+    remote_src: yes
+    owner: ubuntu
+    group: ubuntu
+    mode: '0600'
+  loop:
+    - fullchain.pem
+    - privkey.pem
   become: yes
   ignore_errors: yes
+  notify: restart masterserver
 
 - name: Create certbot renewal hook directory
   file:

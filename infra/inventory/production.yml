@@ -3,15 +3,14 @@ all:
   children:
     web_servers:
       hosts:
-        hub.hypersomnia.io:
+        hypersomnia.io:
           ansible_host: hub.hypersomnia.io
           ansible_user: ubuntu
           ansible_python_interpreter: /usr/bin/python3
       vars:
         # Domeny
         domains:
-          hub: hub.hypersomnia.io
-          main: hypersomnia.io
+          hub: hypersomnia.io
           masterserver: masterserver.hypersomnia.io
 
         # Ścieżki na serwerze
@@ -62,6 +61,7 @@ all:
           - 80/tcp    # HTTP
           - 443/tcp   # HTTPS
           - 8000/udp  # Signalling server
+          - 8000/tcp  # Signalling server
           - 8410/tcp  # HTTP server list
           - 8420/tcp  # HTTPS server list
           - 8412/udp  # Gameserver

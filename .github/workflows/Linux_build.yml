@@ -1,4 +1,4 @@
-name: Deploy to hub.hypersomnia.io
+name: Deploy to hypersomnia.io
 
 on:
   push:
@@ -22,8 +22,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: unnecessary
 
-      - name: Add hub.hypersomnia.io to known hosts
-        run: ssh-keyscan -H hub.hypersomnia.io >> ~/.ssh/known_hosts
+      - name: Add hypersomnia.io to known hosts
+        run: ssh-keyscan -H hypersomnia.io >> ~/.ssh/known_hosts
 
       - name: Install Ansible
         run: |
