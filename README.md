@@ -1,5 +1,5 @@
 # Hypersomnia Website
-https://hypersomnia.xyz/
+https://hypersomnia.io/
 
 ## Installation
 ```bash

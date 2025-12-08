@@ -2,8 +2,6 @@
 
 Kroki które musisz wykonać **ręcznie** zanim uruchomisz Ansible playbooki.
 
-**Zakres:** Migracja z `hypersomnia.xyz` na `hub.hypersomnia.io`
-
 **Założenie:** Masz już dostęp SSH:
 - `ssh ubuntu@hub.hypersomnia.io` (57.128.242.21)
 

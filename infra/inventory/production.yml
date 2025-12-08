@@ -25,7 +25,7 @@ all:
           certs: /home/ubuntu/certs
 
         # Hypersomnia binary
-        hypersomnia_headless_url: https://hypersomnia.xyz/builds/latest/Hypersomnia-Headless.AppImage
+        hypersomnia_headless_url: https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage
 
         # Certbot
         certbot_email: ""  # Zostaw puste, certyfikaty generowane ręcznie
