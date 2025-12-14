@@ -110,7 +110,7 @@ Po wykonaniu powyższych kroków, możesz uruchomić Ansible playbooki:
 ```bash
 # Na lokalnej maszynie, w repo Hypersomnia-homepage
 cd ansible
-ansible-playbook -i inventory/production.yml playbooks/site.yml
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml
 ```
 
 Ansible zajmie się:
@@ -149,7 +149,7 @@ ssh-copy-id ubuntu@hub.hypersomnia.io
 ### Ansible: "Failed to connect to the host"
 ```bash
 # Test połączenia
-ansible all -i inventory/production.yml -m ping
+ansible all -i inventory/hypersomnia.io.yml -m ping
 
 # Jeśli nie działa, sprawdź inventory i SSH
 ```

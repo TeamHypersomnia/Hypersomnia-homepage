@@ -16,7 +16,7 @@ Ansible playbooki do automatycznego deploymentu infrastruktury Hypersomnia.
 ansible/
 ├── ansible.cfg                 # Konfiguracja Ansible
 ├── inventory/
-│   └── production.yml          # Lista serwerów
+│   └── hypersomnia.io.yml          # Lista serwerów
 ├── group_vars/
 │   └── all.yml                 # Zmienne globalne
 └── playbooks/
@@ -67,7 +67,7 @@ cd ..
 
 # 2. Deploy z backupem
 cd ansible
-ansible-playbook -i inventory/production.yml playbooks/site.yml \
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml \
     -e "backup_archive=../backups/hypersomnia-xyz-YYYYMMDD-HHMMSS.tar.gz"
 ```
 
@@ -75,40 +75,40 @@ ansible-playbook -i inventory/production.yml playbooks/site.yml \
 
 ```bash
 cd ansible
-ansible-playbook -i inventory/production.yml playbooks/site.yml
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml
 ```
 
 ### Deploy tylko homepage
 
 ```bash
 cd ansible
-ansible-playbook -i inventory/production.yml playbooks/homepage.yml
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/homepage.yml
 ```
 
 ### Restart serwerów
 
 ```bash
 cd ansible
-ansible-playbook -i inventory/production.yml playbooks/restart_servers.yml
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/restart_servers.yml
 
 # Lub tylko masterserver:
-ansible-playbook -i inventory/production.yml playbooks/restart_servers.yml --tags masterserver
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/restart_servers.yml --tags masterserver
 
 # Lub tylko gameserver:
-ansible-playbook -i inventory/production.yml playbooks/restart_servers.yml --tags gameserver
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/restart_servers.yml --tags gameserver
 ```
 
 ### Deploy tylko określonych tasków
 
 ```bash
 # Tylko nginx
-ansible-playbook -i inventory/production.yml playbooks/site.yml --tags nginx
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --tags nginx
 
 # Tylko masterserver
-ansible-playbook -i inventory/production.yml playbooks/site.yml --tags masterserver
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --tags masterserver
 
 # Setup (common, nodejs, certbot, nginx)
-ansible-playbook -i inventory/production.yml playbooks/site.yml --tags setup
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --tags setup
 ```
 
 ## 🔧 Konfiguracja
@@ -123,7 +123,7 @@ Edytuj ten plik aby zmienić:
 - **Lista** official_hosts
 - **Wersja** Node.js
 
-### Inventory (`inventory/production.yml`)
+### Inventory (`inventory/hypersomnia.io.yml`)
 
 Dodaj/usuń serwery tutaj. Obecnie:
 - `hub.hypersomnia.io`
@@ -176,13 +176,13 @@ Dodaj/usuń serwery tutaj. Obecnie:
 ### Dry-run (sprawdź co się zmieni)
 
 ```bash
-ansible-playbook -i inventory/production.yml playbooks/site.yml --check --diff
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --check --diff
 ```
 
 ### Test połączenia
 
 ```bash
-ansible all -i inventory/production.yml -m ping
+ansible all -i inventory/hypersomnia.io.yml -m ping
 ```
 
 ### Weryfikacja po deploymencie

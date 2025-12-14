@@ -7,39 +7,39 @@ Szybka ściągawka z najważniejszymi komendami Ansible.
 ### Test połączenia
 ```bash
 cd ansible
-ansible all -i inventory/production.yml -m ping
+ansible all -i inventory/hypersomnia.io.yml -m ping
 ```
 
 ### Dry-run (sprawdź co się zmieni)
 ```bash
-ansible-playbook -i inventory/production.yml playbooks/site.yml --check --diff
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --check --diff
 ```
 
 ### Deploy wszystkiego
 ```bash
 # Bez backupu
-ansible-playbook -i inventory/production.yml playbooks/site.yml
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml
 
 # Z backupem
-ansible-playbook -i inventory/production.yml playbooks/site.yml \
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml \
     -e "backup_archive=../backups/hypersomnia-xyz-20251207.tar.gz"
 ```
 
 ### Deploy tylko homepage
 ```bash
-ansible-playbook -i inventory/production.yml playbooks/homepage.yml
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/homepage.yml
 ```
 
 ### Restart serwerów
 ```bash
 # Wszystkie
-ansible-playbook -i inventory/production.yml playbooks/restart_servers.yml
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/restart_servers.yml
 
 # Tylko masterserver
-ansible-playbook -i inventory/production.yml playbooks/restart_servers.yml --tags masterserver
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/restart_servers.yml --tags masterserver
 
 # Tylko gameserver
-ansible-playbook -i inventory/production.yml playbooks/restart_servers.yml --tags gameserver
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/restart_servers.yml --tags gameserver
 ```
 
 ## 🏷️ Tags
@@ -47,19 +47,19 @@ ansible-playbook -i inventory/production.yml playbooks/restart_servers.yml --tag
 ### Deploy tylko określonych ról
 ```bash
 # Setup (common, nodejs, certbot, nginx)
-ansible-playbook -i inventory/production.yml playbooks/site.yml --tags setup
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --tags setup
 
 # Tylko nginx
-ansible-playbook -i inventory/production.yml playbooks/site.yml --tags nginx
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --tags nginx
 
 # Tylko masterserver
-ansible-playbook -i inventory/production.yml playbooks/site.yml --tags masterserver
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --tags masterserver
 
 # Tylko gameserver
-ansible-playbook -i inventory/production.yml playbooks/site.yml --tags gameserver
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --tags gameserver
 
 # Tylko homepage
-ansible-playbook -i inventory/production.yml playbooks/site.yml --tags homepage
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --tags homepage
 ```
 
 ### Dostępne tagi
@@ -79,30 +79,30 @@ ansible-playbook -i inventory/production.yml playbooks/site.yml --tags homepage
 
 ### Wyświetl zmienne dla hosta
 ```bash
-ansible-inventory -i inventory/production.yml --host hub.hypersomnia.io
+ansible-inventory -i inventory/hypersomnia.io.yml --host hub.hypersomnia.io
 ```
 
 ### Wyświetl wszystkie hosty
 ```bash
-ansible-inventory -i inventory/production.yml --list
+ansible-inventory -i inventory/hypersomnia.io.yml --list
 ```
 
 ### Uruchom pojedyncze zadanie (ad-hoc)
 ```bash
 # Sprawdź uptime
-ansible all -i inventory/production.yml -a "uptime"
+ansible all -i inventory/hypersomnia.io.yml -a "uptime"
 
 # Sprawdź status serwisu
-ansible all -i inventory/production.yml -b -m systemd -a "name=nginx state=started"
+ansible all -i inventory/hypersomnia.io.yml -b -m systemd -a "name=nginx state=started"
 
 # Restart nginx
-ansible all -i inventory/production.yml -b -m systemd -a "name=nginx state=restarted"
+ansible all -i inventory/hypersomnia.io.yml -b -m systemd -a "name=nginx state=restarted"
 ```
 
 ### Verbose mode (debugging)
 ```bash
 # -v, -vv, -vvv, -vvvv (więcej v = więcej detali)
-ansible-playbook -i inventory/production.yml playbooks/site.yml -vv
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml -vv
 ```
 
 ## 📝 Workflow
@@ -117,14 +117,14 @@ ansible-playbook -i inventory/production.yml playbooks/site.yml -vv
 
 # 3. Deploy z backupem
 cd ansible
-ansible-playbook -i inventory/production.yml playbooks/site.yml \
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml \
     -e "backup_archive=../backups/hypersomnia-xyz-YYYYMMDD.tar.gz"
 ```
 
 ### Update homepage
 ```bash
 cd ansible
-ansible-playbook -i inventory/production.yml playbooks/homepage.yml
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/homepage.yml
 ```
 
 ### Update konfiguracji masterservera
@@ -132,7 +132,7 @@ ansible-playbook -i inventory/production.yml playbooks/homepage.yml
 # 1. Edytuj group_vars/all.yml
 # 2. Deploy
 cd ansible
-ansible-playbook -i inventory/production.yml playbooks/site.yml --tags masterserver
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml --tags masterserver
 ```
 
 ## 🆘 Troubleshooting
@@ -143,14 +143,14 @@ ansible-playbook -i inventory/production.yml playbooks/site.yml --tags masterser
 ssh ubuntu@hub.hypersomnia.io
 
 # Sprawdź inventory
-cat inventory/production.yml
+cat inventory/hypersomnia.io.yml
 ```
 
 ### "Permission denied"
 ```bash
 # Upewnij się że używasz sudo (become: yes w taskach)
 # Lub dodaj -b do komendy
-ansible-playbook -i inventory/production.yml playbooks/site.yml -b
+ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml -b
 ```
 
 ### "Module not found"

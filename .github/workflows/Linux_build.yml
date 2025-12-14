@@ -33,6 +33,6 @@ jobs:
       - name: Run Ansible Playbook
         run: |
           cd infra
-          ansible-playbook playbooks/site.yml -i inventory/production.yml --tags "nginx,homepage"
+          ansible-playbook playbooks/site.yml -i inventory/hypersomnia.io.yml --tags "nginx,homepage"
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"

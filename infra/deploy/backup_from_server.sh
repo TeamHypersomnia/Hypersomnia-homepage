@@ -76,4 +76,4 @@ if [ "$INCLUDE_HOSTING" = true ]; then
 fi
 echo ""
 echo "To deploy with this backup, run:"
-echo "  ansible-playbook -i inventory/production.yml playbooks/site.yml -e \"backup_archive=backups/$BACKUP_NAME\""
+echo "  ansible-playbook -i inventory/hypersomnia.io.yml playbooks/site.yml -e \"backup_archive=backups/$BACKUP_NAME\""
