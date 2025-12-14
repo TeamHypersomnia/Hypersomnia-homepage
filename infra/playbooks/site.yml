@@ -63,3 +63,7 @@
     - name: Gameserver setup
       import_tasks: tasks/gameserver.yml
       tags: [gameserver, servers]
+
+    - name: TURN server setup
+      import_tasks: tasks/turn.yml
+      tags: [turn, servers]

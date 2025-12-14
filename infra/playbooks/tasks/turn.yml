@@ -1,0 +1,26 @@
+---
+- name: Install Docker
+  apt:
+    name:
+      - docker.io
+      - python3-docker # Required for ansible docker modules
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Ensure Docker service is running
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Run Violet TURN server
+  docker_container:
+    name: violet
+    image: paullouisageneau/violet
+    network_mode: host
+    restart_policy: always
+    command: "--credentials=somnia:Re8Iefei"
+    state: started
+  become: yes
