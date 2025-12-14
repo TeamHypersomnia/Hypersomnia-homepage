@@ -15,7 +15,7 @@
 # Download Hypersomnia binary (shared by masterserver and gameserver)
 - name: Create hypersomnia binary directory
   file:
-    path: "{{ paths.hypersomnia_bin }}"
+    path: "{{ paths.appimage_folder }}"
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
@@ -24,13 +24,13 @@
 
 - name: Check if Hypersomnia-Headless.AppImage exists
   stat:
-    path: "{{ paths.hypersomnia_bin }}/Hypersomnia-Headless.AppImage"
+    path: "{{ paths.appimage_folder }}/Hypersomnia-Headless.AppImage"
   register: appimage_stat
 
 - name: Download Hypersomnia-Headless.AppImage
   get_url:
     url: "{{ hypersomnia_headless_url }}"
-    dest: "{{ paths.hypersomnia_bin }}/Hypersomnia-Headless.AppImage"
+    dest: "{{ paths.appimage_folder }}/Hypersomnia-Headless.AppImage"
     mode: '0755'
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"

@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User={{ ansible_user }}
 WorkingDirectory={{ ansible_user_dir }}
-ExecStart={{ paths.hypersomnia_bin }}/Hypersomnia-Headless.AppImage --as-service
+ExecStart={{ paths.appimage_folder }}/Hypersomnia-Headless.AppImage --as-service
 Restart=always
 RestartSec=0.5
 

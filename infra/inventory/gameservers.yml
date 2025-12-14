@@ -4,7 +4,7 @@ all:
     gameservers:
       vars:
         paths:
-          hypersomnia_bin: "{{ ansible_user_dir }}/hypersomnia"
+          appimage_folder: "{{ ansible_user_dir }}/hypersomnia"
 
         hypersomnia_headless_url: https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage
 
