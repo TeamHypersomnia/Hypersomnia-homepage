@@ -8,13 +8,13 @@ REMOTE_HOST="ubuntu@hub.hypersomnia.io"
 
 restart_masterserver() {
     echo "🔄 Restarting masterserver..."
-    ssh "$REMOTE_HOST" "sudo systemctl restart hypersomnia-masterserver"
+    ssh "$REMOTE_HOST" "sudo systemctl restart masterserver"
     echo "✅ Masterserver restarted"
 }
 
 restart_gameserver_pl() {
     echo "🔄 Restarting game server [PL]..."
-    ssh "$REMOTE_HOST" "sudo systemctl restart hypersomnia-gameserver-pl"
+    ssh "$REMOTE_HOST" "sudo systemctl restart hypersomnia"
     echo "✅ Game server [PL] restarted"
 }
 

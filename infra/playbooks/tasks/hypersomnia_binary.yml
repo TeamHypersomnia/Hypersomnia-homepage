@@ -3,13 +3,13 @@
   file:
     path: "{{ item }}"
     state: directory
-    owner: ubuntu
-    group: ubuntu
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     mode: '0755'
   loop:
-    - /home/ubuntu/.config/Hypersomnia
-    - /home/ubuntu/.config/Hypersomnia/user
-    - /home/ubuntu/.config/Hypersomnia/user/conf.d
+    - "{{ ansible_user_dir }}/.config/Hypersomnia"
+    - "{{ ansible_user_dir }}/.config/Hypersomnia/user"
+    - "{{ ansible_user_dir }}/.config/Hypersomnia/user/conf.d"
   become: yes
 
 # Download Hypersomnia binary (shared by masterserver and gameserver)
@@ -17,8 +17,8 @@
   file:
     path: "{{ paths.hypersomnia_bin }}"
     state: directory
-    owner: ubuntu
-    group: ubuntu
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     mode: '0755'
   become: yes
 
@@ -32,7 +32,7 @@
     url: "{{ hypersomnia_headless_url }}"
     dest: "{{ paths.hypersomnia_bin }}/Hypersomnia-Headless.AppImage"
     mode: '0755'
-    owner: ubuntu
-    group: ubuntu
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
   become: yes
   when: not appimage_stat.stat.exists

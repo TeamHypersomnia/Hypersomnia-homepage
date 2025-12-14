@@ -13,8 +13,8 @@ chown ubuntu:ubuntu $CERT_DIR/*.pem
 chmod 600 $CERT_DIR/*.pem
 
 # Restart masterserver to reload certificates
-if systemctl is-active --quiet hypersomnia-masterserver; then
-    systemctl restart hypersomnia-masterserver
+if systemctl is-active --quiet masterserver; then
+    systemctl restart masterserver
     echo "Masterserver restarted"
 fi
 

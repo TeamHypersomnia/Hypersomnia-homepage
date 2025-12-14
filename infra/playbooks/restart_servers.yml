@@ -7,14 +7,14 @@
   tasks:
     - name: Restart masterserver
       systemd:
-        name: hypersomnia-masterserver
+        name: masterserver
         state: restarted
       become: yes
       tags: [masterserver]
 
     - name: Restart gameserver
       systemd:
-        name: hypersomnia-gameserver-pl
+        name: hypersomnia
         state: restarted
       become: yes
       tags: [gameserver]

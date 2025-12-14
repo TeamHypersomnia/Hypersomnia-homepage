@@ -164,8 +164,8 @@ pip3 install ansible
 ssh ubuntu@hub.hypersomnia.io
 
 # Systemd services
-sudo journalctl -u hypersomnia-masterserver -f
-sudo journalctl -u hypersomnia-gameserver-pl -f
+sudo journalctl -u masterserver -f
+sudo journalctl -u hypersomnia -f
 
 # PM2
 pm2 logs app

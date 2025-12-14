@@ -28,8 +28,8 @@ ansible/
         ├── copy-certs.sh.j2
         ├── masterserver-config.json.j2
         ├── nginx.conf.j2
-        ├── hypersomnia-masterserver.service.j2
-        └── hypersomnia-gameserver-pl.service.j2
+        ├── masterserver.service.j2
+        └── hypersomnia.service.j2
 ```
 
 ## 🚀 Użycie
@@ -184,13 +184,13 @@ ansible all -i inventory/production.yml -m ping
 ssh ubuntu@hub.hypersomnia.io
 
 # Sprawdź serwisy
-sudo systemctl status hypersomnia-masterserver
-sudo systemctl status hypersomnia-gameserver-pl
+sudo systemctl status masterserver
+sudo systemctl status hypersomnia
 pm2 status
 
 # Sprawdź logi
-sudo journalctl -u hypersomnia-masterserver -f
-sudo journalctl -u hypersomnia-gameserver-pl -f
+sudo journalctl -u masterserver -f
+sudo journalctl -u hypersomnia -f
 pm2 logs app
 
 # Sprawdź endpointy

@@ -17,13 +17,13 @@
 
     - name: restart masterserver
       systemd:
-        name: hypersomnia-masterserver
+        name: masterserver
         state: restarted
       become: yes
 
     - name: restart gameserver
       systemd:
-        name: hypersomnia-gameserver-pl
+        name: hypersomnia
         state: restarted
       become: yes
 

@@ -69,3 +69,4 @@ all:
           - 8431/udp  # Masterserver commands
           - 8432/udp  # Masterserver commands
           - 8433/udp  # Masterserver commands
+          - 9000:9010/udp # WebRTC clients

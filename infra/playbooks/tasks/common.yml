@@ -20,13 +20,14 @@
       - fail2ban
       - htop
       - vim
+      - fuse
     state: present
   become: yes
 
 - name: Configure UFW - allow SSH
   ufw:
     rule: allow
-    port: '22'
+    port: "{{ ansible_port | default('22') }}"
     proto: tcp
   become: yes
 

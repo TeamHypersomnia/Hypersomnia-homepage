@@ -1,0 +1,37 @@
+---
+- name: Setup Hypersomnia Gameserver Only
+  hosts: all
+  gather_facts: yes
+  vars:
+    paths:
+      hypersomnia_bin: "{{ ansible_user_dir }}/hypersomnia"
+    hypersomnia_headless_url: https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage
+    firewall_allowed_ports:
+      - 22/tcp    # SSH
+      - 8412/udp  # Gameserver
+      - 9000:9010/udp # WebRTC clients
+
+  handlers:
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
+      become: yes
+
+    - name: restart gameserver
+      systemd:
+        name: hypersomnia
+        state: restarted
+      become: yes
+  
+  tasks:
+    - name: Common setup
+      import_tasks: tasks/common.yml
+      tags: [common, setup]
+
+    - name: Download Hypersomnia binary
+      import_tasks: tasks/hypersomnia_binary.yml
+      tags: [binary, servers]
+
+    - name: Gameserver setup
+      import_tasks: tasks/gameserver.yml
+      tags: [gameserver, servers]

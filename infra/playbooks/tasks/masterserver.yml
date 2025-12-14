@@ -25,22 +25,22 @@
 
 - name: Install masterserver systemd service
   template:
-    src: ../templates/hypersomnia-masterserver.service.j2
-    dest: /etc/systemd/system/hypersomnia-masterserver.service
+    src: ../templates/masterserver.service.j2
+    dest: /etc/systemd/system/masterserver.service
     mode: '0644'
   become: yes
   notify: reload systemd
 
 - name: Enable masterserver service
   systemd:
-    name: hypersomnia-masterserver
+    name: masterserver
     enabled: yes
     daemon_reload: yes
   become: yes
 
 - name: Start masterserver service
   systemd:
-    name: hypersomnia-masterserver
+    name: masterserver
     state: started
   become: yes
   when: ansible_check_mode == false

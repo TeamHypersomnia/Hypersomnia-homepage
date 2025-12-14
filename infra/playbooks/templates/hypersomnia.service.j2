@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=ubuntu
-WorkingDirectory=/home/ubuntu
+User={{ ansible_user }}
+WorkingDirectory={{ ansible_user_dir }}
 ExecStart={{ paths.hypersomnia_bin }}/Hypersomnia-Headless.AppImage --as-service
 Restart=always
 RestartSec=0.5
