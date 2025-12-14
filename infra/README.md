@@ -1,3 +1,11 @@
+# Fast commands
+
+Setup a gameserver with a service from scratch:
+
+```
+ansible-playbook -i inventory/gameservers.yml playbooks/gameserver_only.yml -l nl
+```
+
 # Ansible Infrastructure
 
 Ansible playbooki do automatycznego deploymentu infrastruktury Hypersomnia.
