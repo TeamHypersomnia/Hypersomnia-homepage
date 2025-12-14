@@ -3,13 +3,18 @@
   hosts: all
   gather_facts: yes
   vars:
-    paths:
-      hypersomnia_bin: "{{ ansible_user_dir }}/hypersomnia"
-    hypersomnia_headless_url: https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage
     firewall_allowed_ports:
       - 22/tcp    # SSH
-      - 8412/udp  # Gameserver
-      - 9000:9010/udp # WebRTC clients
+      - "{{ gameserver_port }}/udp"
+      - "{{ webrtc_first_port }}:{{ webrtc_last_port }}/udp"
+
+  pre_tasks:
+    - name: Set default port variables
+      set_fact:
+        gameserver_port: "{{ gameserver_port | default(8412) }}"
+        webrtc_first_port: "{{ webrtc_first_port | default(9000) }}"
+        webrtc_last_port: "{{ webrtc_last_port | default(9010) }}"
+      tags: [always]
 
   handlers:
     - name: reload systemd
@@ -31,6 +36,14 @@
     - name: Download Hypersomnia binary
       import_tasks: tasks/hypersomnia_binary.yml
       tags: [binary, servers]
+
+    - name: Create server ports config
+      template:
+        src: ../templates/server_ports.json.j2
+        dest: "{{ ansible_user_dir }}/.config/Hypersomnia/user/conf.d/server_ports.json"
+        mode: '0644'
+      become: yes
+      notify: restart gameserver
 
     - name: Gameserver setup
       import_tasks: tasks/gameserver.yml

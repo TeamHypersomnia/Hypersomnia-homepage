@@ -1,0 +1,20 @@
+---
+all:
+  children:
+    gameservers:
+      vars:
+        paths:
+          hypersomnia_bin: "{{ ansible_user_dir }}/hypersomnia"
+
+        hypersomnia_headless_url: https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage
+
+      hosts:
+        # Example host
+        nl:
+          ansible_host: 80.78.132.21
+          ansible_port: 10600
+          ansible_user: hypersomnia
+          # Optional: Override default ports
+          gameserver_port: 10601
+          webrtc_first_port: 10610
+          webrtc_last_port: 10620
