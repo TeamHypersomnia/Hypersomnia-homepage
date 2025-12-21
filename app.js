@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
-const SQLiteStore = require('connect-sqlite3')(session);
 const SteamStrategy = require('passport-steam').Strategy;
 
 const app = express();
@@ -49,11 +48,6 @@ app.disable('x-powered-by');
 
 app.use(
   session({
-    store: new SQLiteStore({
-      dir: './private',
-      db: 'sessions.db',
-      createDirIfNotExists: true
-    }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
