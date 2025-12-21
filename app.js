@@ -3,74 +3,82 @@ const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const SQLiteStore = require('connect-sqlite3')(session);
-const minifyHTML = require('express-minify-html-2');
-const bodyParser = require('body-parser');
 const SteamStrategy = require('passport-steam').Strategy;
+
 const app = express();
 const admins = process.env.ADMINS.split(',');
-
 const DOMAIN = process.env.DOMAIN;
+const PORT = process.env.PORT || 3000;
+
+// App locals configuration
 app.locals.url = DOMAIN.endsWith('/') ? DOMAIN : DOMAIN + '/';
 app.locals.alert = '';
-app.locals.version = Math.floor(Date.now() / 1000);
-if (process.env.NODE_ENV != 'production') {
-  app.locals.url = `http://localhost:${process.env.PORT || 3000}/`;
-  app.locals.alert =
-    'NODE_ENV is not set to production. If testing locally, ' +
-    'it\'s fine, but set it to production for live deployment.';
+app.locals.version = '21.12.2025';
+
+if (process.env.NODE_ENV !== 'production') {
+  app.locals.url = `http://localhost:${PORT}/`;
+  app.locals.alert = 'NODE_ENV is not set to production. If testing locally, it\'s fine, but set it to production for live deployment.';
   app.use(express.static('./public'));
 }
 
+// Passport configuration
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
-passport.use(new SteamStrategy({
-  returnURL: `${app.locals.url}auth/steam/return`,
-  realm: app.locals.url,
-  apiKey: process.env.STEAM_APIKEY
-}, (identifier, profile, done) => {
-  process.nextTick(() => {
-    profile.identifier = identifier;
-    return done(null, profile);
-  });
-}));
 
+passport.use(
+  new SteamStrategy(
+    {
+      returnURL: `${app.locals.url}auth/steam/return`,
+      realm: app.locals.url,
+      apiKey: process.env.STEAM_APIKEY
+    },
+    (identifier, profile, done) => {
+      process.nextTick(() => {
+        profile.identifier = identifier;
+        return done(null, profile);
+      });
+    }
+  )
+);
+
+// Express configuration
 app.set('trust proxy', true);
 app.set('view engine', 'ejs');
 app.set('views', './views');
-app.use(session({
-  store: new SQLiteStore({
-    dir: './private',
-    db: 'sessions.db',
-    createDirIfNotExists: true
-  }),
-  secret: process.env.SESSION_SECRET,
-  resave: true,
-  saveUninitialized: false,
-  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
-}));
+app.disable('x-powered-by');
+
+app.use(
+  session({
+    store: new SQLiteStore({
+      dir: './private',
+      db: 'sessions.db',
+      createDirIfNotExists: true
+    }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }
+  })
+);
+
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(minifyHTML({ override: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Middleware
 function usr(req, res, next) {
-  if (!req.isAuthenticated()) {
-    return res.redirect('/auth/steam');
-  }
-  return next();
+  if (!req.isAuthenticated()) return res.redirect('/auth/steam');
+  next();
 }
 
 function adm(req, res, next) {
-  if (!req.isAuthenticated()) {
-    return res.redirect('/auth/steam');
-  }
-  if (!admins.includes(req.user.id)) {
-    return res.redirect('/');
-  }
-  return next();
+  if (!req.isAuthenticated()) return res.redirect('/auth/steam');
+  if (!admins.includes(req.user.id)) return res.redirect('/');
+  next();
 }
 
+// Routes
 app.get('/', (req, res) => res.render('index', { page: false, user: req.user }));
 app.get('/disclaimer', (req, res) => res.render('disclaimer', { page: 'Disclaimer', user: req.user }));
 app.get('/cookie-policy', (req, res) => res.render('cookie_policy', { page: 'Cookie Policy', user: req.user }));

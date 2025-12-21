@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
-const chokidar = require('chokidar');
+
 const dirPath = './hosting/arenas';
 const unplayablePath = './private/unplayable.json';
 let arenas = [];
@@ -91,38 +91,50 @@ function loadArenas() {
 
 arenas = loadArenas();
 
-const arenaWatcher = chokidar.watch(dirPath, {
-  ignoreInitial: true,
-  persistent: true,
-  recursive: true,
-  ignored: (path, stats) => {
-    if (!stats?.isFile()) return false
-    if (path.endsWith('editor_view.json')) return true
-    return !path.endsWith('.json')
+// Debounce function to prevent multiple rapid reloads
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+const reloadArenas = debounce(() => {
+  console.log('Reloading arenas...');
+  arenas = loadArenas();
+}, 1000);
+
+// Watch the arenas directory
+const arenaWatcher = fs.watch(dirPath, { recursive: true }, (eventType, filename) => {
+  if (filename) {
+    // Filter out editor_view.json and non-JSON files
+    if (filename.endsWith('editor_view.json')) return;
+    if (!filename.endsWith('.json')) return;
+    
+    console.log(`${eventType}: ${filename}`);
+    reloadArenas();
   }
 });
 
-arenaWatcher.on('all', (event, path) => {
-  console.log(event, path);
-  arenas = loadArenas();
-});
-
 arenaWatcher.on('error', (error) => {
-  console.error(`Watcher error: ${error}`);
+  console.error(`Arena watcher error: ${error}`);
 });
 
-const unplayableWatcher = chokidar.watch(unplayablePath, {
-  ignoreInitial: true,
-  persistent: true
-});
-
-unplayableWatcher.on('change', (path) => {
-  console.log(`Unplayable maps file changed: ${path}`);
-  arenas = loadArenas();
+// Watch the unplayable maps file
+const unplayableWatcher = fs.watch(unplayablePath, (eventType, filename) => {
+  if (eventType === 'change') {
+    console.log(`Unplayable maps file changed: ${filename}`);
+    reloadArenas();
+  }
 });
 
 unplayableWatcher.on('error', (error) => {
-  console.error(`Watcher error: ${error}`);
+  console.error(`Unplayable watcher error: ${error}`);
 });
 
 process.on('SIGINT', () => {

@@ -1,17 +1,2 @@
-User-agent: Googlebot
-Disallow:
-
-User-agent: Bingbot
-Disallow:
-
-User-agent: Slurp
-Disallow:
-
-User-agent: DuckDuckBot
-Disallow:
-
-User-agent: Yandex
-Disallow:
-
 User-agent: *
-Disallow: /
+Disallow: /admin/
