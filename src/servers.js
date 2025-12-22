@@ -3,104 +3,94 @@ const router = express.Router();
 const axios = require('axios');
 const moment = require('moment');
 const { countryCodeEmoji } = require('country-code-emoji');
+
 const geoCache = {};
 let servers = [];
 
 const DOMAIN = process.env.MASTERSERVER_DOMAIN;
+const FETCH_URL = process.env.NODE_ENV === 'production' ?
+  'http://127.0.0.1:8410/server_list_json' :
+  `${DOMAIN}:8420/server_list_json`;
 
-if (process.env.NODE_ENV == 'production') {
-  fetchServers('http://127.0.0.1:8410/server_list_json');
-} else {
-  fetchServers(`${DOMAIN}:8420/server_list_json`);
-}
+// Initial call
+fetchServers(FETCH_URL);
 
-function getIp(clientIp, server) {
+async function getIp(clientIp, server) {
   if (geoCache[clientIp]) {
     server.flag = countryCodeEmoji(geoCache[clientIp]);
     return;
   }
-  axios.get(`https://ipinfo.io/${clientIp}?token=${process.env.IPINFO_API_TOKEN}`)
-    .then(response => {
-      geoCache[clientIp] = response.data.country;
-      server.flag = countryCodeEmoji(response.data.country);
-    })
-    .catch(error => {
-      console.error('GeoIP lookup failed:', error.message);
-    });
+  try {
+    const res = await axios.get(`https://ipinfo.io/${clientIp}?token=${process.env.IPINFO_API_TOKEN}`);
+    geoCache[clientIp] = res.data.country;
+    server.flag = countryCodeEmoji(res.data.country);
+  } catch (error) {
+    console.error('GeoIP failed:', error.message);
+  }
 }
 
 function fetchServers(url) {
   axios.get(url)
     .then(response => {
-      const newServerList = response.data;
-      newServerList.forEach(newServer => {
-        const existing = servers.find(s => s.ip === newServer.ip);
-        newServer.num_online = newServer.num_playing + newServer.num_spectating;
-        newServer.max_online = newServer.slots + newServer.num_playing - newServer.num_online_humans;
+      const newList = response.data;
+      
+      // Update or add servers
+      newList.forEach(item => {
+        item.num_online = item.num_playing + item.num_spectating;
+        item.max_online = item.slots + item.num_playing - item.num_online_humans;
+        
+        const existing = servers.find(s => s.ip === item.ip);
         if (existing) {
-          // Update all properties but keep the flag
-          Object.assign(existing, newServer);
+          Object.assign(existing, item); // Sync stats, keep flag
         } else {
-          // New server, set flag or fallback
-          const regex = /\[([A-Z]{2})\]/;
-          const match = newServer.name.match(regex);
+          // Parse flag from name [US] or use GeoIP
+          const match = item.name.match(/\[([A-Z]{2})\]/);
           if (match) {
-            newServer.flag = countryCodeEmoji(match[1]);
+            item.flag = countryCodeEmoji(match[1]);
           } else {
-            newServer.flag = '🏴';
-            getIp(newServer.ip.split(':')[0], newServer);
+            item.flag = '🏴';
+            getIp(item.ip.split(':')[0], item);
           }
-          servers.push(newServer);
+          servers.push(item);
         }
       });
-      // Remove servers that no longer exist
-      servers = servers.filter(s => newServerList.some(n => n.ip === s.ip));
+      
+      // Remove dead servers
+      servers = servers.filter(s => newList.some(n => n.ip === s.ip));
     })
-    .catch(error => {
-      console.error('Error fetching server list:', error.message);
-    })
-    .finally(() => {
-      setTimeout(() => {
-        fetchServers(url);
-      }, 10000);
-    });
+    .catch(err => console.error('MasterServer offline:', err.message))
+    .finally(() => setTimeout(() => fetchServers(url), 10000));
 }
 
-router.get('/', function (req, res) {
-  servers.sort((a, b) => {
-    if (b.num_online !== a.num_online) {
-      return b.num_online - a.num_online;
-    }
-    return a.name.localeCompare(b.name);
-  });
-
-  const ranked_servers = servers.filter(s => s.is_ranked);
-  const casual_servers = servers.filter(s => !s.is_ranked);
-
+// Main list view
+router.get('/', (req, res) => {
+  servers.sort((a, b) => (b.num_online - a.num_online) || a.name.localeCompare(b.name));
+  
   res.render('servers', {
     page: 'Servers',
     user: req.user,
-    ranked_servers,
-    casual_servers
+    ranked_servers: servers.filter(s => s.is_ranked),
+    casual_servers: servers.filter(s => !s.is_ranked)
   });
 });
 
-router.get('/:address', function (req, res) {
-  const all_servers = [...servers].map(v => ({
-    ...v,
-    time_hosted_ago: moment(v.time_hosted * 1000).fromNow(),
-    time_last_heartbeat_ago: moment(v.time_last_heartbeat * 1000).fromNow()
-  }));
-
-  const sv = all_servers.find(v => v.site_displayed_address === req.params.address);
-  if (!sv) {
-    return res.redirect('/servers');
-  }
-
+// Single server details view
+router.get('/:address', (req, res) => {
+  const sv = servers.find(v => v.site_displayed_address === req.params.address);
+  
+  if (!sv) return res.redirect('/servers');
+  
+  // Format timestamps for display
+  const details = {
+    ...sv,
+    time_hosted_ago: moment(sv.time_hosted * 1000).fromNow(),
+    time_last_heartbeat_ago: moment(sv.time_last_heartbeat * 1000).fromNow()
+  };
+  
   res.render('server', {
     page: sv.name,
     user: req.user,
-    sv
+    sv: details
   });
 });
 
