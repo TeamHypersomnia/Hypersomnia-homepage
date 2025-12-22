@@ -1,7 +1,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const express = require('express');
-const Database = require('better-sqlite3');
+const db = require('./db');
 const router = express.Router();
 const authorizedServersPath = './private/authorized_ranked_servers.json';
 const authorizedServers = JSON.parse(fs.readFileSync(authorizedServersPath, 'utf8'));
@@ -23,8 +23,6 @@ router.post('/', apiKeyAuth, (req, res) => {
   const { match_id } = req.body;
 
   try {
-    const db = new Database('./private/mmr.db');
-
     db.transaction(() => {
       // Fetch the match data
       const match = db.prepare('SELECT * FROM matches WHERE match_id = ?').get(match_id);

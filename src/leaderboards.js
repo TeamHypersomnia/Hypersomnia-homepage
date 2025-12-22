@@ -1,5 +1,5 @@
 const express = require('express');
-const Database = require('better-sqlite3');
+const db = require('./db');
 const { getRank } = require('./utils');
 const router = express.Router();
 
@@ -9,7 +9,6 @@ router.get('/', (req, res) => {
   }
 
   try {
-    const db = new Database('./private/mmr.db');
     const leaderboards = {
       leaderboards_team: db.prepare('SELECT account_id, nickname, mmr FROM mmr_team ORDER BY mmr DESC').all(),
       leaderboards_ffa: db.prepare('SELECT account_id, nickname, mmr FROM mmr_ffa ORDER BY mmr DESC').all()
@@ -23,7 +22,6 @@ router.get('/', (req, res) => {
 
 router.get('/bomb-defusal', (req, res) => {
   try {
-    const db = new Database('./private/mmr.db');
     const rows = db.prepare('SELECT * FROM mmr_team ORDER BY mmr DESC').all();
     const leaderboards = rows.map(row => ({
       ...row,
@@ -48,7 +46,6 @@ router.get('/bomb-defusal', (req, res) => {
 
 router.get('/ffa', (req, res) => {
   try {
-    const db = new Database('./private/mmr.db');
     const rows = db.prepare('SELECT * FROM mmr_ffa ORDER BY mmr DESC').all();
     const leaderboards = rows.map(row => ({
       ...row,

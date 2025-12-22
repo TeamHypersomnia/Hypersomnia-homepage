@@ -1,7 +1,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const express = require('express');
-const Database = require('better-sqlite3');
+const db = require('./db');
 const { rating, rate, ordinal } = require('openskill');
 const moment = require('moment-timezone');
 
@@ -175,8 +175,6 @@ router.post('/', apiKeyAuth, (req, res) => {
   }
 
   try {
-    const db = new Database('./private/mmr.db');
-
     win_players = mapIdArray(win_players, db);
     lose_players = mapIdArray(lose_players, db);
     player_infos = mapPlayerInfos(player_infos, db);

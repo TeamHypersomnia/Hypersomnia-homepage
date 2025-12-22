@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const Database = require('better-sqlite3');
+const db = require('./db');
 const axios = require('axios');
 
 router.get('/', async (req, res) => {
-  const db = new Database('./private/mmr.db');
   const steamId = 'steam_' + req.user.id;
   const association = db.prepare('SELECT child_id FROM associations WHERE parent_id = ?').get(steamId);
 

@@ -1,5 +1,5 @@
 const express = require('express');
-const Database = require('better-sqlite3');
+const db = require('./db');
 const moment = require('moment');
 const { countryCodeEmoji } = require('country-code-emoji');
 const { formatMMRDelta } = require('./utils');
@@ -7,7 +7,6 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
   try {
-    const db = new Database('./private/mmr.db');
     const rows = db.prepare('SELECT * FROM matches ORDER BY match_id DESC LIMIT 50').all();
     const matches = rows.map(match => {
       const winners = JSON.parse(match.winners);

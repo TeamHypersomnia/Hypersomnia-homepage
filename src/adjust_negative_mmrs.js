@@ -1,7 +1,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const express = require('express');
-const Database = require('better-sqlite3');
+const db = require('./db');
 const router = express.Router();
 const authorizedServersPath = './private/authorized_ranked_servers.json';
 const authorizedServers = JSON.parse(fs.readFileSync(authorizedServersPath, 'utf8'));
@@ -9,11 +9,11 @@ const authorizedServers = JSON.parse(fs.readFileSync(authorizedServersPath, 'utf
 // Middleware for API key authentication
 function apiKeyAuth(req, res, next) {
   const apiKey = req.headers['apikey'];
-
+  
   if (apiKey in authorizedServers) {
     // Set server ID in the request for later use
     req.server_id = authorizedServers[apiKey].id;
-
+    
     if (req.server_id === 'pl') {
       next();
     }
@@ -27,24 +27,22 @@ function apiKeyAuth(req, res, next) {
 
 router.post('/', apiKeyAuth, (req, res) => {
   const { multiplier } = req.body;
-
+  
   if (!multiplier) {
     return res.status(400).json({ error: 'Missing multiplier' });
   }
-
+  
   if (typeof multiplier !== 'number') {
     return res.status(400).json({ error: 'Wrong multiplier type' });
   }
-
+  
   if (multiplier < 0.0) {
     return res.status(400).json({ error: 'Wrong multiplier' });
   }
-
+  
   let db;
-
+  
   try {
-    db = new Database('./private/mmr.db');
-
     const updateMu = db.transaction(() => {
       const updateTeamMu = db.prepare(`
           UPDATE mmr_team
@@ -52,21 +50,21 @@ router.post('/', apiKeyAuth, (req, res) => {
           WHERE mmr < 0
         `);
       updateTeamMu.run(multiplier);
-
+      
       const updateFFAMu = db.prepare(`
           UPDATE mmr_ffa
           SET mu = (mmr * ?) + 3 * sigma
           WHERE mmr < 0
         `);
       updateFFAMu.run(multiplier);
-
+      
       const updateTeamMMR = db.prepare(`
           UPDATE mmr_team
           SET mmr = mu - 3 * sigma
           WHERE mmr < 0
         `);
       updateTeamMMR.run();
-
+      
       // Prepare SQL to update mmr in mmr_ffa table after adjusting mu
       const updateFFAMMR = db.prepare(`
           UPDATE mmr_ffa
@@ -75,15 +73,15 @@ router.post('/', apiKeyAuth, (req, res) => {
         `);
       updateFFAMMR.run();
     })();
-
+    
     res.json({ message: 'MMRs adjusted successfully' });
   }
   catch (error) {
     console.error(error.message);
     return res.status(500).json({ error: 'Internal Server Error' });
-  }finally {
+  } finally {
     if (db) {
-      db.close(); 
+      db.close();
     }
   }
 });

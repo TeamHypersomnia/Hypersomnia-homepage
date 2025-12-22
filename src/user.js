@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Database = require('better-sqlite3');
+const db = require('./db');
 const moment = require('moment');
 const { formatMMRDelta, getRank } = require('./utils');
 const { countryCodeEmoji } = require('country-code-emoji');
@@ -38,9 +38,7 @@ router.get('/:user', function (req, res) {
         icon: ''
       }
     };
-    const { name: platformName, url: profileUrl, icon: platformIconClass } = platforms[platform];    
-
-    const db = new Database('./private/mmr.db');
+    const { name: platformName, url: profileUrl, icon: platformIconClass } = platforms[platform];
     const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
     const childAssociation  = db.prepare('SELECT child_id FROM associations WHERE parent_id = ?').get(userid);
     let associationType = null;
