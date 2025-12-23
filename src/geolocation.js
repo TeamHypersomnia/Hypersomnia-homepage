@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-const config = require('../config');
+const config = require('./config');
 
 router.get('/', async (req, res) => {
   try {

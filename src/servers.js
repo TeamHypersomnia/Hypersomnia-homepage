@@ -3,7 +3,7 @@ const router = express.Router();
 const axios = require('axios');
 const moment = require('moment');
 const { countryCodeEmoji } = require('country-code-emoji');
-const config = require('../config');
+const config = require('./config');
 
 const geoCache = {};
 let servers = [];

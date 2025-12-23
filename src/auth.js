@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const querystring = require('querystring');
-const db = require('../db');
-const config = require('../config');
+const db = require('./db');
+const config = require('./config');
 
 const DISCORD_REDIRECT_URI = `${config.BASE_URL}auth/discord/return`;
 

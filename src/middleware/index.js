@@ -10,7 +10,7 @@ module.exports = (app) => {
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   app.use(session({
     store: new BetterSqlite3Store({
-      client: db,
+      client: db.getConnection(),
       expired: { clear: true, intervalMs: 900000 }
     }),
     secret: config.SESSION_SECRET,

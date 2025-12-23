@@ -4,7 +4,7 @@ const os = require('os');
 const fs = require('fs');
 const readline = require('readline');
 const moment = require('moment');
-const config = require('../../config');
+const config = require('../config');
 
 const LOG_PATH = config.IS_PROD ? '/var/log/nginx/access.log' : './private/access.log';
 const LOG_PATTERN = /^(\S+) - - \[(\d{2}\/\w{3}\/\d{4}:\d{2}:\d{2}:\d{2} [\+\-]\d{4})\] "(.*?)" (\d{3}) (\d+) "(.*?)" "(.*?)"/;

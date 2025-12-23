@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const db = require('../db');
-const config = require('../config');
+const config = require('./config');
 
 router.get('/', async (req, res) => {
   const steamId = `steam_${req.user.id}`;
