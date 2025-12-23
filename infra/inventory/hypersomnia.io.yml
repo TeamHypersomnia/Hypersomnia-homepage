@@ -35,7 +35,7 @@ all:
         repo_branch: master
 
         # Node.js
-        nodejs_version: "18"  # LTS
+        nodejs_version: "24"  # LTS
 
         # Masterserver config
         masterserver:

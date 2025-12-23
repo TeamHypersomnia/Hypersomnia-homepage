@@ -1,16 +1,22 @@
----
-# Nginx setup
-- name: Create nginx config
+- name: Deploy nginx configuration
   template:
     src: ../templates/nginx.conf.j2
     dest: /etc/nginx/nginx.conf
     mode: '0644'
+    validate: 'nginx -t -c %s'
   become: yes
-  notify: reload nginx
+  notify: nginx reload
 
-- name: Ensure nginx is running
+- name: Ensure nginx is enabled and running
   systemd:
     name: nginx
-    state: started
     enabled: yes
+    state: started
   become: yes
+
+handlers:
+  - name: nginx reload
+    systemd:
+      name: nginx
+      state: reloaded
+    become: yes
