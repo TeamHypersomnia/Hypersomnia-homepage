@@ -2,36 +2,25 @@ name: Deploy to hypersomnia.io
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: production
-
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v7
         with:
           submodules: recursive
-          fetch-depth: 0
 
-      - name: Install SSH Key
+      - name: Setup SSH
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: unnecessary
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-      - name: Add hypersomnia.io to known hosts
-        run: ssh-keyscan -H hypersomnia.io >> ~/.ssh/known_hosts
-
-      - name: Install Ansible
-        run: |
-          sudo apt install -y ansible
-
-      - name: Run Ansible Playbook
+      - name: Deploy with Ansible
         run: |
           cd infra
           ansible-playbook playbooks/site.yml -i inventory/hypersomnia.io.yml --tags "nginx,homepage"
-        env:
-          ANSIBLE_HOST_KEY_CHECKING: "False"

@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const moment = require('moment');
-const db = require('./db');
+const db = require('./../db');
 
-// Fetch all users sorted by most recent login
 const getUsers = db.prepare('SELECT * FROM users ORDER BY lastLogin DESC');
 
 router.get('/', (req, res) => {
