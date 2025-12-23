@@ -3,16 +3,15 @@ const router = express.Router();
 const axios = require('axios');
 const moment = require('moment');
 const { countryCodeEmoji } = require('country-code-emoji');
+const config = require('../config');
 
 const geoCache = {};
 let servers = [];
 
-const DOMAIN = process.env.MASTERSERVER_DOMAIN;
-const FETCH_URL = process.env.NODE_ENV === 'production' ?
+const FETCH_URL = config.IS_PROD ?
   'http://127.0.0.1:8410/server_list_json' :
-  `${DOMAIN}:8420/server_list_json`;
+  'https://hypersomnia.io:8410/server_list_json';
 
-// Initial call
 fetchServers(FETCH_URL);
 
 async function getIp(clientIp, server) {
@@ -21,7 +20,7 @@ async function getIp(clientIp, server) {
     return;
   }
   try {
-    const res = await axios.get(`https://ipinfo.io/${clientIp}?token=${process.env.IPINFO_API_TOKEN}`);
+    const res = await axios.get(`https://ipinfo.io/${clientIp}?token=${config.IPINFO_TOKEN}`);
     geoCache[clientIp] = res.data.country;
     server.flag = countryCodeEmoji(res.data.country);
   } catch (error) {
@@ -34,16 +33,14 @@ function fetchServers(url) {
     .then(response => {
       const newList = response.data;
       
-      // Update or add servers
       newList.forEach(item => {
         item.num_online = item.num_playing + item.num_spectating;
         item.max_online = item.slots + item.num_playing - item.num_online_humans;
         
         const existing = servers.find(s => s.ip === item.ip);
         if (existing) {
-          Object.assign(existing, item); // Sync stats, keep flag
+          Object.assign(existing, item);
         } else {
-          // Parse flag from name [US] or use GeoIP
           const match = item.name.match(/\[([A-Z]{2})\]/);
           if (match) {
             item.flag = countryCodeEmoji(match[1]);
@@ -55,14 +52,12 @@ function fetchServers(url) {
         }
       });
       
-      // Remove dead servers
       servers = servers.filter(s => newList.some(n => n.ip === s.ip));
     })
     .catch(err => console.error('MasterServer offline:', err.message))
     .finally(() => setTimeout(() => fetchServers(url), 10000));
 }
 
-// Main list view
 router.get('/', (req, res) => {
   servers.sort((a, b) => (b.num_online - a.num_online) || a.name.localeCompare(b.name));
   
@@ -74,13 +69,11 @@ router.get('/', (req, res) => {
   });
 });
 
-// Single server details view
 router.get('/:address', (req, res) => {
   const sv = servers.find(v => v.site_displayed_address === req.params.address);
   
   if (!sv) return res.redirect('/servers');
   
-  // Format timestamps for display
   const details = {
     ...sv,
     time_hosted_ago: moment(sv.time_hosted * 1000).fromNow(),
