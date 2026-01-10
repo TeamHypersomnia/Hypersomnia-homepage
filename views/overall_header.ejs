@@ -1,6 +1,6 @@
 <% 
-const d = "An online shooter with ridiculously fast dynamics. Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.";
-const description = typeof arena !== 'undefined' && arena ? arena.short_description.replace(/\n/g, ' ') : d;
+const defaultDesc = "Hypersomnia is a free-to-play competitive 2D top-down shooter with intense gunplay, tactical gameplay, and stunning pixel art. Join fast-paced bomb defusal matches, clan wars, and duels in this open-source multiplayer game.";
+const description = typeof arena !== 'undefined' && arena ? arena.short_description.replace(/\n/g, ' ') : defaultDesc;
 const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
 %>
 <!DOCTYPE html>
@@ -9,22 +9,31 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="<%= description %>">
-  <meta name="keywords" content="hypersomnia, hypersomnia shooter, teamhypersomnia, open source shooter, free shooter, free 2d shooter, 2d topdown, pixel art, competitive shooter, online shooter, indie shooter, top-down shooter">
-  <% if (typeof arena !== 'undefined') { %>
+  <meta name="keywords" content="hypersomnia, hypersomnia shooter, teamhypersomnia, open source shooter, free shooter, free 2d shooter, 2d topdown, pixel art, competitive shooter, online shooter, indie shooter, top-down shooter, bomb defusal, tactical shooter, clan wars">
+  
+  <!-- Open Graph tags for ALL pages -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Hypersomnia">
   <meta property="og:title" content="<%= pageTitle %> - Hypersomnia">
   <meta property="og:description" content="<%= description %>">
-  <meta property="og:image" content="https://hypersomnia.io/arenas/<%= arena.name %>/miniature.png">
-  <meta property="og:url" content="https://hypersomnia.io/arenas/<%= arena.name %>">
-  <% } %>
+  <meta property="og:url" content="https://hypersomnia.io<%= typeof arena !== 'undefined' ? '/arenas/' + arena.name : '' %>">
+  <meta property="og:image" content="<%= typeof arena !== 'undefined' ? 'https://hypersomnia.io/arenas/' + arena.name + '/miniature.png' : 'https://hypersomnia.io/assets/images/og-default.png' %>">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= pageTitle %> - Hypersomnia">
+  <meta name="twitter:description" content="<%= description %>">
+  <meta name="twitter:image" content="<%= typeof arena !== 'undefined' ? 'https://hypersomnia.io/arenas/' + arena.name + '/miniature.png' : 'https://hypersomnia.io/assets/images/og-default.png' %>">
+  
   <title><%= pageTitle %> - Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="stylesheet" href="/assets/styles/main.css">
+  <link rel="stylesheet" href="/assets/styles/main.css?10012026">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/inter-ui@4.1.0/inter.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css">
 </head>
 <body>
   <div class="container mininav">
-    <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank">
+    <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank" rel="noopener">
       <i class="fa-brands fa-github"></i>Free and Open-Source Software
     </a>
     <% if (!user) { %>
@@ -39,7 +48,7 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
   </div>
   <div class="logo-center">
     <a href="/">
-      <img height="104" class="responsive" src="/assets/images/menu_game_logo.png" alt="Hypersomnia Logo">
+      <img height="104" width="auto" class="responsive" src="/assets/images/menu_game_logo.png" alt="Hypersomnia - Free 2D Top-Down Shooter Game">
     </a>
   </div>
   <nav>
