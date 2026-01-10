@@ -19,6 +19,5 @@ setupMiddleware(app);
 setupRoutes(app);
 
 app.listen(config.PORT, '0.0.0.0', () => {
-  console.log(`Server running on ${config.BASE_URL}`);
-  console.log(`Environment: ${config.IS_PROD ? 'production' : 'development'}`);
+  console.log(`Server running on ${config.BASE_URL} (${config.IS_PROD ? 'prod' : 'dev'})`);
 });

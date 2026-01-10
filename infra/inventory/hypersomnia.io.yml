@@ -60,6 +60,7 @@ all:
           - 22/tcp    # SSH
           - 80/tcp    # HTTP
           - 443/tcp   # HTTPS
+          - 443/udp   # HTTP/3 (QUIC)
           - 3478/tcp  # TURN server
           - 3478/udp  # TURN server
           - 8000/udp  # Signalling server
