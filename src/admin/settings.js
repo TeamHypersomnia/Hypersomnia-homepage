@@ -33,8 +33,6 @@ module.exports = function(locals) {
   
   router.post('/', (req, res) => {
     const obj = loadSettings();
-    obj.alert = req.body.alert;
-    locals.alert = req.body.alert;
     saveSettings(obj);
     res.redirect('/admin/settings');
   });

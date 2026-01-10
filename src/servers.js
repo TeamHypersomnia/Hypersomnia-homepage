@@ -1,89 +1,94 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const https = require('https');
 const moment = require('moment');
 const { countryCodeEmoji } = require('country-code-emoji');
 const config = require('./config');
 
-const geoCache = {};
+const geoCache = new Map();
 let servers = [];
 
+const agent = new https.Agent({
+  rejectUnauthorized: false
+});
+
+// Changed back to http to fix EPROTO error on port 8410
 const FETCH_URL = config.IS_PROD ?
   'http://127.0.0.1:8410/server_list_json' :
-  'https://hypersomnia.io:8410/server_list_json';
+  'http://masterserver.hypersomnia.io:8410/server_list_json';
 
-fetchServers(FETCH_URL);
-
-async function getIp(clientIp, server) {
-  if (geoCache[clientIp]) {
-    server.flag = countryCodeEmoji(geoCache[clientIp]);
-    return;
-  }
+const fetchServers = async () => {
   try {
-    const res = await axios.get(`https://ipinfo.io/${clientIp}?token=${config.IPINFO_TOKEN}`);
-    geoCache[clientIp] = res.data.country;
-    server.flag = countryCodeEmoji(res.data.country);
-  } catch (error) {
-    console.error('GeoIP failed:', error.message);
+    // Removed httpsAgent here because we are using http://
+    const { data: newList } = await axios.get(FETCH_URL, {
+      timeout: 5000
+    });
+    
+    const processed = await Promise.all(newList.map(async (item) => {
+      const server = { ...item };
+      server.num_online = (server.num_playing || 0) + (server.num_spectating || 0);
+      server.max_online = (server.slots || 0) + (server.num_playing || 0) - (server.num_online_humans || 0);
+      
+      const match = server.name.match(/\[([A-Z]{2})\]/);
+      if (match) {
+        server.flag = countryCodeEmoji(match[1]);
+      } else {
+        const ip = server.ip.split(':')[0];
+        server.flag = await getFlag(ip);
+      }
+      return server;
+    }));
+    
+    servers = processed;
+  } catch (err) {
+    console.error('MasterServer sync error:', err.message);
+  } finally {
+    setTimeout(fetchServers, 10000);
+  }
+};
+
+async function getFlag(ip) {
+  if (geoCache.has(ip)) return geoCache.get(ip);
+  
+  try {
+    // Kept httpsAgent here because ipinfo.io uses real HTTPS
+    const { data } = await axios.get(`https://ipinfo.io/${ip}?token=${config.IPINFO_TOKEN}`, {
+      httpsAgent: agent
+    });
+    const emoji = data.country ? countryCodeEmoji(data.country) : '🏴';
+    geoCache.set(ip, emoji);
+    return emoji;
+  } catch {
+    return '🏴';
   }
 }
 
-function fetchServers(url) {
-  axios.get(url)
-    .then(response => {
-      const newList = response.data;
-      
-      newList.forEach(item => {
-        item.num_online = item.num_playing + item.num_spectating;
-        item.max_online = item.slots + item.num_playing - item.num_online_humans;
-        
-        const existing = servers.find(s => s.ip === item.ip);
-        if (existing) {
-          Object.assign(existing, item);
-        } else {
-          const match = item.name.match(/\[([A-Z]{2})\]/);
-          if (match) {
-            item.flag = countryCodeEmoji(match[1]);
-          } else {
-            item.flag = '🏴';
-            getIp(item.ip.split(':')[0], item);
-          }
-          servers.push(item);
-        }
-      });
-      
-      servers = servers.filter(s => newList.some(n => n.ip === s.ip));
-    })
-    .catch(err => console.error('MasterServer offline:', err.message))
-    .finally(() => setTimeout(() => fetchServers(url), 10000));
-}
+fetchServers();
 
 router.get('/', (req, res) => {
-  servers.sort((a, b) => (b.num_online - a.num_online) || a.name.localeCompare(b.name));
+  const sorted = [...servers].sort((a, b) => (b.num_online - a.num_online) || a.name.localeCompare(b.name));
   
   res.render('servers', {
     page: 'Servers',
     user: req.user,
-    ranked_servers: servers.filter(s => s.is_ranked),
-    casual_servers: servers.filter(s => !s.is_ranked)
+    ranked_servers: sorted.filter(s => s.is_ranked),
+    casual_servers: sorted.filter(s => !s.is_ranked)
   });
 });
 
 router.get('/:address', (req, res) => {
   const sv = servers.find(v => v.site_displayed_address === req.params.address);
-  
   if (!sv) return res.redirect('/servers');
-  
-  const details = {
-    ...sv,
-    time_hosted_ago: moment(sv.time_hosted * 1000).fromNow(),
-    time_last_heartbeat_ago: moment(sv.time_last_heartbeat * 1000).fromNow()
-  };
   
   res.render('server', {
     page: sv.name,
     user: req.user,
-    sv: details
+    sv: {
+      ...sv,
+      time_hosted_ago: moment(sv.time_hosted * 1000).fromNow(),
+      time_last_heartbeat_ago: moment(sv.time_last_heartbeat * 1000).fromNow()
+    }
   });
 });
 

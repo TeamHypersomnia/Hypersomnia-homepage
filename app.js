@@ -8,6 +8,7 @@ const app = express();
 
 app.set('trust proxy', true);
 app.set('views', './views');
+app.set('view engine', 'ejs');
 app.disable('x-powered-by');
 
 if (!config.IS_PROD) {

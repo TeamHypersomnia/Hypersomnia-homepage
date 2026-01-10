@@ -4,176 +4,135 @@ const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
 
-const dirPath = './hosting/arenas';
-const unplayablePath = './private/unplayable.json';
+const dirPath = path.resolve(__dirname, '../hosting/arenas');
+const unplayablePath = path.resolve(__dirname, '../private/unplayable.json');
+const privateDir = path.dirname(unplayablePath);
+
 let arenas = [];
 
+if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+}
+
+if (!fs.existsSync(privateDir)) {
+    fs.mkdirSync(privateDir, { recursive: true });
+}
+
+if (!fs.existsSync(unplayablePath)) {
+    fs.writeFileSync(unplayablePath, JSON.stringify([], null, 2));
+}
+
 function getFolderSize(folderPath) {
-  let totalSize = 0;
-  function calculateSize(currentPath) {
-    const stats = fs.statSync(currentPath);
-    if (path.basename(currentPath) === 'miniature.png') {
-      return;
+    let totalSize = 0;
+    function calculateSize(currentPath) {
+        if (!fs.existsSync(currentPath)) return;
+        const stats = fs.statSync(currentPath);
+        if (path.basename(currentPath) === 'miniature.png') return;
+
+        if (stats.isFile()) {
+            totalSize += stats.size;
+        } else if (stats.isDirectory()) {
+            fs.readdirSync(currentPath).forEach(file => {
+                calculateSize(path.join(currentPath, file));
+            });
+        }
     }
-    if (stats.isFile()) {
-      totalSize += stats.size;
-    } else if (stats.isDirectory()) {
-      const files = fs.readdirSync(currentPath);
-      files.forEach(file => {
-        calculateSize(path.join(currentPath, file));
-      });
-    }
-  }
-  calculateSize(folderPath);
-  const sizeInKilobytes = totalSize / 1024;
-  const sizeInMegabytes = sizeInKilobytes / 1024;
-  return sizeInMegabytes.toFixed(2) + ' MB';
+    calculateSize(folderPath);
+    return (totalSize / 1024 / 1024).toFixed(2) + ' MB';
 }
 
 function loadUnplayableMaps() {
-  if (fs.existsSync(unplayablePath)) {
-    const unplayableContent = fs.readFileSync(unplayablePath, 'utf8');
-    return JSON.parse(unplayableContent);
-  }
-  return [];
+    try {
+        return JSON.parse(fs.readFileSync(unplayablePath, 'utf8'));
+    } catch (e) {
+        return [];
+    }
 }
 
 function loadArenas() {
-  const startTime = Date.now();
+    const startTime = Date.now();
+    const unplayableMaps = loadUnplayableMaps();
+    
+    if (!fs.existsSync(dirPath)) return [];
 
-  const unplayableMaps = loadUnplayableMaps();
-  const files = fs.readdirSync(dirPath, { withFileTypes: true });
-  const directories = files.filter(file => file.isDirectory());
-  const arenas = [];
+    const directories = fs.readdirSync(dirPath, { withFileTypes: true })
+        .filter(file => file.isDirectory());
 
-  directories.forEach(d => {
-    const arenaPath = `${dirPath}/${d.name}/${d.name}.json`;
-    if (fs.existsSync(arenaPath)) {
-      const fileContent = fs.readFileSync(arenaPath, 'utf8');
-      const obj = JSON.parse(fileContent);
+    const loadedArenas = [];
 
-      const format = 'YYYY-MM-DD HH:mm:ss.SSSSSS Z';
-      const dateObject = moment.utc(obj.meta.version_timestamp, format);
-      const timeAgo = dateObject.fromNow();
-      const size = getFolderSize(`${dirPath}/${d.name}`);
+    directories.forEach(d => {
+        const arenaJsonPath = path.join(dirPath, d.name, `${d.name}.json`);
+        if (fs.existsSync(arenaJsonPath)) {
+            try {
+                const obj = JSON.parse(fs.readFileSync(arenaJsonPath, 'utf8'));
+                const dateObject = moment.utc(obj.meta.version_timestamp, 'YYYY-MM-DD HH:mm:ss.SSSSSS Z');
+                
+                loadedArenas.push({
+                    name: obj.meta.name,
+                    author: obj.about.author,
+                    short_description: obj.about.short_description || 'N/A',
+                    full_description: obj.about.full_description || 'N/A',
+                    version_timestamp: obj.meta.version_timestamp,
+                    updated: dateObject.fromNow(),
+                    size: getFolderSize(path.join(dirPath, d.name)),
+                    playable: !unplayableMaps.includes(obj.meta.name)
+                });
+            } catch (err) {
+                console.error(`Failed to parse ${d.name}`);
+            }
+        }
+    });
 
-      let short_description = 'N/A';
-      if (obj.about.short_description) {
-        short_description = obj.about.short_description;
-      }
-
-      let full_description = 'N/A';
-      if (obj.about.full_description) {
-        full_description = obj.about.full_description;
-      }
-
-      const playable = !unplayableMaps.includes(obj.meta.name);
-
-      arenas.push({
-        name: obj.meta.name,
-        author: obj.about.author,
-        short_description: short_description,
-        full_description: full_description,
-        version_timestamp: obj.meta.version_timestamp,
-        updated: timeAgo,
-        size: size,
-        playable: playable
-      });
-    }
-  });
-
-  const endTime = Date.now();
-  const elapsed = endTime - startTime;
-
-  console.log(`Loaded ${arenas.length} arenas successfully in ${elapsed}ms`);
-  return arenas;
+    console.log(`Loaded ${loadedArenas.length} arenas in ${Date.now() - startTime}ms`);
+    return loadedArenas;
 }
 
 arenas = loadArenas();
 
-// Debounce function to prevent multiple rapid reloads
 function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
     };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
 }
 
 const reloadArenas = debounce(() => {
-  console.log('Reloading arenas...');
-  arenas = loadArenas();
+    arenas = loadArenas();
 }, 1000);
 
-// Watch the arenas directory
 const arenaWatcher = fs.watch(dirPath, { recursive: true }, (eventType, filename) => {
-  if (filename) {
-    // Filter out editor_view.json and non-JSON files
-    if (filename.endsWith('editor_view.json')) return;
-    if (!filename.endsWith('.json')) return;
-    
-    console.log(`${eventType}: ${filename}`);
-    reloadArenas();
-  }
+    if (filename?.endsWith('.json') && !filename.endsWith('editor_view.json')) {
+        reloadArenas();
+    }
 });
 
-arenaWatcher.on('error', (error) => {
-  console.error(`Arena watcher error: ${error}`);
-});
-
-// Watch the unplayable maps file
-const unplayableWatcher = fs.watch(unplayablePath, (eventType, filename) => {
-  if (eventType === 'change') {
-    console.log(`Unplayable maps file changed: ${filename}`);
-    reloadArenas();
-  }
-});
-
-unplayableWatcher.on('error', (error) => {
-  console.error(`Unplayable watcher error: ${error}`);
+const unplayableWatcher = fs.watch(unplayablePath, (eventType) => {
+    if (eventType === 'change') reloadArenas();
 });
 
 process.on('SIGINT', () => {
-  arenaWatcher.close();
-  unplayableWatcher.close();
-  process.exit();
+    arenaWatcher.close();
+    unplayableWatcher.close();
+    process.exit();
 });
 
-router.get('/', function (req, res) {
-  if (req.query.format !== undefined && req.query.format == 'json') {
-    return res.json(arenas);
-  }
-  res.render('arenas', {
-    page: 'Arenas',
-    user: req.user,
-    arenas: arenas
-  });
+router.get('/', (req, res) => {
+    if (req.query.format === 'json') return res.json(arenas);
+    res.render('arenas', { page: 'Arenas', user: req.user, arenas });
 });
 
-router.get('/:arena', function (req, res) {
-  const index = arenas.findIndex(v => v.name === req.params.arena);
-  if (index === -1) {
-    return res.redirect('/arenas');
-  }
-  let prev = arenas[arenas.length - 1].name;
-  if (arenas[index - 1] !== undefined) {
-    prev = arenas[index - 1].name;
-  }
-  let next = arenas[0].name;
-  if (arenas[index + 1] !== undefined) {
-    next = arenas[index + 1].name;
-  }
-  res.render('arena', {
-    page: arenas[index].name,
-    user: req.user,
-    arena: arenas[index],
-    prev: prev,
-    next: next
-  });
+router.get('/:arena', (req, res) => {
+    const index = arenas.findIndex(v => v.name === req.params.arena);
+    if (index === -1) return res.redirect('/arenas');
+
+    res.render('arena', {
+        page: arenas[index].name,
+        user: req.user,
+        arena: arenas[index],
+        prev: arenas[index - 1]?.name || arenas[arenas.length - 1].name,
+        next: arenas[index + 1]?.name || arenas[0].name
+    });
 });
 
 module.exports = router;

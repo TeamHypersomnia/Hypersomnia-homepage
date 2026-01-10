@@ -9,7 +9,7 @@ module.exports = {
   ADMIN_IDS,
   BASE_URL,
   STEAM_API_KEY: process.env.STEAM_APIKEY || '',
-  SESSION_SECRET: process.env.SESSION_SECRET || '',
+  SESSION_SECRET: process.env.SESSION_SECRET || 'keyboard cat',
   IPINFO_TOKEN: process.env.IPINFO_API_TOKEN || '',
   DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID || '',
   DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET || '',
