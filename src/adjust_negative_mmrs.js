@@ -1,10 +1,6 @@
 const express = require('express');
-const fs = require('fs');
 const db = require('./db');
 const router = express.Router();
-
-const authorizedServersPath = './private/authorized_ranked_servers.json';
-const authorizedServers = JSON.parse(fs.readFileSync(authorizedServersPath, 'utf8'));
 
 // Pre-compile statements for maximum performance
 const stmts = {
@@ -14,33 +10,31 @@ const stmts = {
   updateFFAMMR: db.prepare('UPDATE mmr_ffa SET mmr = mu - 3 * sigma WHERE mmr < 0')
 };
 
+// Pre-compile statement to fetch server by API key
+const getServerByKey = db.prepare('SELECT server_id FROM authorized_servers WHERE api_key = ?');
+
 function apiKeyAuth(req, res, next) {
   const apiKey = req.headers['apikey'];
-  
-  // Strict property check to prevent prototype pollution exploits
-  if (!apiKey || !Object.prototype.hasOwnProperty.call(authorizedServers, apiKey)) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  
-  const server = authorizedServers[apiKey];
-  
+  if (!apiKey) return res.status(401).json({ error: 'Unauthorized' });
+
+  const row = getServerByKey.get(apiKey);
+  if (!row) return res.status(401).json({ error: 'Unauthorized' });
+
   // Restrict access specifically to the 'pl' server
-  if (server.id !== 'pl') {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  
-  req.server_id = server.id;
+  if (row.server_id !== 'pl') return res.status(401).json({ error: 'Unauthorized' });
+
+  req.server_id = row.server_id;
   next();
 }
 
 router.post('/', apiKeyAuth, (req, res) => {
   const { multiplier } = req.body;
-  
+
   // Validation: ensures 0 is allowed but rejects negative numbers
   if (multiplier === undefined || typeof multiplier !== 'number' || multiplier < 0) {
     return res.status(400).json({ error: 'Valid numeric multiplier required' });
   }
-  
+
   try {
     // Transaction ensures atomicity (all updates succeed or all fail)
     db.transaction((m) => {
@@ -49,7 +43,7 @@ router.post('/', apiKeyAuth, (req, res) => {
       stmts.updateTeamMMR.run();
       stmts.updateFFAMMR.run();
     })(multiplier);
-    
+
     res.json({ message: 'MMRs adjusted successfully' });
   } catch (error) {
     console.error('MMR Adjustment Error:', error.message);

@@ -46,3 +46,8 @@ CREATE TABLE IF NOT EXISTS users (
   user_agent TEXT,
   user_lang TEXT
 );
+
+CREATE TABLE IF NOT EXISTS authorized_servers (
+  api_key TEXT PRIMARY KEY,
+  server_id TEXT NOT NULL
+);
