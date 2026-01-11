@@ -62,7 +62,7 @@ http {
         ssl_protocols TLSv1.2 TLSv1.3;
         ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384";
         ssl_prefer_server_ciphers off;
-
+        add_header Alt-Svc 'h3=":443"; ma=86400' always;
         client_max_body_size 25M;
 
         # Security headers
@@ -81,7 +81,6 @@ http {
         location = /credits { return 301 https://teamhypersomnia.github.io/PressKit/credits; }
         location = /steam   { return 301 https://store.steampowered.com/app/2660970/Hypersomnia/; }
         location = /discord { return 301 https://discord.com/invite/YC49E4G; }
-        location = /browser { return 301 https://hypersomnia.io; }
 
         # -------------------------------
         # ZIP files
