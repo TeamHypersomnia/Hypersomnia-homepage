@@ -1,25 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const moment = require('moment');
-const db = require('./../db');
+const db = require('../db');
 
-const getUsers = db.prepare('SELECT * FROM users ORDER BY lastLogin DESC');
+const getUsersStmt = db.prepare(`
+  SELECT *
+  FROM users
+  ORDER BY last_login DESC
+`);
 
 router.get('/', (req, res) => {
   try {
-    const rows = getUsers.all();
-    const users = rows.map(u => ({
-      ...u,
-      lastLoginAgo: moment(u.lastLogin * 1000).fromNow()
-    }));
-    
+    const users = getUsersStmt.all();
+
     res.render('admin/users', {
       page: 'Users',
       user: req.user,
-      users: users
+      users
     });
-  } catch (error) {
-    console.error('Admin Panel Error:', error.message);
+  } catch (err) {
+    console.error(err);
     res.status(500).send('Internal Server Error');
   }
 });

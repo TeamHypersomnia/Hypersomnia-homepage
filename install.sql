@@ -38,14 +38,11 @@ CREATE TABLE IF NOT EXISTS associations (
   parent_id TEXT UNIQUE
 );
 
-
---
--- Users table: stores login information for Steam accounts
--- Metadata retrieved from homepage sign-in
---
 CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    name TEXT,
-    lastLogin INTEGER,
-    ip TEXT
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ip TEXT,
+  user_agent TEXT,
+  user_lang TEXT
 );

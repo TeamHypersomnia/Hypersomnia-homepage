@@ -5,21 +5,56 @@
   <table class="sortable">
     <thead>
       <tr>
-        <th width="25%">IP address</th>
-        <th width="25%">Steam ID</th>
-        <th width="25%">Steam name</th>
-        <th width="25%">Last login</th>
+        <th width="15%">IP Address</th>
+        <th width="15%">Steam ID</th>
+        <th width="20%">Steam Name</th>
+        <th width="20%">Last Login</th>
+        <th width="20%">User Agent</th>
+        <th width="10%">Language</th>
       </tr>
     </thead>
     <tbody>
-      <% Object.keys(users).forEach((k) => { %>
-      <% const v = users[k]; %>
-      <tr>
-        <td><a href="https://db-ip.com/<%= v.ip %>" target="_blank"><%= v.ip %></a></td>
-        <td><a href="https://steamcommunity.com/profiles/<%= k %>" target="_blank"><%= k %></a></td>
-        <td><%= v.name %></td>
-        <td data-sort="<%= v.lastLogin %>"><%= v.lastLoginAgo %></td>
-      </tr>
+      <% users.forEach(user => { %>
+        <tr>
+          <td>
+            <% if (user.ip) { %>
+              <a href="https://db-ip.com/<%= user.ip %>" target="_blank">
+                <%= user.ip %>
+              </a>
+            <% } else { %>
+              N/A
+            <% } %>
+          </td>
+          <td>
+            <% if (user.id) { %>
+              <a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank">
+                <%= user.id %>
+              </a>
+            <% } else { %>
+              N/A
+            <% } %>
+          </td>
+          <td><%= user.name || 'N/A' %></td>
+          <td data-sort="<%= user.last_login || 0 %>">
+            <% if (user.last_login) { %>
+              <span title="<%= new Date(user.last_login * 1000).toLocaleString() %>">
+                <%= new Date(user.last_login * 1000).toLocaleString() %>
+              </span>
+            <% } else { %>
+              N/A
+            <% } %>
+          </td>
+          <td>
+            <% if (user.user_agent) { %>
+              <span title="<%= user.user_agent %>">
+                <%= user.user_agent.length > 30 ? user.user_agent.substring(0, 30) + '...' : user.user_agent %>
+              </span>
+            <% } else { %>
+              N/A
+            <% } %>
+          </td>
+          <td><%= user.user_lang || 'N/A' %></td>
+        </tr>
       <% }); %>
     </tbody>
   </table>
