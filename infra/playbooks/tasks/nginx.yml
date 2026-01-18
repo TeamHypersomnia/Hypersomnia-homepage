@@ -1,17 +1,25 @@
 ---
 # Nginx setup
 
-- name: Deploy nginx config (force overwrite)
+- name: Deploy nginx config (overwrite if changed)
   template:
     src: ../templates/nginx.conf.j2
     dest: /etc/nginx/nginx.conf
     backup: yes
-  notify: restart nginx
+  notify: reload nginx
   become: yes
 
-- name: Ensure nginx is running
+- name: Ensure nginx service is enabled and running
   systemd:
     name: nginx
     state: started
     enabled: yes
   become: yes
+
+# Handlers
+handlers:
+  - name: reload nginx
+    systemd:
+      name: nginx
+      state: reloaded
+    become: yes
