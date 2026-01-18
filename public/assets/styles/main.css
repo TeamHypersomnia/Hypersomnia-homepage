@@ -278,12 +278,6 @@ nav > .flex {
   max-height: 150px;
   max-width: 200px;
   border-radius: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.arenas > a:hover > img {
-  box-shadow: 0 8px 24px rgba(167, 139, 250, 0.4);
 }
 
 .arena_name {
