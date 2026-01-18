@@ -263,10 +263,12 @@ nav > .flex {
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 12px;
+  text-shadow: none;
 }
 
 .arenas > a:hover {
   transform: translateY(-8px);
+  text-shadow: none;
 }
 
 .arenas > a:hover > .arena_name,
@@ -399,10 +401,6 @@ nav > .flex {
 
 .zeroplayers > a:hover {
   color: #cbd5e1;
-}
-
-.zeroplayers > a > .flag {
-  opacity: 0.5;
 }
 
 .zeroplayers > .sv-info > div > a {

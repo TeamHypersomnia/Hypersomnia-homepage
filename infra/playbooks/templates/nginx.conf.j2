@@ -1,5 +1,5 @@
 user ubuntu;
-worker_processes 2;
+worker_processes auto;
 pid /run/nginx.pid;
 
 events {
@@ -26,7 +26,7 @@ http {
   # BUFFER CONFIGURATION
   ##############################################################################
   client_body_buffer_size 128k;
-  client_max_body_size 25M;
+  client_max_body_size 16M;
   client_header_buffer_size 4k;
   large_client_header_buffers 4 16k;
   
@@ -45,16 +45,14 @@ http {
   open_file_cache_min_uses 2;
   open_file_cache_errors on;
   
-  etag on;
-  
   ##############################################################################
   # GZIP COMPRESSION
   ##############################################################################
   gzip on;
   gzip_vary on;
   gzip_proxied any;
-  gzip_comp_level 5;
-  gzip_min_length 1000;
+  gzip_comp_level 6;
+  gzip_min_length 256;
   gzip_disable "msie6";
   gzip_static on;
   gzip_types
