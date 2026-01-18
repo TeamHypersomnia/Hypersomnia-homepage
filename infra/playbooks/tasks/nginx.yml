@@ -1,5 +1,33 @@
 ---
-# Nginx setup
+- name: Install terser globally
+  npm:
+    name: terser
+    global: yes
+    state: present
+  become: yes
+
+- name: Minify JavaScript files
+  shell: |
+    terser public/assets/scripts/*.js -o public/assets/scripts/main.min.js
+  args:
+    chdir: /var/www/app
+    creates: /var/www/app/public/assets/scripts/main.min.js
+  become: yes
+
+- name: Install csso-cli globally
+  npm:
+    name: csso-cli
+    global: yes
+    state: present
+  become: yes
+
+- name: Minify CSS files
+  shell: |
+    csso public/assets/styles/*.css --output public/assets/styles/main.min.css
+  args:
+    chdir: /var/www/app
+    creates: /var/www/app/public/assets/styles/main.min.css
+  become: yes
 
 - name: Deploy nginx config (overwrite if changed)
   template:
@@ -16,10 +44,8 @@
     enabled: yes
   become: yes
 
-# Handlers
-handlers:
-  - name: reload nginx
-    systemd:
-      name: nginx
-      state: reloaded
-    become: yes
+- name: reload nginx
+  systemd:
+    name: nginx
+    state: reloaded
+  become: yes
