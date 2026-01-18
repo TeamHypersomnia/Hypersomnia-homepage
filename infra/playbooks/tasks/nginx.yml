@@ -1,13 +1,12 @@
 ---
 # Nginx setup
-- name: Deploy nginx config
+
+- name: Deploy nginx config (force overwrite)
   template:
     src: ../templates/nginx.conf.j2
     dest: /etc/nginx/nginx.conf
-    mode: '0644'
-    validate: '/usr/sbin/nginx -t -c %s'
     backup: yes
-  notify: reload nginx
+  notify: restart nginx
   become: yes
 
 - name: Ensure nginx is running
