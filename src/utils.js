@@ -31,4 +31,17 @@ function formatMMRDelta(mmr) {
   return `<span class="${name}">${symbol}${Math.abs(mmr).toFixed(2)}</span>`;
 }
 
-module.exports = { getRank, formatMMRDelta };
+function countryCodeToEmoji(countryCode) {
+  if (!countryCode || countryCode.length !== 2) return '🏴';
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+module.exports = {
+  getRank,
+  formatMMRDelta,
+  countryCodeToEmoji
+};

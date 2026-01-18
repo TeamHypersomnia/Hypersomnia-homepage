@@ -1,39 +1,83 @@
 const express = require('express');
-const db = require('./db');
-const moment = require('moment');
-const { countryCodeEmoji } = require('country-code-emoji');
-const { formatMMRDelta } = require('./utils');
 const router = express.Router();
+const axios = require('axios');
+const moment = require('moment');
+const { countryCodeToEmoji } = require('./utils');
+const config = require('./config');
+
+const geoCache = new Map();
+let servers = [];
+
+const FETCH_URL = 'https://hypersomnia.io/server_list_json';
+
+const fetchServers = async () => {
+  try {
+    const { data: newList } = await axios.get(FETCH_URL, {
+      timeout: 5000
+    });
+    
+    const processed = await Promise.all(newList.map(async (item) => {
+      const server = { ...item };
+      server.num_online = (server.num_playing || 0) + (server.num_spectating || 0);
+      server.max_online = (server.slots || 0) + (server.num_playing || 0) - (server.num_online_humans || 0);
+      
+      const match = server.name.match(/\[([A-Z]{2})\]/);
+      if (match) {
+        server.flag = countryCodeToEmoji(match[1]);
+      } else {
+        const ip = server.ip.split(':')[0];
+        server.flag = await getFlag(ip);
+      }
+      return server;
+    }));
+    
+    servers = processed;
+  } catch (err) {
+    console.error('MasterServer sync error:', err.message);
+  } finally {
+    setTimeout(fetchServers, 10000);
+  }
+};
+
+async function getFlag(ip) {
+  if (geoCache.has(ip)) return geoCache.get(ip);
+  
+  try {
+    const { data } = await axios.get(`https://ipinfo.io/${ip}?token=${config.IPINFO_TOKEN}`);
+    const emoji = data.country ? countryCodeToEmoji(data.country) : '🏴';
+    geoCache.set(ip, emoji);
+    return emoji;
+  } catch {
+    return '🏴';
+  }
+}
+
+fetchServers();
 
 router.get('/', (req, res) => {
-  try {
-    const rows = db.prepare('SELECT * FROM matches ORDER BY match_id DESC LIMIT 50').all();
-    const matches = rows.map(match => {
-      const winners = JSON.parse(match.winners);
-      const losers = JSON.parse(match.losers);
-      return {
-        server_emoji: countryCodeEmoji(match.server_id.slice(0, 2)),
-        arena: match.arena,
-        game_mode: match.game_mode,
-        winners,
-        losers,
-        win_score: match.win_score,
-        lose_score: match.lose_score,
-        match_end_date: match.match_end_date,
-        time_ago: moment.utc(match.match_end_date).local().fromNow(),
-        event_match_multiplier: match.event_match_multiplier,
-        is_ffa: match.game_mode === 'FFA Gun Game'
-      };
-    });
-    res.render('matches', {
-      page: 'Matches',
-      user: req.user,
-      matches: matches,
-      formatMMRDelta: formatMMRDelta
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  const sorted = [...servers].sort((a, b) => (b.num_online - a.num_online) || a.name.localeCompare(b.name));
+  
+  res.render('servers', {
+    page: 'Servers',
+    user: req.user,
+    ranked_servers: sorted.filter(s => s.is_ranked),
+    casual_servers: sorted.filter(s => !s.is_ranked)
+  });
+});
+
+router.get('/:address', (req, res) => {
+  const sv = servers.find(v => v.site_displayed_address === req.params.address);
+  if (!sv) return res.redirect('/servers');
+  
+  res.render('server', {
+    page: sv.name,
+    user: req.user,
+    sv: {
+      ...sv,
+      time_hosted_ago: moment(sv.time_hosted * 1000).fromNow(),
+      time_last_heartbeat_ago: moment(sv.time_last_heartbeat * 1000).fromNow()
+    }
+  });
 });
 
 module.exports = router;
