@@ -1,62 +1,52 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const https = require('https');
 const moment = require('moment');
-const { countryCodeEmoji } = require('country-code-emoji');
+const { countryCodeToEmoji } = require('./utils'); // emoji function
 const config = require('./config');
 
 const geoCache = new Map();
 let servers = [];
 
-const agent = new https.Agent({
-  rejectUnauthorized: false
-});
+const FETCH_URL = 'https://hypersomnia.io/server_list_json';
 
-// Changed back to http to fix EPROTO error on port 8410
-const FETCH_URL = config.IS_PROD ?
-  'http://127.0.0.1:8410/server_list_json' :
-  'http://masterserver.hypersomnia.io:8410/server_list_json';
-
+// Fetch and process servers
 const fetchServers = async () => {
   try {
-    // Removed httpsAgent here because we are using http://
-    const { data: newList } = await axios.get(FETCH_URL, {
-      timeout: 5000
-    });
-    
-    const processed = await Promise.all(newList.map(async (item) => {
-      const server = { ...item };
-      server.num_online = (server.num_playing || 0) + (server.num_spectating || 0);
-      server.max_online = (server.slots || 0) + (server.num_playing || 0) - (server.num_online_humans || 0);
-      
+    const { data: serverList } = await axios.get(FETCH_URL, { timeout: 5000 });
+
+    const processed = await Promise.all(serverList.map(async (server) => {
+      const copy = { ...server };
+      copy.num_online = (server.num_playing || 0) + (server.num_spectating || 0);
+      copy.max_online = (server.slots || 0) + (server.num_playing || 0) - (server.num_online_humans || 0);
+
+      // Try to get emoji from name or IP
       const match = server.name.match(/\[([A-Z]{2})\]/);
       if (match) {
-        server.flag = countryCodeEmoji(match[1]);
+        copy.flag = countryCodeToEmoji(match[1]);
       } else {
         const ip = server.ip.split(':')[0];
-        server.flag = await getFlag(ip);
+        copy.flag = await getFlag(ip);
       }
-      return server;
+
+      return copy;
     }));
-    
+
     servers = processed;
   } catch (err) {
     console.error('MasterServer sync error:', err.message);
   } finally {
-    setTimeout(fetchServers, 10000);
+    setTimeout(fetchServers, 10000); // Refresh every 10 seconds
   }
 };
 
+// Get flag from IP with caching
 async function getFlag(ip) {
   if (geoCache.has(ip)) return geoCache.get(ip);
-  
+
   try {
-    // Kept httpsAgent here because ipinfo.io uses real HTTPS
-    const { data } = await axios.get(`https://ipinfo.io/${ip}?token=${config.IPINFO_TOKEN}`, {
-      httpsAgent: agent
-    });
-    const emoji = data.country ? countryCodeEmoji(data.country) : '🏴';
+    const { data } = await axios.get(`https://ipinfo.io/${ip}?token=${config.IPINFO_TOKEN}`, { timeout: 5000 });
+    const emoji = data.country ? countryCodeToEmoji(data.country) : '🏴';
     geoCache.set(ip, emoji);
     return emoji;
   } catch {
@@ -66,9 +56,10 @@ async function getFlag(ip) {
 
 fetchServers();
 
+// Route: list all servers, sorted by players online
 router.get('/', (req, res) => {
-  const sorted = [...servers].sort((a, b) => (b.num_online - a.num_online) || a.name.localeCompare(b.name));
-  
+  const sorted = [...servers].sort((a, b) => b.num_online - a.num_online);
+
   res.render('servers', {
     page: 'Servers',
     user: req.user,
@@ -77,17 +68,18 @@ router.get('/', (req, res) => {
   });
 });
 
+// Route: single server page
 router.get('/:address', (req, res) => {
-  const sv = servers.find(v => v.site_displayed_address === req.params.address);
-  if (!sv) return res.redirect('/servers');
-  
+  const server = servers.find(s => s.site_displayed_address === req.params.address);
+  if (!server) return res.redirect('/servers');
+
   res.render('server', {
-    page: sv.name,
+    page: server.name,
     user: req.user,
     sv: {
-      ...sv,
-      time_hosted_ago: moment(sv.time_hosted * 1000).fromNow(),
-      time_last_heartbeat_ago: moment(sv.time_last_heartbeat * 1000).fromNow()
+      ...server,
+      time_hosted_ago: moment(server.time_hosted * 1000).fromNow(),
+      time_last_heartbeat_ago: moment(server.time_last_heartbeat * 1000).fromNow()
     }
   });
 });
