@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('./db');
 const moment = require('moment');
-const { formatMMRDelta, getEmojiForCountry } = require('./utils'); // Use emoji from utils
+const { formatMMRDelta, countryCodeToEmoji } = require('./utils'); // Use emoji from utils
 const router = express.Router();
 
 router.get('/', (req, res) => {
@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
       const losers = JSON.parse(match.losers);
 
       return {
-        server_emoji: getEmojiForCountry(match.server_id.slice(0, 2)), // <-- updated
+        server_emoji: countryCodeToEmoji(match.server_id.slice(0, 2)), // <-- updated
         arena: match.arena,
         game_mode: match.game_mode,
         winners,
