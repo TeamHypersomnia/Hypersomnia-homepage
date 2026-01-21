@@ -1,365 +1,218 @@
-/* ========================================
-   HYPERSOMNIA - Main JavaScript
-   ======================================== */
+/**
+ * HYPERSOMNIA - Main Application Script
+ */
+document.addEventListener('DOMContentLoaded', function () {
 
-/* Firearms Weapon Filtering */
-if (document.querySelector('#firearms')) {
-  const weaponCategories = {
-    pistols: ["Sn69", "Kek9", "Bulwark", "Calico", "Ao44", "Covert", "Deagle"],
-    rifles: ["Galilea", "Hunter", "Baka47", "Datum", "Amplifier arm", "Awka", "BullDup 2000", "Bilmer2000", "Szturm"],
-    submachineGuns: ["Szczur", "Zamieć", "Cyberspray", "Pro90"],
-    heavyGuns: ["Lews II", "Rocket Launcher ELON"],
-    shotguns: ["Gradobicie", "Warx"]
+  const CONFIG = {
+    interFontUrl: "https://cdn.jsdelivr.net/npm/inter-ui@4.1.0/inter.min.css",
+    assetBaseUrl: "https://cdn.gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/",
+    weaponCategories: {
+      pistols: ["Sn69", "Kek9", "Bulwark", "Calico", "Ao44", "Covert", "Deagle"],
+      rifles: ["Galilea", "Hunter", "Baka47", "Datum", "Amplifier arm", "Awka", "BullDup 2000", "Bilmer2000", "Szturm"],
+      submachineGuns: ["Szczur", "Zamieć", "Cyberspray", "Pro90"],
+      heavyGuns: ["Lews II", "Rocket Launcher ELON"],
+      shotguns: ["Gradobicie", "Warx"]
+    }
   };
 
-  function toggleAmmoType(type) {
-    const fastBtn = document.querySelector('.fastBtn');
-    const strongBtn = document.querySelector('.strongBtn');
-    const fastElements = document.getElementsByClassName('fast');
-    const strongElements = document.getElementsByClassName('strong');
+  function setupFontLoading() {
+    if (window.innerWidth < 768) return;
 
-    if (type === 'fast') {
-      fastBtn.classList.add('active');
-      strongBtn.classList.remove('active');
-      
-      Array.from(fastElements).forEach(el => el.style.display = 'inline');
-      Array.from(strongElements).forEach(el => el.style.display = 'none');
-    } else {
-      fastBtn.classList.remove('active');
-      strongBtn.classList.add('active');
-      
-      Array.from(fastElements).forEach(el => el.style.display = 'none');
-      Array.from(strongElements).forEach(el => el.style.display = 'inline');
-    }
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = CONFIG.interFontUrl;
+    document.head.appendChild(link);
+
+    const root = document.documentElement.style;
+    root.setProperty("--main-font", "\"Inter\", system-ui, -apple-system, sans-serif");
+    root.setProperty("--main-features", "\"cv02\", \"cv03\", \"cv04\", \"cv11\"");
   }
 
-  function filterWeapons(category) {
-    const rows = document.querySelectorAll('#firearms tbody tr');
-    const buttons = document.querySelectorAll('.firearms .btn button');
+  function setupSmoothScroll() {
+    document.addEventListener("click", function (e) {
+      const anchor = e.target.closest("a[href^=\"#\"]");
+      if (!anchor) return;
 
-    rows.forEach(row => {
-      const weaponName = row.querySelector('td').innerText.trim();
-      const isVisible = category === "all" || weaponCategories[category].includes(weaponName);
-      row.style.display = isVisible ? "" : "none";
-    });
-
-    buttons.forEach(button => {
-      if (button.classList.contains(category)) {
-        button.classList.add('active');
-      } else {
-        button.classList.remove('active');
+      const target = document.querySelector(anchor.getAttribute("href"));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth" });
       }
     });
   }
 
-  // Event listeners
-  const fastBtn = document.querySelector('.fastBtn');
-  const strongBtn = document.querySelector('.strongBtn');
-  
-  if (fastBtn) fastBtn.addEventListener('click', () => toggleAmmoType('fast'));
-  if (strongBtn) strongBtn.addEventListener('click', () => toggleAmmoType('strong'));
+  function setupTableSorting() {
+    document.addEventListener("click", function (e) {
+      const th = e.target.closest("th");
+      const table = th && th.closest("table.sortable");
+      if (!table) return;
 
-  document.querySelector('.all')?.addEventListener('click', () => filterWeapons("all"));
-  document.querySelector('.pistols')?.addEventListener('click', () => filterWeapons("pistols"));
-  document.querySelector('.rifles')?.addEventListener('click', () => filterWeapons("rifles"));
-  document.querySelector('.submachineGuns')?.addEventListener('click', () => filterWeapons("submachineGuns"));
-  document.querySelector('.heavyGuns')?.addEventListener('click', () => filterWeapons("heavyGuns"));
-  document.querySelector('.shotguns')?.addEventListener('click', () => filterWeapons("shotguns"));
-}
+      const tbody = table.tBodies[0];
+      const rows = Array.from(tbody.rows);
+      const colIdx = th.cellIndex;
+      const isAscending = th.classList.contains("dir-u");
 
-/* ========================================
-   Leaderboards Dynamic Loading
-   ======================================== */
-if (document.querySelector('#leaderboard')) {
-  function leaderboards(mode) {
-    const buttons = document.querySelectorAll('.btn button');
-
-    // Reset all buttons
-    buttons.forEach(button => {
-      button.classList.remove('active');
-      button.disabled = true;
-      button.dataset.originalText = button.textContent;
-    });
-
-    // Activate selected button
-    const selectedButton = document.querySelector(`.${mode}`);
-    if (selectedButton) {
-      selectedButton.classList.add('active');
-      selectedButton.disabled = true;
-      selectedButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
-    }
-
-    // Determine URL based on mode
-    let url = '';
-    if (mode === 'bomb_defusal') {
-      url = '/leaderboards/bomb-defusal?format=json';
-      history.replaceState({ mode: mode }, '', `/leaderboards/bomb-defusal`);
-    } else if (mode === 'ffa') {
-      url = '/leaderboards/ffa?format=json';
-      history.replaceState({ mode: mode }, '', `/leaderboards/ffa`);
-    } else {
-      return;
-    }
-
-    // Fetch and render leaderboard data
-    fetch(url)
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
-      .then(data => {
-        const container = document.querySelector('#leaderboard');
-        const placeIcons = ['🏆', '🥈', '🥉'];
-        const cdn = 'https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/';
-
-        let table = `
-          <table class="sortable maxwidth">
-            <thead>
-              <tr>
-                <th class="dir-u" width="10%">#</th>
-                <th width="40%">Name</th>
-                <th width="10%"><abbr title="Match Making Rating">MMR</abbr></th>
-                <th width="10%">Mu</th>
-                <th width="10%">Sigma</th>
-                <th width="10%"><abbr title="Wins-Losses">W-L</abbr></th>
-                <th width="10%"><abbr title="Win-To-Loss Ratio">WTLR</abbr></th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-
-        data.forEach((player, i) => {
-          const place = placeIcons[i] || (i + 1);
-          const imgSrc = `${cdn}${player.rankImg}`;
-          const userLink = `/user/${player.account_id}`;
-          const nickname = player.nickname.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          const winLoss = player.matches_won - player.matches_lost;
-          const totalMatches = player.matches_won + player.matches_lost;
-          const winRate = totalMatches === 0 ? '0%' : Math.round((player.matches_won / totalMatches) * 100) + '%';
-
-          table += `
-            <tr>
-              <td>${place}</td>
-              <td><a href="${userLink}"><img class="rank" src="${imgSrc}" alt="">${nickname}</a></td>
-              <td>${player.mmr.toFixed(2)}</td>
-              <td>${player.mu.toFixed(3)}</td>
-              <td>${player.sigma.toFixed(3)}</td>
-              <td data-sort="${winLoss}">${player.matches_won}-${player.matches_lost}</td>
-              <td>${winRate}</td>
-            </tr>
-          `;
-        });
-
-        table += `</tbody></table>`;
-        container.innerHTML = table;
-
-        // Re-enable all buttons
-        buttons.forEach(button => {
-          button.disabled = false;
-          button.textContent = button.dataset.originalText;
-        });
-        selectedButton.disabled = true;
-      })
-      .catch(err => {
-        console.error('Failed to load leaderboard:', err);
-        
-        // Show error message
-        const container = document.querySelector('#leaderboard');
-        container.innerHTML = `
-          <div class="alert" style="border-color: rgba(248, 94, 115, 0.3); color: #f85e73; background: linear-gradient(135deg, rgba(248, 94, 115, 0.15), rgba(248, 94, 115, 0.1));">
-            <i class="fa-solid fa-triangle-exclamation"></i> Failed to load leaderboard data. Please try again.
-          </div>
-        `;
-        
-        // Re-enable all buttons
-        buttons.forEach(button => {
-          button.disabled = false;
-          button.textContent = button.dataset.originalText;
-        });
+      rows.sort(function (a, b) {
+        const aVal = a.cells[colIdx].dataset.sort || a.cells[colIdx].textContent;
+        const bVal = b.cells[colIdx].dataset.sort || b.cells[colIdx].textContent;
+        return isAscending
+          ? bVal.localeCompare(aVal, undefined, { numeric: true })
+          : aVal.localeCompare(bVal, undefined, { numeric: true });
       });
+
+      table.querySelectorAll("th").forEach(function (h) {
+        h.classList.remove("dir-u", "dir-d");
+      });
+
+      th.classList.add(isAscending ? "dir-d" : "dir-u");
+      tbody.append.apply(tbody, rows);
+    });
   }
 
-  // Make leaderboards function globally accessible
-  window.leaderboards = leaderboards;
-}
+  function initFirearmsFilter() {
+    const section = document.querySelector("#firearms");
+    if (!section) return;
 
-/* ========================================
-   Sortable Table Library
-   ======================================== */
-document.addEventListener("click", function(c) {
-  try {
-    function h(b, a) {
-      return b.nodeName === a ? b : h(b.parentNode, a);
-    }
+    section.addEventListener("click", function (e) {
+      const btn = e.target.closest("button");
+      if (!btn) return;
 
-    var w = c.shiftKey || c.altKey;
-    var d = h(c.target, "TH");
-    var m = d.parentNode;
-    var n = m.parentNode;
-    var g = n.parentNode;
+      if (btn.classList.contains("fastBtn") || btn.classList.contains("strongBtn")) {
+        const type = btn.classList.contains("fastBtn") ? "fast" : "strong";
 
-    function p(b, a) {
-      b.classList.remove("dir-d");
-      b.classList.remove("dir-u");
-      a && b.classList.add(a);
-    }
+        ["fast", "strong"].forEach(function (t) {
+          const isActive = t === type;
+          const toggleBtn = section.querySelector("." + t + "Btn");
+          if (toggleBtn) toggleBtn.classList.toggle("active", isActive);
 
-    function q(b) {
-      var a;
-      return w ? b.dataset.sortAlt : (a = b.dataset.sort) !== null && a !== void 0 ? a : b.textContent;
-    }
-
-    if ("THEAD" === n.nodeName && g.classList.contains("sortable") && !d.classList.contains("no-sort")) {
-      var r, f = m.cells;
-      var t = parseInt(d.dataset.sortTbr);
-
-      for (c = 0; c < f.length; c++) {
-        if (f[c] === d) {
-          r = parseInt(d.dataset.sortCol) || c;
-        } else {
-          p(f[c], "");
-        }
+          section.querySelectorAll("." + t).forEach(function (el) {
+            el.style.display = isActive ? "inline" : "none";
+          });
+        });
+        return;
       }
 
-      f = "dir-d";
-      if (d.classList.contains("dir-d") || g.classList.contains("asc") && !d.classList.contains("dir-u")) {
-        f = "dir-u";
-      }
+      const category = Array.from(btn.classList).find(function (c) {
+        return CONFIG.weaponCategories[c] || c === "all";
+      });
 
-      p(d, f);
-
-      var x = "dir-u" === f;
-      var y = g.classList.contains("n-last");
-      var u = function(b, a, e) {
-        a = q(a.cells[e]);
-        b = q(b.cells[e]);
-        
-        if (y) {
-          if ("" === a && "" !== b) return -1;
-          if ("" === b && "" !== a) return 1;
-        }
-        
-        e = Number(a) - Number(b);
-        a = isNaN(e) ? a.localeCompare(b) : e;
-        return x ? -a : a;
-      };
-
-      for (c = 0; c < g.tBodies.length; c++) {
-        var k = g.tBodies[c];
-        var v = [].slice.call(k.rows, 0);
-        
-        v.sort(function(b, a) {
-          var e = u(b, a, r);
-          return 0 !== e || isNaN(t) ? e : u(b, a, t);
+      if (category) {
+        section.querySelectorAll("tbody tr").forEach(function (row) {
+          const name = row.cells[0].innerText.trim();
+          const visible = category === "all" || CONFIG.weaponCategories[category].includes(name);
+          row.style.display = visible ? "" : "none";
         });
 
-        var l = k.cloneNode();
-        l.append.apply(l, v);
-        g.replaceChild(l, k);
+        section.querySelectorAll(".btn button").forEach(function (b) {
+          b.classList.toggle("active", b === btn);
+        });
       }
-    }
-  } catch (h) {
-    console.error('Sortable table error:', h);
+    });
   }
-});
 
-/* ========================================
-   Smooth Scroll Enhancement
-   ======================================== */
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function(e) {
-    const targetId = this.getAttribute('href');
-    if (targetId === '#') return;
-    
-    const target = document.querySelector(targetId);
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  function initLeaderboards() {
+    const container = document.querySelector("#leaderboard");
+    if (!container) return;
+
+    async function loadData(mode) {
+      const navButtons = document.querySelectorAll(".leaderboard-nav button");
+      const activeBtn = document.querySelector("." + mode);
+
+      navButtons.forEach(function (b) {
+        b.disabled = true;
+        b.dataset.label = b.textContent;
+      });
+
+      if (activeBtn) {
+        activeBtn.innerHTML = "<i class=\"fa-solid fa-spinner fa-spin\"></i> Loading...";
+      }
+
+      try {
+        const res = await fetch("/leaderboards/" + mode.replace("_", "-") + "?format=json");
+        const data = await res.json();
+        history.replaceState({ mode: mode }, "", "/leaderboards/" + mode.replace("_", "-"));
+        renderTable(data);
+      } catch (err) {
+        container.innerHTML = "<div class=\"alert\">Failed to load leaderboard data.</div>";
+      } finally {
+        navButtons.forEach(function (b) {
+          b.disabled = false;
+          b.textContent = b.dataset.label;
+        });
+        if (activeBtn) activeBtn.disabled = true;
+      }
     }
-  });
+
+    function renderTable(players) {
+      const medals = ["🏆", "🥈", "🥉"];
+      let rows = "";
+
+      players.forEach(function (p, i) {
+        const total = p.matches_won + p.matches_lost;
+        const winRate = total === 0 ? "0%" : Math.round((p.matches_won / total) * 100) + "%";
+
+        rows +=
+          "<tr>" +
+            "<td>" + (medals[i] || (i + 1)) + "</td>" +
+            "<td><a href=\"/user/" + p.account_id + "\">" +
+              "<img class=\"rank\" src=\"" + CONFIG.assetBaseUrl + p.rankImg + "\">" +
+              p.nickname.replace(/</g, "&lt;") +
+            "</a></td>" +
+            "<td>" + p.mmr.toFixed(2) + "</td>" +
+            "<td>" + p.mu.toFixed(3) + "</td>" +
+            "<td>" + p.sigma.toFixed(3) + "</td>" +
+            "<td data-sort=\"" + (p.matches_won - p.matches_lost) + "\">" +
+              p.matches_won + "-" + p.matches_lost +
+            "</td>" +
+            "<td>" + winRate + "</td>" +
+          "</tr>";
+      });
+
+      container.innerHTML =
+        "<table class=\"sortable maxwidth\"><thead><tr>" +
+        "<th class=\"dir-u\" width=\"10%\">#</th>" +
+        "<th width=\"40%\">Name</th>" +
+        "<th width=\"10%\">MMR</th>" +
+        "<th width=\"10%\">Mu</th>" +
+        "<th width=\"10%\">Sigma</th>" +
+        "<th width=\"10%\">W-L</th>" +
+        "<th width=\"10%\">Win %</th>" +
+        "</tr></thead><tbody>" + rows + "</tbody></table>";
+    }
+
+    const nav = document.querySelector(".leaderboard-nav");
+    if (nav) {
+      nav.addEventListener("click", function (e) {
+        const btn = e.target.closest("button");
+        if (btn) loadData(btn.classList[0]);
+      });
+    }
+  }
+
+  function initArenaKeyboardNavigation() {
+    const prevLink = document.querySelector("a.arena-prev");
+    const nextLink = document.querySelector("a.arena-next");
+
+    const prevHref = prevLink && prevLink.getAttribute("href");
+    const nextHref = nextLink && nextLink.getAttribute("href");
+
+    if (!prevHref && !nextHref) return;
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft" && prevHref) {
+        window.location.href = prevHref;
+      }
+      if (e.key === "ArrowRight" && nextHref) {
+        window.location.href = nextHref;
+      }
+    });
+  }
+
+  setupFontLoading();
+  setupSmoothScroll();
+  setupTableSorting();
+  initFirearmsFilter();
+  initLeaderboards();
+  initArenaKeyboardNavigation();
+
 });
-
-/* ========================================
-   Performance Optimizations
-   ======================================== */
-
-// Debounce function for scroll events
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-// Lazy load images if needed
-if ('IntersectionObserver' in window) {
-  const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        if (img.dataset.src) {
-          img.src = img.dataset.src;
-          img.removeAttribute('data-src');
-          observer.unobserve(img);
-        }
-      }
-    });
-  });
-
-  document.querySelectorAll('img[data-src]').forEach(img => {
-    imageObserver.observe(img);
-  });
-}
-
-/* ========================================
-   Fade-in Animation on Scroll
-   ======================================== */
-if ('IntersectionObserver' in window) {
-  const fadeObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-      }
-    });
-  }, {
-    threshold: 0.1
-  });
-
-  // Add fade-in animation to cards
-  document.querySelectorAll('.dl, .sv-row-card, .arenas > a').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    fadeObserver.observe(el);
-  });
-}
-
-/* ========================================
-   Console Easter Egg
-   ======================================== */
-console.log(
-  '%c🎮 HYPERSOMNIA',
-  'font-size: 24px; font-weight: bold; color: #00d9ff; text-shadow: 0 0 10px #00d9ff;'
-);
-console.log(
-  '%cFree and Open-Source Multiplayer Shooter',
-  'font-size: 14px; color: #8b5cf6;'
-);
-console.log(
-  '%cContribute on GitHub: https://github.com/TeamHypersomnia/Hypersomnia',
-  'font-size: 12px; color: #9ca3af;'
-);
-
-/* ========================================
-   Export functions for global use
-   ======================================== */
-window.hypersomniaUtils = {
-  debounce,
-  // Add more utility functions here as needed
-};
