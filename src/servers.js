@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const { timeAgo } = require('./utilities/timeAgo');
+const { timeAgoShort } = require('./utilities/timeAgo');
 const { countryCodeToEmoji } = require('./utils');
 const config = require('./config');
 
@@ -78,8 +78,8 @@ router.get('/:address', (req, res) => {
     user: req.user,
     sv: {
       ...server,
-      time_hosted_ago: timeAgo(server.time_hosted),
-      time_last_heartbeat_ago: timeAgo(server.time_last_heartbeat)
+      time_hosted_ago: timeAgoShort(server.time_hosted),
+      time_last_heartbeat_ago: timeAgoShort(server.time_last_heartbeat)
     }
   });
 });
