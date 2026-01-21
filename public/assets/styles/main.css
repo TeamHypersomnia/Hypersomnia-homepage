@@ -13,12 +13,12 @@
 body {
   margin: 0;
   color: rgba(255, 255, 255, 0.85);
-  background-color: #050510; 
-  background: 
+  background-color: #050510;
+  background:
     radial-gradient(ellipse at top, rgba(79, 70, 229, 0.15), transparent 50%),
     radial-gradient(ellipse at bottom right, rgba(236, 72, 153, 0.1), transparent 50%),
     linear-gradient(to bottom, #0f0f1e, #050510);
-  background-attachment: fixed; /* Keeps the background from jumping during scroll */
+  min-height: 100vh;
 }
 
 h1, h2 {
@@ -114,7 +114,6 @@ strong, th, label, dt, b {
 .rank {
   height: 16px;
   vertical-align: bottom;
-  filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.6));
 }
 
 .casual {
@@ -507,7 +506,6 @@ dd {
 
 .dl > img {
   margin-bottom: 0.25em;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 .div1 { grid-area: 1 / 1 / 2 / 4; }
@@ -651,7 +649,6 @@ input:-webkit-autofill:focus {
 .btn button:not([disabled]):hover {
   color: #fff;
   border-color: rgba(167, 139, 250, 0.4);
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.2);
   transform: translateY(-2px);
 }
 
@@ -661,13 +658,11 @@ button.active {
   pointer-events: none;
   background: linear-gradient(135deg, #a78bfa, #ec4899);
   border-color: transparent;
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  border-radius: 12px;
   overflow: hidden;
 }
 
