@@ -73,6 +73,7 @@ function loadArenas() {
                     full_description: obj.about.full_description || 'N/A',
                     version_timestamp: obj.meta.version_timestamp,
                     updated: timeAgo(obj.meta.version_timestamp),
+                    ts: Math.floor(new Date(obj.meta.version_timestamp).getTime() / 1000),=== 
                     size: getFolderSize(path.join(dirPath, d.name)),
                     playable: !unplayableMaps.includes(obj.meta.name)
                 });

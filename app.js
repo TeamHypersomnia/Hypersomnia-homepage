@@ -30,7 +30,7 @@ assets.forEach(filePath => {
       finalFile = minFilePath;
     }
     const mtime = fs.statSync(path.join(__dirname, 'public', finalFile)).mtimeMs;
-    assetMap[filePath] = `/${finalFile}?v=${mtime}`;
+    assetMap[filePath] = `/${finalFile}?t=${mtime}`;
   } catch (err) {
     assetMap[filePath] = `/${filePath}`;
   }

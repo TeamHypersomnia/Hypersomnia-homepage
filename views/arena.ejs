@@ -1,9 +1,20 @@
 <%- include('overall_header'); %>
 
 <h1><%= page %></h1>
+
 <div class="btn-group">
-  <div class="btn"><a href="/arenas/<%= prev %>"><span><i class="fa-solid fa-arrow-left"></i></span><span>Previous arena</span></a></div>
-  <div class="btn"><a href="/arenas/<%= next %>"><span>Next arena</span><span><i class="fa-solid fa-arrow-right"></i></span></a></div>
+  <div class="btn">
+    <a href="/arenas/<%= prev %>">
+      <span><i class="fa-solid fa-arrow-left"></i></span>
+      <span><%= prev %></span>
+    </a>
+  </div>
+  <div class="btn">
+    <a href="/arenas/<%= next %>">
+      <span><%= next %></span>
+      <span><i class="fa-solid fa-arrow-right"></i></span>
+    </a>
+  </div>
 </div>
 
 <div class="arena">
@@ -22,40 +33,41 @@
         <dd><%= arena.updated %></dd>
       </div>
     </dl>
-    <dl>
-      <dt><i class="fa-solid fa-align-center"></i>Description</dt>
-      <% const short = arena.short_description; %>
-      <% const full = arena.full_description; %>
-      <% if (short !== 'N/A' && full !== 'N/A') { %>
-        <dd><p><%= short %></p><p><%= full %></p></dd>
-      <% } else if (short !== 'N/A') { %>
-        <dd><p><%= short %></p></dd>
-      <% } else if (full !== 'N/A') { %>
-        <dd><p><%= full %></p></dd>
-      <% } else { %>
-        <dd><p>N/A</p></dd>
-      <% } %>
+    
+    <dl class="description-list">
+      <dt><i class="fa-solid fa-align-center"></i> Description</dt>
+      <dd>
+        <% if (arena.short_description !== 'N/A') { %>
+          <p><strong><%= arena.short_description %></strong></p>
+        <% } %>
+        
+        <% if (arena.full_description !== 'N/A') { %>
+          <p><%= arena.full_description %></p>
+        <% } %>
+
+        <% if (arena.short_description === 'N/A' && arena.full_description === 'N/A') { %>
+          <p>No description provided.</p>
+        <% } %>
+      </dd>
     </dl>
   </div>
-  <div class="responsive"><img src="/arenas/<%= arena.name %>/miniature.png" alt="<%= arena.name %>"></div>
+
+  <div class="responsive">
+    <img src="/arenas/<%= arena.name %>/miniature.png?t=<%= arena.ts %>" alt="Map preview of <%= arena.name %>">
+  </div>
 </div>
 
 <script>
 document.onkeydown = function(e) {
-  switch(e.which) {
-    case 37:
-    if (4326 > 0) {
+  switch(e.key) {
+    case "ArrowLeft":
       window.location.href = "/arenas/<%= prev %>";
-    }
-    break;
-    case 39:
-    if (4328 > 0) {
+      break;
+    case "ArrowRight":
       window.location.href = "/arenas/<%= next %>";
-    }
-    break;
+      break;
     default: return;
   }
-  e.preventDefault();
 };
 </script>
 
