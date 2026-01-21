@@ -105,10 +105,6 @@ http {
   ssl_session_cache shared:SSL:10m;
   ssl_session_timeout 1440m;
   ssl_session_tickets off;
-  ssl_stapling on;
-  ssl_stapling_verify on;
-  resolver 1.1.1.1 8.8.8.8 valid=300s;
-  resolver_timeout 5s;
   
   ##############################################################################
   # HTTPS SERVER (HTTP/2 + HTTP/3)
@@ -145,22 +141,11 @@ http {
     #--------------------------------------------------------------------------
     # STATIC REDIRECTS
     #--------------------------------------------------------------------------
-    location = /press {
-      return 301 https://github.com/TeamHypersomnia/PressKit/blob/main/README.md#intro;
-    }
-    
-    location = /credits {
-      return 301 https://teamhypersomnia.github.io/PressKit/credits;
-    }
-    
-    location = /steam {
-      return 301 https://store.steampowered.com/app/2660970/Hypersomnia/;
-    }
-    
-    location = /discord {
-      return 301 https://discord.com/invite/YC49E4G;
-    }
-    
+    location = /press   { return 301 https://github.com/TeamHypersomnia/PressKit/blob/main/README.md#intro; }
+    location = /credits { return 301 https://teamhypersomnia.github.io/PressKit/credits; }
+    location = /steam   { return 301 https://store.steampowered.com/app/2660970/Hypersomnia/; }
+    location = /discord { return 301 https://discord.com/invite/YC49E4G; }
+
     #--------------------------------------------------------------------------
     # ZIP FILE DOWNLOADS
     #--------------------------------------------------------------------------
