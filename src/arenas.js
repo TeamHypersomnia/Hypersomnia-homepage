@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const { timeAgo } = require('utilities/timeAgo.js');
+const { timeAgo } = require('./utilities/timeAgo');
 
 const dirPath = path.resolve(__dirname, '../hosting/arenas');
 const unplayablePath = path.resolve(__dirname, '../private/unplayable.json');

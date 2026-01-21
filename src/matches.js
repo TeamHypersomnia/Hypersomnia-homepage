@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('./db');
-const { timeAgoShort } = require('utilities/timeAgo.js');
+const { timeAgoShort } = require('./utilities/timeAgo');
 const { formatMMRDelta, countryCodeToEmoji } = require('./utils'); // Use emoji from utils
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
         win_score: match.win_score,
         lose_score: match.lose_score,
         match_end_date: match.match_end_date,
-        time_ago: timeAgoShort(match.match_end_date).local().fromNow(),
+        time_ago: timeAgoShort(match.match_end_date),
         event_match_multiplier: match.event_match_multiplier,
         is_ffa: match.game_mode === 'FFA Gun Game'
       };

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('./db');
-const { timeAgoShort } = require('utilities/timeAgo.js');
+const { timeAgoShort } = require('./utilities/timeAgo');
 const { formatMMRDelta, getRank, countryCodeToEmoji } = require('./utils');
 
 router.get('/:user', function(req, res) {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const { timeAgo } = require('utilities/timeAgo.js');
+const { timeAgo } = require('./utilities/timeAgo');
 const { countryCodeToEmoji } = require('./utils');
 const config = require('./config');
 
