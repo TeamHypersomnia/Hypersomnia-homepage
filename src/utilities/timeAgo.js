@@ -1,50 +1,31 @@
-// timeAgo.js
+const units = [
+    ['year', 'y', 31536000],
+    ['month', 'mo', 2592000],
+    ['week', 'w', 604800],
+    ['day', 'd', 86400],
+    ['hour', 'h', 3600],
+    ['minute', 'm', 60],
+    ['second', 's', 1]
+];
 
-/**
- * Hypersomnia Timestamp Parser & Time Ago Module
- * Supports:
- *  - ISO 8601 string ("2024-01-27T17:59:44Z")
- *  - Arena format ("2023-11-28 23:12:58.304938 UTC")
- *  - UNIX timestamp float (1768986741.526944)
- */
+const parse = (v) =>
+    v instanceof Date ? v : new Date(typeof v === 'number' ? v * 1000 : String(v).replace(' ', 'T').replace(' UTC', 'Z'));
 
-function parseHypersomniaTime(value) {
-    if (typeof value === 'number') {
-        // UNIX float timestamp
-        return new Date(value * 1000);
+const calc = (v, isShort) => {
+    const diff = Math.floor((Date.now() - parse(v)) / 1000);
+    const abs = Math.abs(diff);
+    
+    if (abs < 5) return 'just now';
+    
+    for (const [full, short, sec] of units) {
+        if (abs >= sec) {
+            const num = Math.floor(abs / sec);
+            return isShort ?
+                `${num}${short}${diff < 0 ? '' : ' ago'}` :
+                `${num} ${full}${num > 1 ? 's' : ''}${diff < 0 ? ' from now' : ' ago'}`;
+        }
     }
-    if (typeof value === 'string') {
-        // Convert Arena format to ISO 8601
-        const iso = value.replace(' ', 'T').replace(' UTC', 'Z');
-        return new Date(iso);
-    }
-    throw new Error('Unsupported timestamp format: ' + value);
-}
+};
 
-function timeAgo(value) {
-    const date = parseHypersomniaTime(value);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
-
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
-    if (diff < 31536000) return `${Math.floor(diff / 2592000)}mo ago`;
-    return `${Math.floor(diff / 31536000)}y ago`;
-}
-
-function timeAgoShort(value) {
-    const date = parseHypersomniaTime(value);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
-
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
-    if (diff < 31536000) return `${Math.floor(diff / 2592000)}mo ago`;
-    return `${Math.floor(diff / 31536000)}y ago`;
-}
-
-export { timeAgo, timeAgoShort };
+export const timeAgo = (v) => calc(v, false);
+export const timeAgoShort = (v) => calc(v, true);
