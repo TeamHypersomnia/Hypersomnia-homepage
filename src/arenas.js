@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const moment = require('moment');
+const { timeAgo } = require('utilities/timeAgo.js');
 
 const dirPath = path.resolve(__dirname, '../hosting/arenas');
 const unplayablePath = path.resolve(__dirname, '../private/unplayable.json');
@@ -65,7 +65,6 @@ function loadArenas() {
         if (fs.existsSync(arenaJsonPath)) {
             try {
                 const obj = JSON.parse(fs.readFileSync(arenaJsonPath, 'utf8'));
-                const dateObject = moment.utc(obj.meta.version_timestamp, 'YYYY-MM-DD HH:mm:ss.SSSSSS Z');
                 
                 loadedArenas.push({
                     name: obj.meta.name,
@@ -73,7 +72,7 @@ function loadArenas() {
                     short_description: obj.about.short_description || 'N/A',
                     full_description: obj.about.full_description || 'N/A',
                     version_timestamp: obj.meta.version_timestamp,
-                    updated: dateObject.fromNow(),
+                    updated: timeAgo(obj.meta.version_timestamp),
                     size: getFolderSize(path.join(dirPath, d.name)),
                     playable: !unplayableMaps.includes(obj.meta.name)
                 });

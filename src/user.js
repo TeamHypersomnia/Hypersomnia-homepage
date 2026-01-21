@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('./db');
-const moment = require('moment');
+const { timeAgoShort } = require('utilities/timeAgo.js');
 const { formatMMRDelta, getRank, countryCodeToEmoji } = require('./utils');
 
 router.get('/:user', function(req, res) {
@@ -77,7 +77,7 @@ router.get('/:user', function(req, res) {
         game_mode: match.game_mode,
         arena: match.arena,
         new_mmr: (playerData.new_mmr).toFixed(2),
-        time_ago: moment.utc(match.match_end_date).local().fromNow(),
+        time_ago: timeAgoShort(match.match_end_date),
         mmrDelta: playerData.mmr_delta,
         multPreffix: match.event_match_multiplier,
         result,

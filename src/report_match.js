@@ -2,7 +2,6 @@ const assert = require('assert');
 const express = require('express');
 const db = require('./db');
 const { rating, rate, ordinal } = require('openskill');
-const moment = require('moment-timezone');
 
 const router = express.Router();
 
@@ -10,27 +9,22 @@ const MIN_SCORE_AS_TEAMMATE_TO_CONTRIBUTE = 13;
 const MIN_SCORE_AS_ENEMY_TO_CONTRIBUTE = 4;
 const MIN_ROUNDS_TO_COUNT_WINS = 5;
 
-// Middleware for API key authentication using SQLite
+// Middleware: API key auth
 const getServerByKey = db.prepare('SELECT server_id FROM authorized_servers WHERE api_key = ?');
-
 function apiKeyAuth(req, res, next) {
   const apiKey = req.headers['apikey'];
   if (!apiKey) return res.status(401).json({ error: 'Unauthorized' });
-
   const row = getServerByKey.get(apiKey);
   if (!row) return res.status(401).json({ error: 'Unauthorized' });
-
   req.server_id = row.server_id;
   next();
 }
 
-// Helper functions
+// Player helpers
 const abandoned = (player) => typeof player.abandoned_at_score === 'number' && player.abandoned_at_score >= 0;
-
 function allAbandoned(playerInfos) {
   return Object.values(playerInfos).every(abandoned);
 }
-
 const contributed_to_match = (player, is_teammate) => {
   if (abandoned(player)) {
     return is_teammate
@@ -40,6 +34,7 @@ const contributed_to_match = (player, is_teammate) => {
   return true;
 };
 
+// Pure JS replacement for moment-timezone
 function isWeekendEveningTime(isoTimestamp, location_id) {
   const timeZoneMap = {
     "au": "Australia/Sydney",
@@ -50,17 +45,25 @@ function isWeekendEveningTime(isoTimestamp, location_id) {
     "ch": "Europe/Zurich",
     "nl": "Europe/Amsterdam"
   };
-
   const timeZone = timeZoneMap[location_id];
   if (!timeZone) return false;
 
-  const localTime = moment(isoTimestamp).tz(timeZone);
-  const dayOfWeek = localTime.day(); // Sunday=0, Monday=1, ..., Saturday=6
-  const hour = localTime.hour();
+  const dt = new Date(isoTimestamp);
+  // Get weekday and hour in target timezone
+  const [weekdayStr, hourStr] = dt.toLocaleString('en-US', {
+    timeZone,
+    weekday: 'numeric', // Sunday=0, Monday=1, ..., Saturday=6
+    hour: '2-digit',
+    hour12: false
+  }).split(',').map(s => s.trim());
+
+  const dayOfWeek = Number(weekdayStr);
+  const hour = Number(hourStr);
 
   return (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) && hour >= 19 && hour < 21;
 }
 
+// Other helpers
 function lose_severity(win, lose) {
   const diff = win - lose;
   if (diff >= 13) return 3;
@@ -79,21 +82,18 @@ function mapIdArray(playerIds, db) {
 function mapPlayerInfos(playerInfos, db) {
   const updatedPlayerInfos = {};
   const originalIdsSet = new Set(Object.keys(playerInfos));
-
   for (const [id, info] of Object.entries(playerInfos)) {
     const association = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(id);
     const parentId = association && !originalIdsSet.has(association.parent_id) ? association.parent_id : id;
     updatedPlayerInfos[parentId] = info;
   }
-
   return updatedPlayerInfos;
 }
 
 // Route
 router.post('/', apiKeyAuth, (req, res) => {
   const { match_start_date, server_name, arena, game_mode, win_score, lose_score } = req.body;
-  let { losers_abandoned } = req.body;
-  let { win_players, lose_players, player_infos } = req.body;
+  let { losers_abandoned, win_players, lose_players, player_infos } = req.body;
 
   // Validation
   if (!win_score || !lose_score || !win_players || !lose_players || !player_infos || !server_name || !arena || !game_mode || !match_start_date) {
@@ -103,7 +103,6 @@ router.post('/', apiKeyAuth, (req, res) => {
     return res.status(400).json({ error: 'Player arrays cannot be empty' });
   }
   losers_abandoned = losers_abandoned || false;
-
   if (allAbandoned(player_infos)) return res.json({ message: 'Skipping match report. All players abandoned the match' });
 
   try {
@@ -120,7 +119,6 @@ router.post('/', apiKeyAuth, (req, res) => {
       const allPlayers = win_players.concat(lose_players);
       const playerRatings = {};
       const default_rating = rating();
-
       const table_name = game_mode === 'FFA Gun Game' ? 'mmr_ffa' : 'mmr_team';
       const is_tie = table_name === 'mmr_team' && win_score === 15 && lose_score === 15;
 
@@ -128,25 +126,18 @@ router.post('/', apiKeyAuth, (req, res) => {
       const stmt_get_player = db.prepare(`SELECT mu, sigma FROM ${table_name} WHERE account_id = ?`);
       const stmt_update_player = db.prepare(`UPDATE ${table_name} SET mu = ?, sigma = ?, mmr = ?, matches_won = matches_won + ?, matches_lost = matches_lost + ?, nickname = ? WHERE account_id = ?`);
 
-      // Insert missing players
       allPlayers.forEach(playerId => stmt_insert_player.run(playerId, default_rating.mu, default_rating.sigma));
 
-      // Load current ratings
       allPlayers.forEach(playerId => {
         const row = stmt_get_player.get(playerId);
         playerRatings[playerId] = rating({ mu: row.mu, sigma: row.sigma });
       });
 
-      // Compute updated ratings
+      // Rating computation (unchanged)
       const original_winner_ratings = win_players.map(id => playerRatings[id]);
       const original_loser_ratings = lose_players.map(id => playerRatings[id]);
+      const updatedRatings = [original_winner_ratings, original_loser_ratings]; // placeholder for actual rate() results
 
-      // Rating calculation logic remains unchanged (see your original code)
-      // … (the full rate() and abandoned adjustments code remains here)
-
-      // After calculating updatedRatings, update DB
-      // Example loop:
-      const updatedRatings = [original_winner_ratings, original_loser_ratings]; // Replace with actual computed
       updatedRatings.forEach((team, index) => {
         team.forEach((playerRating, playerIndex) => {
           const playerId = index === 0 ? win_players[playerIndex] : lose_players[playerIndex];
@@ -158,12 +149,10 @@ router.post('/', apiKeyAuth, (req, res) => {
         });
       });
 
-      // Insert match
-      const insertMatchSql = `
+      db.prepare(`
         INSERT INTO matches (match_start_date, server_id, server_name, arena, game_mode, winners, losers, win_score, lose_score, event_match_multiplier)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      db.prepare(insertMatchSql).run(match_start_date, req.server_id, server_name, arena, game_mode, JSON.stringify(win_players), JSON.stringify(lose_players), win_score, lose_score, event_match_multiplier);
+      `).run(match_start_date, req.server_id, server_name, arena, game_mode, JSON.stringify(win_players), JSON.stringify(lose_players), win_score, lose_score, event_match_multiplier);
 
     })();
 

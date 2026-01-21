@@ -3,7 +3,6 @@ const router = express.Router();
 const os = require('os');
 const fs = require('fs');
 const readline = require('readline');
-const moment = require('moment');
 const config = require('../config');
 
 const LOG_PATH = config.IS_PROD ? '/var/log/nginx/access.log' : './private/access.log';
@@ -24,7 +23,7 @@ function parseLogLine(line) {
   const [_, ip, timestamp, request, status, size, referer, userAgent] = match;
   return {
     ip,
-    timestamp: moment(timestamp, 'DD/MMM/YYYY:HH:mm:ss Z').fromNow(),
+    timestamp,
     request,
     status,
     size,

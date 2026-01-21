@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const moment = require('moment');
-const { countryCodeToEmoji } = require('./utils'); // emoji function
+const { timeAgo } = require('utilities/timeAgo.js');
+const { countryCodeToEmoji } = require('./utils');
 const config = require('./config');
 
 const geoCache = new Map();
@@ -78,8 +78,8 @@ router.get('/:address', (req, res) => {
     user: req.user,
     sv: {
       ...server,
-      time_hosted_ago: moment(server.time_hosted * 1000).fromNow(),
-      time_last_heartbeat_ago: moment(server.time_last_heartbeat * 1000).fromNow()
+      time_hosted_ago: timeAgo(server.time_hosted),
+      time_last_heartbeat_ago: timeAgo(server.time_last_heartbeat)
     }
   });
 });
