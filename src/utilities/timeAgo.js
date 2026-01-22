@@ -15,17 +15,19 @@ const calc = (v, isShort) => {
     const diff = Math.floor((Date.now() - parse(v)) / 1000);
     const abs = Math.abs(diff);
     
-    if (abs < 5) return 'just now';
-    
     for (const [full, short, sec] of units) {
         if (abs >= sec) {
             const num = Math.floor(abs / sec);
             return isShort ?
-                `${num}${short}${diff < 0 ? '' : ' ago'}` :
-                `${num} ${full}${num > 1 ? 's' : ''}${diff < 0 ? ' from now' : ' ago'}`;
+                `${num}${short} ago` :
+                `${num} ${full}${num > 1 ? 's' : ''} ago`;
         }
     }
+    
+    return 'just now';
 };
 
-export const timeAgo = (v) => calc(v, false);
-export const timeAgoShort = (v) => calc(v, true);
+module.exports = {
+    timeAgo: (v) => calc(v, false),
+    timeAgoShort: (v) => calc(v, true)
+};
