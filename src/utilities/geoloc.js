@@ -1,8 +1,8 @@
 const axios = require('axios');
-const LRU = require('lru-cache');
+const { LRUCache } = require('lru-cache');
 const config = require('../config');
 
-const geoCache = new LRU({
+const geoCache = new LRUCache({
   max: 1000,
   ttl: 24 * 60 * 60 * 1000,
   updateAgeOnGet: false,
