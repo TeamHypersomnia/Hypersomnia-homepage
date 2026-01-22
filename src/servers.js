@@ -6,84 +6,51 @@ const { countryCodeToEmoji } = require('./utils');
 const { getCountryCode } = require('./utilities/geoloc');
 const config = require('./config');
 
-let servers = [];
-let lastFetchError = null;
-let fetchInProgress = false;
-
-// Fetch and process servers
-const fetchServers = async () => {
-  if (fetchInProgress) return;
+async function fetchAndProcessServers() {
+  const { data: serverList } = await axios.get(config.SERVER_LIST_URL, {
+    timeout: 5000
+  });
   
-  fetchInProgress = true;
-  
-  try {
-    const { data: serverList } = await axios.get(config.SERVER_LIST_URL, {
-      timeout: 5000
-    });
-    
-    if (!Array.isArray(serverList)) {
-      throw new Error('Invalid server list format');
-    }
-    
-    const processed = await Promise.all(serverList.map(async (server) => {
-      const copy = { ...server };
-      
-      // Calculate online counts safely
-      const numPlaying = Number(server.num_playing) || 0;
-      const numSpectating = Number(server.num_spectating) || 0;
-      const slots = Number(server.slots) || 0;
-      const numOnlineHumans = Number(server.num_online_humans) || 0;
-      
-      copy.num_online = numPlaying + numSpectating;
-      copy.max_online = slots + numPlaying - numOnlineHumans;
-      
-      // Ensure max_online is at least num_online
-      if (copy.max_online < copy.num_online) {
-        copy.max_online = copy.num_online;
-      }
-      
-      // Try to get emoji from name first (faster)
-      const match = server.name?.match(/\[([A-Z]{2})\]/);
-      if (match) {
-        copy.flag = countryCodeToEmoji(match[1]);
-      } else if (server.ip) {
-        const ip = server.ip.split(':')[0];
-        const countryCode = await getCountryCode(ip);
-        copy.flag = countryCode ? countryCodeToEmoji(countryCode) : '🏴';
-      } else {
-        copy.flag = '🏴';
-      }
-      
-      return copy;
-    }));
-    
-    servers = processed;
-    lastFetchError = null;
-    
-    if (config.IS_DEV) {
-      console.log(`[${new Date().toISOString()}] Fetched ${servers.length} servers from ${config.SERVER_LIST_URL}`);
-    }
-  } catch (err) {
-    lastFetchError = err.message;
-    console.error(`[${new Date().toISOString()}] MasterServer sync error:`, err.message);
-    
-    // Keep existing servers on error instead of clearing
-    if (servers.length === 0) {
-      console.error('No cached servers available');
-    }
-  } finally {
-    fetchInProgress = false;
-    setTimeout(fetchServers, config.SERVER_LIST_REFRESH_INTERVAL);
+  if (!Array.isArray(serverList)) {
+    throw new Error('Invalid server list format');
   }
-};
+  
+  const processed = await Promise.all(serverList.map(async (server) => {
+    const copy = { ...server };
+    
+    const numPlaying = Number(server.num_playing) || 0;
+    const numSpectating = Number(server.num_spectating) || 0;
+    const slots = Number(server.slots) || 0;
+    const numOnlineHumans = Number(server.num_online_humans) || 0;
+    
+    copy.num_online = numPlaying + numSpectating;
+    copy.max_online = slots + numPlaying - numOnlineHumans;
+    
+    if (copy.max_online < copy.num_online) {
+      copy.max_online = copy.num_online;
+    }
+    
+    const match = server.name?.match(/\[([A-Z]{2})\]/);
+    if (match) {
+      copy.flag = countryCodeToEmoji(match[1]);
+    } else if (server.ip) {
+      const ip = server.ip.split(':')[0];
+      const countryCode = await getCountryCode(ip);
+      copy.flag = countryCode ? countryCodeToEmoji(countryCode) : '🏴';
+    } else {
+      copy.flag = '🏴';
+    }
+    
+    return copy;
+  }));
+  
+  return processed;
+}
 
-// Initialize server fetching
-fetchServers();
-
-// Route: list all servers, sorted by human players
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    // Create a sorted copy by human players (descending)
+    const servers = await fetchAndProcessServers();
+    
     const sorted = [...servers].sort((a, b) => {
       const aHumans = Number(a.num_online_humans) || 0;
       const bHumans = Number(b.num_online_humans) || 0;
@@ -100,7 +67,7 @@ router.get('/', (req, res) => {
       casual_servers: casualServers
     });
   } catch (err) {
-    console.error('Error rendering servers page:', err);
+    console.error('Error fetching servers:', err.message);
     res.status(500).render('error', {
       page: 'Error',
       user: req.user,
@@ -109,9 +76,9 @@ router.get('/', (req, res) => {
   }
 });
 
-// Route: single server page
-router.get('/:address', (req, res) => {
+router.get('/:address', async (req, res) => {
   try {
+    const servers = await fetchAndProcessServers();
     const server = servers.find(s => s.site_displayed_address === req.params.address);
     
     if (!server) {
@@ -128,7 +95,7 @@ router.get('/:address', (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Error rendering server page:', err);
+    console.error('Error fetching server:', err.message);
     res.status(500).redirect('/servers');
   }
 });
