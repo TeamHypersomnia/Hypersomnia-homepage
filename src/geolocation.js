@@ -1,18 +1,24 @@
 const express = require('express');
-const axios = require('axios');
 const router = express.Router();
-const config = require('./config');
+const { getLocation } = require('./utilities/geoloc');
 
 router.get('/', async (req, res) => {
   try {
-    const url = `https://ipinfo.io/${req.ip}/json?token=${config.IPINFO_TOKEN}`;
-    const response = await axios.get(url, {
-      headers: { 'Accept': 'application/json' }
-    });
-    res.json({ loc: response.data.loc });
+    const location = await getLocation(req.ip);
+    if (location) {
+      res.json({ loc: location });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Location data not available'
+      });
+    }
   } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch geolocation data' });
+    console.error('Geolocation API error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch geolocation data'
+    });
   }
 });
 
