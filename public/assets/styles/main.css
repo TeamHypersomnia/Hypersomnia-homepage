@@ -250,11 +250,6 @@ nav > .flex {
 .logo-center > a {
   display: block;
   padding: 1.5em 1em;
-  transition: transform 0.3s ease;
-}
-
-.logo-center > a:hover {
-  transform: scale(1.02);
 }
 
 .logo-center > a > .responsive {
