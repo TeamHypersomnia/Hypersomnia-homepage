@@ -145,16 +145,6 @@ http {
     location = /credits { return 301 https://teamhypersomnia.github.io/PressKit/credits; }
     location = /steam   { return 301 https://store.steampowered.com/app/2660970/Hypersomnia/; }
     location = /discord { return 301 https://discord.com/invite/YC49E4G; }
-
-    #--------------------------------------------------------------------------
-    # ZIP FILE DOWNLOADS
-    #--------------------------------------------------------------------------
-    location ~* \.zip$ {
-      root /var/www/html;
-      default_type application/zip;
-      add_header Content-Disposition "attachment";
-      add_header Cache-Control "public, max-age=3600";
-    }
     
     #--------------------------------------------------------------------------
     # STATIC ASSETS & FAVICON
@@ -180,16 +170,6 @@ http {
     location /builds {
       alias /var/www/app/hosting/builds/;
       autoindex on;
-      
-      access_log off;
-      
-      add_header Cache-Control "public, max-age=1800";
-      add_header Access-Control-Allow-Origin "*" always;
-      add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
-      
-      proxy_cache STATIC;
-      proxy_cache_valid 200 30m;
-      add_header X-Cache-Status $upstream_cache_status always;
     }
     
     #--------------------------------------------------------------------------
