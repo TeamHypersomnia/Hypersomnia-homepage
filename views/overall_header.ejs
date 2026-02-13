@@ -10,24 +10,19 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="<%= description %>">
   <meta name="keywords" content="hypersomnia, hypersomnia shooter, teamhypersomnia, open source shooter, free shooter, free 2d shooter, 2d topdown, pixel art, competitive shooter, online shooter, indie shooter, top-down shooter, bomb defusal, tactical shooter, clan wars">
-  
-  <!-- Open Graph tags for ALL pages -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Hypersomnia">
   <meta property="og:title" content="<%= pageTitle %> - Hypersomnia">
   <meta property="og:description" content="<%= description %>">
   <meta property="og:url" content="https://hypersomnia.io<%= typeof arena !== 'undefined' ? '/arenas/' + arena.name : '' %>">
   <meta property="og:image" content="<%= typeof arena !== 'undefined' ? 'https://hypersomnia.io/arenas/' + arena.name + '/miniature.png' : 'https://hypersomnia.io/assets/images/og-default.png' %>">
-  
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="<%= pageTitle %> - Hypersomnia">
   <meta name="twitter:description" content="<%= description %>">
   <meta name="twitter:image" content="<%= typeof arena !== 'undefined' ? 'https://hypersomnia.io/arenas/' + arena.name + '/miniature.png' : 'https://hypersomnia.io/assets/images/og-default.png' %>">
-  
   <title><%= pageTitle %> - Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="stylesheet" href="<%= asset('assets/styles/main.css') %>">
+  <link rel="stylesheet" href="/assets/styles/main.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css">
 </head>
 <body>

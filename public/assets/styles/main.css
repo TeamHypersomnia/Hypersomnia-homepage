@@ -373,6 +373,18 @@ nav > .flex {
   color: #fff;
 }
 
+.sv-link > i {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.sv-link > span {
+  flex-shrink: 0;
+}
+
 .sv-info {
   display: flex;
   flex-direction: column;

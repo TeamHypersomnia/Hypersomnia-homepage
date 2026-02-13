@@ -82,7 +82,7 @@ const config = {
   ALLOWED_UPLOAD_EXTENSIONS: ['json', 'png', 'jpg', 'gif', 'ogg', 'wav'],
   
   // Master server config: prod uses localhost, dev uses remote
-  SERVER_LIST_URL: process.env.SERVER_LIST_URL || (IS_PROD ? 'http://127.0.0.1:8410/server_list_json' : 'http://masterserver.hypersomnia.io:8420/server_list_json'),
+  SERVER_LIST_URL: process.env.SERVER_LIST_URL || (IS_PROD ? 'http://127.0.0.1:8410/server_list_json' : 'https://masterserver.hypersomnia.io:8420/server_list_json'),
   SERVER_LIST_REFRESH_INTERVAL: 10000,
   
   DB_PATH: process.env.DB_PATH || './private/mmr.db',

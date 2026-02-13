@@ -23,6 +23,5 @@ module.exports = (app) => {
   app.use('/admin', admin, require('../admin/overview'));
   app.use('/admin/users', admin, require('../admin/users'));
   app.use('/admin/creators', admin, require('../admin/creators'));
-  app.use('/admin/settings', admin, require('../admin/settings'));
   app.use((req, res) => res.status(404).render('404', { page: 'Not Found', user: req.user }));
 };
