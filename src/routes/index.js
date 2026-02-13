@@ -1,8 +1,15 @@
 const passport = require('../passport');
 const { authenticated, admin } = require('../middleware/auth');
+const { startPolling, getResults } = require('../utilities/github');
+
+startPolling('TeamHypersomnia', 'Hypersomnia', 10);
 
 module.exports = (app) => {
-  app.get('/', (req, res) => res.render('index', { page: false, user: req.user }));
+  app.get('/', (req, res) => res.render('index', {
+    page: false,
+    user: req.user,
+    github: getResults()
+  }));
   app.get('/disclaimer', (req, res) => res.render('disclaimer', { page: 'Disclaimer', user: req.user }));
   app.get('/cookie-policy', (req, res) => res.render('cookie_policy', { page: 'Cookie Policy', user: req.user }));
   app.use('/weapons', require('../weapons'));

@@ -38,7 +38,15 @@
   </div>
   <aside class="main-right">
     <h2>Latest Updates</h2>
-    <p>Not available yet.</p>
+    <ul>
+      <% if (github && github.data.length > 0) { %>
+        <% github.data.forEach(commit => { %>
+          <li><%= commit.title %></a></li>
+        <% }) %>
+      <% } else { %>
+        <li>No recent commits found.</li>
+      <% } %>
+    </ul>
   </aside>
 </main>
 
