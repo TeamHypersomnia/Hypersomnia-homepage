@@ -1,281 +1,338 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const CONFIG = {
-    interFontUrl: "https://cdn.jsdelivr.net/npm/inter-ui/inter.min.css",
-    assetBaseUrl: "https://cdn.gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/",
-    weaponCategories: {
-      pistols: ["Sn69", "Kek9", "Bulwark", "Calico", "Ao44", "Covert", "Deagle"],
-      rifles: ["Galilea", "Hunter", "Baka47", "Datum", "Amplifier arm", "Awka", "BullDup 2000", "Bilmer2000", "Szturm"],
-      submachineGuns: ["Szczur", "Zamieć", "Cyberspray", "Pro90"],
-      heavyGuns: ["Lews II", "Rocket Launcher ELON"],
-      shotguns: ["Gradobicie", "Warx"]
+/* ============================================================
+   Hypersomnia — main.js
+   ============================================================ */
+
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns a debounced version of `fn` that fires after `delay` ms of silence.
+ * @param {Function} fn
+ * @param {number} delay
+ */
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Firearms page
+// ---------------------------------------------------------------------------
+
+const WEAPON_CATEGORIES = {
+  pistols: ["Sn69", "Kek9", "Bulwark", "Calico", "Ao44", "Covert", "Deagle"],
+  rifles: ["Galilea", "Hunter", "Baka47", "Datum", "Amplifier arm", "Awka", "BullDup 2000", "Bilmer2000", "Szturm"],
+  submachineGuns: ["Szczur", "Zamieć", "Cyberspray", "Pro90"],
+  heavyGuns: ["Lews II", "Rocket Launcher ELON"],
+  shotguns: ["Gradobicie", "Warx"],
+};
+
+function initFirearms() {
+  const table = document.querySelector("#firearms");
+  if (!table) return;
+
+  // --- Ammo-type toggle ---
+
+  const fastBtn = document.querySelector(".fastBtn");
+  const strongBtn = document.querySelector(".strongBtn");
+
+  function toggleAmmoType(type) {
+    const isFast = type === "fast";
+
+    fastBtn?.classList.toggle("active", isFast);
+    strongBtn?.classList.toggle("active", !isFast);
+
+    document.querySelectorAll(".fast").forEach(el => {
+      el.style.display = isFast ? "inline" : "none";
+    });
+    document.querySelectorAll(".strong").forEach(el => {
+      el.style.display = isFast ? "none" : "inline";
+    });
+  }
+
+  fastBtn?.addEventListener("click", () => toggleAmmoType("fast"));
+  strongBtn?.addEventListener("click", () => toggleAmmoType("strong"));
+
+  // --- Category filter ---
+
+  function filterWeapons(category) {
+    const rows = table.querySelectorAll("tbody tr");
+    const buttons = document.querySelectorAll(".firearms .btn button");
+    const list = WEAPON_CATEGORIES[category];
+
+    rows.forEach(row => {
+      const name = row.querySelector("td")?.innerText.trim() ?? "";
+      const visible = category === "all" || list?.includes(name);
+      row.style.display = visible ? "" : "none";
+    });
+
+    buttons.forEach(btn => {
+      btn.classList.toggle("active", btn.classList.contains(category));
+    });
+  }
+
+  const categoryMap = ["all", "pistols", "rifles", "submachineGuns", "heavyGuns", "shotguns"];
+
+  categoryMap.forEach(category => {
+    document.querySelector(`.${category}`)?.addEventListener("click", () => filterWeapons(category));
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Leaderboard page
+// ---------------------------------------------------------------------------
+
+const LEADERBOARD_MODES = {
+  bomb_defusal: "/leaderboards/bomb-defusal",
+  ffa: "/leaderboards/ffa",
+};
+
+const RANK_MEDALS = ["🏆", "🥈", "🥉"];
+
+function buildLeaderboardRow(player, index) {
+  const rank = RANK_MEDALS[index] ?? index + 1;
+  const rankImg = `https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/${player.rankImg}`;
+  const profile = `/user/${player.account_id}`;
+  const name = player.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const total = player.matches_won + player.matches_lost;
+  const winRate = total === 0 ? "0%" : `${Math.round((player.matches_won / total) * 100)}%`;
+  const wlDiff = player.matches_won - player.matches_lost;
+
+  return `
+    <tr>
+      <td>${rank}</td>
+      <td><a href="${profile}"><img class="rank" src="${rankImg}" alt="">${name}</a></td>
+      <td>${player.mmr.toFixed(2)}</td>
+      <td>${player.mu.toFixed(3)}</td>
+      <td>${player.sigma.toFixed(3)}</td>
+      <td data-sort="${wlDiff}">${player.matches_won}-${player.matches_lost}</td>
+      <td>${winRate}</td>
+    </tr>`;
+}
+
+function buildLeaderboardTable(players) {
+  const rows = players.map(buildLeaderboardRow).join("");
+  return `
+    <table class="sortable maxwidth">
+      <thead>
+        <tr>
+          <th class="dir-u" width="10%">#</th>
+          <th width="40%">Name</th>
+          <th width="10%"><abbr title="Match Making Rating">MMR</abbr></th>
+          <th width="10%">Mu</th>
+          <th width="10%">Sigma</th>
+          <th width="10%"><abbr title="Wins-Losses">W-L</abbr></th>
+          <th width="10%"><abbr title="Win-To-Loss Ratio">WTLR</abbr></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function setButtonsLoading(buttons, loadingBtn) {
+  buttons.forEach(btn => {
+    btn.classList.remove("active");
+    btn.disabled = true;
+    btn.dataset.originalText = btn.textContent;
+  });
+  if (loadingBtn) {
+    loadingBtn.classList.add("active");
+    loadingBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+  }
+}
+
+function resetButtons(buttons, activeBtn) {
+  buttons.forEach(btn => {
+    btn.disabled = false;
+    btn.textContent = btn.dataset.originalText;
+  });
+  if (activeBtn) activeBtn.disabled = true;
+}
+
+async function leaderboards(mode) {
+  const container = document.querySelector("#leaderboard");
+  if (!container || !LEADERBOARD_MODES[mode]) return;
+
+  const buttons = document.querySelectorAll(".btn button");
+  const activeBtn = document.querySelector(`.${mode}`);
+
+  setButtonsLoading(buttons, activeBtn);
+  history.replaceState({ mode }, "", LEADERBOARD_MODES[mode]);
+
+  try {
+    const res = await fetch(`${LEADERBOARD_MODES[mode]}?format=json`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const players = await res.json();
+    container.innerHTML = buildLeaderboardTable(players);
+    resetButtons(buttons, activeBtn);
+  } catch (err) {
+    console.error("Failed to load leaderboard:", err);
+    container.innerHTML = `
+      <div class="alert" style="border-color:rgba(248,94,115,.3);color:#f85e73;background:linear-gradient(135deg,rgba(248,94,115,.15),rgba(248,94,115,.1))">
+        <i class="fa-solid fa-triangle-exclamation"></i> Failed to load leaderboard data. Please try again.
+      </div>`;
+    resetButtons(buttons, null);
+  }
+}
+
+function initLeaderboard() {
+  if (!document.querySelector("#leaderboard")) return;
+  window.leaderboards = leaderboards;
+}
+
+// ---------------------------------------------------------------------------
+// Sortable tables
+// ---------------------------------------------------------------------------
+
+function initSortableTables() {
+  document.addEventListener("click", e => {
+    try {
+      const th = e.target.closest("th");
+      if (!th) return;
+
+      const thead = th.closest("thead");
+      const table = th.closest("table.sortable");
+      if (!thead || !table || th.classList.contains("no-sort")) return;
+
+      const useAlt = e.shiftKey || e.altKey;
+      const getCellValue = cell => useAlt
+        ? cell.dataset.sortAlt
+        : (cell.dataset.sort ?? cell.textContent);
+
+      const headerRow = thead.rows[0];
+      let colIndex = parseInt(th.dataset.sortCol);
+
+      Array.from(headerRow.cells).forEach((cell, i) => {
+        if (cell === th) {
+          colIndex = isNaN(colIndex) ? i : colIndex;
+        } else {
+          cell.classList.remove("dir-u", "dir-d");
+        }
+      });
+
+      const ascending = !th.classList.contains("dir-d") &&
+        !(table.classList.contains("asc") && !th.classList.contains("dir-u"));
+      const dir = ascending ? "dir-d" : "dir-u";
+
+      th.classList.remove("dir-u", "dir-d");
+      th.classList.add(dir);
+
+      const tiebreakCol = parseInt(th.dataset.sortTbr);
+      const nLast = table.classList.contains("n-last");
+
+      const compare = (a, b, col) => {
+        const va = getCellValue(a.cells[col]);
+        const vb = getCellValue(b.cells[col]);
+
+        if (nLast) {
+          if (va === "" && vb !== "") return -1;
+          if (vb === "" && va !== "") return 1;
+        }
+
+        const diff = Number(va) - Number(vb);
+        return isNaN(diff) ? va.localeCompare(vb) : diff;
+      };
+
+      Array.from(table.tBodies).forEach(tbody => {
+        const rows = Array.from(tbody.rows).sort((a, b) => {
+          const primary = compare(a, b, colIndex);
+          if (primary !== 0) return ascending ? primary : -primary;
+          return isNaN(tiebreakCol) ? 0 : compare(a, b, tiebreakCol);
+        });
+
+        const clone = tbody.cloneNode(false);
+        clone.append(...rows);
+        table.replaceChild(clone, tbody);
+      });
+    } catch (err) {
+      console.error("Sortable table error:", err);
     }
-  };
+  });
+}
 
-  // Font Loading
-  const setupFontLoading = () => {
-    if (window.innerWidth < 768) return;
+// ---------------------------------------------------------------------------
+// Smooth-scroll for anchor links
+// ---------------------------------------------------------------------------
 
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = CONFIG.interFontUrl;
-    document.head.appendChild(link);
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener("click", e => {
+      const id = link.getAttribute("href");
+      if (id === "#") return;
 
-    const root = document.documentElement.style;
-    root.setProperty("--main-font", '"Inter", system-ui, -apple-system, sans-serif');
-    root.setProperty("--main-features", '"cv02", "cv03", "cv04", "cv11"');
-  };
-
-  // Smooth Scrolling
-  const setupSmoothScroll = () => {
-    document.addEventListener("click", (e) => {
-      const anchor = e.target.closest('a[href^="#"]');
-      if (!anchor) return;
-
-      const targetId = anchor.getAttribute("href");
-      const target = document.querySelector(targetId);
-      
+      const target = document.querySelector(id);
       if (target) {
         e.preventDefault();
-        target.scrollIntoView({ behavior: "smooth" });
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
-  };
+  });
+}
 
-  // Table Sorting - FIXED
-  const setupTableSorting = () => {
-    document.addEventListener("click", (e) => {
-      const th = e.target.closest("th");
-      
-      // Fix: Check if th exists before proceeding
-      if (!th) return;
-      
-      const table = th.closest("table.sortable");
-      if (!table || !table.tBodies[0]) return;
+// ---------------------------------------------------------------------------
+// Lazy-load images
+// ---------------------------------------------------------------------------
 
-      const tbody = table.tBodies[0];
-      const rows = Array.from(tbody.rows);
-      const colIdx = th.cellIndex;
-      const isAscending = th.classList.contains("dir-u");
+function initLazyImages() {
+  if (!("IntersectionObserver" in window)) return;
 
-      // Sort rows
-      rows.sort((a, b) => {
-        const aCell = a.cells[colIdx];
-        const bCell = b.cells[colIdx];
-        
-        if (!aCell || !bCell) return 0;
-        
-        const aVal = aCell.dataset.sort || aCell.textContent.trim();
-        const bVal = bCell.dataset.sort || bCell.textContent.trim();
-        
-        return isAscending
-          ? bVal.localeCompare(aVal, undefined, { numeric: true })
-          : aVal.localeCompare(bVal, undefined, { numeric: true });
-      });
-
-      // Update sort indicators
-      table.querySelectorAll("th").forEach(header => {
-        header.classList.remove("dir-u", "dir-d");
-      });
-
-      th.classList.add(isAscending ? "dir-d" : "dir-u");
-      
-      // Reorder rows
-      rows.forEach(row => tbody.appendChild(row));
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const img = entry.target;
+      if (img.dataset.src) {
+        img.src = img.dataset.src;
+        img.removeAttribute("data-src");
+      }
+      obs.unobserve(img);
     });
-  };
+  });
 
-  // Firearms Filter
-  const initFirearmsFilter = () => {
-    const section = document.querySelector("#firearms");
-    if (!section) return;
+  document.querySelectorAll("img[data-src]").forEach(img => observer.observe(img));
+}
 
-    section.addEventListener("click", (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
+// ---------------------------------------------------------------------------
+// Scroll-reveal animations
+// ---------------------------------------------------------------------------
 
-      // Handle fast/strong toggle
-      if (btn.classList.contains("fastBtn") || btn.classList.contains("strongBtn")) {
-        const type = btn.classList.contains("fastBtn") ? "fast" : "strong";
+function initScrollReveal() {
+  if (!("IntersectionObserver" in window)) return;
 
-        ["fast", "strong"].forEach(t => {
-          const isActive = t === type;
-          const toggleBtn = section.querySelector(`.${t}Btn`);
-          
-          if (toggleBtn) {
-            toggleBtn.classList.toggle("active", isActive);
-          }
-
-          section.querySelectorAll(`.${t}`).forEach(el => {
-            el.style.display = isActive ? "inline" : "none";
-          });
-        });
-        return;
-      }
-
-      // Handle category filter
-      const category = Array.from(btn.classList).find(c => 
-        CONFIG.weaponCategories[c] || c === "all"
-      );
-
-      if (category) {
-        section.querySelectorAll("tbody tr").forEach(row => {
-          const nameCell = row.cells[0];
-          if (!nameCell) return;
-          
-          const name = nameCell.innerText.trim();
-          const visible = category === "all" || 
-                         (CONFIG.weaponCategories[category] && 
-                          CONFIG.weaponCategories[category].includes(name));
-          
-          row.style.display = visible ? "" : "none";
-        });
-
-        section.querySelectorAll(".btn button").forEach(b => {
-          b.classList.toggle("active", b === btn);
-        });
-      }
-    });
-  };
-
-  // Leaderboards
-  const initLeaderboards = () => {
-    const container = document.querySelector("#leaderboard");
-    if (!container) return;
-
-    const loadData = async (mode) => {
-      const navButtons = document.querySelectorAll(".leaderboard-nav button");
-      const activeBtn = document.querySelector(`.${mode}`);
-
-      // Store original labels and disable buttons
-      navButtons.forEach(btn => {
-        btn.disabled = true;
-        btn.dataset.label = btn.textContent;
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.style.opacity = "1";
+        entry.target.style.transform = "translateY(0)";
       });
+    },
+    { threshold: 0.1 }
+  );
 
-      if (activeBtn) {
-        activeBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
-      }
-
-      try {
-        const endpoint = `/leaderboards/${mode.replace("_", "-")}?format=json`;
-        const res = await fetch(endpoint);
-        
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        
-        const data = await res.json();
-        history.replaceState({ mode }, "", `/leaderboards/${mode.replace("_", "-")}`);
-        renderTable(data);
-      } catch (err) {
-        console.error("Leaderboard error:", err);
-        container.innerHTML = '<div class="alert">Failed to load leaderboard data. Please try again.</div>';
-      } finally {
-        // Re-enable buttons and restore labels
-        navButtons.forEach(btn => {
-          btn.disabled = false;
-          btn.textContent = btn.dataset.label;
-        });
-        
-        if (activeBtn) {
-          activeBtn.disabled = true;
-        }
-      }
-    };
-
-    const renderTable = (players) => {
-      const medals = ["🏆", "🥈", "🥉"];
-      
-      const rows = players.map((player, index) => {
-        const total = player.matches_won + player.matches_lost;
-        const winRate = total === 0 ? "0%" : `${Math.round((player.matches_won / total) * 100)}%`;
-        const wlDiff = player.matches_won - player.matches_lost;
-        const rankDisplay = medals[index] || (index + 1);
-        const escapedNickname = escapeHtml(player.nickname);
-
-        return `
-          <tr>
-            <td>${rankDisplay}</td>
-            <td>
-              <a href="/user/${player.account_id}">
-                <img class="rank" src="${CONFIG.assetBaseUrl}${player.rankImg}" alt="Rank">
-                ${escapedNickname}
-              </a>
-            </td>
-            <td>${player.mmr.toFixed(2)}</td>
-            <td>${player.mu.toFixed(3)}</td>
-            <td>${player.sigma.toFixed(3)}</td>
-            <td data-sort="${wlDiff}">${player.matches_won}-${player.matches_lost}</td>
-            <td>${winRate}</td>
-          </tr>
-        `;
-      }).join("");
-
-      container.innerHTML = `
-        <table class="sortable maxwidth">
-          <thead>
-            <tr>
-              <th class="dir-u" width="10%">#</th>
-              <th width="40%">Name</th>
-              <th width="10%">MMR</th>
-              <th width="10%">Mu</th>
-              <th width="10%">Sigma</th>
-              <th width="10%">W-L</th>
-              <th width="10%">Win %</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    };
-
-    // Navigation
-    const nav = document.querySelector(".leaderboard-nav");
-    if (nav) {
-      nav.addEventListener("click", (e) => {
-        const btn = e.target.closest("button");
-        if (btn && !btn.disabled) {
-          const mode = btn.classList[0];
-          if (mode) loadData(mode);
-        }
-      });
-    }
-  };
-
-  // Arena Keyboard Navigation
-  const initArenaKeyboardNavigation = () => {
-    const prevLink = document.querySelector("a.arena-prev");
-    const nextLink = document.querySelector("a.arena-next");
-
-    const prevHref = prevLink?.getAttribute("href");
-    const nextHref = nextLink?.getAttribute("href");
-
-    if (!prevHref && !nextHref) return;
-
-    document.addEventListener("keydown", (e) => {
-      // Ignore if user is typing in an input
-      if (e.target.matches("input, textarea, select")) return;
-
-      if (e.key === "ArrowLeft" && prevHref) {
-        window.location.href = prevHref;
-      } else if (e.key === "ArrowRight" && nextHref) {
-        window.location.href = nextHref;
-      }
+  document.querySelectorAll(".dl, .sv-row-card, .arenas > a").forEach(el => {
+    Object.assign(el.style, {
+      opacity: "0",
+      transform: "translateY(20px)",
+      transition: "opacity 0.6s ease, transform 0.6s ease",
     });
-  };
+    observer.observe(el);
+  });
+}
 
-  // Utility: HTML escaping
-  const escapeHtml = (str) => {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
-  };
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
 
-  // Initialize all features
-  setupFontLoading();
-  setupSmoothScroll();
-  setupTableSorting();
-  initFirearmsFilter();
-  initLeaderboards();
-  initArenaKeyboardNavigation();
-});
+initFirearms();
+initLeaderboard();
+initSortableTables();
+initSmoothScroll();
+initLazyImages();
+initScrollReveal();
+
+window.hypersomniaUtils = { debounce };
