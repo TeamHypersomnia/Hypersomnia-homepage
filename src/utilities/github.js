@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { timeAgo } = require('./timeAgo');
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
@@ -24,14 +25,14 @@ async function getLatestClosedPRs(owner, repo, limit = 5) {
       number: pr.number,
       title: pr.title,
       url: pr.html_url,
-      mergedAt: pr.merged_at,
+      timeAgo: timeAgo(pr.merged_at),
       author: pr.user.login
     }));
 }
 
 // ─── Scheduler ────────────────────────────────────────────────────────────────
 
-const INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const INTERVAL_MS = 5 * 60 * 1000; //  minutes
 
 function startPolling(owner, repo, limit = 5) {
   if (intervalHandle) {

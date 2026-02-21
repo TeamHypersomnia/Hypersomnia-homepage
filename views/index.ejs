@@ -5,7 +5,6 @@
     <h1>Hypersomnia</h1>
     <p>Experience the intensity of <em>Counter-Strike</em> combined with the fast-paced mechanics of <em>Hotline Miami</em>.<br>
     Available for <strong>Windows</strong>, <strong>Linux</strong>, and <strong>macOS</strong>. The download size is <strong>under 50 MB</strong>.</p>
-
     <section class="downloads">
       <a href="https://play.hypersomnia.io/" target="_blank" class="dl div1">
         <img src="/assets/images/os/browser.svg" alt="Browser">
@@ -33,15 +32,14 @@
         <code>Hypersomnia-for-MacOS.dmg</code>
       </a>
     </section>
-
     <p>All archives are <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/src/signing_keys.h" target="_blank">digitally signed</a> for authenticity and integrity. Verify them <a href="https://hypersomnia.io/builds/latest/" target="_blank">here</a> using public keys.</p>
   </div>
   <aside class="main-right">
     <h2>Latest Updates</h2>
     <ul>
       <% if (github && github.data.length > 0) { %>
-        <% github.data.forEach(commit => { %>
-          <li><%= commit.title %></a></li>
+        <% github.data.forEach(v => { %>
+          <li><a href="<%= v.url %>"><%= v.title %></a> <code><%= v.timeAgo %></code></li>
         <% }) %>
       <% } else { %>
         <li>No recent commits found.</li>
