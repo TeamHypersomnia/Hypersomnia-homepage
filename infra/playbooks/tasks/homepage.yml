@@ -1,4 +1,3 @@
----
 # Homepage deployment
 - name: Create app directory
   file:
@@ -36,9 +35,9 @@
   become: yes
 
 - name: Install npm dependencies
-  npm:
-    path: "{{ paths.app_root }}"
-    state: present
+  command: npm ci
+  args:
+    chdir: "{{ paths.app_root }}"
   become: yes
   become_user: ubuntu
 
@@ -49,19 +48,14 @@
   become: yes
   become_user: ubuntu
 
-- name: Stop existing PM2 app if running
-  command: pm2 delete app
-  when: "'app' in pm2_list.stdout"
-  become: yes
-  become_user: ubuntu
-  ignore_errors: yes
-
-- name: Start app with PM2 ecosystem file
-  command: pm2 start ecosystem.config.js
+- name: Reload or start app with PM2 ecosystem file
+  command: >
+    pm2 {{ 'reload' if 'app' in pm2_list.stdout else 'start' }} ecosystem.config.js
   args:
     chdir: "{{ paths.app_root }}"
   become: yes
   become_user: ubuntu
+  register: pm2_result
 
 - name: Save PM2 configuration
   command: pm2 save
