@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Discord - Hypersomnia</title>
+  <style>
+    body {
+      background: #0a0a0f;
+      color: #c8c8d0;
+      font-family: Inter, system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      text-align: center;
+      padding: 2rem;
+    }
+    .card h2 { color: #e0e0e8; }
+    .card p { margin: 1rem 0; }
+    .close-hint { color: #888; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 id="title">Processing...</h2>
+    <p id="message"></p>
+    <p class="close-hint" id="close-hint"></p>
+  </div>
+  <script>
+    (function() {
+      var ALLOWED_ORIGINS = [
+        'https://play.hypersomnia.io',
+        'https://www.arvexgames.com',
+        'https://arvexgames.com',
+        'https://hypersomnia.io'
+      ];
+
+      var params = new URLSearchParams(window.location.search);
+      var status = params.get('status') || 'error';
+
+      var titleEl = document.getElementById('title');
+      var messageEl = document.getElementById('message');
+      var closeHintEl = document.getElementById('close-hint');
+
+      if (status === 'success') {
+        titleEl.textContent = 'Discord linked successfully!';
+        messageEl.textContent = 'Go back to the game and press: Sign in with Discord.';
+      } else {
+        titleEl.textContent = 'Discord linking failed';
+        messageEl.textContent = 'Something went wrong. Please try again.';
+      }
+
+      var payload = { type: 'discord_redirect', status: status };
+      var sent = false;
+
+      // Send to opener (popup case) or parent (iframe case)
+      var target = window.opener || (window.parent !== window ? window.parent : null);
+
+      if (target) {
+        for (var i = 0; i < ALLOWED_ORIGINS.length; i++) {
+          try {
+            target.postMessage(payload, ALLOWED_ORIGINS[i]);
+            sent = true;
+          } catch (e) {
+            // Origin mismatch, continue
+          }
+        }
+      }
+
+      if (sent) {
+        closeHintEl.textContent = 'You can close this window.';
+        if (window.opener) {
+          setTimeout(function() { window.close(); }, 1500);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

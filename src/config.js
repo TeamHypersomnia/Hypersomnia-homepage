@@ -87,7 +87,14 @@ const config = {
   SERVER_LIST_REFRESH_INTERVAL: 10000,
   
   DB_PATH: process.env.DB_PATH || './private/mmr.db',
-  LOG_LEVEL: process.env.LOG_LEVEL || (IS_PROD ? 'info' : 'debug')
+  LOG_LEVEL: process.env.LOG_LEVEL || (IS_PROD ? 'info' : 'debug'),
+
+  // Origins allowed to receive postMessage from discord_redirect.html
+  ALLOWED_GAME_ORIGINS: [
+    'https://play.hypersomnia.io',
+    'https://www.arvexgames.com',
+    'https://arvexgames.com'
+  ]
 };
 
 // Validate required env vars in production

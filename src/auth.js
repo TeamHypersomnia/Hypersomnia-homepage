@@ -50,6 +50,10 @@ module.exports = (passport) => {
       return res.redirect('/?error=login_required');
     }
     
+    if (req.query.from === 'game') {
+      req.session.discordFromGame = true;
+    }
+
     const authUrl = 'https://discord.com/api/oauth2/authorize?' + querystring.stringify({
       client_id: config.DISCORD_CLIENT_ID,
       redirect_uri: DISCORD_REDIRECT_URI,
@@ -61,9 +65,18 @@ module.exports = (passport) => {
   
   router.get('/discord/return', async (req, res) => {
     const { code } = req.query;
+    const fromGame = req.session.discordFromGame;
+    delete req.session.discordFromGame;
+
+    function redirectResult(path, success) {
+      if (fromGame) {
+        return res.redirect(`/discord_redirect.html?status=${success ? 'success' : 'error'}`);
+      }
+      return res.redirect(path);
+    }
     
     if (!code) {
-      return res.redirect('/profile?error=no_code');
+      return redirectResult('/profile?error=no_code', false);
     }
     
     if (!req.user) {
@@ -99,11 +112,11 @@ module.exports = (passport) => {
       
       if (existingAssoc && existingAssoc.parent_id !== steamId) {
         // Discord account already linked to different Steam account
-        res.redirect('/profile?error=discord_already_linked');
+        redirectResult('/profile?error=discord_already_linked', false);
       } else {
         // Create or update association
         stmts.setAssoc.run(discordId, steamId);
-        res.redirect('/profile?success=discord_linked');
+        redirectResult('/profile?success=discord_linked', true);
       }
       
       // Revoke the access token (cleanup)
@@ -121,9 +134,9 @@ module.exports = (passport) => {
       console.error('Discord Auth Error:', err.response?.data || err.message);
       
       if (err.response?.status === 400) {
-        res.redirect('/profile?error=invalid_code');
+        redirectResult('/profile?error=invalid_code', false);
       } else {
-        res.redirect('/profile?error=auth_fail');
+        redirectResult('/profile?error=auth_fail', false);
       }
     }
   });
