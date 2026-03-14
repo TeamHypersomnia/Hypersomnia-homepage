@@ -2,7 +2,10 @@
 """
 MMR test runner — posts all test fixtures to /report_match and asserts DB state.
 Does NOT clean up after itself so results are visible on /matches.
-Usage: python3 run_mmr_tests.py [port]
+
+Usage:
+  python3 run_mmr_tests.py [port]          # local dev (default port 3000)
+  python3 run_mmr_tests.py --prod          # against hypersomnia.io, uses $RANKED_API_KEY
 """
 
 import json
@@ -16,10 +19,22 @@ import urllib.error
 
 # ── config ────────────────────────────────────────────────────────────────────
 
+PROD_MODE = "--prod" in sys.argv
+args      = [a for a in sys.argv[1:] if a != "--prod"]
+
+if PROD_MODE:
+    API_KEY = os.environ.get("RANKED_API_KEY")
+    if not API_KEY:
+        print("Error: $RANKED_API_KEY is not set")
+        sys.exit(1)
+    URL = "https://hypersomnia.io/report_match"
+else:
+    PORT = int(args[0]) if args else 3000
+    URL  = f"http://localhost:{PORT}/report_match"
+    API_KEY = None  # per-test keys used (pl / au)
+
 ROOT    = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(ROOT, "private", "mmr.db")
-PORT    = int(sys.argv[1]) if len(sys.argv) > 1 else 3000
-URL     = f"http://localhost:{PORT}/report_match"
 
 GREEN  = "\033[32m"
 RED    = "\033[31m"
@@ -36,6 +51,8 @@ def section(title):
     print(f"\n{BOLD}── {title} ──{RESET}")
 
 def db_one(sql):
+    if PROD_MODE:
+        return None
     con = sqlite3.connect(DB_PATH)
     try:
         row = con.execute(sql).fetchone()
@@ -44,6 +61,8 @@ def db_one(sql):
         con.close()
 
 def db_exec(sql):
+    if PROD_MODE:
+        return
     con = sqlite3.connect(DB_PATH)
     try:
         con.execute(sql)
@@ -66,9 +85,10 @@ def post(filename, apikey="pl"):
     path = os.path.join(ROOT, "tests", filename)
     with open(path, "rb") as f:
         data = f.read()
+    key = API_KEY if PROD_MODE else apikey
     req = urllib.request.Request(URL, data=data, headers={
         "Content-Type": "application/json",
-        "apikey": apikey,
+        "apikey": key,
     })
     try:
         with urllib.request.urlopen(req) as resp:
@@ -91,6 +111,8 @@ def check_post(filename, apikey="pl"):
 
 def eq(label, got, want):
     global passed, failed
+    if PROD_MODE:
+        return  # no DB access in prod mode
     # normalize: compare as strings, but treat 0 == 0.0
     def norm(v):
         try:
@@ -107,6 +129,8 @@ def eq(label, got, want):
 
 def gt(label, got, threshold=0):
     global passed, failed
+    if PROD_MODE:
+        return
     try:
         val = float(got)
         if val > threshold:
@@ -120,6 +144,8 @@ def gt(label, got, threshold=0):
 
 def lt(label, got, threshold=0):
     global passed, failed
+    if PROD_MODE:
+        return
     try:
         val = float(got)
         if val < threshold:
@@ -142,26 +168,28 @@ def server_up():
         return False
     return True
 
-if not server_up():
-    print(f"No server on port {PORT} — starting one...")
-    log = open("/tmp/mmr_test_server.log", "w")
-    proc = subprocess.Popen(
-        ["node", "app.js", str(PORT), "--test"],
-        cwd=ROOT, stdout=log, stderr=log
-    )
-    server_pid = proc.pid
-    for _ in range(20):
-        time.sleep(0.5)
-        if server_up():
-            break
+if PROD_MODE:
+    print(f"{BOLD}Running against {URL}{RESET}")
+else:
     if not server_up():
-        print(f"{RED}Server failed to start. Log:{RESET}")
-        log.close()
-        print(open("/tmp/mmr_test_server.log").read())
-        sys.exit(1)
-    print(f"{GREEN}Server started (PID {server_pid}){RESET}")
-
-wipe()
+        print(f"No server on port {PORT} — starting one...")
+        log = open("/tmp/mmr_test_server.log", "w")
+        proc = subprocess.Popen(
+            ["node", "app.js", str(PORT), "--test"],
+            cwd=ROOT, stdout=log, stderr=log
+        )
+        server_pid = proc.pid
+        for _ in range(20):
+            time.sleep(0.5)
+            if server_up():
+                break
+        if not server_up():
+            print(f"{RED}Server failed to start. Log:{RESET}")
+            log.close()
+            print(open("/tmp/mmr_test_server.log").read())
+            sys.exit(1)
+        print(f"{GREEN}Server started (PID {server_pid}){RESET}")
+    wipe()
 
 # ── tests ─────────────────────────────────────────────────────────────────────
 
@@ -278,6 +306,7 @@ if failed == 0:
     print(f"{GREEN}All {total} assertions passed ✓{RESET}")
 else:
     print(f"{RED}{failed}/{total} assertions FAILED{RESET}")
-print(f"\nResults visible at: http://localhost:{PORT}/matches")
+if not PROD_MODE:
+    print(f"\nResults visible at: http://localhost:{PORT}/matches")
 
 sys.exit(0 if failed == 0 else 1)
