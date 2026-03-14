@@ -20,12 +20,13 @@
 
 ---
 
-## Short match — W/L not counted
+## Short match — wins not counted
 
 If `win_score + lose_score < 5` (fewer than 5 total rounds played):
 - MMR **does change** normally
 - Match **is recorded** in history
-- But `matches_won` / `matches_lost` are **not incremented** for any player
+- `matches_won` is **not incremented** for anyone
+- `matches_lost` is **not incremented** for normal losers — **but abandoners always get a loss** regardless of match length
 
 ---
 
@@ -49,12 +50,12 @@ The value represents the **abandoning player's team score** at the moment they l
 #### Winner-side abandoner:
 - `abandoned_at_score >= 13` → **MMR changes** (rated as a winner)
 - `abandoned_at_score < 13` → **MMR frozen** (too early to have contributed)
-- **Always** gets `matches_lost + 1` regardless of team outcome — abandon counts as a loss
+- **Always** gets `matches_lost + 1` regardless of team outcome or match length — abandon always counts as a loss
 
 #### Loser-side abandoner:
 - `abandoned_at_score >= 4` → **MMR changes** (rated as a loser)
 - `abandoned_at_score < 4` → **MMR frozen** (left too early to have contributed)
-- Gets `matches_lost + 1` as normal
+- **Always** gets `matches_lost + 1` regardless of match length — abandon always counts as a loss
 
 ### Effect on remaining players
 

@@ -1,0 +1,23 @@
+{
+  "match_start_date": "2024-01-27T17:59:44Z",
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 5,
+  "lose_score": 4,
+  "player_infos": {
+    "crazygames_cBzbxEO750cCE7CvIiokFgp2tBz1": {
+      "nickname": "ja kurwa"
+    },
+    "whotf": {
+      "nickname": "someone",
+      "abandoned_at_score": 4
+    }
+  },
+  "win_players": [
+    "crazygames_cBzbxEO750cCE7CvIiokFgp2tBz1"
+  ],
+  "lose_players": [
+    "whotf"
+  ]
+}

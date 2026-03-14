@@ -1,0 +1,26 @@
+{
+  "match_start_date": "2024-01-27T17:59:44Z",
+  "server_name": "dev testing stuff (dont join)",
+  "arena": "fy_minilab",
+  "game_mode": "Bomb Defusal",
+  "win_score": 16,
+  "lose_score": 14,
+  "player_infos": {
+    "discord_231574084931026944": {
+      "nickname": "pythagoras."
+    },
+    "steam_76561198051900812": {
+      "nickname": "Pythagoras of Siema"
+    },
+    "steam_someone": {
+      "nickname": "someone"
+    }
+  },
+  "win_players": [
+    "discord_231574084931026944",
+    "steam_76561198051900812"
+  ],
+  "lose_players": [
+    "steam_someone"
+  ]
+}

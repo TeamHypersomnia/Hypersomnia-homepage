@@ -156,7 +156,7 @@ router.post('/', apiKeyAuth, (req, res) => {
         const newRating = contributes ? newWinnerRatings[i] : playerRatings[id];
         const newMmr = ordinal(newRating);
         const winIncrement = !abandoned(info) && should_count_wins ? 1 : 0;
-        const lossIncrement = abandoned(info) ? 1 : 0;
+        const lossIncrement = abandoned(info) ? 1 : 0;  // abandon always counts as a loss
         stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, winIncrement, lossIncrement, info.nickname, id);
         return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id] };
       });
@@ -166,7 +166,7 @@ router.post('/', apiKeyAuth, (req, res) => {
         const contributes = contributed_to_match(info, false);
         const newRating = contributes ? newLoserRatings[i] : playerRatings[id];
         const newMmr = ordinal(newRating);
-        const lossIncrement = should_count_wins ? 1 : 0;
+        const lossIncrement = (should_count_wins || abandoned(info)) ? 1 : 0;
         stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, 0, lossIncrement, info.nickname, id);
         return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], contributed_as_enemy: contributes };
       });

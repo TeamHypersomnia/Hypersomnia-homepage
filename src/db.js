@@ -69,7 +69,8 @@ class DatabaseManager {
     const config = require('./config');
     if (!config.IS_TEST) return;
     this.db.prepare("INSERT OR IGNORE INTO authorized_servers (api_key, server_id) VALUES ('pl', 'pl')").run();
-    console.log('[test] Seeded authorized_servers: api_key=pl server_id=pl');
+    this.db.prepare("INSERT OR IGNORE INTO authorized_servers (api_key, server_id) VALUES ('au', 'au')").run();
+    console.log('[test] Seeded authorized_servers: pl, au');
   }
   
   // Cache prepared statements for reuse

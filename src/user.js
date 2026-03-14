@@ -13,10 +13,13 @@ router.get('/:user', function(req, res) {
     }
     
     const [, platform, id] = match;
+    const config = require('./config');
     const validId =
-      (platform === 'steam' || platform === 'discord') ? /^\d+$/.test(id) :
-      (platform === 'crazygames') ? /^[a-zA-Z0-9]{10,64}$/.test(id) :
-      false;
+      config.IS_PROD ? (
+        (platform === 'steam' || platform === 'discord') ? /^\d+$/.test(id) :
+        (platform === 'crazygames') ? /^[a-zA-Z0-9]{10,64}$/.test(id) :
+        false
+      ) : true;
     if (!validId) {
       return res.status(404).render('404', { page: 'Not Found', user: req.user });
     }

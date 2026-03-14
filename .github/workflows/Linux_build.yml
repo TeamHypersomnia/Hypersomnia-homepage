@@ -6,7 +6,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    name: MMR tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run MMR tests
+        run: python3 run_mmr_tests.py
+
   deploy:
+    name: Deploy
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

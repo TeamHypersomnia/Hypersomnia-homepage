@@ -130,6 +130,4 @@ dist
 private
 hosting/*
 
-pythagtest.json
-pythagcollidtest.json
 ansible/backups
