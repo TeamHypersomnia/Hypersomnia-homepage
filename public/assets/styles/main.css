@@ -1,9 +1,5 @@
 :root {
-  font-family: Inter, sans-serif;
-  font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
-}
-@supports (font-variation-settings: normal) {
-  :root { font-family: InterVariable, sans-serif; }
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -41,7 +37,7 @@ h3 {
 p,
 li {
   line-height: 1.6;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   margin: 0;
   color: rgba(255, 255, 255, 0.75);
 }
@@ -51,8 +47,8 @@ p {
 }
 
 ul {
-  list-style-type: none;
-  padding-left: 0;
+  list-style-type: circle;
+  padding-left: 1rem;
 }
 
 a {
@@ -418,29 +414,6 @@ nav>.flex {
   font-size: 0.85em;
   gap: 1rem;
   color: rgba(255, 255, 255, 0.7);
-}
-
-.zeroplayers {
-  color: #64748b !important;
-  background: linear-gradient(135deg, rgba(30, 27, 75, 0.2), rgba(15, 15, 30, 0.6)) !important;
-  border: 1px solid rgba(100, 116, 139, 0.2) !important;
-  opacity: 0.6;
-}
-
-.zeroplayers>a {
-  color: #94a3b8;
-}
-
-.zeroplayers>a:hover {
-  color: #cbd5e1;
-}
-
-.zeroplayers>.sv-info>div>a {
-  color: #64748b;
-}
-
-.zeroplayers>.sv-info>div>a:hover {
-  color: #94a3b8;
 }
 
 dl {
@@ -821,6 +794,15 @@ footer>a:hover {
    Desktop (≥ 1100px)
    ============================================================ */
 @media (min-width: 1100px) {
+  :root {
+    font-family: Inter, sans-serif;
+    font-feature-settings: "ss02" 1, "tnum" 1, "zero" 1;
+  }
+  
+  @supports (font-variation-settings: normal) {
+    :root { font-family: InterVariable, sans-serif; }
+  }
+  
   .flag {
     font-size: 1.1em;
   }

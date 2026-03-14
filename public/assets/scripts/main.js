@@ -1,16 +1,3 @@
-/* ============================================================
-   Hypersomnia — main.js
-   ============================================================ */
-
-// ---------------------------------------------------------------------------
-// Utilities
-// ---------------------------------------------------------------------------
-
-/**
- * Returns a debounced version of `fn` that fires after `delay` ms of silence.
- * @param {Function} fn
- * @param {number} delay
- */
 function debounce(fn, delay) {
   let timer;
   return (...args) => {
@@ -18,10 +5,6 @@ function debounce(fn, delay) {
     timer = setTimeout(() => fn(...args), delay);
   };
 }
-
-// ---------------------------------------------------------------------------
-// Firearms page
-// ---------------------------------------------------------------------------
 
 const WEAPON_CATEGORIES = {
   pistols: ["Sn69", "Kek9", "Bulwark", "Calico", "Ao44", "Covert", "Deagle"],
@@ -34,8 +17,6 @@ const WEAPON_CATEGORIES = {
 function initFirearms() {
   const table = document.querySelector("#firearms");
   if (!table) return;
-
-  // --- Ammo-type toggle ---
 
   const fastBtn = document.querySelector(".fastBtn");
   const strongBtn = document.querySelector(".strongBtn");
@@ -56,8 +37,6 @@ function initFirearms() {
 
   fastBtn?.addEventListener("click", () => toggleAmmoType("fast"));
   strongBtn?.addEventListener("click", () => toggleAmmoType("strong"));
-
-  // --- Category filter ---
 
   function filterWeapons(category) {
     const rows = table.querySelectorAll("tbody tr");
@@ -81,10 +60,6 @@ function initFirearms() {
     document.querySelector(`.${category}`)?.addEventListener("click", () => filterWeapons(category));
   });
 }
-
-// ---------------------------------------------------------------------------
-// Leaderboard page
-// ---------------------------------------------------------------------------
 
 const LEADERBOARD_MODES = {
   bomb_defusal: "/leaderboards/bomb-defusal",
@@ -185,10 +160,6 @@ function initLeaderboard() {
   window.leaderboards = leaderboards;
 }
 
-// ---------------------------------------------------------------------------
-// Sortable tables
-// ---------------------------------------------------------------------------
-
 function initSortableTables() {
   document.addEventListener("click", e => {
     try {
@@ -255,10 +226,6 @@ function initSortableTables() {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Smooth-scroll for anchor links
-// ---------------------------------------------------------------------------
-
 function initSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener("click", e => {
@@ -273,10 +240,6 @@ function initSmoothScroll() {
     });
   });
 }
-
-// ---------------------------------------------------------------------------
-// Lazy-load images
-// ---------------------------------------------------------------------------
 
 function initLazyImages() {
   if (!("IntersectionObserver" in window)) return;
@@ -295,10 +258,6 @@ function initLazyImages() {
 
   document.querySelectorAll("img[data-src]").forEach(img => observer.observe(img));
 }
-
-// ---------------------------------------------------------------------------
-// Scroll-reveal animations
-// ---------------------------------------------------------------------------
 
 function initScrollReveal() {
   if (!("IntersectionObserver" in window)) return;
@@ -323,10 +282,6 @@ function initScrollReveal() {
     observer.observe(el);
   });
 }
-
-// ---------------------------------------------------------------------------
-// Boot
-// ---------------------------------------------------------------------------
 
 initFirearms();
 initLeaderboard();

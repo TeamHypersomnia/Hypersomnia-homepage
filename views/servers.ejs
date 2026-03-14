@@ -3,7 +3,7 @@
 <h2>Ranked Servers</h2>
 <div id="ranked_servers" class="sv-list">
   <% Object.values(ranked_servers).forEach(v=> { %>
-  <div class="sv-row-card<%= v.num_online_humans === 0 ? ' zeroplayers' : '' %>">
+  <div class="sv-row-card">
     <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
       <i><%= v.name %></i>
       <span class="flag"><%= v.flag %></span>
@@ -29,7 +29,7 @@
 <h2>Casual Servers</h2>
 <div id="casual_servers" class="sv-list">
   <% Object.values(casual_servers).forEach(v=> { %>
-  <div class="sv-row-card<%= v.num_online_humans === 0 ? ' zeroplayers' : '' %>">
+  <div class="sv-row-card">
     <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
       <i><%= v.name %></i>
       <span class="flag"><%= v.flag %></span>
