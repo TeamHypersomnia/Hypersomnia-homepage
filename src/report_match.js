@@ -49,18 +49,19 @@ function isWeekendEveningTime(isoTimestamp, location_id) {
   if (!timeZone) return false;
 
   const dt = new Date(isoTimestamp);
-  // Get weekday and hour in target timezone
-  const [weekdayStr, hourStr] = dt.toLocaleString('en-US', {
+  // Use formatToParts to reliably extract weekday and hour in the target timezone
+  const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone,
-    weekday: 'numeric', // Sunday=0, Monday=1, ..., Saturday=6
-    hour: '2-digit',
+    weekday: 'short',
+    hour: 'numeric',
     hour12: false
-  }).split(',').map(s => s.trim());
+  });
+  const parts = formatter.formatToParts(dt);
+  const weekdayStr = parts.find(p => p.type === 'weekday').value;
+  const hour = Number(parts.find(p => p.type === 'hour').value);
 
-  const dayOfWeek = Number(weekdayStr);
-  const hour = Number(hourStr);
-
-  return (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) && hour >= 19 && hour < 21;
+  const weekendDays = ['Fri', 'Sat', 'Sun'];
+  return weekendDays.includes(weekdayStr) && hour >= 19 && hour < 21;
 }
 
 // Other helpers
@@ -96,14 +97,19 @@ router.post('/', apiKeyAuth, (req, res) => {
   let { losers_abandoned, win_players, lose_players, player_infos } = req.body;
 
   // Validation
-  if (!win_score || !lose_score || !win_players || !lose_players || !player_infos || !server_name || !arena || !game_mode || !match_start_date) {
+  if (win_score == null || lose_score == null || !win_players || !lose_players || !player_infos || !server_name || !arena || !game_mode || !match_start_date) {
+    console.error('[report_match] Validation failed: missing required match data.', JSON.stringify({ server_name, arena, game_mode, win_score, lose_score, has_win_players: !!win_players, has_lose_players: !!lose_players, has_player_infos: !!player_infos, match_start_date }));
     return res.status(400).json({ error: 'Missing required match data' });
   }
   if (win_players.length === 0 || lose_players.length === 0) {
+    console.error('[report_match] Validation failed: empty player arrays.', JSON.stringify({ win_players_len: win_players.length, lose_players_len: lose_players.length }));
     return res.status(400).json({ error: 'Player arrays cannot be empty' });
   }
   losers_abandoned = losers_abandoned || false;
-  if (allAbandoned(player_infos)) return res.json({ message: 'Skipping match report. All players abandoned the match' });
+  if (allAbandoned(player_infos)) {
+    console.log('[report_match] Skipping match report: all players abandoned.', JSON.stringify({ server_name, arena, game_mode }));
+    return res.json({ message: 'Skipping match report. All players abandoned the match' });
+  }
 
   try {
     win_players = mapIdArray(win_players, db);
@@ -133,10 +139,10 @@ router.post('/', apiKeyAuth, (req, res) => {
         playerRatings[playerId] = rating({ mu: row.mu, sigma: row.sigma });
       });
 
-      // Rating computation (unchanged)
+      // Rating computation
       const original_winner_ratings = win_players.map(id => playerRatings[id]);
       const original_loser_ratings = lose_players.map(id => playerRatings[id]);
-      const updatedRatings = [original_winner_ratings, original_loser_ratings]; // placeholder for actual rate() results
+      const updatedRatings = rate([original_winner_ratings, original_loser_ratings]);
 
       updatedRatings.forEach((team, index) => {
         team.forEach((playerRating, playerIndex) => {
@@ -157,8 +163,9 @@ router.post('/', apiKeyAuth, (req, res) => {
     })();
 
     res.json({ message: 'Match reported successfully' });
+    console.log('[report_match] Match reported successfully.', JSON.stringify({ server_name, server_id: req.server_id, arena, game_mode, win_score, lose_score, win_players_count: win_players.length, lose_players_count: lose_players.length }));
   } catch (error) {
-    console.error(error.message);
+    console.error('[report_match] Error reporting match:', error.stack || error.message, JSON.stringify({ server_name, server_id: req.server_id, arena, game_mode, win_score, lose_score }));
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
