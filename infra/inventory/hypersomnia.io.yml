@@ -67,7 +67,7 @@ all:
           - 8000/tcp  # Signalling server
           - 8410/tcp  # HTTP server list
           - 8420/tcp  # HTTPS server list
-          - 8412/udp  # Gameserver
+          - 8412:8419/udp  # Gameservers
           - 8430/udp  # Masterserver commands
           - 8431/udp  # Masterserver commands
           - 8432/udp  # Masterserver commands
