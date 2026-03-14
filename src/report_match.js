@@ -57,8 +57,11 @@ function isWeekendEveningTime(isoTimestamp, location_id) {
     hour12: false
   });
   const parts = formatter.formatToParts(dt);
-  const weekdayStr = parts.find(p => p.type === 'weekday').value;
-  const hour = Number(parts.find(p => p.type === 'hour').value);
+  const weekdayPart = parts.find(p => p.type === 'weekday');
+  const hourPart = parts.find(p => p.type === 'hour');
+  if (!weekdayPart || !hourPart) return false;
+  const weekdayStr = weekdayPart.value;
+  const hour = Number(hourPart.value);
 
   const weekendDays = ['Fri', 'Sat', 'Sun'];
   return weekendDays.includes(weekdayStr) && hour >= 19 && hour < 21;
