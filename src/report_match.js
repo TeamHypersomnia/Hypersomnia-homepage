@@ -50,15 +50,16 @@ function isWeekendEveningTime(isoTimestamp, location_id) {
 
   const dt = new Date(isoTimestamp);
   // Get weekday and hour in target timezone
-  const [weekdayStr, hourStr] = dt.toLocaleString('en-US', {
+  const parts = new Intl.DateTimeFormat('en-US', {
     timeZone,
-    weekday: 'numeric', // Sunday=0, Monday=1, ..., Saturday=6
+    weekday: 'short',
     hour: '2-digit',
     hour12: false
-  }).split(',').map(s => s.trim());
+  }).formatToParts(new Date(isoTimestamp));
 
-  const dayOfWeek = Number(weekdayStr);
-  const hour = Number(hourStr);
+  const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  const dayOfWeek = dayMap[parts.find(p => p.type === 'weekday').value];
+  const hour = Number(parts.find(p => p.type === 'hour').value);
 
   return (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) && hour >= 19 && hour < 21;
 }
@@ -96,14 +97,19 @@ router.post('/', apiKeyAuth, (req, res) => {
   let { losers_abandoned, win_players, lose_players, player_infos } = req.body;
 
   // Validation
-  if (!win_score || !lose_score || !win_players || !lose_players || !player_infos || !server_name || !arena || !game_mode || !match_start_date) {
+  if (win_score == null || lose_score == null || !win_players || !lose_players || !player_infos || !server_name || !arena || !game_mode || !match_start_date) {
+    console.error('[report_match] Validation failed: missing required match data.', JSON.stringify({ server_name, arena, game_mode, win_score, lose_score, has_win_players: !!win_players, has_lose_players: !!lose_players, has_player_infos: !!player_infos, match_start_date }));
     return res.status(400).json({ error: 'Missing required match data' });
   }
   if (win_players.length === 0 || lose_players.length === 0) {
+    console.error('[report_match] Validation failed: empty player arrays.', JSON.stringify({ win_players_len: win_players.length, lose_players_len: lose_players.length }));
     return res.status(400).json({ error: 'Player arrays cannot be empty' });
   }
   losers_abandoned = losers_abandoned || false;
-  if (allAbandoned(player_infos)) return res.json({ message: 'Skipping match report. All players abandoned the match' });
+  if (allAbandoned(player_infos)) {
+    console.log('[report_match] Skipping match report: all players abandoned.', JSON.stringify({ server_name, arena, game_mode }));
+    return res.json({ message: 'Skipping match report. All players abandoned the match' });
+  }
 
   try {
     win_players = mapIdArray(win_players, db);
@@ -133,32 +139,49 @@ router.post('/', apiKeyAuth, (req, res) => {
         playerRatings[playerId] = rating({ mu: row.mu, sigma: row.sigma });
       });
 
-      // Rating computation (unchanged)
-      const original_winner_ratings = win_players.map(id => playerRatings[id]);
-      const original_loser_ratings = lose_players.map(id => playerRatings[id]);
-      const updatedRatings = [original_winner_ratings, original_loser_ratings]; // placeholder for actual rate() results
+      // Record old MMRs for delta computation
+      const oldMmrs = {};
+      allPlayers.forEach(id => { oldMmrs[id] = ordinal(playerRatings[id]); });
 
-      updatedRatings.forEach((team, index) => {
-        team.forEach((playerRating, playerIndex) => {
-          const playerId = index === 0 ? win_players[playerIndex] : lose_players[playerIndex];
-          const mmr = ordinal(playerRating);
-          const winIncrement = index === 0 && !abandoned(player_infos[playerId]) ? 1 : 0;
-          const lossIncrement = index === 1 || abandoned(player_infos[playerId]) ? 1 : 0;
-          const new_nickname = player_infos[playerId].nickname;
-          stmt_update_player.run(playerRating.mu, playerRating.sigma, mmr, winIncrement, lossIncrement, new_nickname, playerId);
-        });
+      // Compute new ratings via rate()
+      const rateOptions = is_tie ? { rank: [1, 1] } : {};
+      const [newWinnerRatings, newLoserRatings] = rate(
+        [win_players.map(id => playerRatings[id]), lose_players.map(id => playerRatings[id])],
+        rateOptions
+      );
+
+      const winnerObjects = win_players.map((id, i) => {
+        const info = player_infos[id] || {};
+        const contributes = contributed_to_match(info, true);
+        const newRating = contributes ? newWinnerRatings[i] : playerRatings[id];
+        const newMmr = ordinal(newRating);
+        const winIncrement = !abandoned(info) && should_count_wins ? 1 : 0;
+        const lossIncrement = abandoned(info) ? 1 : 0;
+        stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, winIncrement, lossIncrement, info.nickname, id);
+        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id] };
+      });
+
+      const loserObjects = lose_players.map((id, i) => {
+        const info = player_infos[id] || {};
+        const contributes = contributed_to_match(info, false);
+        const newRating = contributes ? newLoserRatings[i] : playerRatings[id];
+        const newMmr = ordinal(newRating);
+        const lossIncrement = should_count_wins ? 1 : 0;
+        stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, 0, lossIncrement, info.nickname, id);
+        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], contributed_as_enemy: contributes };
       });
 
       db.prepare(`
         INSERT INTO matches (match_start_date, server_id, server_name, arena, game_mode, winners, losers, win_score, lose_score, event_match_multiplier)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(match_start_date, req.server_id, server_name, arena, game_mode, JSON.stringify(win_players), JSON.stringify(lose_players), win_score, lose_score, event_match_multiplier);
+      `).run(match_start_date, req.server_id, server_name, arena, game_mode, JSON.stringify(winnerObjects), JSON.stringify(loserObjects), win_score, lose_score, event_match_multiplier);
 
     })();
 
     res.json({ message: 'Match reported successfully' });
+    console.log('[report_match] Match reported successfully.', JSON.stringify({ server_name, server_id: req.server_id, arena, game_mode, win_score, lose_score, win_players_count: win_players.length, lose_players_count: lose_players.length }));
   } catch (error) {
-    console.error(error.message);
+    console.error('[report_match] Error reporting match:', error.stack || error.message, JSON.stringify({ server_name, server_id: req.server_id, arena, game_mode, win_score, lose_score }));
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

@@ -62,6 +62,7 @@ const config = {
   NODE_ENV,
   IS_PROD,
   IS_DEV,
+  IS_TEST: process.argv.includes('--test'),
   
   PORT,
   BASE_URL,

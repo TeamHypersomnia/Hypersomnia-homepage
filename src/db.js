@@ -58,10 +58,18 @@ class DatabaseManager {
       const sql = fs.readFileSync(this.sqlPath, 'utf8');
       this.db.exec(sql);
       console.log('Database schema initialized successfully');
+      this.seedTestData();
     } catch (err) {
       console.error('Database initialization error:', err);
       throw err;
     }
+  }
+
+  seedTestData() {
+    const config = require('./config');
+    if (!config.IS_TEST) return;
+    this.db.prepare("INSERT OR IGNORE INTO authorized_servers (api_key, server_id) VALUES ('pl', 'pl')").run();
+    console.log('[test] Seeded authorized_servers: api_key=pl server_id=pl');
   }
   
   // Cache prepared statements for reuse
