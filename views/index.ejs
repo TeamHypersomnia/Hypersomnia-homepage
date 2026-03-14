@@ -39,10 +39,10 @@
     <ul>
       <% if (github && github.data.length > 0) { %>
         <% github.data.forEach(v => { %>
-          <li><a href="<%= v.url %>"><%= v.title %></a> <code><%= v.timeAgo %></code></li>
+          <li><a href="<%= v.url %>"><%= v.title %></a> <b><%= v.timeAgo %></b></li>
         <% }) %>
       <% } else { %>
-        <li>No recent commits found.</li>
+        <li>No recent commits</li>
       <% } %>
     </ul>
   </aside>

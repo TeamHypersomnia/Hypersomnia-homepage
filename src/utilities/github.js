@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { timeAgo } = require('./timeAgo');
+const { timeAgoShort } = require('./timeAgo');
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ async function getLatestClosedPRs(owner, repo, limit = 5) {
       number: pr.number,
       title: pr.title,
       url: pr.html_url,
-      timeAgo: timeAgo(pr.merged_at),
+      timeAgo: timeAgoShort(pr.merged_at),
       author: pr.user.login
     }));
 }
