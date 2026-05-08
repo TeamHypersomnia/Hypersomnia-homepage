@@ -1,21 +1,17 @@
 #!/bin/bash
-# Certbot renewal hook - copy certificates and restart services
+# Certbot renewal hook - copy certificates and restart masterserver.
+# Fail loudly: a silent failure here means the running masterserver keeps
+# serving an expired certificate after renewal (regression: 2026-04 → 2026-05).
+set -euo pipefail
 
 CERT_DIR="{{ paths.certs }}"
 DOMAIN="{{ domains.masterserver }}"
 
-# Copy certificates
 cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem $CERT_DIR/
 cp /etc/letsencrypt/live/$DOMAIN/privkey.pem $CERT_DIR/
 
-# Set ownership and permissions
-chown ubuntu:ubuntu $CERT_DIR/*.pem
-chmod 600 $CERT_DIR/*.pem
+chown ubuntu:ubuntu $CERT_DIR/fullchain.pem $CERT_DIR/privkey.pem
+chmod 600 $CERT_DIR/fullchain.pem $CERT_DIR/privkey.pem
 
-# Restart masterserver to reload certificates
-if systemctl is-active --quiet masterserver; then
-    systemctl restart masterserver
-    echo "Masterserver restarted"
-fi
-
-echo "Certificates copied to $CERT_DIR"
+systemctl restart masterserver
+echo "Certificates copied to $CERT_DIR and masterserver restarted"
