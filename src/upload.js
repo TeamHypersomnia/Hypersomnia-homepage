@@ -43,10 +43,10 @@ router.post('/', upload.single('upload'), (req, res) => {
       error: 'You are not authorized to create new maps'
     });
   } else if (allowCreatingNew) {
-    const owner = Object.keys(authorizedMappers).find(
+    const owners = Object.keys(authorizedMappers).filter(
       (key) => authorizedMappers[key].maps && authorizedMappers[key].maps.includes(arena)
     );
-    if (owner && owner !== apikey) {
+    if (owners.length > 0 && !owners.includes(apikey)) {
       return res.status(400).json({
         error: 'You are not authorized to upload a map with this name'
       });
