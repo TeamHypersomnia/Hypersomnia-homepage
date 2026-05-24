@@ -2,11 +2,14 @@ const express = require('express');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const config = require('./config');
 const router = express.Router();
 
 const STATE_DIR = process.env.TOURNAMENT_DIR
   ? path.resolve(process.env.TOURNAMENT_DIR)
-  : path.join(os.homedir(), '.config', 'Hypersomnia', 'user');
+  : config.IS_PROD
+    ? path.join(os.homedir(), '.config', 'Hypersomnia', 'user')
+    : path.resolve('./tests/tournaments');
 const ONGOING_FILE = path.join(STATE_DIR, 'tournament.ongoing.json');
 const COMPLETED_STATE_RE = /^tournament\.completed\..+\.state\.json$/;
 

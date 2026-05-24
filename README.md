@@ -2,6 +2,27 @@
 
 https://hypersomnia.io/
 
+## Running locally (localhost:3000)
+
+```bash
+npm install
+node app.js
+```
+
+Then open http://localhost:3000
+
+No `.env` is needed in development — env vars are only required when `NODE_ENV=production`.
+A random session secret is generated automatically, static files are served by Express,
+and the master server list is fetched from the remote one. In development the tournament
+state directory defaults to `./tests/tournaments` (override with `TOURNAMENT_DIR`). To use
+a different port:
+
+```bash
+PORT=4000 node app.js
+```
+
+## Deployment
+
 Use Ansible playbooks to setup.
 
 ## Configuration
