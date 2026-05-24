@@ -1179,8 +1179,8 @@ footer>a:hover {
   font-size: 0.75rem;
   padding: 0.45em 1em;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(236, 72, 153, 0.12));
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 1), rgba(236, 72, 153, 0.08));
+  border: 1px solid rgba(167, 139, 250, 0.4);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   margin-bottom: 0.4em;
 }
@@ -1225,7 +1225,7 @@ footer>a:hover {
   display: block;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, rgba(196, 181, 253, 0.95), rgba(244, 114, 182, 0.85));
+  background: linear-gradient(90deg, rgba(0, 0, 0, 1), rgba(244, 114, 182, 0.6));
   border-radius: 2px;
 }
 
