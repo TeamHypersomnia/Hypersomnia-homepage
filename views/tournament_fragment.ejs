@@ -42,6 +42,8 @@
               <div class="match-connector">
                 <% if (hasScore) { %>
                   <span class="match-score"><%= pad2(m.winnerScore) %> <%= pad2(m.loserScore) %></span>
+                <% } else { %>
+                  <span class="match-line"></span>
                 <% } %>
               </div>
               <div class="team-card <%= rightClass %>">
