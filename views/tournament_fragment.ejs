@@ -4,7 +4,7 @@
   <% if (view.finished && view.winnerIndex >= 0) { %>
     <div class="tournament-winner">
       <h2 class="tournament-winner-label">WINNER</h2>
-      <div class="team-box won">
+      <div class="team-card won">
         <%= view.teams[view.winnerIndex].label %>
       </div>
     </div>
@@ -17,7 +17,7 @@
     <div class="bracket-row">
       <% view.stages.forEach((stage, colIdx) => { %>
         <div class="stage-column">
-          <div class="stage-label">Stage <%= stage.index + 1 %></div>
+          <div class="stage-label <%= stage.current ? 'pulse' : '' %>"><%= stage.label %></div>
           <% stage.matches.forEach(m => {
                const aWon = m.resolved && m.winner === m.teamA;
                const bWon = m.resolved && m.winner === m.teamB;
@@ -25,20 +25,21 @@
                const bLost = m.resolved && !bWon;
                const teamA = view.teams[m.teamA];
                const teamB = view.teams[m.teamB];
+               const pulse = stage.current && !m.resolved ? 'pulse' : '';
           %>
             <div class="match-pair">
-              <div class="team-box <%= aWon ? 'won' : '' %> <%= aLost ? 'lost' : '' %>">
+              <div class="team-card <%= aWon ? 'won' : '' %> <%= aLost ? 'lost' : '' %> <%= pulse %>">
                 <%= teamA ? teamA.label : '?' %>
               </div>
               <div class="match-connector"></div>
-              <div class="team-box <%= bWon ? 'won' : '' %> <%= bLost ? 'lost' : '' %>">
+              <div class="team-card <%= bWon ? 'won' : '' %> <%= bLost ? 'lost' : '' %> <%= pulse %>">
                 <%= teamB ? teamB.label : '?' %>
               </div>
             </div>
           <% }); %>
           <% stage.byes.forEach(idx => { %>
-            <div class="team-box bye">
-              <%= view.teams[idx].label %> <span class="bye-tag">(bye)</span>
+            <div class="team-card bye">
+              <%= view.teams[idx].label %> <span class="bye-tag">bye</span>
             </div>
           <% }); %>
         </div>

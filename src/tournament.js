@@ -4,7 +4,9 @@ const os = require('os');
 const path = require('path');
 const router = express.Router();
 
-const STATE_DIR = path.join(os.homedir(), '.config', 'Hypersomnia', 'user');
+const STATE_DIR = process.env.TOURNAMENT_DIR
+  ? path.resolve(process.env.TOURNAMENT_DIR)
+  : path.join(os.homedir(), '.config', 'Hypersomnia', 'user');
 const ONGOING_FILE = path.join(STATE_DIR, 'tournament.ongoing.json');
 const COMPLETED_STATE_RE = /^tournament\.completed\..+\.state\.json$/;
 
@@ -165,7 +167,7 @@ function buildStages(state) {
       byes.push(i);
     }
 
-    stages.push({ index: stageIndex, matches, byes });
+    stages.push({ index: stageIndex, matches, byes, current: true });
   }
 
   let winnerIndex = -1;
@@ -175,6 +177,21 @@ function buildStages(state) {
         winnerIndex = i;
         break;
       }
+    }
+  }
+
+  let regularStageCounter = 0;
+  for (const s of stages) {
+    const teamCount = s.matches.length * 2 + s.byes.length;
+    if (s.byes.length > 0) {
+      s.label = 'QUALIFIERS';
+    } else if (teamCount === 2) {
+      s.label = 'FINALS';
+    } else if (teamCount === 4) {
+      s.label = 'SEMIFINALS';
+    } else {
+      regularStageCounter += 1;
+      s.label = 'STAGE ' + regularStageCounter;
     }
   }
 
