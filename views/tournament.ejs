@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tournament - Hypersomnia</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="/assets/styles/main.css?t=053014032026">
+</head>
+<body>
+  <main class="container tournament-page">
+    <div id="tournament-root">
+      <%- include('tournament_fragment', { view: view }); %>
+    </div>
+  </main>
+  <script>
+  (function() {
+    const root = document.getElementById('tournament-root');
+    if (!root) return;
+    async function refresh() {
+      try {
+        const res = await fetch('/tournament?fragment=1', { headers: { 'Accept': 'text/html' } });
+        if (!res.ok) return;
+        const html = await res.text();
+        root.innerHTML = html;
+      } catch (_) {}
+    }
+    setInterval(refresh, 3000);
+  })();
+  </script>
+</body>
+</html>

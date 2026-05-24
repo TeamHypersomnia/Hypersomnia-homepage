@@ -1095,3 +1095,113 @@ footer>a:hover {
     display: none;
   }
 }
+
+.tournament-empty {
+  text-align: center;
+  margin: 2em 0;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tournament-winner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1em 0 1.5em;
+}
+
+.tournament-winner-label {
+  font-size: 3rem;
+  letter-spacing: 0.15em;
+  margin: 0 0 0.5em;
+  background: linear-gradient(135deg, #4ade80, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tournament-separator {
+  border: none;
+  border-top: 1px solid rgba(167, 139, 250, 0.25);
+  margin: 1.5em 0 2em;
+}
+
+.bracket-row {
+  display: flex;
+  flex-direction: row;
+  gap: 56px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 1em 0;
+}
+
+.stage-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 28px;
+  min-width: 180px;
+}
+
+.stage-label {
+  text-align: center;
+  font-weight: 600;
+  color: #e9d5ff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  margin-bottom: 0.3em;
+}
+
+.match-pair {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.match-connector {
+  width: 2px;
+  height: 14px;
+  background: rgba(167, 139, 250, 0.5);
+  margin: 0 auto;
+}
+
+.team-box {
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(15, 15, 30, 0.8);
+  border-radius: 6px;
+  padding: 10px 14px;
+  text-align: center;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  min-width: 140px;
+  word-break: break-word;
+}
+
+.team-box.won {
+  border-color: #4ade80;
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.08);
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.25);
+}
+
+.team-box.lost {
+  border-color: rgba(248, 113, 113, 0.6);
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.05);
+  text-decoration: line-through;
+}
+
+.team-box.bye {
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.team-box .bye-tag {
+  font-weight: 400;
+  font-size: 0.8em;
+  opacity: 0.7;
+  margin-left: 0.3em;
+}

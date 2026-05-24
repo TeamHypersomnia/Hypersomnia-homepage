@@ -1,0 +1,48 @@
+<% if (!view) { %>
+  <p class="tournament-empty">No tournament is currently in progress.</p>
+<% } else { %>
+  <% if (view.finished && view.winnerIndex >= 0) { %>
+    <div class="tournament-winner">
+      <h2 class="tournament-winner-label">WINNER</h2>
+      <div class="team-box won">
+        <%= view.teams[view.winnerIndex].label %>
+      </div>
+    </div>
+    <hr class="tournament-separator">
+  <% } %>
+
+  <% if (view.stages.length === 0) { %>
+    <p class="tournament-empty">No matches found.</p>
+  <% } else { %>
+    <div class="bracket-row">
+      <% view.stages.forEach((stage, colIdx) => { %>
+        <div class="stage-column">
+          <div class="stage-label">Stage <%= stage.index + 1 %></div>
+          <% stage.matches.forEach(m => {
+               const aWon = m.resolved && m.winner === m.teamA;
+               const bWon = m.resolved && m.winner === m.teamB;
+               const aLost = m.resolved && !aWon;
+               const bLost = m.resolved && !bWon;
+               const teamA = view.teams[m.teamA];
+               const teamB = view.teams[m.teamB];
+          %>
+            <div class="match-pair">
+              <div class="team-box <%= aWon ? 'won' : '' %> <%= aLost ? 'lost' : '' %>">
+                <%= teamA ? teamA.label : '?' %>
+              </div>
+              <div class="match-connector"></div>
+              <div class="team-box <%= bWon ? 'won' : '' %> <%= bLost ? 'lost' : '' %>">
+                <%= teamB ? teamB.label : '?' %>
+              </div>
+            </div>
+          <% }); %>
+          <% stage.byes.forEach(idx => { %>
+            <div class="team-box bye">
+              <%= view.teams[idx].label %> <span class="bye-tag">(bye)</span>
+            </div>
+          <% }); %>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+<% } %>
