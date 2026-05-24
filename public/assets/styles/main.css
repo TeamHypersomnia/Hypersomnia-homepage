@@ -1149,24 +1149,25 @@ footer>a:hover {
   margin: 2em 0 2.5em;
 }
 
-.bracket-row {
-  display: flex;
-  flex-direction: row;
-  gap: 64px;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding: 1.5em 0.5em;
-}
-
-.stage-column {
+.bracket-stack {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 28px;
-  min-width: 220px;
-  flex: 0 0 auto;
+  align-items: center;
+  gap: 0;
+  padding: 0.5em 0;
+}
+
+.stage-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0.5em 0;
+}
+
+.stage-separator {
+  margin: 1.2em 0;
+  width: min(80%, 480px);
 }
 
 .stage-label {
@@ -1186,17 +1187,43 @@ footer>a:hover {
 
 .match-pair {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  padding: 0.5em 0;
+  gap: 8px;
 }
 
 .match-connector {
-  width: 2px;
-  height: 18px;
-  background: linear-gradient(180deg, rgba(167, 139, 250, 0.55), rgba(236, 72, 153, 0.35));
-  margin: 0 auto;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 64px;
+  padding: 0 4px;
+}
+
+.match-score {
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(233, 213, 255, 0.95);
+  background: rgba(15, 15, 30, 0.65);
+  border: 1px solid rgba(167, 139, 250, 0.45);
+  padding: 4px 12px;
+  border-radius: 7px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.match-line {
+  display: block;
+  width: 44px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(167, 139, 250, 0.55), rgba(236, 72, 153, 0.35));
   border-radius: 2px;
 }
 
@@ -1334,18 +1361,31 @@ footer>a:hover {
     padding: 1.5em 0.75em 2em;
   }
 
-  .bracket-row {
-    gap: 32px;
-    padding: 1em 0;
+  .stage-section {
+    gap: 8px;
   }
 
-  .stage-column {
-    min-width: 170px;
-    gap: 20px;
+  .match-pair {
+    gap: 4px;
+  }
+
+  .match-connector {
+    min-width: 50px;
+    padding: 0 2px;
+    gap: 7px;
+  }
+
+  .match-line {
+    width: 28px;
+  }
+
+  .match-score {
+    font-size: 1.1rem;
+    padding: 3px 9px;
   }
 
   .team-card {
-    min-width: 150px;
+    min-width: 130px;
     padding: 0.75em 0.9em;
     font-size: 0.85rem;
   }

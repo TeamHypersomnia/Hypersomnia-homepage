@@ -116,7 +116,9 @@ function buildStages(state) {
         teamA: winnerIdx,
         teamB: loserIdx,
         resolved: true,
-        winner: winnerIdx
+        winner: winnerIdx,
+        winnerScore: typeof h.winner_score === 'number' ? h.winner_score : null,
+        loserScore: typeof h.loser_score === 'number' ? h.loser_score : null
       });
 
       if (winnerIdx >= 0) playedTeamIndices.add(winnerIdx);
@@ -146,14 +148,21 @@ function buildStages(state) {
     for (const m of currentMatches) {
       const teamA = m.team_a_index;
       const teamB = m.team_b_index;
-      let winner = -1;
-      if (m.resolved) winner = m.winner_team_index;
+      const hasResult = m.result && typeof m.result === 'object';
+      const winner = hasResult ? m.result.winner_team_index : -1;
 
+      /*
+        Per spec, scores are only displayed for historical matches
+        (match_history). Current_stage_matches keep score=null even
+        when their result is already filled in mid-stage.
+      */
       matches.push({
         teamA,
         teamB,
-        resolved: !!m.resolved,
-        winner
+        resolved: hasResult,
+        winner,
+        winnerScore: null,
+        loserScore: null
       });
 
       playedTeamIndices.add(teamA);

@@ -20,24 +20,24 @@
   ],
   "current_stage_matches": [],
   "match_history": [
-    { "played_in_stage": 0, "winner_player_ids": ["Halberd Glitcher"], "loser_player_ids": ["arystoteles"], "duration_secs": 84.3 },
-    { "played_in_stage": 0, "winner_player_ids": ["aesc"], "loser_player_ids": ["platon"], "duration_secs": 127.6 },
-    { "played_in_stage": 0, "winner_player_ids": ["nomz"], "loser_player_ids": ["sokrates"], "duration_secs": 106.1 },
-    { "played_in_stage": 0, "winner_player_ids": ["oaj"], "loser_player_ids": ["archimedes"], "duration_secs": 138.4 },
-    { "played_in_stage": 0, "winner_player_ids": ["sensacja", "buddy"], "loser_player_ids": ["herodot"], "duration_secs": 105.0 },
-    { "played_in_stage": 0, "winner_player_ids": ["mikolaj"], "loser_player_ids": ["demosthenes"], "duration_secs": 120.5 },
-    { "played_in_stage": 0, "winner_player_ids": ["suve"], "loser_player_ids": ["plutarch"], "duration_secs": 110.2 },
-    { "played_in_stage": 0, "winner_player_ids": ["glitch"], "loser_player_ids": ["pythagoras"], "duration_secs": 98.7 },
+    { "played_in_stage": 0, "winner_player_ids": ["Halberd Glitcher"], "loser_player_ids": ["arystoteles"],          "winner_score": 13, "loser_score":  2, "duration_secs":  84.3 },
+    { "played_in_stage": 0, "winner_player_ids": ["aesc"],             "loser_player_ids": ["platon"],               "winner_score": 13, "loser_score": 10, "duration_secs": 127.6 },
+    { "played_in_stage": 0, "winner_player_ids": ["nomz"],             "loser_player_ids": ["sokrates"],             "winner_score": 13, "loser_score":  7, "duration_secs": 106.1 },
+    { "played_in_stage": 0, "winner_player_ids": ["oaj"],              "loser_player_ids": ["archimedes"],           "winner_score": 13, "loser_score": 11, "duration_secs": 138.4 },
+    { "played_in_stage": 0, "winner_player_ids": ["sensacja","buddy"], "loser_player_ids": ["herodot"],              "winner_score": 13, "loser_score":  6, "duration_secs": 105.0 },
+    { "played_in_stage": 0, "winner_player_ids": ["mikolaj"],          "loser_player_ids": ["demosthenes"],          "winner_score": 13, "loser_score":  9, "duration_secs": 120.5 },
+    { "played_in_stage": 0, "winner_player_ids": ["suve"],             "loser_player_ids": ["plutarch"],             "winner_score": 13, "loser_score":  8, "duration_secs": 110.2 },
+    { "played_in_stage": 0, "winner_player_ids": ["glitch"],           "loser_player_ids": ["pythagoras"],           "winner_score": 13, "loser_score":  4, "duration_secs":  98.7 },
 
-    { "played_in_stage": 1, "winner_player_ids": ["Halberd Glitcher"], "loser_player_ids": ["glitch"], "duration_secs": 72.1 },
-    { "played_in_stage": 1, "winner_player_ids": ["aesc"], "loser_player_ids": ["suve"], "duration_secs": 115.4 },
-    { "played_in_stage": 1, "winner_player_ids": ["nomz"], "loser_player_ids": ["mikolaj"], "duration_secs": 88.9 },
-    { "played_in_stage": 1, "winner_player_ids": ["oaj"], "loser_player_ids": ["sensacja", "buddy"], "duration_secs": 142.3 },
+    { "played_in_stage": 1, "winner_player_ids": ["Halberd Glitcher"], "loser_player_ids": ["glitch"],               "winner_score": 13, "loser_score":  3, "duration_secs":  72.1 },
+    { "played_in_stage": 1, "winner_player_ids": ["aesc"],             "loser_player_ids": ["suve"],                 "winner_score": 16, "loser_score": 14, "duration_secs": 115.4 },
+    { "played_in_stage": 1, "winner_player_ids": ["nomz"],             "loser_player_ids": ["mikolaj"],              "winner_score": 13, "loser_score":  5, "duration_secs":  88.9 },
+    { "played_in_stage": 1, "winner_player_ids": ["oaj"],              "loser_player_ids": ["sensacja","buddy"],     "winner_score": 19, "loser_score": 17, "duration_secs": 142.3 },
 
-    { "played_in_stage": 2, "winner_player_ids": ["Halberd Glitcher"], "loser_player_ids": ["oaj"], "duration_secs": 65.2 },
-    { "played_in_stage": 2, "winner_player_ids": ["aesc"], "loser_player_ids": ["nomz"], "duration_secs": 134.8 },
+    { "played_in_stage": 2, "winner_player_ids": ["Halberd Glitcher"], "loser_player_ids": ["oaj"],                  "winner_score": 13, "loser_score":  4, "duration_secs":  65.2 },
+    { "played_in_stage": 2, "winner_player_ids": ["aesc"],             "loser_player_ids": ["nomz"],                 "winner_score": 16, "loser_score": 13, "duration_secs": 134.8 },
 
-    { "played_in_stage": 3, "winner_player_ids": ["Halberd Glitcher"], "loser_player_ids": ["aesc"], "duration_secs": 58.7 }
+    { "played_in_stage": 3, "winner_player_ids": ["Halberd Glitcher"], "loser_player_ids": ["aesc"],                 "winner_score": 13, "loser_score":  6, "duration_secs":  58.7 }
   ],
   "initialized": true,
   "config_hash": "test-fixture-completed"

@@ -14,32 +14,45 @@
   <% if (view.stages.length === 0) { %>
     <p class="tournament-empty">No matches found.</p>
   <% } else { %>
-    <div class="bracket-row">
-      <% view.stages.forEach((stage, colIdx) => { %>
-        <div class="stage-column">
+    <div class="bracket-stack">
+      <% const stagesNewestFirst = view.stages.slice().reverse(); %>
+      <% stagesNewestFirst.forEach((stage, idx) => { %>
+        <% if (idx > 0) { %>
+          <hr class="tournament-separator stage-separator">
+        <% } %>
+        <div class="stage-section">
           <div class="stage-label <%= stage.current ? 'pulse' : '' %>"><%= stage.label %></div>
+
           <% stage.matches.forEach(m => {
-               const aWon = m.resolved && m.winner === m.teamA;
-               const bWon = m.resolved && m.winner === m.teamB;
-               const aLost = m.resolved && !aWon;
-               const bLost = m.resolved && !bWon;
-               const teamA = view.teams[m.teamA];
-               const teamB = view.teams[m.teamB];
-               const pulse = stage.current && !m.resolved ? 'pulse' : '';
+               const leftIdx = m.resolved ? m.winner : m.teamA;
+               const rightIdx = m.resolved ? (m.winner === m.teamA ? m.teamB : m.teamA) : m.teamB;
+               const leftClass = m.resolved ? 'won' : (stage.current ? 'pulse' : '');
+               const rightClass = m.resolved ? 'lost' : (stage.current ? 'pulse' : '');
+               const left = view.teams[leftIdx];
+               const right = view.teams[rightIdx];
           %>
+            <%
+              const hasScore = m.resolved && m.winnerScore != null && m.loserScore != null;
+              const pad2 = n => String(n).padStart(2, ' ');
+            %>
             <div class="match-pair">
-              <div class="team-card <%= aWon ? 'won' : '' %> <%= aLost ? 'lost' : '' %> <%= pulse %>">
-                <%= teamA ? teamA.label : '?' %>
+              <div class="team-card <%= leftClass %>">
+                <%= left ? left.label : '?' %>
               </div>
-              <div class="match-connector"></div>
-              <div class="team-card <%= bWon ? 'won' : '' %> <%= bLost ? 'lost' : '' %> <%= pulse %>">
-                <%= teamB ? teamB.label : '?' %>
+              <div class="match-connector">
+                <% if (hasScore) { %>
+                  <span class="match-score"><%= pad2(m.winnerScore) %> <%= pad2(m.loserScore) %></span>
+                <% } %>
+              </div>
+              <div class="team-card <%= rightClass %>">
+                <%= right ? right.label : '?' %>
               </div>
             </div>
           <% }); %>
-          <% stage.byes.forEach(idx => { %>
+
+          <% stage.byes.forEach(byeIdx => { %>
             <div class="team-card bye">
-              <%= view.teams[idx].label %> <span class="bye-tag">bye</span>
+              <%= view.teams[byeIdx].label %> <span class="bye-tag">bye</span>
             </div>
           <% }); %>
         </div>

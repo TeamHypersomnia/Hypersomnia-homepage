@@ -1,0 +1,32 @@
+{
+  "stage_index": 2,
+  "teams": [
+    { "player_ids": ["Halberd Glitcher"], "skill": 6.0, "eliminated": false },
+    { "player_ids": ["aesc"], "skill": 5.0, "eliminated": false },
+    { "player_ids": ["nomz"], "skill": 4.0, "eliminated": true },
+    { "player_ids": ["oaj"], "skill": 0.5, "eliminated": true },
+    { "player_ids": ["sensacja", "buddy"], "skill": 0.3, "eliminated": true },
+    { "player_ids": ["mikolaj"], "skill": 2.0, "eliminated": true }
+  ],
+  "current_stage_matches": [
+    {
+      "team_a_index": 0,
+      "team_b_index": 1,
+      "team_a_player_ids": ["Halberd Glitcher"],
+      "team_b_player_ids": ["aesc"],
+      "spectator_player_ids": [],
+      "port": 8500,
+      "server_name": "[Halberd Glitcher] vs [aesc]",
+      "arena_and_mode": "de_silo bomb_defusal",
+      "heartbeat_ranked_type": 0
+    }
+  ],
+  "match_history": [
+    { "played_in_stage": 0, "winner_player_ids": ["nomz"],             "loser_player_ids": ["oaj"],               "winner_score": 13, "loser_score":  8, "duration_secs":  92.4 },
+    { "played_in_stage": 0, "winner_player_ids": ["mikolaj"],          "loser_player_ids": ["sensacja", "buddy"], "winner_score": 13, "loser_score": 11, "duration_secs": 108.7 },
+    { "played_in_stage": 1, "winner_player_ids": ["Halberd Glitcher"], "loser_player_ids": ["mikolaj"],           "winner_score": 13, "loser_score":  4, "duration_secs":  75.2 },
+    { "played_in_stage": 1, "winner_player_ids": ["aesc"],             "loser_player_ids": ["nomz"],              "winner_score": 16, "loser_score": 14, "duration_secs": 130.1 }
+  ],
+  "initialized": true,
+  "config_hash": "test-fixture"
+}
