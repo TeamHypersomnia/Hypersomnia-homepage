@@ -1,0 +1,78 @@
+{
+  "stage_index": 0,
+  "teams": [
+    { "player_ids": ["Halberd Glitcher"],     "skill": 12.0, "eliminated": false },
+    { "player_ids": ["aesc"],                 "skill": 11.0, "eliminated": false },
+    { "player_ids": ["nomz"],                 "skill": 10.0, "eliminated": false },
+    { "player_ids": ["oaj"],                  "skill":  9.0, "eliminated": false },
+    { "player_ids": ["sensacja", "buddy"],    "skill":  8.0, "eliminated": false },
+    { "player_ids": ["mikolaj"],              "skill":  7.0, "eliminated": false },
+    { "player_ids": ["suve"],                 "skill":  6.0, "eliminated": false },
+    { "player_ids": ["glitch"],               "skill":  5.0, "eliminated": false },
+    { "player_ids": ["pythagoras"],           "skill":  4.0, "eliminated": false },
+    { "player_ids": ["plutarch"],             "skill":  3.0, "eliminated": false },
+    { "player_ids": ["demosthenes"],          "skill":  2.0, "eliminated": false },
+    { "player_ids": ["herodot"],              "skill":  1.0, "eliminated": false }
+  ],
+  "current_stage_matches": [
+    {
+      "team_a_index": 5,
+      "team_b_index": 10,
+      "team_a_player_ids": ["mikolaj"],
+      "team_b_player_ids": ["demosthenes"],
+      "spectator_player_ids": [],
+      "port": 8501,
+      "server_name": "[mikolaj] vs [demosthenes]",
+      "arena_and_mode": "de_cyberaqua bomb_defusal",
+      "heartbeat_ranked_type": 0
+    },
+    {
+      "team_a_index": 4,
+      "team_b_index": 11,
+      "team_a_player_ids": ["sensacja", "buddy"],
+      "team_b_player_ids": ["herodot"],
+      "spectator_player_ids": [],
+      "port": 8500,
+      "server_name": "[sensacja, buddy] vs [herodot]",
+      "arena_and_mode": "de_cyberaqua bomb_defusal",
+      "result": {
+        "winner_team_index": 4,
+        "duration_secs": 102.4,
+        "team_a_score": 13,
+        "team_b_score": 7
+      },
+      "heartbeat_ranked_type": 0
+    },
+    {
+      "team_a_index": 7,
+      "team_b_index": 8,
+      "team_a_player_ids": ["glitch"],
+      "team_b_player_ids": ["pythagoras"],
+      "spectator_player_ids": [],
+      "port": 8503,
+      "server_name": "[glitch] vs [pythagoras]",
+      "arena_and_mode": "de_cyberaqua bomb_defusal",
+      "heartbeat_ranked_type": 0
+    },
+    {
+      "team_a_index": 6,
+      "team_b_index": 9,
+      "team_a_player_ids": ["suve"],
+      "team_b_player_ids": ["plutarch"],
+      "spectator_player_ids": [],
+      "port": 8502,
+      "server_name": "[suve] vs [plutarch]",
+      "arena_and_mode": "de_cyberaqua bomb_defusal",
+      "result": {
+        "winner_team_index": 9,
+        "duration_secs": 168.9,
+        "team_a_score": 11,
+        "team_b_score": 13
+      },
+      "heartbeat_ranked_type": 0
+    }
+  ],
+  "match_history": [],
+  "initialized": true,
+  "config_hash": "test-fixture-qualifiers"
+}
