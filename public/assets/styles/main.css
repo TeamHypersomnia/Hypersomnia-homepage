@@ -1123,23 +1123,56 @@ footer>a:hover {
   font-weight: 800;
   letter-spacing: 0.22em;
   margin: 0;
-  background: linear-gradient(135deg, #4ade80 0%, #a78bfa 50%, #ec4899 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 40px rgba(167, 139, 250, 0.3);
-  animation: shimmer 4s linear infinite;
+  color: #ffd700;
+  animation: winner-glow-pulse 3.2s cubic-bezier(0.37, 0, 0.63, 1) infinite;
 }
 
-.tournament-winner .team-card {
+@keyframes winner-glow-pulse {
+  0%, 100% {
+    opacity: 0.85;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.25);
+  }
+  50% {
+    opacity: 1;
+    text-shadow:
+      0 0 24px rgba(255, 215, 0, 0.6),
+      0 0 48px rgba(255, 215, 0, 0.35);
+  }
+}
+
+.tournament-winner .team-card.won {
   min-width: 260px;
   font-size: 1.25rem;
   padding: 1.25em 2em;
+  border-color: rgba(255, 215, 0, 0.55);
+  background: linear-gradient(135deg, rgba(120, 90, 10, 0.4), rgba(15, 15, 30, 0.85));
+  color: #ffd700;
   box-shadow:
-    0 0 0 1px rgba(74, 222, 128, 0.4),
-    0 0 60px rgba(74, 222, 128, 0.25),
+    0 0 0 1px rgba(255, 215, 0, 0.4),
+    0 0 60px rgba(255, 215, 0, 0.25),
     0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.tournament-winner .team-card.won:hover {
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow:
+    0 0 0 1px rgba(255, 215, 0, 0.5),
+    0 0 60px rgba(255, 215, 0, 0.3),
+    0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.tournament-winner .team-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 215, 0, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(255, 215, 0, 0.55),
+    0 0 28px rgba(255, 215, 0, 0.4);
+  pointer-events: none;
+  opacity: 0;
+  animation: pulse-overlay 3.2s cubic-bezier(0.37, 0, 0.63, 1) infinite;
 }
 
 .tournament-separator {
