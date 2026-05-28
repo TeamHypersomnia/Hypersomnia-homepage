@@ -21,6 +21,23 @@ a different port:
 PORT=4000 node app.js
 ```
 
+## Hosting the tournament visualizer at a LAN party
+
+`./launch.sh` is a self-healing wrapper around `node app.js` aimed at hosting
+the `/tournament` page on a LAN. It checks Node.js, installs/repairs dependencies
+(including rebuilding `better-sqlite3` if you switched Node versions, with a
+fallback to installing the latest compatible release ad-hoc), frees the port,
+auto-points `TOURNAMENT_DIR` at `~/.config/Hypersomnia/user` if the game is
+installed locally, and prints the LAN URL.
+
+```bash
+./launch.sh                          # port 3000, auto-detect tournament dir
+PORT=4000 ./launch.sh                # custom port
+TOURNAMENT_DIR=/path ./launch.sh     # custom tournament state dir
+```
+
+Then open `http://<your-lan-ip>:3000/tournament` from any machine on the network.
+
 ## Deployment
 
 Use Ansible playbooks to setup.
