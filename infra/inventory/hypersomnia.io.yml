@@ -23,6 +23,7 @@ all:
           private: /var/www/app/private
           appimage_folder: /home/ubuntu/hypersomnia
           certs: /home/ubuntu/certs
+          webroot: /var/www/certbot  # ACME HTTP-01 challenge root (Let's Encrypt webroot renewal)
 
         # Hypersomnia binary
         hypersomnia_headless_url: https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage

@@ -249,9 +249,17 @@ http {
     listen [::]:80;
     
     server_name hypersomnia.io www.hypersomnia.io;
-    
+
     access_log off;
-    
-    return 301 https://hypersomnia.io$request_uri;
+
+    # ACME HTTP-01 challenge for Let's Encrypt (webroot renewal).
+    # Must be matched before the redirect so certbot can renew over plain HTTP.
+    location ^~ /.well-known/acme-challenge/ {
+      root {{ paths.webroot }};
+    }
+
+    location / {
+      return 301 https://hypersomnia.io$request_uri;
+    }
   }
 }

@@ -33,7 +33,8 @@ python3 --version
 ssh ubuntu@play.hypersomnia.io
 
 # Instalacja nginx i certbot
-sudo apt install -y nginx certbot python3-certbot-nginx
+sudo apt install -y nginx certbot
+# WITHOUT python3-certbot-nginx — renewal uses webroot (built into certbot).
 
 # Start nginx
 sudo systemctl start nginx
@@ -64,8 +65,12 @@ dig play.hypersomnia.io +short
 ```bash
 ssh ubuntu@play.hypersomnia.io
 
+# Webroot for the ACME challenge (nginx must serve /.well-known/acme-challenge/)
+sudo mkdir -p /var/www/certbot/.well-known/acme-challenge
+sudo chown -R www-data:www-data /var/www/certbot
+
 # Certyfikat dla play.hypersomnia.io
-sudo certbot certonly --nginx -d play.hypersomnia.io
+sudo certbot certonly --webroot -w /var/www/certbot -d play.hypersomnia.io
 
 # Test renewal
 sudo certbot renew --dry-run

@@ -30,7 +30,10 @@ ssh ubuntu@hub.hypersomnia.io
 # Update systemu i instalacja wszystkich wymaganych pakietów
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y python3 python3-pip nginx certbot python3-certbot-nginx
+sudo apt install -y python3 python3-pip nginx certbot
+# NOTE: do NOT install python3-certbot-nginx. Renewal uses webroot (built into
+# certbot core). The nginx plugin can vanish on an OS dist-upgrade and silently
+# break renewal (regression 2026-06: certs expired).
 
 # Start nginx
 sudo systemctl start nginx
@@ -50,11 +53,19 @@ curl http://localhost
 
 ### Na hub.hypersomnia.io
 
+We use the **webroot** method (not the --nginx plugin). nginx must already serve
+`/var/www/certbot` under `/.well-known/acme-challenge/` (defined in nginx.conf.j2),
+so deploy that config via the playbook first, or create the directory manually.
+
 ```bash
 ssh ubuntu@hub.hypersomnia.io
 
+# Webroot for the ACME challenge
+sudo mkdir -p /var/www/certbot/.well-known/acme-challenge
+sudo chown -R www-data:www-data /var/www/certbot
+
 # Certyfikat dla hub.hypersomnia.io
-sudo certbot certonly --nginx -d hub.hypersomnia.io
+sudo certbot certonly --webroot -w /var/www/certbot -d hub.hypersomnia.io
 
 # Podczas pierwszego uruchomienia:
 # - Podaj email (do powiadomień o wygasaniu)
@@ -69,8 +80,8 @@ sudo ls -la /etc/letsencrypt/live/hub.hypersomnia.io/
 **Jeśli planujesz już teraz używać hypersomnia.io (bez hub):**
 ```bash
 # Tylko jeśli DNS już wskazuje na ten serwer
-sudo certbot certonly --nginx -d hypersomnia.io
-sudo certbot certonly --nginx -d masterserver.hypersomnia.io
+sudo certbot certonly --webroot -w /var/www/certbot -d hypersomnia.io
+sudo certbot certonly --webroot -w /var/www/certbot -d masterserver.hypersomnia.io
 ```
 
 ---

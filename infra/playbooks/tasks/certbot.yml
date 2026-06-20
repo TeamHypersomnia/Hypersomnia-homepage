@@ -1,5 +1,19 @@
 ---
 # Certbot setup
+
+# Renewal uses the webroot authenticator (NOT the nginx plugin):
+# python3-certbot-nginx can disappear on an OS dist-upgrade and silently break
+# renewal (regression: 2026-06, certs expired). webroot ships with certbot core.
+# nginx serves this directory under /.well-known/acme-challenge/ (see nginx.conf.j2).
+- name: Create ACME webroot directory
+  file:
+    path: "{{ paths.webroot }}/.well-known/acme-challenge"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  become: yes
+
 - name: Create certificate directory for ubuntu user
   file:
     path: "{{ paths.certs }}"
