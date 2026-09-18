@@ -52,6 +52,16 @@
     mode: '0755'
   become: yes
 
+# The webroot authenticator does not reload nginx after renewal (the nginx
+# plugin did). Without this hook nginx keeps serving the old cert until it
+# expires (regression: 2026-09-18, hypersomnia.io down with expired cert).
+- name: Install certbot nginx reload hook
+  template:
+    src: ../templates/reload-nginx.sh.j2
+    dest: /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+    mode: '0755'
+  become: yes
+
 - name: Enable certbot renewal timer
   systemd:
     name: certbot.timer

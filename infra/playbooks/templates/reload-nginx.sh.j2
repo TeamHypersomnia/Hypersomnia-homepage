@@ -1,0 +1,8 @@
+#!/bin/bash
+# Certbot deploy hook - reload nginx so it picks up renewed certs.
+# Needed since switching from the nginx plugin (which reloaded automatically)
+# to webroot (which does not). Regression: 2026-09-18 expired cert served.
+set -euo pipefail
+nginx -t
+systemctl reload nginx
+echo "nginx reloaded after certificate renewal"
