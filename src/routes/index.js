@@ -1,7 +1,17 @@
 const passport = require('../passport');
 const { authenticated, admin } = require('../middleware/auth');
 
+const SITE = 'https://hypersomnia.io';
+
 module.exports = (app) => {
+  // canonical URL of the current page: production domain, no query, no trailing slash
+  app.use((req, res, next) => {
+    const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : '/';
+    res.locals.canonicalUrl = SITE + path;
+    next();
+  });
+
+  app.get('/sitemap.xml', require('../sitemap'));
   app.get('/', (req, res) => res.render('index', {
     page: false,
     user: req.user
@@ -27,5 +37,5 @@ module.exports = (app) => {
   app.use('/admin', admin, require('../admin/overview'));
   app.use('/admin/users', admin, require('../admin/users'));
   app.use('/admin/creators', admin, require('../admin/creators'));
-  app.use((req, res) => res.status(404).render('404', { page: 'Not Found', user: req.user }));
+  app.use((req, res) => res.status(404).render('404', { page: 'Not Found', user: req.user, noindex: true }));
 };

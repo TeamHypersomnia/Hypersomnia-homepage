@@ -1,7 +1,7 @@
 <%- include('overall_header'); %>
 
 <% [['Official Servers', 'official_servers', official_servers, true], ['Community Servers', 'community_servers', community_servers, false]].forEach(([title, id, list, showTag]) => { %>
-<h2><%= title %></h2>
+<% if (showTag) { %><h1><%= title %></h1><% } else { %><h2><%= title %></h2><% } %>
 <div id="<%= id %>" class="responsive">
   <table class="sortable maxwidth">
     <thead>

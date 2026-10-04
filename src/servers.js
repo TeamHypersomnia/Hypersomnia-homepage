@@ -73,6 +73,7 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error('Error fetching servers:', err.message);
     res.status(500).render('error', {
+      noindex: true,
       page: 'Servers',
       user: req.user,
       message: 'Failed to load servers'

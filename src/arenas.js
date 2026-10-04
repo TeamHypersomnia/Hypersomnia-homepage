@@ -136,5 +136,6 @@ router.get('/:arena', (req, res) => {
 });
 
 router.hasArena = name => arenas.some(v => v.name === name);
+router.listArenas = () => arenas;
 
 module.exports = router;

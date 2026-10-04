@@ -1,7 +1,31 @@
-<% 
-const defaultDesc = "Hypersomnia is a free-to-play competitive 2D top-down shooter with intense gunplay, tactical gameplay, and stunning pixel art. Join fast-paced bomb defusal matches, clan wars, and duels in this open-source multiplayer game.";
-const description = typeof arena !== 'undefined' && arena ? arena.short_description.replace(/\n/g, ' ') : defaultDesc;
+<%
+const SITE = 'https://hypersomnia.io';
+const DESCRIPTIONS = {
+  'Weapons': 'Stats for every Hypersomnia weapon: damage, headshot damage, penetration, fire rate, price and kill award for firearms, melee, explosives and spells.',
+  'Leaderboards': 'Top ranked Hypersomnia players in Bomb Defusal and FFA Gun Game, with MMR, win-loss records and win rates.',
+  'Matches': 'Latest ranked Hypersomnia matches: arenas, teams, final scores and MMR changes of every player.',
+  'Arenas': 'Community-made Hypersomnia arenas: map previews, authors, descriptions and last update dates.',
+  'Servers': 'Live list of official and community Hypersomnia servers with player counts, arenas and game modes. Join via Steam or in the browser.',
+  'Disclaimer': 'Disclaimer for hypersomnia.io, the official website of Hypersomnia.',
+  'Cookie Policy': 'How hypersomnia.io uses cookies.'
+};
+const defaultDesc = 'Free, open-source competitive top-down shooter. Bomb defusal, FFA gun game, duels and clan wars. Play in your browser or on Windows, Linux, macOS and Steam.';
+let description = DESCRIPTIONS[page] || defaultDesc;
+if (typeof arena !== 'undefined' && arena) {
+  description = arena.short_description && arena.short_description !== 'N/A'
+    ? arena.short_description.replace(/\s+/g, ' ').trim()
+    : `${arena.name}, a community arena for Hypersomnia by ${arena.author}.`;
+} else if (typeof sv !== 'undefined' && sv) {
+  description = `${sv.name}: Hypersomnia server playing ${sv.arena} (${sv.game_mode}). Join via Steam or straight from your browser.`;
+} else if (typeof nickname !== 'undefined' && typeof teamData !== 'undefined') {
+  description = `${nickname}'s Hypersomnia player profile: MMR, win-loss records and recent matches.`;
+}
 const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
+const canonical = typeof canonicalUrl !== 'undefined' ? canonicalUrl : SITE + '/';
+const isArenaPage = typeof arena !== 'undefined' && arena;
+const ogImage = isArenaPage ? `${SITE}/arenas/${arena.name}/miniature.png` : `${SITE}/assets/images/og.png`;
+const ogImageAlt = isArenaPage ? `Preview of the ${arena.name} arena` : 'Hypersomnia logo over in-game pixel art';
+const isNoindex = typeof noindex !== 'undefined' && noindex;
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,20 +34,47 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#000000">
   <meta name="description" content="<%= description %>">
-  <meta name="keywords" content="hypersomnia, hypersomnia shooter, teamhypersomnia, open source shooter, free shooter, free 2d shooter, 2d topdown, pixel art, competitive shooter, online shooter, indie shooter, top-down shooter, bomb defusal, tactical shooter, clan wars">
+  <% if (isNoindex) { %><meta name="robots" content="noindex"><% } else { %><link rel="canonical" href="<%= canonical %>"><% } %>
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Hypersomnia">
   <meta property="og:title" content="<%= pageTitle %> - Hypersomnia">
   <meta property="og:description" content="<%= description %>">
-  <meta property="og:url" content="https://hypersomnia.io<%= typeof arena !== 'undefined' ? '/arenas/' + arena.name : '' %>">
-  <meta property="og:image" content="<%= typeof arena !== 'undefined' ? 'https://hypersomnia.io/arenas/' + arena.name + '/miniature.png' : 'https://hypersomnia.io/assets/images/og-default.png' %>">
+  <meta property="og:url" content="<%= canonical %>">
+  <meta property="og:image" content="<%= ogImage %>">
+  <meta property="og:image:alt" content="<%= ogImageAlt %>">
+  <% if (!isArenaPage) { %><meta property="og:image:width" content="1840">
+  <meta property="og:image:height" content="920"><% } %>
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="<%= pageTitle %> - Hypersomnia">
   <meta name="twitter:description" content="<%= description %>">
-  <meta name="twitter:image" content="<%= typeof arena !== 'undefined' ? 'https://hypersomnia.io/arenas/' + arena.name + '/miniature.png' : 'https://hypersomnia.io/assets/images/og-default.png' %>">
+  <meta name="twitter:image" content="<%= ogImage %>">
+  <meta name="twitter:image:alt" content="<%= ogImageAlt %>">
   <title><%= pageTitle %> - Hypersomnia</title>
+  <% if (page === false) { %>
+  <script type="application/ld+json">
+  <%- JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'VideoGame',
+    name: 'Hypersomnia',
+    url: SITE + '/',
+    description: defaultDesc,
+    image: SITE + '/assets/images/og.png',
+    genre: ['Shooter', 'Top-down shooter', 'Multiplayer'],
+    gamePlatform: ['Windows', 'Linux', 'macOS', 'Web browser'],
+    playMode: 'MultiPlayer',
+    applicationCategory: 'Game',
+    operatingSystem: 'Windows, Linux, macOS',
+    license: 'https://github.com/TeamHypersomnia/Hypersomnia/blob/master/LICENSE.md',
+    sameAs: [
+      'https://store.steampowered.com/app/2660970/Hypersomnia/',
+      'https://github.com/TeamHypersomnia/Hypersomnia'
+    ],
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+  }) %>
+  </script>
+  <% } %>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="stylesheet" href="/assets/styles/main.css?t=20261006i">
+  <link rel="stylesheet" href="/assets/styles/main.css?t=20261006k">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css">
 </head>
 <body id="top">
