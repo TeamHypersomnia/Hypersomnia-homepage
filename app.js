@@ -12,6 +12,8 @@ app.disable('x-powered-by');
 
 if (!config.IS_PROD) {
   app.use(express.static('./public'));
+  // in production nginx serves arena files (miniatures etc.) directly
+  app.use('/arenas', express.static('./hosting/arenas', { index: false, redirect: false }));
 }
 
 setupMiddleware(app);

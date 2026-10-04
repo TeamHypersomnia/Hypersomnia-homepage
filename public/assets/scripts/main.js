@@ -259,10 +259,32 @@ function initLazyImages() {
   document.querySelectorAll("img[data-src]").forEach(img => observer.observe(img));
 }
 
+function initArenaViews() {
+  const buttons = document.querySelectorAll(".view-switch button");
+  if (!buttons.length) return;
+
+  const apply = view => {
+    buttons.forEach(b => b.classList.toggle("active", b.dataset.view === view));
+    document.querySelectorAll(".arena-view").forEach(el => {
+      el.hidden = el.dataset.view !== view;
+    });
+  };
+
+  let saved = null;
+  try { saved = localStorage.getItem("arenasView"); } catch (_) {}
+  apply(saved === "grid" ? "grid" : "list");
+
+  buttons.forEach(b => b.addEventListener("click", () => {
+    apply(b.dataset.view);
+    try { localStorage.setItem("arenasView", b.dataset.view); } catch (_) {}
+  }));
+}
+
 initFirearms();
 initLeaderboard();
 initSortableTables();
 initSmoothScroll();
 initLazyImages();
+initArenaViews();
 
 window.hypersomniaUtils = { debounce };

@@ -335,15 +335,12 @@ body#top > .container {
      and sits at ~50% of its height. */
   --fw: max(100vw, 480px); /* rendered width of the 1920x1080 screenshot */
   --bg-x: 50%;             /* horizontal background-position */
-  --bg-y: 46.5%;             /* vertical background-position: lower % = character lower on the page */
-  --bg-dim: 0.8;           /* black overlay alpha; 0.8 = 20% brightness, same as the old baked jpg */
+  --bg-y: 46.5%;           /* vertical background-position: lower % = character lower on the page */
   --quote-x: 0.04;         /* quote box left edge = page center + this * --fw */
 
   margin-top: 3em;
-  /* TODO: bake --bg-dim into a jpg once calibrated */
-  background:
-    linear-gradient(rgba(0, 0, 0, var(--bg-dim)), rgba(0, 0, 0, var(--bg-dim))),
-    #000 url("/assets/images/footer_bg_src.png") var(--bg-x) var(--bg-y) / var(--fw) auto no-repeat;
+  /* screenshot baked at 20% brightness */
+  background: #000 url("/assets/images/footer_bg.jpg") var(--bg-x) var(--bg-y) / var(--fw) auto no-repeat;
   image-rendering: pixelated;
 }
 
@@ -437,26 +434,100 @@ table.downloads {
 
 /* ---------- arenas ---------- */
 
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+/* small List / Grid switch, same look as the tab buttons */
+.view-switch {
+  display: flex;
+}
+
+.view-switch button {
+  position: relative;
+  margin-left: -1px;
+  padding: 2px 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--dim);
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid var(--table-line);
+  cursor: pointer;
+}
+
+.view-switch button:hover {
+  z-index: 1;
+  color: var(--white);
+  border-color: var(--white);
+}
+
+.view-switch button.active {
+  z-index: 1;
+  color: var(--teal);
+  border-color: var(--teal);
+  pointer-events: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* list view: every row is exactly as tall as the miniature */
+.arena-table td {
+  vertical-align: middle;
+}
+
+/* more visible row separators than in other tables */
+.arena-table tbody td {
+  border-top: 1px dotted rgba(255, 255, 255, 0.18);
+}
+
+.arena-table td.arena-thumb {
+  width: 1%;
+  padding: 8px 10px;
+}
+
+.arena-thumb a {
+  display: block;
+}
+
+.arena-thumb img {
+  display: block;
+  max-width: none;
+  width: 120px;
+  height: 80px;
+  object-fit: contain;
+  background: #000;
+}
+
+.arena-title {
+  font-size: 18px;
+}
+
+.arena-desc {
+  color: var(--dim);
+  min-width: 220px;
+  max-width: 360px;
+}
+
 .arenas > a {
   display: block;
   padding: 10px;
   text-align: center;
-  border: 1px solid var(--line-dim);
+  border: 1px solid var(--table-line-dim);
 }
 
 .arenas > a:hover {
-  border-color: var(--teal);
+  border-color: var(--table-line);
 }
 
 .arenas > a > img {
   max-height: 150px;
   max-width: 200px;
-  border: 1px solid var(--line);
-}
-
-.arenas > a:hover > img {
-  border-color: var(--teal);
-  box-shadow: 0 0 12px rgba(78, 201, 176, 0.4);
 }
 
 .arena_name {
@@ -1028,6 +1099,11 @@ footer > a:hover {
 
   .sv-hide-mobile {
     display: none;
+  }
+
+  .arena-thumb img {
+    width: 72px;
+    height: 48px;
   }
 
   table.downloads,
