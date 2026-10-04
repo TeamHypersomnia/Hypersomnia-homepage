@@ -8,6 +8,7 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
   <meta name="description" content="<%= description %>">
   <meta name="keywords" content="hypersomnia, hypersomnia shooter, teamhypersomnia, open source shooter, free shooter, free 2d shooter, 2d topdown, pixel art, competitive shooter, online shooter, indie shooter, top-down shooter, bomb defusal, tactical shooter, clan wars">
   <meta property="og:type" content="website">
@@ -22,12 +23,12 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
   <meta name="twitter:image" content="<%= typeof arena !== 'undefined' ? 'https://hypersomnia.io/arenas/' + arena.name + '/miniature.png' : 'https://hypersomnia.io/assets/images/og-default.png' %>">
   <title><%= pageTitle %> - Hypersomnia</title>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="preconnect" href="https://rsms.me/">
-  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
-  <link rel="stylesheet" href="/assets/styles/main.css?t=052502302026">
+  <link rel="stylesheet" href="/assets/styles/main.css?t=20261005h">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css">
 </head>
-<body>
+<body id="top">
+  <div class="hero">
+  <div class="topbar">
   <div class="container mininav">
     <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank" rel="noopener">
       <i class="fa-brands fa-github"></i>Free and Open-Source Software
@@ -41,6 +42,7 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
         <i class="fa-brands fa-steam"></i>You are signed in as <%= user.displayName %>
       </a>
     <% } %>
+  </div>
   </div>
   <div class="logo-center">
     <a href="/">
@@ -69,5 +71,6 @@ const pageTitle = page || 'Free Multiplayer Top-Down Shooter';
       </a>
     </div>
   </nav>
+  </div>
   <div class="container">
     <main>

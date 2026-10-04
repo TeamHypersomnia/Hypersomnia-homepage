@@ -235,7 +235,7 @@ function initSmoothScroll() {
       const target = document.querySelector(id);
       if (target) {
         e.preventDefault();
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        target.scrollIntoView({ block: "start" });
       }
     });
   });
@@ -259,35 +259,10 @@ function initLazyImages() {
   document.querySelectorAll("img[data-src]").forEach(img => observer.observe(img));
 }
 
-function initScrollReveal() {
-  if (!("IntersectionObserver" in window)) return;
-
-  const observer = new IntersectionObserver(
-    entries => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        entry.target.style.opacity = "1";
-        entry.target.style.transform = "translateY(0)";
-      });
-    },
-    { threshold: 0.1 }
-  );
-
-  document.querySelectorAll(".dl, .sv-row-card, .arenas > a").forEach(el => {
-    Object.assign(el.style, {
-      opacity: "0",
-      transform: "translateY(20px)",
-      transition: "opacity 0.6s ease, transform 0.6s ease",
-    });
-    observer.observe(el);
-  });
-}
-
 initFirearms();
 initLeaderboard();
 initSortableTables();
 initSmoothScroll();
 initLazyImages();
-initScrollReveal();
 
 window.hypersomniaUtils = { debounce };

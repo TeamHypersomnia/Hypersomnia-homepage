@@ -135,4 +135,6 @@ router.get('/:arena', (req, res) => {
     });
 });
 
+router.hasArena = name => arenas.some(v => v.name === name);
+
 module.exports = router;

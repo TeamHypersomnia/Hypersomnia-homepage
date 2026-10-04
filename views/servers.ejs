@@ -1,56 +1,38 @@
 <%- include('overall_header'); %>
 
-<h2>Ranked Servers</h2>
-<div id="ranked_servers" class="sv-list">
-  <% Object.values(ranked_servers).forEach(v=> { %>
-  <div class="sv-row-card">
-    <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
-      <i><%= v.name %></i>
-      <span class="flag"><%= v.flag %></span>
-    </a>
-    <div class="sv-info">
-      <div>
-        <span>Players <b><%= v.num_online %>/<%= v.max_online %></b></span>
-        <% if (v.num_online > 0) { %><span>Score <b><%= v.score_resistance %>-<%= v.score_metropolis %></b></span><% } %>
-      </div>
-      <div>
-        <span><%= v.arena %></span>
-        <span><%= v.game_mode %></span>
-      </div>
-      <div>
-        <a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam"></i>Connect via Steam</a>
-        <a href="https://play.hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser</a>
-      </div>
-    </div>
-  </div>
-  <% }); %>
+<% [['Official Servers', 'official_servers', official_servers, true], ['Community Servers', 'community_servers', community_servers, false]].forEach(([title, id, list, showTag]) => { %>
+<h2><%= title %></h2>
+<div id="<%= id %>" class="responsive">
+  <table class="sortable maxwidth">
+    <thead>
+      <tr>
+        <th width="40%">Name</th>
+        <th width="10%" class="dir-d">Players</th>
+        <th width="20%" class="sv-hide-mobile">Arena</th>
+        <th width="12%" class="sv-hide-mobile">Mode</th>
+        <th width="18%" class="no-sort">Connect</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (Object.keys(list).length === 0) { %>
+      <tr class="empty-row"><td colspan="5">-- no servers online --</td></tr>
+      <% } %>
+      <% Object.values(list).forEach(v => { %>
+      <tr>
+        <td data-sort="<%= v.name %>"><span class="flag"><%= v.flag %></span> <% if (showTag) { %><% if (v.is_ranked) { %><span class="sv-tag ranked-tag">RANKED</span><% } else { %><span class="sv-tag">CASUAL</span><% } %> <% } %><a class="sv-name" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a></td>
+        <% const humans = Number(v.num_online_humans) || 0; %>
+        <td data-sort="<%= humans %>" class="<%= humans > 0 ? 'online' : 'dimmed' %>"><%= humans %>/<%= v.max_online %></td>
+        <td class="sv-hide-mobile"><% if (hasArena(v.arena)) { %><a href="/arenas/<%= v.arena %>"><%= v.arena %></a><% } else { %><%= v.arena %><% } %></td>
+        <td class="sv-hide-mobile"><%= v.game_mode %></td>
+        <td class="sv-actions">
+          <a href="steam://run/2660970//<%= v.site_displayed_address %>/" title="Connect via Steam"><i class="fa-brands fa-steam"></i>Steam</a>
+          <a href="https://play.hypersomnia.io/game/<%= v.browser_connect_string %>" title="Play in Browser"><i class="fa-solid fa-right-to-bracket"></i>Browser</a>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
 </div>
-
-<h2>Casual Servers</h2>
-<div id="casual_servers" class="sv-list">
-  <% Object.values(casual_servers).forEach(v=> { %>
-  <div class="sv-row-card">
-    <a href="/servers/<%= v.site_displayed_address %>" class="sv-link">
-      <i><%= v.name %></i>
-      <span class="flag"><%= v.flag %></span>
-    </a>
-    <div class="sv-info">
-      <div>
-        <span>Players <b><%= v.num_online %>/<%= v.max_online %></b></span>
-        <% if (v.num_online > 0) { %><span>Score <b><%= v.score_resistance %>-<%= v.score_metropolis %></b></span><% } %>
-      </div>
-      <div>
-        <span><%= v.arena %></span>
-        <span><%= v.game_mode %></span>
-      </div>
-      <div>
-        <a href="steam://run/2660970//<%= v.site_displayed_address %>/"><i class="fa-brands fa-steam"></i>Connect via Steam</a>
-        <a href="https://play.hypersomnia.io/game/<%= v.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser</a>
-      </div>
-    </div>
-  </div>
-  <% }); %>
-</div>
-
+<% }); %>
 
 <%- include('overall_footer'); %>

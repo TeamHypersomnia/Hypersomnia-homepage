@@ -5,6 +5,7 @@ const { timeAgoShort } = require('./utilities/timeAgo');
 const { countryCodeToEmoji } = require('./utils');
 const { getCountryCode } = require('./utilities/geoloc');
 const config = require('./config');
+const { hasArena } = require('./arenas');
 
 async function fetchAndProcessServers() {
   const { data: serverList } = await axios.get(config.SERVER_LIST_URL, {
@@ -51,20 +52,23 @@ router.get('/', async (req, res) => {
   try {
     const servers = await fetchAndProcessServers();
     
+    // ranked first, then by real (non-bot) players
     const sorted = [...servers].sort((a, b) => {
+      if (a.is_ranked !== b.is_ranked) return a.is_ranked ? -1 : 1;
       const aHumans = Number(a.num_online_humans) || 0;
       const bHumans = Number(b.num_online_humans) || 0;
       return bHumans - aHumans;
     });
     
-    const rankedServers = sorted.filter(s => s.is_ranked);
-    const casualServers = sorted.filter(s => !s.is_ranked);
+    const officialServers = sorted.filter(s => s.official_url);
+    const communityServers = sorted.filter(s => !s.official_url);
     
     res.render('servers', {
       page: 'Servers',
       user: req.user,
-      ranked_servers: rankedServers,
-      casual_servers: casualServers
+      official_servers: officialServers,
+      community_servers: communityServers,
+      hasArena
     });
   } catch (err) {
     console.error('Error fetching servers:', err.message);
