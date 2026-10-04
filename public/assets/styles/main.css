@@ -104,7 +104,25 @@ h2 {
   text-align: center;
   font-size: 18px;
   color: var(--text);
-  margin: 0 0 1.5em;
+  margin: 0 0 2em;
+}
+
+/* right under the downloads table */
+.subtagline.free-note {
+  margin: 2em 0 0;
+}
+
+.free-note a {
+  font-weight: bold;
+  color: var(--teal);
+}
+
+.free-note a:hover {
+  color: var(--white);
+}
+
+.free-note .fa-github {
+  padding-right: 0.35em;
 }
 
 h3 {
@@ -415,11 +433,22 @@ nav a:hover {
 
 table.downloads {
   width: auto;
+  margin: 0 auto;
   font-size: 18px;
+}
+
+.downloads-note {
+  text-align: center;
+  margin-top: 1em;
 }
 
 .downloads td {
   white-space: nowrap;
+}
+
+.downloads th,
+.downloads td {
+  padding: 10px 18px;
 }
 
 .downloads td > i {
@@ -1109,6 +1138,11 @@ footer > a:hover {
   table.downloads,
   .subtagline {
     font-size: 14.4px;
+  }
+
+  .downloads th,
+  .downloads td {
+    padding: 8px 6px;
   }
 
   .sv-actions > a {
