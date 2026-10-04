@@ -89,17 +89,22 @@ h2 {
 }
 
 .tagline {
+  /* shrink-wrapped so the dotted separator is as wide as the text */
+  display: table;
+  margin: 1.2em auto 0.8em;
+  padding: 0 0.5em 0.4em;
   text-align: center;
   font-size: 1.5em;
   font-weight: bold;
   color: var(--white);
-  margin: 1.2em 0 0.4em;
+  border-bottom: 1px dotted var(--line);
 }
 
 .subtagline {
   text-align: center;
+  font-size: 18px;
   color: var(--text);
-  margin: 0 0 2em;
+  margin: 0 0 1.5em;
 }
 
 h3 {
@@ -310,6 +315,19 @@ footer > a:hover > i {
   background: rgba(0, 0, 0, 0.6);
 }
 
+/* sticky footer: on short pages the content area grows so the footer
+   screenshot's bottom edge touches the bottom of the viewport */
+body#top {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+body#top > .container {
+  flex: 1 0 auto;
+}
+
 /* footer links + dove quote share the footer screenshot background */
 .footer-hero {
   /* ---- CALIBRATION (desktop; mobile overrides are in the <=600px block) ----
@@ -514,10 +532,6 @@ dd {
 
 /* ---------- servers ---------- */
 
-.sv-name {
-  color: var(--bright);
-}
-
 .sv-tag {
   color: var(--faint);
 }
@@ -620,12 +634,17 @@ input:-webkit-autofill:focus {
 
 /* ---------- buttons (rendered as [TOGGLES]) ---------- */
 
+/* tab buttons look like table column headers, glued together */
 .btn-group {
   width: 100%;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5em;
   margin-bottom: 0.75em;
+  padding: 1px 0 0 1px;
+}
+
+.btn {
+  margin: -1px 0 0 -1px;
 }
 
 .btn a,
@@ -634,30 +653,33 @@ input:-webkit-autofill:focus {
   justify-content: center;
   gap: 0.4em;
   width: 100%;
-  padding: 4px 12px;
+  padding: 6px 10px;
   font-family: var(--mono);
   font-size: 1rem;
+  line-height: 1.5;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--enum);
-  background: var(--bg);
-  border: 1px solid var(--line);
+  color: var(--dim);
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid var(--table-line);
   cursor: pointer;
   outline: none;
+  position: relative;
 }
 
+/* hover and active only differ by color + a border drawn over the neighbors */
 .btn a:hover,
 .btn button:not([disabled]):hover {
+  z-index: 1;
   color: var(--white);
   border-color: var(--white);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .btn > a.active,
 button.active {
+  z-index: 1;
   color: var(--teal) !important;
   border-color: var(--teal) !important;
-  box-shadow: 0 0 10px rgba(78, 201, 176, 0.35);
   pointer-events: none;
 }
 
@@ -711,6 +733,15 @@ tbody > tr:hover > td {
 }
 
 tbody > tr:hover > td:first-child {
+}
+
+/* links inside tables use the menu link color */
+td a {
+  color: var(--enum);
+}
+
+td a.sv-name {
+  color: var(--bright);
 }
 
 td img {
@@ -999,7 +1030,8 @@ footer > a:hover {
     display: none;
   }
 
-  table.downloads {
+  table.downloads,
+  .subtagline {
     font-size: 14.4px;
   }
 
