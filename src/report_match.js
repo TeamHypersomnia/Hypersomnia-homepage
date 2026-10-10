@@ -124,11 +124,19 @@ router.post('/', apiKeyAuth, (req, res) => {
       const stmt_get_player = db.prepare(`SELECT mu, sigma FROM ${table_name} WHERE account_id = ?`);
       const stmt_update_player = db.prepare(`UPDATE ${table_name} SET mu = ?, sigma = ?, mmr = ?, matches_won = matches_won + ?, matches_lost = matches_lost + ?, nickname = ? WHERE account_id = ?`);
 
-      allPlayers.forEach(playerId => stmt_insert_player.run(playerId, default_rating.mu, default_rating.sigma));
+      // An identity key account comes into being only with a match it did not abandon,
+      // so that new accounts can not be made just by joining and leaving ranked matches.
+      const isUnregisteredAbandoningKey = (playerId) =>
+        playerId.startsWith('key_') && abandoned(player_infos[playerId] || {}) && !stmt_get_player.get(playerId);
+      const unregistered = new Set(allPlayers.filter(isUnregisteredAbandoningKey));
+
+      allPlayers.forEach(playerId => {
+        if (!unregistered.has(playerId)) stmt_insert_player.run(playerId, default_rating.mu, default_rating.sigma);
+      });
 
       allPlayers.forEach(playerId => {
         const row = stmt_get_player.get(playerId);
-        playerRatings[playerId] = rating({ mu: row.mu, sigma: row.sigma });
+        playerRatings[playerId] = row ? rating({ mu: row.mu, sigma: row.sigma }) : default_rating;
       });
 
       // Record old MMRs for delta computation
