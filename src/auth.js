@@ -20,7 +20,8 @@ const stmts = {
   `),
   getAssoc: db.prepare('SELECT * FROM associations WHERE child_id = ?'),
   setAssoc: db.prepare('INSERT OR REPLACE INTO associations (child_id, parent_id) VALUES (?, ?)'),
-  delAssoc: db.prepare('DELETE FROM associations WHERE parent_id = ?')
+  // Only the Discord link - the same Steam account can also have identity keys linked
+  delAssoc: db.prepare("DELETE FROM associations WHERE parent_id = ? AND child_id LIKE 'discord_%'")
 };
 
 module.exports = (passport) => {
@@ -101,7 +102,8 @@ module.exports = (passport) => {
         // Discord account already linked to different Steam account
         res.redirect('/profile?error=discord_already_linked');
       } else {
-        // Create or update association
+        // Replace the Discord account linked so far, if any - a Steam account has at most one
+        stmts.delAssoc.run(steamId);
         stmts.setAssoc.run(discordId, steamId);
         res.redirect('/profile?success=discord_linked');
       }

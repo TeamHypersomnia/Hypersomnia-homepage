@@ -47,6 +47,34 @@ class DatabaseManager {
     if (!tableExists) {
       this.initializeDatabase();
     }
+
+    this.migrateAssociations();
+  }
+
+  // associations.parent_id used to be UNIQUE, allowing a Steam account just one linked account.
+  // Rebuilds the table without it, keeping every row. Idempotent.
+  migrateAssociations() {
+    const indexes = this.db.prepare("PRAGMA index_list(associations)").all();
+
+    const parentIsUnique = indexes.some(index => {
+      if (!index.unique) return false;
+      const columns = this.db.prepare(`PRAGMA index_info("${index.name}")`).all();
+      return columns.length === 1 && columns[0].name === 'parent_id';
+    });
+
+    if (!parentIsUnique) return;
+
+    this.db.transaction(() => {
+      this.db.exec(`
+        CREATE TABLE associations_new (child_id TEXT UNIQUE, parent_id TEXT);
+        INSERT INTO associations_new (child_id, parent_id) SELECT child_id, parent_id FROM associations;
+        DROP TABLE associations;
+        ALTER TABLE associations_new RENAME TO associations;
+        CREATE INDEX IF NOT EXISTS associations_parent ON associations (parent_id);
+      `);
+    })();
+
+    console.log('Migrated associations: a Steam account can now have several linked accounts.');
   }
   
   initializeDatabase() {

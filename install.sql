@@ -33,10 +33,13 @@ CREATE TABLE IF NOT EXISTS matches (
   match_end_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- A Steam account (parent) can have several accounts linked to it (children): a Discord account and identity keys.
 CREATE TABLE IF NOT EXISTS associations (
   child_id TEXT UNIQUE,
-  parent_id TEXT UNIQUE
+  parent_id TEXT
 );
+
+CREATE INDEX IF NOT EXISTS associations_parent ON associations (parent_id);
 
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
