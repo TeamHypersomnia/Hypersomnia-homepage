@@ -4,6 +4,9 @@ const { authenticated, admin } = require('../middleware/auth');
 const SITE = 'https://hypersomnia.io';
 
 module.exports = (app) => {
+  // lets any view link an arena name only when that arena exists
+  app.locals.hasArena = require('../arenas').hasArena;
+
   // canonical URL of the current page: production domain, no query, no trailing slash
   app.use((req, res, next) => {
     const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : '/';

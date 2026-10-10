@@ -5,7 +5,6 @@ const { timeAgoShort } = require('./utilities/timeAgo');
 const { countryCodeToEmoji } = require('./utils');
 const { getCountryCode } = require('./utilities/geoloc');
 const config = require('./config');
-const { hasArena } = require('./arenas');
 
 async function fetchAndProcessServers() {
   const { data: serverList } = await axios.get(config.SERVER_LIST_URL, {
@@ -67,8 +66,7 @@ router.get('/', async (req, res) => {
       page: 'Servers',
       user: req.user,
       official_servers: officialServers,
-      community_servers: communityServers,
-      hasArena
+      community_servers: communityServers
     });
   } catch (err) {
     console.error('Error fetching servers:', err.message);

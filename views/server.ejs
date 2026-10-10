@@ -24,7 +24,7 @@
         </tr>
         <tr>
           <td>Arena</td>
-          <td><%= sv.arena %></td>
+          <td><% if (hasArena(sv.arena)) { %><a class="arena-link" href="/arenas/<%= sv.arena %>"><%= sv.arena %></a><% } else { %><%= sv.arena %><% } %></td>
         </tr>
         <tr>
           <td>Game mode</td>
@@ -40,10 +40,10 @@
         </tr>
         <tr>
           <td rowspan="2">Join server</td>
-          <td><a href="steam://run/2660970//<%= sv.site_displayed_address %>/"><i class="fa-brands fa-steam"></i>Connect via Steam</a></td>
+          <td><a class="sv-connect" href="steam://run/2660970//<%= sv.site_displayed_address %>/"><i class="fa-brands fa-steam"></i>Connect via Steam</a></td>
         </tr>
         <tr>
-          <td><a href="https://play.hypersomnia.io/game/<%= sv.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser</a></td>
+          <td><a class="sv-connect" href="https://play.hypersomnia.io/game/<%= sv.browser_connect_string %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser</a></td>
       </tbody>
     </table>
   </div>

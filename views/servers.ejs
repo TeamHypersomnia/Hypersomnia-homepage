@@ -22,7 +22,7 @@
         <td data-sort="<%= v.name %>"><span class="flag"><%= v.flag %></span> <% if (showTag) { %><% if (v.is_ranked) { %><span class="sv-tag ranked-tag">RANKED</span><% } else { %><span class="sv-tag">CASUAL</span><% } %> <% } %><a class="sv-name" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a></td>
         <% const humans = Number(v.num_online_humans) || 0; %>
         <td data-sort="<%= humans %>" class="<%= humans > 0 ? 'online' : 'dimmed' %>"><%= humans %>/<%= v.max_online %></td>
-        <td class="sv-hide-mobile"><% if (hasArena(v.arena)) { %><a href="/arenas/<%= v.arena %>"><%= v.arena %></a><% } else { %><%= v.arena %><% } %></td>
+        <td class="sv-hide-mobile"><% if (hasArena(v.arena)) { %><a class="arena-link" href="/arenas/<%= v.arena %>"><%= v.arena %></a><% } else { %><%= v.arena %><% } %></td>
         <td class="sv-hide-mobile"><%= v.game_mode %></td>
         <td class="sv-actions">
           <a href="steam://run/2660970//<%= v.site_displayed_address %>/" title="Connect via Steam"><i class="fa-brands fa-steam"></i>Steam</a>

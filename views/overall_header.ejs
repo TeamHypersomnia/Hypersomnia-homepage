@@ -74,16 +74,13 @@ const isNoindex = typeof noindex !== 'undefined' && noindex;
   </script>
   <% } %>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="stylesheet" href="/assets/styles/main.css?t=20261010a">
+  <link rel="stylesheet" href="/assets/styles/main.css?t=20261010v">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css">
 </head>
 <body id="top">
   <div class="hero">
   <div class="topbar">
   <div class="container mininav">
-    <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank" rel="noopener">
-      <i class="fa-brands fa-github"></i>Free and Open-Source Software
-    </a>
     <% if (!user) { %>
       <a href="/auth/steam">
         <i class="fa-brands fa-steam"></i>Sign in through Steam Account
@@ -102,22 +99,22 @@ const isNoindex = typeof noindex !== 'undefined' && noindex;
   </div>
   <nav>
     <div class="container flex">
-      <a href="/" <% if(page == false){ %> class="active"<% } %>>
+      <a href="/" class="menu-btn menu-btn-green<% if(page == false){ %> active<% } %>">
         <i class="fa-solid fa-download"></i><span>Download</span>
       </a>
-      <a href="/weapons" <% if(page == 'Weapons'){ %> class="active"<% } %>>
+      <a href="/weapons" class="menu-btn<% if(page == 'Weapons'){ %> active<% } %>">
         <i class="fa-solid fa-gun"></i><span>Weapons</span>
       </a>
-      <a href="/leaderboards/bomb-defusal" <% if(page == 'Leaderboards'){ %> class="active"<% } %>>
+      <a href="/leaderboards/bomb-defusal" class="menu-btn<% if(page == 'Leaderboards'){ %> active<% } %>">
         <i class="fa-solid fa-ranking-star"></i><span>Leaderboards</span>
       </a>
-      <a href="/matches" <% if(page == 'Matches'){ %> class="active"<% } %>>
+      <a href="/matches" class="menu-btn<% if(page == 'Matches'){ %> active<% } %>">
         <i class="fa-solid fa-table"></i><span>Matches</span>
       </a>
-      <a href="/arenas" <% if(page == 'Arenas'){ %> class="active"<% } %>>
+      <a href="/arenas" class="menu-btn<% if(page == 'Arenas'){ %> active<% } %>">
         <i class="fa-solid fa-map"></i><span>Arenas</span>
       </a>
-      <a href="/servers" <% if(page == 'Servers'){ %> class="active"<% } %>>
+      <a href="/servers" class="menu-btn<% if(page == 'Servers'){ %> active<% } %>">
         <i class="fa-solid fa-server"></i><span>Servers</span>
       </a>
     </div>
