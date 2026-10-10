@@ -86,18 +86,18 @@
   <table class="sortable maxwidth big">
     <thead>
       <tr>
-        <th class="dir-d shrink">Time ago</th>
-        <th width="20%">Arena</th>
-        <th width="25%"><abbr title="Match Making Rating">MMR</abbr></th>
-        <th class="no-sort" width="10%">Score</th>
-        <th class="no-sort" width="25%">Opponents</th>
-        <th width="6%">Server</th>
+        <th class="dir-d shrink">When</th>
+        <th width="23%">Arena</th>
+        <th width="29%"><abbr title="Match Making Rating">MMR</abbr></th>
+        <th class="no-sort" width="12%">Score</th>
+        <th class="no-sort" width="29%">Opponents</th>
+        <th width="7%">Server</th>
       </tr>
     </thead>
     <tbody>
       <% matches.forEach(v => { %>
         <tr>
-          <td class="shrink"><%= v.time_ago %></td>
+          <td class="shrink time-ago"><%= v.time_ago %></td>
           <td><% if (hasArena(v.arena)) { %><a class="arena-link" href="/arenas/<%= v.arena %>"><%= v.arena %></a><% } else { %><%= v.arena %><% } %></td>
           <td class="serif"><%- formatMMRDelta(v.mmrDelta) %> <%= v.new_mmr %></td>
           <td class="serif"><% if (v.game_mode === 'FFA Gun Game') { %>FFA<% } else { %><%- v.result %><% } %></td>

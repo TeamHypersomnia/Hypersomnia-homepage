@@ -5,17 +5,18 @@
   <table class="sortable maxwidth big">
     <thead>
       <tr>
-        <th width="20%">Arena</th>
-        <th class="no-sort" width="25%">Winning team</th>
-        <th class="no-sort" width="10%">Score</th>
-        <th class="no-sort" width="25%">Losing team</th>
-        <th class="dir-d" width="14%">Time ago</th>
-        <th width="6%">Server</th>
+        <th class="dir-d shrink">When</th>
+        <th width="23%">Arena</th>
+        <th class="no-sort" width="29%">Winning team</th>
+        <th class="no-sort" width="12%">Score</th>
+        <th class="no-sort" width="29%">Losing team</th>
+        <th width="7%">Server</th>
       </tr>
     </thead>
     <tbody>
       <% matches.forEach(i => { %>
         <tr>
+          <td class="shrink time-ago" data-sort="<%= i.match_end_date %>"><%= i.time_ago %></td>
           <td><% if (hasArena(i.arena)) { %><a class="arena-link" href="/arenas/<%= i.arena %>"><%= i.arena %></a><% } else { %><%= i.arena %><% } %></td>
           <td>
             <% i.winners.forEach(player => { %>
@@ -36,7 +37,6 @@
               <% if (i.losers.indexOf(player) < i.losers.length - 1) { %><br><% } %>
             <% }); %>
           </td>
-          <td data-sort="<%= i.match_end_date %>"><%= i.time_ago %></td>
           <td class="extra"><%= i.server_emoji %><% if (i.event_match_multiplier !== 1) { %><abbr class="flame" title="Event match multiplier x<%= i.event_match_multiplier %>"><i class="fa-solid fa-fire-flame-curved"></i>x<%= i.event_match_multiplier %></abbr><% } %></td>
         </tr>
       <% }); %>
