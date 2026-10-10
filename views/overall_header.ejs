@@ -6,8 +6,7 @@ const DESCRIPTIONS = {
   'Matches': 'Latest ranked Hypersomnia matches: arenas, teams, final scores and MMR changes of every player.',
   'Arenas': 'Community-made Hypersomnia arenas: map previews, authors, descriptions and last update dates.',
   'Servers': 'Live list of official and community Hypersomnia servers with player counts, arenas and game modes. Join via Steam or in the browser.',
-  'Disclaimer': 'Disclaimer for hypersomnia.io, the official website of Hypersomnia.',
-  'Cookie Policy': 'How hypersomnia.io uses cookies.'
+  'Privacy': 'What hypersomnia.io stores about you, the one cookie it uses, and how to get your data removed.'
 };
 const defaultDesc = 'Free, open-source competitive top-down shooter. Bomb defusal, FFA gun game, duels and clan wars. Play in your browser or on Windows, Linux, macOS and Steam.';
 let description = DESCRIPTIONS[page] || defaultDesc;
@@ -93,7 +92,7 @@ const isNoindex = typeof noindex !== 'undefined' && noindex;
   </div>
   </div>
   <div class="logo-center">
-    <a href="/">
+    <a href="/" class="menu-btn-corners">
       <img height="104" width="auto" class="responsive" src="/assets/images/menu_game_logo.png" alt="Hypersomnia - Free 2D Top-Down Shooter Game">
     </a>
   </div>

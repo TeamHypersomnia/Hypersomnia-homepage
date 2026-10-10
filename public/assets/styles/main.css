@@ -117,11 +117,18 @@ h2 {
   margin: 1.2em auto 0.8em;
   padding: 0 0.5em 0.4em;
   text-align: center;
-  font-size: 1.5em;
+  font-size: 2.25em;
   font-weight: normal;
   font-style: italic;
   color: var(--white);
   border-bottom: 1px dotted var(--line);
+}
+
+/* 2.25em doesn't fit a phone in one line */
+@media (max-width: 600px) {
+  .tagline {
+    font-size: 1.5em;
+  }
 }
 
 .subtagline {
@@ -390,6 +397,17 @@ body#top > .container {
   padding: 0.5em 1em;
 }
 
+/* logo: only the four in-game hover corners, green like its glow */
+a.menu-btn-corners {
+  --mb-scale: 2; /* chunkier corners, the logo is big */
+  --mb-rgb: 0, 255, 0;
+  position: relative;
+  isolation: isolate;
+  line-height: 0;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
 .logo-center > a > .responsive {
   margin-bottom: 0;
   image-rendering: pixelated;
@@ -530,7 +548,12 @@ table.downloads {
 
 .downloads th,
 .downloads td {
-  padding: 8px 15px;
+  padding: 6px 12px;
+}
+
+.downloads td.dl-size {
+  text-align: right;
+  color: var(--dim);
 }
 
 .downloads td > i {
@@ -1075,7 +1098,7 @@ footer > a:hover {
   background: rgba(0, 0, 0, 0.75);
   border: 1px dotted var(--line);
   color: var(--dim);
-  font-size: 10.8px;
+  font-size: 13px; /* what the footer links used to be */
   font-style: italic;
 }
 

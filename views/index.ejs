@@ -11,28 +11,34 @@
           <tr>
             <th>Platform</th>
             <th>Get it</th>
+            <th>Size</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><i class="fa-solid fa-globe"></i>Browser</td>
             <td><a href="https://play.hypersomnia.io/" target="_blank">Play!</a></td>
+            <td class="dl-size"></td>
           </tr>
           <tr>
             <td><i class="fa-brands fa-steam"></i>Steam</td>
             <td><a href="https://store.steampowered.com/app/2660970/Hypersomnia/" target="_blank">Store link</a></td>
+            <td class="dl-size"></td>
           </tr>
           <tr>
             <td><i class="fa-brands fa-windows"></i>Windows</td>
             <td><a href="https://hypersomnia.io/builds/latest/Hypersomnia-for-Windows.zip" download>Hypersomnia-for-Windows.zip</a></td>
+            <td class="dl-size"><%= buildSizes['Hypersomnia-for-Windows.zip'] || '' %></td>
           </tr>
           <tr>
             <td><i class="fa-brands fa-linux"></i>Linux</td>
             <td><a href="https://hypersomnia.io/builds/latest/Hypersomnia.AppImage" download>Hypersomnia.AppImage</a></td>
+            <td class="dl-size"><%= buildSizes['Hypersomnia.AppImage'] || '' %></td>
           </tr>
           <tr>
             <td><i class="fa-brands fa-apple"></i>macOS</td>
             <td><a href="https://hypersomnia.io/builds/latest/Hypersomnia-for-MacOS.dmg" download>Hypersomnia-for-MacOS.dmg</a></td>
+            <td class="dl-size"><%= buildSizes['Hypersomnia-for-MacOS.dmg'] || '' %></td>
           </tr>
         </tbody>
       </table>

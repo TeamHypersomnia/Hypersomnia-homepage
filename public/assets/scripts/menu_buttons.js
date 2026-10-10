@@ -79,7 +79,13 @@
     }
   }
 
-  function makeButton(a) {
+  /* cornersOnly: no frame at all, just the four hover corners around the
+     whole element (used for the logo) */
+  function makeButton(a, cornersOnly) {
+    /* where the internal rect starts inside the element */
+    const IN_L = cornersOnly ? 0 : SIDE_L, IN_T = cornersOnly ? 0 : SIDE_T;
+    const IN_R = cornersOnly ? 0 : SIDE_R, IN_B = cornersOnly ? 0 : SIDE_B;
+
     const svg = el("svg", { class: "menu-btn-frame", "aria-hidden": "true", "shape-rendering": "crispEdges" });
     const inside = el("path", { class: "menu-btn-inside" });
     const border = el("path", { class: "menu-btn-border" });
@@ -99,12 +105,14 @@
         const bw = Math.round(a.offsetWidth / s);
         const bh = Math.round(a.offsetHeight / s);
 
-        btn.W = bw - SIDE_L - SIDE_R;
-        btn.H = bh - SIDE_T - SIDE_B;
+        btn.W = bw - IN_L - IN_R;
+        btn.H = bh - IN_T - IN_B;
 
-        const vw = bw + 2 * MARGIN, vh = bh + 2 * MARGIN;
+        /* the svg always has room for the corners outside the internal rect */
+        const vw = btn.W + SIDE_L + SIDE_R + 2 * MARGIN, vh = btn.H + SIDE_T + SIDE_B + 2 * MARGIN;
         svg.setAttribute("viewBox", `${-SIDE_L - MARGIN} ${-SIDE_T - MARGIN} ${vw} ${vh}`);
-        svg.style.left = svg.style.top = `${-MARGIN * s}px`;
+        svg.style.left = `${(IN_L - SIDE_L - MARGIN) * s}px`;
+        svg.style.top = `${(IN_T - SIDE_T - MARGIN) * s}px`;
         svg.style.width = `${vw * s}px`;
         svg.style.height = `${vh * s}px`;
 
@@ -125,6 +133,13 @@
         /* the current page's button looks like it is held down */
         const pushed = btn.pushed || a.classList.contains("active");
         const state = pushed ? "pushed" : btn.hovered ? "hover" : "idle";
+
+        if (cornersOnly) {
+          /* pushed pulls the corners in tight, hover slides them in */
+          const e = btn.pushed ? -PUSH_DISTANCE / 2 : btn.hovered ? btn.hoverDistance(now) : null;
+          effect.setAttribute("d", e === null ? "" : cornerBorders(-e, -e, W + e, H + e));
+          return;
+        }
 
         inside.setAttribute("d", outline(0, 0, W, H));
         border.setAttribute("d", outline(0, 0, W, H) + internalBorders(0, 0, W, H));
@@ -191,8 +206,8 @@
   }
 
   function init() {
-    const anchors = [...document.querySelectorAll("a.menu-btn")];
-    const buttons = anchors.map(makeButton);
+    const anchors = [...document.querySelectorAll("a.menu-btn, a.menu-btn-corners")];
+    const buttons = anchors.map(a => makeButton(a, a.classList.contains("menu-btn-corners")));
     const relayout = () => buttons.forEach(b => b.layout());
 
     relayout();

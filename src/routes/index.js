@@ -1,6 +1,8 @@
 const passport = require('../passport');
 const { authenticated, admin } = require('../middleware/auth');
 
+const buildSizes = require('../build_sizes');
+
 const SITE = 'https://hypersomnia.io';
 
 module.exports = (app) => {
@@ -17,10 +19,12 @@ module.exports = (app) => {
   app.get('/sitemap.xml', require('../sitemap'));
   app.get('/', (req, res) => res.render('index', {
     page: false,
-    user: req.user
+    user: req.user,
+    buildSizes: buildSizes.get()
   }));
-  app.get('/disclaimer', (req, res) => res.render('disclaimer', { page: 'Disclaimer', user: req.user }));
-  app.get('/cookie-policy', (req, res) => res.render('cookie_policy', { page: 'Cookie Policy', user: req.user }));
+  app.get('/privacy', (req, res) => res.render('privacy', { page: 'Privacy', user: req.user }));
+  // old pages, merged into /privacy
+  app.get(['/disclaimer', '/cookie-policy'], (req, res) => res.redirect(301, '/privacy'));
   app.use('/weapons', require('../weapons'));
   app.use('/leaderboards', require('../leaderboards'));
   app.use('/matches', require('../matches'));

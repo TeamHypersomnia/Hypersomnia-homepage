@@ -11,8 +11,7 @@ const STATIC_PAGES = [
   ['/matches', 'hourly', '0.7'],
   ['/arenas', 'weekly', '0.8'],
   ['/servers', 'always', '0.7'],
-  ['/disclaimer', 'yearly', '0.1'],
-  ['/cookie-policy', 'yearly', '0.1']
+  ['/privacy', 'yearly', '0.1']
 ];
 
 const escapeXml = s => String(s).replace(/[<>&'"]/g, c => ({

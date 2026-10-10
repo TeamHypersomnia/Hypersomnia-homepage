@@ -86,6 +86,11 @@ const config = {
   SERVER_LIST_URL: process.env.SERVER_LIST_URL || (IS_PROD ? 'http://127.0.0.1:8410/server_list_json' : 'https://masterserver.hypersomnia.io:8420/server_list_json'),
   SERVER_LIST_REFRESH_INTERVAL: 10000,
   
+  // Game builds: prod reads them from disk (same machine), dev asks the live site
+  BUILDS_PATH: process.env.BUILDS_PATH || '/var/www/html/builds/latest',
+  BUILDS_URL: 'https://hypersomnia.io/builds/latest/',
+  BUILD_SIZES_REFRESH_INTERVAL: 60000,
+
   DB_PATH: process.env.DB_PATH || './private/mmr.db',
   LOG_LEVEL: process.env.LOG_LEVEL || (IS_PROD ? 'info' : 'debug')
 };
