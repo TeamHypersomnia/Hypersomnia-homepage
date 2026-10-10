@@ -1012,6 +1012,11 @@ td a.arena-link:hover {
   color: var(--white);
 }
 
+/* secondary info, grey even as the first column / on row hover */
+tbody > tr > td.time-ago {
+  color: var(--dim);
+}
+
 /* column exactly as wide as its content */
 th.shrink,
 td.shrink {
