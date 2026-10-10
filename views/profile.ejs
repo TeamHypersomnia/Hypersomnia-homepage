@@ -44,9 +44,35 @@
         <td>Discord</td>
         <td><% if (discordData) { %><%= discordData.username %><% } else { %>Not connected<% } %></td>
       </tr>
+      <tr>
+        <td>Game keys</td>
+        <td>
+          <% if (linkedKeys.length === 0) { %>None linked<% } %>
+          <% linkedKeys.forEach(function(key) { %>
+          <div>
+            <a href="/user/<%= key %>"><%= key.slice(0, 16) %>…</a>
+            <form method="POST" action="/profile/unlink_key" style="display:inline">
+              <input type="hidden" name="key" value="<%= key %>">
+              <button type="submit">Unlink</button>
+            </form>
+          </div>
+          <% }) %>
+        </td>
+      </tr>
     </tbody>
   </table>
 </div>
+
+<h2>Play without Steam</h2>
+<p>Without Steam, the game keeps your account as a key on your computer. Link it here, and the ranked matches you play with it count for this Steam account.</p>
+<% if (linkCode) { %>
+<p>In the game without Steam, open <b>Settings → Client → Account</b> and enter this code under <i>Link to your Steam account</i>. It is valid for 10 minutes, once:</p>
+<p style="font-size: 2em; letter-spacing: 0.15em; font-family: monospace;"><b><%= linkCode %></b></p>
+<% } else { %>
+<form class="btn" method="POST" action="/profile/link_code">
+  <button type="submit">Link a game key</button>
+</form>
+<% } %>
 <small class="form-hint">*<% if (discordData) { %>After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.<% } else { %>Discord matches count towards your Steam account. No merging happens, and you can disconnect anytime without losing progress.<% } %></small>
 
 <%- include('overall_footer'); %>

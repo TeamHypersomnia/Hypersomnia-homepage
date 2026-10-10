@@ -7,7 +7,7 @@ const { formatMMRDelta, getRank, countryCodeToEmoji } = require('./utils');
 router.get('/:user', function(req, res) {
   try {
     const userid = req.params.user;
-    const match = userid.match(/^(steam|discord|crazygames)_(.+)$/);
+    const match = userid.match(/^(steam|discord|crazygames|key)_(.+)$/);
     if (!match) {
       return res.status(404).render('404', { page: 'Not Found', user: req.user });
     }
@@ -18,6 +18,7 @@ router.get('/:user', function(req, res) {
       config.IS_PROD ? (
         (platform === 'steam' || platform === 'discord') ? /^\d+$/.test(id) :
         (platform === 'crazygames') ? /^[a-zA-Z0-9]{10,64}$/.test(id) :
+        (platform === 'key') ? /^[0-9a-f]{64}$/.test(id) :
         false
       ) : true;
     if (!validId) {
@@ -38,6 +39,11 @@ router.get('/:user', function(req, res) {
         name: 'CrazyGames',
         url: `https://www.crazygames.com/uid/${id}`,
         icon: ''
+      },
+      key: {
+        name: 'Game key',
+        url: null,
+        icon: 'fa-solid fa-key'
       }
     };
     const { name: platformName, url: profileUrl, icon: platformIconClass } = platforms[platform];
