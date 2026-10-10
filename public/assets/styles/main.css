@@ -1012,6 +1012,14 @@ td a.arena-link:hover {
   color: var(--white);
 }
 
+/* column exactly as wide as its content */
+th.shrink,
+td.shrink {
+  width: 1px;
+  min-width: 0 !important;
+  white-space: nowrap;
+}
+
 td img {
   vertical-align: middle;
   image-rendering: pixelated;

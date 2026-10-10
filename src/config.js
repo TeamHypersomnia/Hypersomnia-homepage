@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const path = require('path');
 
 // Environment detection
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -87,7 +88,7 @@ const config = {
   SERVER_LIST_REFRESH_INTERVAL: 10000,
   
   // Game builds: prod reads them from disk (same machine), dev asks the live site
-  BUILDS_PATH: process.env.BUILDS_PATH || '/var/www/html/builds/latest',
+  BUILDS_PATH: process.env.BUILDS_PATH || path.resolve(__dirname, '../hosting/builds/latest'),
   BUILDS_URL: 'https://hypersomnia.io/builds/latest/',
   BUILD_SIZES_REFRESH_INTERVAL: 60000,
 
