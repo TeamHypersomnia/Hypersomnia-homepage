@@ -13,6 +13,15 @@
     - "{{ paths.builds }}"
   become: yes
 
+- name: Create the official servers directory
+  file:
+    path: "{{ paths.private }}/official_servers.d"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0700'
+  become: yes
+
 - name: Create game downloads directory
   file:
     path: "{{ paths.game_arenas }}"

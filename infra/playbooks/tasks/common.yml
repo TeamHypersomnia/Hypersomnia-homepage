@@ -50,3 +50,11 @@
     state: started
     enabled: yes
   become: yes
+
+# Official servers sign their heartbeats with a timestamp; the masterserver rejects clocks off by more than 30 s.
+- name: Ensure the clock is synchronized
+  systemd:
+    name: systemd-timesyncd
+    state: started
+    enabled: yes
+  become: yes

@@ -120,13 +120,24 @@ Edytuj ten plik aby zmienić:
 - **Ścieżki** na serwerze
 - **URL do binarki** (`hypersomnia_headless_url`) - zmień na `.io` po migracji
 - **Porty** masterservera
-- **Lista** official_hosts
 - **Wersja** Node.js
 
 ### Inventory (`inventory/hypersomnia.io.yml`)
 
 Dodaj/usuń serwery tutaj. Obecnie:
 - `hub.hypersomnia.io`
+
+### Oficjalne serwery (`official_servers.d`)
+
+Każdy oficjalny serwer to jeden plik w `/var/www/app/private/official_servers.d/`:
+nazwa pliku = id serwera (`de`, `pl`, `us-central`…), treść = jego `official_server_secret`.
+
+- Dodanie serwera: `openssl rand -base64 36 | tr -d '/+=' | head -c 50 > official_servers.d/<id>` (`chmod 600`), ten sam sekret do `server_private.official_server_secret` na dedyku.
+- Odebranie dostępu: `rm official_servers.d/<id>`.
+- Master przeładowuje folder co minutę, strona czyta go przy każdym raporcie meczu. Restart niepotrzebny.
+- Ten sekret raportuje mecze (nagłówek `apikey`) i podpisuje heartbeaty, więc master pokazuje serwer jako oficjalny.
+- Na dedyku musi działać synchronizacja czasu: podpis z zegarem przesuniętym o ponad 30 s jest odrzucany.
+- Jednorazowa migracja ze starej tabeli `authorized_servers`: `deploy/migrate_authorized_servers.py` (uruchomić na serwerze).
 
 ## 📝 Co Robi Ansible
 

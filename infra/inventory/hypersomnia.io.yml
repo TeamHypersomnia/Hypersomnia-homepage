@@ -45,16 +45,8 @@ all:
           server_list_port_http: 8410
           first_udp_port: 8430
           num_udp_ports: 4
-          official_hosts:
-            - arena.hypersomnia.io
-            - arena-us.hypersomnia.io
-            - arena-de.hypersomnia.io
-            - arena-au.hypersomnia.io
-            - arena-ru.hypersomnia.io
-            - arena-ch.hypersomnia.io
-            - arena-fi.hypersomnia.io
-            - arena-nl.hypersomnia.io
-            - fossgralnia.hypersomnia.io
+          # The official servers are the files in {{ paths.private }}/official_servers.d:
+          # file name = server id, content = its official_server_secret. Not managed by ansible.
 
         # Firewall ports
         firewall_allowed_ports:
