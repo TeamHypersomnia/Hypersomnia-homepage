@@ -59,8 +59,8 @@ router.get('/', async (req, res) => {
       return bHumans - aHumans;
     });
     
-    const officialServers = sorted.filter(s => s.official_url);
-    const communityServers = sorted.filter(s => !s.official_url);
+    const officialServers = sorted.filter(s => s.is_official);
+    const communityServers = sorted.filter(s => !s.is_official);
     
     res.render('servers', {
       page: 'Servers',
