@@ -284,7 +284,6 @@ hr {
   justify-content: space-between;
   gap: 1em;
   padding: 6px 0;
-  border-bottom: 1px solid var(--line);
 }
 
 .mininav a {
@@ -324,7 +323,7 @@ footer > a:hover > i {
 /* top bar + logo band + menu share one library hero background;
    the bars get a black overlay */
 .hero {
-  background: #000 url("/assets/images/logo_bg.jpg") center top / cover no-repeat;
+  background: #000 url("/assets/images/logo_bg.jpg?v=2") center top / cover no-repeat;
   image-rendering: pixelated;
 }
 
@@ -357,8 +356,8 @@ body#top > .container {
   --quote-x: 0.04;         /* quote box left edge = page center + this * --fw */
 
   margin-top: 3em;
-  /* screenshot baked at 20% brightness */
-  background: #000 url("/assets/images/footer_bg.jpg") var(--bg-x) var(--bg-y) / var(--fw) auto no-repeat;
+  /* screenshot baked at 35% brightness */
+  background: #000 url("/assets/images/footer_bg.jpg?v=2") var(--bg-x) var(--bg-y) / var(--fw) auto no-repeat;
   image-rendering: pixelated;
 }
 
@@ -373,7 +372,7 @@ body#top > .container {
 }
 
 .logo-center > a:hover > .responsive {
-  filter: drop-shadow(0 0 6px rgba(0, 255, 0, 0.4));
+  filter: drop-shadow(0 0 6px rgba(0, 255, 0, 0.8));
 }
 
 nav {
