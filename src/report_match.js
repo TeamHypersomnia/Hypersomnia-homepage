@@ -9,16 +9,8 @@ const MIN_SCORE_AS_TEAMMATE_TO_CONTRIBUTE = 13;
 const MIN_SCORE_AS_ENEMY_TO_CONTRIBUTE = 4;
 const MIN_ROUNDS_TO_COUNT_WINS = 5;
 
-// Middleware: API key auth
-const getServerByKey = db.prepare('SELECT server_id FROM authorized_servers WHERE api_key = ?');
-function apiKeyAuth(req, res, next) {
-  const apiKey = req.headers['apikey'];
-  if (!apiKey) return res.status(401).json({ error: 'Unauthorized' });
-  const row = getServerByKey.get(apiKey);
-  if (!row) return res.status(401).json({ error: 'Unauthorized' });
-  req.server_id = row.server_id;
-  next();
-}
+const { officialServerAuth } = require('./official_servers');
+const apiKeyAuth = officialServerAuth();
 
 // Player helpers
 const abandoned = (player) => typeof player.abandoned_at_score === 'number' && player.abandoned_at_score >= 0;

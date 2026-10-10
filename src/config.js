@@ -92,6 +92,7 @@ const config = {
   BUILD_SIZES_REFRESH_INTERVAL: 60000,
 
   DB_PATH: process.env.DB_PATH || './private/mmr.db',
+  OFFICIAL_SERVERS_DIR: process.env.OFFICIAL_SERVERS_DIR || './private/official_servers.d',
   LOG_LEVEL: process.env.LOG_LEVEL || (IS_PROD ? 'info' : 'debug')
 };
 

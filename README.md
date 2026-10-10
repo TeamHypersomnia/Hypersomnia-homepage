@@ -88,7 +88,7 @@ grep "\[report_match\]" ~/.pm2/logs/app-error.log | tail -50
 ## Local development
 
 ```bash
-# Start with a test API key pre-seeded (api_key=pl, server_id=pl)
+# Start with test official servers pre-seeded in private/official_servers.d (secret "pl" for server pl, "au" for au)
 ./test_server.sh
 ```
 

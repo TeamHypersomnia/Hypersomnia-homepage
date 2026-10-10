@@ -3,19 +3,8 @@ const express = require('express');
 const db = require('./db');
 const router = express.Router();
 
-// Middleware for API key authentication using SQLite
-const getServerByKey = db.prepare('SELECT server_id FROM authorized_servers WHERE api_key = ?');
-
-function apiKeyAuth(req, res, next) {
-  const apiKey = req.headers['apikey'];
-  if (!apiKey) return res.status(401).json({ error: 'Unauthorized' });
-
-  const row = getServerByKey.get(apiKey);
-  if (!row) return res.status(401).json({ error: 'Unauthorized' });
-
-  req.server_id = row.server_id;
-  next();
-}
+const { officialServerAuth } = require('./official_servers');
+const apiKeyAuth = officialServerAuth();
 
 router.post('/', apiKeyAuth, (req, res) => {
   const { match_id } = req.body;

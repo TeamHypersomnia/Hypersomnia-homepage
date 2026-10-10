@@ -10,22 +10,10 @@ const stmts = {
   updateFFAMMR: db.prepare('UPDATE mmr_ffa SET mmr = mu - 3 * sigma WHERE mmr < 0')
 };
 
-// Pre-compile statement to fetch server by API key
-const getServerByKey = db.prepare('SELECT server_id FROM authorized_servers WHERE api_key = ?');
+const { officialServerAuth } = require('./official_servers');
 
-function apiKeyAuth(req, res, next) {
-  const apiKey = req.headers['apikey'];
-  if (!apiKey) return res.status(401).json({ error: 'Unauthorized' });
-
-  const row = getServerByKey.get(apiKey);
-  if (!row) return res.status(401).json({ error: 'Unauthorized' });
-
-  // Restrict access specifically to the 'pl' server
-  if (row.server_id !== 'pl') return res.status(401).json({ error: 'Unauthorized' });
-
-  req.server_id = row.server_id;
-  next();
-}
+// Restricted to the 'pl' server
+const apiKeyAuth = officialServerAuth(['pl']);
 
 router.post('/', apiKeyAuth, (req, res) => {
   const { multiplier } = req.body;
