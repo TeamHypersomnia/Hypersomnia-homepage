@@ -92,7 +92,7 @@ function buildLeaderboardRow(player, index) {
 function buildLeaderboardTable(players) {
   const rows = players.map(buildLeaderboardRow).join("");
   return `
-    <table class="sortable maxwidth">
+    <table class="sortable maxwidth big">
       <thead>
         <tr>
           <th class="dir-u" width="10%">#</th>

@@ -3,9 +3,10 @@
 <% [['Official Servers', 'official_servers', official_servers, true], ['Community Servers', 'community_servers', community_servers, false]].forEach(([title, id, list, showTag]) => { %>
 <% if (showTag) { %><h1><%= title %></h1><% } else { %><h2><%= title %></h2><% } %>
 <div id="<%= id %>" class="responsive">
-  <table class="sortable maxwidth">
+  <table class="sortable maxwidth big">
     <thead>
       <tr>
+        <th class="no-sort sv-flag"></th>
         <th width="40%">Name</th>
         <th width="10%" class="dir-d">Players</th>
         <th width="20%" class="sv-hide-mobile">Arena</th>
@@ -15,11 +16,12 @@
     </thead>
     <tbody>
       <% if (Object.keys(list).length === 0) { %>
-      <tr class="empty-row"><td colspan="5">-- no servers online --</td></tr>
+      <tr class="empty-row"><td colspan="6">-- no servers online --</td></tr>
       <% } %>
       <% Object.values(list).forEach(v => { %>
       <tr>
-        <td data-sort="<%= v.name %>"><span class="flag"><%= v.flag %></span> <% if (showTag) { %><% if (v.is_ranked) { %><span class="sv-tag ranked-tag">RANKED</span><% } else { %><span class="sv-tag">CASUAL</span><% } %> <% } %><a class="sv-name" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a></td>
+        <td class="sv-flag"><%= v.flag %></td>
+        <td data-sort="<%= v.name %>"><% if (showTag) { %><% if (v.is_ranked) { %><span class="sv-tag ranked-tag">RANKED</span><% } else { %><span class="sv-tag">CASUAL</span><% } %> <% } %><a class="sv-name" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a></td>
         <% const humans = Number(v.num_online_humans) || 0; %>
         <td data-sort="<%= humans %>" class="<%= humans > 0 ? 'online' : 'dimmed' %>"><%= humans %>/<%= v.max_online %></td>
         <td class="sv-hide-mobile"><% if (hasArena(v.arena)) { %><a class="arena-link" href="/arenas/<%= v.arena %>"><%= v.arena %></a><% } else { %><%= v.arena %><% } %></td>
