@@ -765,6 +765,34 @@ td.sv-flag + td {
   white-space: nowrap;
 }
 
+.sv-address > span {
+  color: var(--text);
+}
+
+/* copy icon before the address, so the icons line up */
+.copy-btn {
+  margin-right: 0.5em;
+  padding: 0 2px;
+  font-size: 0.9em;
+  color: var(--dim);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.copy-btn i {
+  width: 1em;
+  padding: 0;
+}
+
+.copy-btn:hover {
+  color: var(--white);
+}
+
+.copy-btn.copied {
+  color: var(--online);
+}
+
 .sv-actions > a + a {
   margin-left: 0.6em;
 }
@@ -1568,6 +1596,7 @@ footer > a:hover {
   }
 }
 
+.maxwidth > tbody > tr > td.sv-address,
 .maxwidth > tbody > tr > td.sv-actions {
   max-width: none;
   overflow: visible;

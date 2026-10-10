@@ -7,16 +7,17 @@
     <thead>
       <tr>
         <th class="no-sort sv-flag"></th>
-        <th width="40%">Name</th>
-        <th width="10%" class="dir-d">Players</th>
-        <th width="20%" class="sv-hide-mobile">Arena</th>
+        <th width="34%">Name</th>
+        <th width="8%" class="dir-d">Players</th>
+        <th width="13%" class="sv-hide-mobile">Arena</th>
         <th width="12%" class="sv-hide-mobile">Mode</th>
-        <th width="18%" class="no-sort">Connect</th>
+        <th width="19%" class="sv-hide-mobile">Address</th>
+        <th width="14%" class="no-sort">Connect</th>
       </tr>
     </thead>
     <tbody>
       <% if (Object.keys(list).length === 0) { %>
-      <tr class="empty-row"><td colspan="6">-- no servers online --</td></tr>
+      <tr class="empty-row"><td colspan="7">-- no servers online --</td></tr>
       <% } %>
       <% Object.values(list).forEach(v => { %>
       <tr>
@@ -26,6 +27,7 @@
         <td data-sort="<%= humans %>" class="<%= humans > 0 ? 'online' : 'dimmed' %>"><%= humans %>/<%= v.max_online %></td>
         <td class="sv-hide-mobile"><% if (hasArena(v.arena)) { %><a class="arena-link" href="/arenas/<%= v.arena %>"><%= v.arena %></a><% } else { %><%= v.arena %><% } %></td>
         <td class="sv-hide-mobile"><%= v.game_mode %></td>
+        <td class="sv-hide-mobile sv-address" data-sort="<%= v.site_displayed_address %>"><button type="button" class="copy-btn" data-copy="<%= v.site_displayed_address %>" title="Copy address" aria-label="Copy address"><i class="fa-regular fa-copy"></i></button><span><%= v.site_displayed_address %></span></td>
         <td class="sv-actions">
           <a href="steam://run/2660970//<%= v.site_displayed_address %>/" title="Connect via Steam"><i class="fa-brands fa-steam"></i>Steam</a>
           <a href="https://play.hypersomnia.io/game/<%= v.browser_connect_string %>" title="Play in Browser"><i class="fa-solid fa-right-to-bracket"></i>Browser</a>

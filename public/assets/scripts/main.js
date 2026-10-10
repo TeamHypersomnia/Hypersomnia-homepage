@@ -280,8 +280,40 @@ function initArenaViews() {
   }));
 }
 
+/* [Copy] buttons next to server addresses */
+function initCopyButtons() {
+  document.addEventListener("click", async e => {
+    const btn = e.target.closest(".copy-btn[data-copy]");
+    if (!btn) return;
+
+    const text = btn.dataset.copy;
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch (_) {
+      /* no clipboard API (plain http): fall back to a hidden textarea */
+      const ta = Object.assign(document.createElement("textarea"), { value: text });
+      document.body.append(ta);
+      ta.select();
+      try { ok = document.execCommand("copy"); } catch (_) {}
+      ta.remove();
+    }
+
+    const icon = btn.querySelector("i");
+    icon.className = ok ? "fa-solid fa-check" : "fa-solid fa-xmark";
+    btn.classList.toggle("copied", ok);
+    clearTimeout(btn.resetTimer);
+    btn.resetTimer = setTimeout(() => {
+      icon.className = "fa-regular fa-copy";
+      btn.classList.remove("copied");
+    }, 1200);
+  });
+}
+
 initFirearms();
 initLeaderboard();
+initCopyButtons();
 initSortableTables();
 initSmoothScroll();
 initLazyImages();
