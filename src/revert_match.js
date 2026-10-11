@@ -15,7 +15,11 @@ router.post('/', apiKeyAuth, (req, res) => {
     db.transaction(() => {
       // Fetch the match data
       const match = db.prepare('SELECT * FROM matches WHERE match_id = ?').get(match_id);
-      if (!match) throw new Error('Match not found');
+      if (!match) {
+        const error = new Error(`Match ${match_id} not found`);
+        error.status = 404;
+        throw error;
+      }
 
       // A server can revert only the matches it reported itself
       if (match.server_id !== req.server_id) {
@@ -75,6 +79,10 @@ router.post('/', apiKeyAuth, (req, res) => {
 
     if (error.status === 403) {
       return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (error.status === 404) {
+      return res.status(404).json({ error: 'Match not found' });
     }
 
     res.status(500).json({ error: 'Internal Server Error' });

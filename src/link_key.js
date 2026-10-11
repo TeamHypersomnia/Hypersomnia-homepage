@@ -242,10 +242,28 @@ router.post('/', (req, res) => {
   Unlinking from the game, signed with the key - for a player who linked it to a Steam account that is not theirs
   (e.g. a code someone gave them) and can not sign in there. The signed timestamp must be within 10 minutes.
 */
+// Its own limit, without the overall one - nothing to guess here, and a flood of code guesses must not block it
+const unlinkAttempts = new Map();
+let unlinkWindowStart = Date.now();
+
+function allowUnlink(ip) {
+  const now = Date.now();
+
+  if (now - unlinkWindowStart > 60 * 1000) {
+    unlinkAttempts.clear();
+    unlinkWindowStart = now;
+  }
+
+  const key = limitKey(ip);
+  const count = (unlinkAttempts.get(key) || 0) + 1;
+  unlinkAttempts.set(key, count);
+  return count <= MAX_ATTEMPTS_PER_MINUTE;
+}
+
 router.post('/unlink', (req, res) => {
   const ip = req.headers['x-real-ip'] || req.ip;
 
-  if (!allowAttempt(ip)) {
+  if (!allowUnlink(ip)) {
     return res.status(429).send('Too many attempts. Try again in a minute.');
   }
 
