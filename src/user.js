@@ -48,7 +48,8 @@ router.get('/:user', function(req, res) {
     };
     const { name: platformName, url: profileUrl, icon: platformIconClass } = platforms[platform];
     const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
-    const childAssociation = db.prepare('SELECT child_id FROM associations WHERE parent_id = ?').get(userid);
+    // A Steam account can have several linked (a Discord account and game keys): the Discord one first, then by id
+    const childAssociation = db.prepare("SELECT child_id FROM associations WHERE parent_id = ? ORDER BY child_id NOT LIKE 'discord_%', child_id LIMIT 1").get(userid);
     let associationType = null;
     let associatedId = null;
     if (parentAssociation) {
