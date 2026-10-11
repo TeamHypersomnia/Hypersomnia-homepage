@@ -64,22 +64,40 @@ function lose_severity(win, lose) {
   return 1;
 }
 
-function mapIdArray(playerIds, db) {
-  const originalIdsSet = new Set(playerIds);
-  return playerIds.map(id => {
-    const association = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(id);
-    return association && !originalIdsSet.has(association.parent_id) ? association.parent_id : id;
-  });
+/*
+  Linked accounts (a Discord account, identity keys) play as their Steam account.
+  A Steam account can have several linked, so one match could hold two of them: only the first one
+  in the report (winners before losers) plays as the Steam account, the others stay themselves -
+  otherwise one account would be counted twice, possibly on both teams.
+*/
+function buildIdMapping(winPlayers, losePlayers, db) {
+  const stmt = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?');
+  const allIds = winPlayers.concat(losePlayers);
+  const taken = new Set(allIds);
+  const mapping = new Map();
+
+  for (const id of allIds) {
+    const association = stmt.get(id);
+
+    if (association && !taken.has(association.parent_id)) {
+      taken.add(association.parent_id);
+      mapping.set(id, association.parent_id);
+    }
+    else {
+      mapping.set(id, id);
+    }
+  }
+
+  return mapping;
 }
 
-function mapPlayerInfos(playerInfos, db) {
+function mapPlayerInfos(playerInfos, mapping) {
   const updatedPlayerInfos = {};
-  const originalIdsSet = new Set(Object.keys(playerInfos));
+
   for (const [id, info] of Object.entries(playerInfos)) {
-    const association = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(id);
-    const parentId = association && !originalIdsSet.has(association.parent_id) ? association.parent_id : id;
-    updatedPlayerInfos[parentId] = info;
+    updatedPlayerInfos[mapping.get(id) || id] = info;
   }
+
   return updatedPlayerInfos;
 }
 
@@ -104,9 +122,16 @@ router.post('/', apiKeyAuth, (req, res) => {
   }
 
   try {
-    win_players = mapIdArray(win_players, db);
-    lose_players = mapIdArray(lose_players, db);
-    player_infos = mapPlayerInfos(player_infos, db);
+    if (new Set(win_players.concat(lose_players)).size !== win_players.length + lose_players.length) {
+      console.error('[report_match] Validation failed: a player is listed twice.', JSON.stringify({ server_name, server_id: req.server_id }));
+      return res.status(400).json({ error: 'A player is listed twice' });
+    }
+
+    const mapping = buildIdMapping(win_players, lose_players, db);
+
+    win_players = win_players.map(id => mapping.get(id));
+    lose_players = lose_players.map(id => mapping.get(id));
+    player_infos = mapPlayerInfos(player_infos, mapping);
 
     db.transaction(() => {
       const is_happy_hours = isWeekendEveningTime(match_start_date, req.server_id);
@@ -150,6 +175,11 @@ router.post('/', apiKeyAuth, (req, res) => {
         rateOptions
       );
 
+      // Exactly what the match changed, for revert_match.js - nothing for an account the match did not create
+      const changeOf = (id, newRating, won, lost) => unregistered.has(id)
+        ? { won: 0, lost: 0, mu_delta: 0, sigma_delta: 0 }
+        : { won, lost, mu_delta: newRating.mu - playerRatings[id].mu, sigma_delta: newRating.sigma - playerRatings[id].sigma };
+
       const winnerObjects = win_players.map((id, i) => {
         const info = player_infos[id] || {};
         const contributes = contributed_to_match(info, true);
@@ -158,7 +188,7 @@ router.post('/', apiKeyAuth, (req, res) => {
         const winIncrement = !abandoned(info) && should_count_wins ? 1 : 0;
         const lossIncrement = abandoned(info) ? 1 : 0;  // abandon always counts as a loss
         stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, winIncrement, lossIncrement, info.nickname, id);
-        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id] };
+        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], ...changeOf(id, newRating, winIncrement, lossIncrement) };
       });
 
       const loserObjects = lose_players.map((id, i) => {
@@ -168,7 +198,7 @@ router.post('/', apiKeyAuth, (req, res) => {
         const newMmr = ordinal(newRating);
         const lossIncrement = (should_count_wins || abandoned(info)) ? 1 : 0;
         stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, 0, lossIncrement, info.nickname, id);
-        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], contributed_as_enemy: contributes };
+        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], contributed_as_enemy: contributes, ...changeOf(id, newRating, 0, lossIncrement) };
       });
 
       db.prepare(`
