@@ -177,7 +177,7 @@ router.post('/', apiKeyAuth, (req, res) => {
 
       // Exactly what the match changed, for revert_match.js - nothing for an account the match did not create
       const changeOf = (id, newRating, won, lost) => unregistered.has(id)
-        ? { won: 0, lost: 0, mu_delta: 0, sigma_delta: 0 }
+        ? { won: 0, lost: 0, mu_delta: 0, sigma_delta: 0, mmr_delta: 0 }
         : { won, lost, mu_delta: newRating.mu - playerRatings[id].mu, sigma_delta: newRating.sigma - playerRatings[id].sigma };
 
       const winnerObjects = win_players.map((id, i) => {

@@ -65,10 +65,7 @@ router.post('/', apiKeyAuth, (req, res) => {
       // Remove the match entry
       stmtRemoveMatch.run(match_id);
 
-      // Adjust sqlite_sequence to maintain autoincrement
-      const maxIdRow = db.prepare('SELECT MAX(match_id) AS max_id FROM matches').get();
-      const maxId = maxIdRow ? maxIdRow.max_id : 0;
-      db.prepare('UPDATE sqlite_sequence SET seq = ? WHERE name = ?').run(maxId || 0, 'matches');
+      // The id of a reverted match is never given to another one: a retried revert would revert that one instead
 
     })(); // Execute transaction
 

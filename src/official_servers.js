@@ -19,6 +19,12 @@ const dir = config.OFFICIAL_SERVERS_DIR;
 function seedTestServers() {
   if (!config.IS_TEST) return;
 
+  // The secrets "pl" and "au" are public: never in production, where the masterserver reads the same directory
+  if (config.IS_PROD) {
+    console.error('[test] Not seeding the test official servers in production.');
+    return;
+  }
+
   fs.mkdirSync(dir, { recursive: true });
 
   for (const id of ['pl', 'au']) {

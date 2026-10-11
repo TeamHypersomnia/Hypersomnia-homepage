@@ -224,7 +224,12 @@ http {
 
       proxy_no_cache 1;
       proxy_cache_bypass 1;
+
+      # An add_header here drops the server-level ones, so they are repeated
       add_header Cache-Control "no-store" always;
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     }
 
     #--------------------------------------------------------------------------

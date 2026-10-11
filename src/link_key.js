@@ -88,9 +88,11 @@ function allowAttempt(ip) {
   const key = limitKey(ip);
   const count = (attempts.get(key) || 0) + 1;
   attempts.set(key, count);
-  ++allAttempts;
 
-  return count <= MAX_ATTEMPTS_PER_MINUTE && allAttempts <= MAX_ALL_ATTEMPTS_PER_MINUTE;
+  if (count > MAX_ATTEMPTS_PER_MINUTE) return false;
+
+  // Only the attempts let through count overall, so one address over its limit can not use up everyone's
+  return ++allAttempts <= MAX_ALL_ATTEMPTS_PER_MINUTE;
 }
 
 // A raw 32-byte Ed25519 public key wrapped as SPKI DER, the form node:crypto takes
@@ -219,15 +221,16 @@ router.post('/', (req, res) => {
     return res.status(401).send('Invalid signature.');
   }
 
-  // Single use: a code is gone once it linked a key
-  codes.delete(normalizedCode);
-
   const child = `key_${public_key}`;
   const parent = stmts.parentOf.get(child);
 
+  // The code stays valid, so it can be used once the key is unlinked from the other account
   if (parent && parent.parent_id !== entry.steamId) {
     return res.status(409).send('This key is already linked to another Steam account. Unlink it there first.');
   }
+
+  // Single use: a code is gone once it linked a key
+  codes.delete(normalizedCode);
 
   stmts.link.run(child, entry.steamId);
   console.log(`[link_key] Linked ${child} to ${entry.steamId}.`);
