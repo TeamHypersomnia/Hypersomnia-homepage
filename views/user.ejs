@@ -28,17 +28,19 @@
         </tr>
         <tr>
           <td>
-            <% if (associationType && associatedId) { %>
-              <%= associationType %>
+            <% if (linkedTo) { %>
+              Plays as
             <% } else { %>
-              Secondary account
+              Linked accounts
             <% } %>
           </td>
           <td>
-            <% if (associationType && associatedId) { %>
-              <a href="/user/<%= associatedId %>"><%= associatedId.split('_')[0] %></a>
+            <% if (linkedTo) { %>
+              <a href="/user/<%= linkedTo %>"><%= accountLabel(linkedTo) %></a>
+            <% } else if (linkedAccounts.length > 0) { %>
+              <% linkedAccounts.forEach(function(id, i) { %><%= i > 0 ? ', ' : '' %><a href="/user/<%= id %>"><%= accountLabel(id) %></a><% }); %>
             <% } else { %>
-              N/A
+              None
             <% } %>
           </td>
         </tr>

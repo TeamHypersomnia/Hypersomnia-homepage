@@ -1,9 +1,6 @@
 <%- include('overall_header'); %>
 
 <h1>Profile</h1>
-<% if (success) { %>
-<p>Success! Go back to the game and press: <i class="fa-brands fa-discord"></i> Sign in with Discord</p>
-<% } %>
 
 <div class="btn-group">
   <% if (is_admin == true) { %>
@@ -12,10 +9,6 @@
   <% if (discordData) { %>
   <form class="btn" method="POST" action="/auth/discord/disconnect">
     <button type="submit"><i class="fa-brands fa-discord"></i>Disconnect*</button>
-  </form>
-  <% } else { %>
-  <form class="btn" method="GET" action="/auth/discord">
-    <button type="submit"><i class="fa-brands fa-discord"></i>Connect*</button>
   </form>
   <% } %>
   <form class="btn" method="POST" action="/logout">
@@ -64,7 +57,7 @@
 </div>
 
 <h2>Play without Steam</h2>
-<p>Without Steam, the game keeps your account as a key on your computer. Link it here, and the ranked matches you play with it count for this Steam account.</p>
+<p>Without Steam - outside Steam, or in the browser - the game keeps your account as a key on your computer or in the browser. Link it here, and the ranked matches you play with it count for this Steam account. In the browser, <b>Sign in with Steam</b> in <b>Settings → Client → Account</b> does it in one step.</p>
 <% if (linkCode) { %>
 <p>In the game without Steam, open <b>Settings → Client → Account</b> and enter this code under <i>Link to your Steam account</i>. It is valid for 10 minutes, once:</p>
 <p style="font-size: 2em; letter-spacing: 0.15em; font-family: monospace;"><b><%= linkCode %></b></p>
@@ -73,6 +66,6 @@
   <button type="submit">Link a game key</button>
 </form>
 <% } %>
-<small class="form-hint">*<% if (discordData) { %>After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.<% } else { %>Discord matches count towards your Steam account. No merging happens, and you can disconnect anytime without losing progress.<% } %></small>
+<% if (discordData) { %><small class="form-hint">*After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.</small><% } %>
 
 <%- include('overall_footer'); %>

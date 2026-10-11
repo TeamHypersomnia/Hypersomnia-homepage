@@ -63,6 +63,14 @@ class DatabaseManager {
         reason TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS progress_moves (
+        child_id TEXT NOT NULL,
+        parent_id TEXT NOT NULL,
+        table_name TEXT NOT NULL,
+        matches_after_move INTEGER NOT NULL,
+        PRIMARY KEY (child_id, table_name)
+      );
     `);
 
     const columns = this.db.prepare("PRAGMA table_info(matches)").all().map(c => c.name);

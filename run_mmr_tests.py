@@ -85,7 +85,11 @@ def wipe():
 def post(filename, apikey="pl"):
     path = os.path.join(ROOT, "tests", filename)
     with open(path, "rb") as f:
-        data = f.read()
+        body = json.loads(f.read())
+    # Like a game server: every report has its own id and the time it was made
+    body.setdefault("match_id", os.urandom(8).hex())
+    body.setdefault("reported_at", int(time.time()))
+    data = json.dumps(body).encode()
     # Servers sign their reports with their key - see src/official_servers.js.
     # The test servers' keys come from public seeds (--test seeds them); --prod takes a seed in hex from $RANKED_API_KEY.
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey

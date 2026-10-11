@@ -47,18 +47,12 @@ router.get('/:user', function(req, res) {
       }
     };
     const { name: platformName, url: profileUrl, icon: platformIconClass } = platforms[platform];
+    // A key or a Discord account linked to a Steam account plays as it; a Steam account can have several linked
+    // (a Discord account and up to 10 game keys) - the Discord one first, then by id
     const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
-    // A Steam account can have several linked (a Discord account and game keys): the Discord one first, then by id
-    const childAssociation = db.prepare("SELECT child_id FROM associations WHERE parent_id = ? ORDER BY child_id NOT LIKE 'discord_%', child_id LIMIT 1").get(userid);
-    let associationType = null;
-    let associatedId = null;
-    if (parentAssociation) {
-      associationType = 'Primary account';
-      associatedId = parentAssociation.parent_id;
-    } else if (childAssociation) {
-      associationType = 'Secondary account';
-      associatedId = childAssociation.child_id;
-    }
+    const linkedTo = parentAssociation ? parentAssociation.parent_id : null;
+    const linkedAccounts = linkedTo ? [] : db.prepare("SELECT child_id FROM associations WHERE parent_id = ? ORDER BY child_id NOT LIKE 'discord_%', child_id").all(userid).map(r => r.child_id);
+    const accountLabel = (id) => id.startsWith('key_') ? `key ${id.slice(4, 12)}…` : id.split('_')[0];
     
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
     const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
@@ -125,8 +119,9 @@ router.get('/:user', function(req, res) {
       teamData: userTeam,
       ffaData: userFFA,
       matches: matches,
-      associationType: associationType,
-      associatedId: associatedId,
+      linkedTo,
+      linkedAccounts,
+      accountLabel,
       formatMMRDelta: formatMMRDelta,
       longestWinStreak,
       mostPlayedArena,

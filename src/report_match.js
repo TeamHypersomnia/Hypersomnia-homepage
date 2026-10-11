@@ -124,14 +124,19 @@ router.post('/', apiKeyAuth, (req, res) => {
     The game server's id of the match: the same report retried after an answer it did not get is not counted twice.
   */
   const report_id = typeof req.body.match_id === 'string' && /^[0-9a-f]{1,64}$/.test(req.body.match_id) ? req.body.match_id : null;
+  const reported_at = req.body.reported_at;
 
-  if (report_id && db.prepare('SELECT 1 FROM matches WHERE report_id = ?').get(report_id)) {
+  // Both are signed with the body: without them a recorded report could be sent again
+  if (!report_id || typeof reported_at !== 'number') {
+    console.error('[report_match] Validation failed: no match_id or reported_at.', JSON.stringify({ server_name, server_id: req.server_id }));
+    return res.status(400).json({ error: 'Missing match_id or reported_at' });
+  }
+
+  if (db.prepare('SELECT 1 FROM matches WHERE report_id = ?').get(report_id)) {
     return res.status(409).json({ error: 'Already reported' });
   }
 
-  const reported_at = req.body.reported_at;
-
-  if (typeof reported_at === 'number' && Math.abs(Date.now() / 1000 - reported_at) > MAX_REPORT_AGE_SECS) {
+  if (Math.abs(Date.now() / 1000 - reported_at) > MAX_REPORT_AGE_SECS) {
     console.error('[report_match] Refused: reported too long ago.', JSON.stringify({ server_name, server_id: req.server_id, reported_at }));
     return res.status(400).json({ error: 'Report too old' });
   }

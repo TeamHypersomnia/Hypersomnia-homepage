@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const { clientIp } = require('./client_ip');
 const axios = require('axios');
 const db = require('./db');
 const config = require('./config');
@@ -28,6 +29,23 @@ const CERT_LIFETIME_SECS = 2 * 60 * 60;
 const STEAM_APP_ID = 2660970;
 const MAX_REQUESTS_PER_MINUTE = 30;
 const MAX_ALL_REQUESTS_PER_MINUTE = 6000;
+
+// Every Steam ticket costs a call to the Steam Web API, whose key has a daily quota: a flood of bogus tickets
+// must not use it up for everyone. A real player asks about once an hour.
+const MAX_STEAM_CALLS_PER_MINUTE = 120;
+let steamCalls = 0;
+let steamWindowStart = Date.now();
+
+function allowSteamCall() {
+  const now = Date.now();
+
+  if (now - steamWindowStart > 60 * 1000) {
+    steamCalls = 0;
+    steamWindowStart = now;
+  }
+
+  return ++steamCalls <= MAX_STEAM_CALLS_PER_MINUTE;
+}
 
 /*
   The broker's key: hypersomnia-key-v1:<seed hex>, like the game's key files.
@@ -102,6 +120,10 @@ async function steamAccount(ticketHex, sessionPublicKey) {
     throw { status: 503, message: 'Steam sign in is not available right now.' };
   }
 
+  if (!allowSteamCall()) {
+    throw { status: 503, message: 'Too many sign ins right now. Retrying soon.' };
+  }
+
   const response = await axios.get('https://api.steampowered.com/ISteamUserAuth/AuthenticateUserTicket/v1/', {
     params: {
       key: config.STEAM_API_KEY,
@@ -113,9 +135,19 @@ async function steamAccount(ticketHex, sessionPublicKey) {
     maxRedirects: 0
   });
 
-  const params = response.data && response.data.response && response.data.response.params;
+  const body = response.data && response.data.response;
+  const params = body && body.params;
 
-  if (!params || params.result !== 'OK' || !/^[0-9]{1,20}$/.test(params.steamid || '')) {
+  // Only Steam's own verdict on the ticket refuses it - anything else (throttling, an outage) is retried by the game
+  if (!params) {
+    if (body && body.error && typeof body.error.errorcode === 'number' && (body.error.errorcode === 3 || (body.error.errorcode >= 100 && body.error.errorcode < 200))) {
+      throw { status: 401, message: 'Steam did not accept the ticket.' };
+    }
+
+    throw { status: 502, message: 'Could not verify the account with Steam right now. Retrying soon.' };
+  }
+
+  if (params.result !== 'OK' || !/^[0-9]{1,20}$/.test(params.steamid || '')) {
     throw { status: 401, message: 'Steam did not accept the ticket.' };
   }
 
@@ -190,8 +222,8 @@ async function crazyGamesAccount(token) {
     throw { status: 401, message: 'The CrazyGames sign in has expired. Sign in again.' };
   }
 
-  // A token of another game on CrazyGames must not pass for an account of this one
-  if (config.CRAZYGAMES_GAME_ID && String(payload.gameId) !== config.CRAZYGAMES_GAME_ID) {
+  // A token of another game on CrazyGames must not pass for an account of this one - without the id configured, none passes
+  if (!config.CRAZYGAMES_GAME_ID || String(payload.gameId) !== config.CRAZYGAMES_GAME_ID) {
     throw { status: 401, message: 'Invalid CrazyGames token.' };
   }
 
@@ -224,7 +256,7 @@ router.get('/', async (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.set('Access-Control-Allow-Origin', '*');
 
-  const ip = req.headers['x-real-ip'] || req.ip;
+  const ip = clientIp(req);
 
   if (!allowRequest(ip)) {
     return res.status(429).send('Too many requests. Try again in a minute.');

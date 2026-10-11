@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const net = require('net');
 const express = require('express');
+const { clientIp } = require('./client_ip');
 const db = require('./db');
 const config = require('./config');
 
@@ -185,7 +186,7 @@ function validCode(code) {
 
 // Whose Steam account a code links to, for the game to show before the player agrees
 router.get('/info', (req, res) => {
-  const ip = req.headers['x-real-ip'] || req.ip;
+  const ip = clientIp(req);
 
   if (!allowAttempt(ip)) {
     return res.status(429).send('Too many attempts. Try again in a minute.');
@@ -272,14 +273,40 @@ function moveProgressIfFirst(child, steamId) {
 
     db.prepare(`DELETE FROM ${table} WHERE account_id = ?`).run(steamId);
     db.prepare(`UPDATE ${table} SET account_id = ? WHERE account_id = ?`).run(steamId, child);
+    db.prepare('INSERT OR REPLACE INTO progress_moves (child_id, parent_id, table_name, matches_after_move) VALUES (?, ?, ?, ?)')
+      .run(child, steamId, table, own.matches_won + own.matches_lost);
     console.log(`[link_key] Moved the ${table} progress of ${child} to ${steamId}.`);
   }
 }
 
-router.post('/', (req, res) => link(req.body, req.headers['x-real-ip'] || req.ip, res));
+/*
+  The key unlinking itself (e.g. linked with a code that was not the player's) takes back the progress it brought -
+  as long as the Steam account has played no match since, so nobody's own matches are taken.
+*/
+function moveProgressBack(child, steamId) {
+  const moves = db.prepare('SELECT table_name, matches_after_move FROM progress_moves WHERE child_id = ? AND parent_id = ?').all(child, steamId);
+
+  for (const move of moves) {
+    const table = move.table_name;
+
+    if (table !== 'mmr_team' && table !== 'mmr_ffa') continue;
+
+    const steam = db.prepare(`SELECT matches_won, matches_lost FROM ${table} WHERE account_id = ?`).get(steamId);
+    const own = db.prepare(`SELECT 1 FROM ${table} WHERE account_id = ?`).get(child);
+
+    if (steam && !own && steam.matches_won + steam.matches_lost === move.matches_after_move) {
+      db.prepare(`UPDATE ${table} SET account_id = ? WHERE account_id = ?`).run(child, steamId);
+      console.log(`[link_key] Moved the ${table} progress of ${child} back from ${steamId}.`);
+    }
+  }
+
+  db.prepare('DELETE FROM progress_moves WHERE child_id = ?').run(child);
+}
+
+router.post('/', (req, res) => link(req.body, clientIp(req), res));
 
 // The web build can only make GET requests
-router.get('/link', (req, res) => link(req.query, req.headers['x-real-ip'] || req.ip, res));
+router.get('/link', (req, res) => link(req.query, clientIp(req), res));
 
 /*
   "Sign in with Steam" in the web build: the game opens /link_key/start?state=<its random state> in a new tab.
@@ -355,13 +382,17 @@ function unlinkBySignature(params, ip, res) {
     return res.json({ unlinked: child, from: null });
   }
 
-  stmts.unlink.run(child, parent.parent_id);
+  db.transaction(() => {
+    stmts.unlink.run(child, parent.parent_id);
+    moveProgressBack(child, parent.parent_id);
+  })();
+
   console.log(`[link_key] Unlinked ${child} from ${parent.parent_id} by its own signature.`);
 
   res.json({ unlinked: child, from: parent.parent_id });
 }
 
-router.post('/unlink', (req, res) => unlinkBySignature(req.body, req.headers['x-real-ip'] || req.ip, res));
-router.get('/unlink', (req, res) => unlinkBySignature(req.query, req.headers['x-real-ip'] || req.ip, res));
+router.post('/unlink', (req, res) => unlinkBySignature(req.body, clientIp(req), res));
+router.get('/unlink', (req, res) => unlinkBySignature(req.query, clientIp(req), res));
 
 module.exports = { router, createCode, linkedKeys, verifySignature, limitKey, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };
