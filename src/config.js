@@ -94,6 +94,13 @@ const config = {
 
   DB_PATH: process.env.DB_PATH || './private/mmr.db',
   OFFICIAL_SERVERS_DIR: process.env.OFFICIAL_SERVERS_DIR || './private/official_servers.d',
+
+  // The identity broker's key (see broker.js): "hypersomnia-key-v1:<seed hex>", owner-readable only
+  BROKER_KEY_PATH: process.env.BROKER_KEY_PATH || './private/broker.key',
+  // Only the CrazyGames tokens of this game are accepted. Unset: any (logged at start)
+  CRAZYGAMES_GAME_ID: process.env.CRAZYGAMES_GAME_ID || '',
+  // Tests only: verify CrazyGames tokens with this key instead of fetching CrazyGames' one
+  CRAZYGAMES_PUBLIC_KEY: process.env.CRAZYGAMES_PUBLIC_KEY_PEM || '',
   LOG_LEVEL: process.env.LOG_LEVEL || (IS_PROD ? 'info' : 'debug')
 };
 

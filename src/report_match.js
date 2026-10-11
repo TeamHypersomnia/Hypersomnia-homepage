@@ -9,6 +9,9 @@ const MIN_SCORE_AS_TEAMMATE_TO_CONTRIBUTE = 13;
 const MIN_SCORE_AS_ENEMY_TO_CONTRIBUTE = 4;
 const MIN_ROUNDS_TO_COUNT_WINS = 5;
 
+// A queued report (the site was down) is taken this long after it was made - the game drops older ones itself
+const MAX_REPORT_AGE_SECS = 3 * 24 * 60 * 60;
+
 const { officialServerAuth } = require('./official_servers');
 const apiKeyAuth = officialServerAuth();
 
@@ -116,6 +119,23 @@ router.post('/', apiKeyAuth, (req, res) => {
     return res.status(400).json({ error: 'Player arrays cannot be empty' });
   }
   losers_abandoned = losers_abandoned || false;
+
+  /*
+    The game server's id of the match: the same report retried after an answer it did not get is not counted twice.
+  */
+  const report_id = typeof req.body.match_id === 'string' && /^[0-9a-f]{1,64}$/.test(req.body.match_id) ? req.body.match_id : null;
+
+  if (report_id && db.prepare('SELECT 1 FROM matches WHERE report_id = ?').get(report_id)) {
+    return res.status(409).json({ error: 'Already reported' });
+  }
+
+  const reported_at = req.body.reported_at;
+
+  if (typeof reported_at === 'number' && Math.abs(Date.now() / 1000 - reported_at) > MAX_REPORT_AGE_SECS) {
+    console.error('[report_match] Refused: reported too long ago.', JSON.stringify({ server_name, server_id: req.server_id, reported_at }));
+    return res.status(400).json({ error: 'Report too old' });
+  }
+
   if (allAbandoned(player_infos)) {
     console.log('[report_match] Skipping match report: all players abandoned.', JSON.stringify({ server_name, arena, game_mode }));
     return res.json({ message: 'Skipping match report. All players abandoned the match' });
@@ -202,9 +222,9 @@ router.post('/', apiKeyAuth, (req, res) => {
       });
 
       db.prepare(`
-        INSERT INTO matches (match_start_date, server_id, server_name, arena, game_mode, winners, losers, win_score, lose_score, event_match_multiplier)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(match_start_date, req.server_id, server_name, arena, game_mode, JSON.stringify(winnerObjects), JSON.stringify(loserObjects), win_score, lose_score, event_match_multiplier);
+        INSERT INTO matches (match_start_date, server_id, server_name, arena, game_mode, winners, losers, win_score, lose_score, event_match_multiplier, report_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(match_start_date, req.server_id, server_name, arena, game_mode, JSON.stringify(winnerObjects), JSON.stringify(loserObjects), win_score, lose_score, event_match_multiplier, report_id);
 
     })();
 

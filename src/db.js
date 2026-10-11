@@ -49,6 +49,29 @@ class DatabaseManager {
     }
 
     this.migrateAssociations();
+    this.migrateIdentity();
+  }
+
+  /*
+    The identity broker's bans, and the id a game server gives each match report, so that a report retried
+    after a lost answer is not counted twice. Idempotent.
+  */
+  migrateIdentity() {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS broker_bans (
+        account TEXT PRIMARY KEY,
+        reason TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    const columns = this.db.prepare("PRAGMA table_info(matches)").all().map(c => c.name);
+
+    if (!columns.includes('report_id')) {
+      this.db.exec('ALTER TABLE matches ADD COLUMN report_id TEXT');
+    }
+
+    this.db.exec('CREATE UNIQUE INDEX IF NOT EXISTS matches_report_id ON matches (report_id)');
   }
 
   // associations.parent_id used to be UNIQUE, allowing a Steam account just one linked account.

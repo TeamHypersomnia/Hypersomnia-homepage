@@ -9,7 +9,6 @@ Usage:
 """
 
 import hashlib
-import hmac
 import json
 import os
 import sqlite3
@@ -87,12 +86,18 @@ def post(filename, apikey="pl"):
     path = os.path.join(ROOT, "tests", filename)
     with open(path, "rb") as f:
         data = f.read()
-    secret = API_KEY if PROD_MODE else apikey
-    # Servers report with a key derived from their secret, not the secret itself - see src/official_servers.js
-    report_key = hmac.new(secret.encode(), b"hypersomnia-report-v1", hashlib.sha256).hexdigest()
+    # Servers sign their reports with their key - see src/official_servers.js.
+    # The test servers' keys come from public seeds (--test seeds them); --prod takes a seed in hex from $RANKED_API_KEY.
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from cryptography.hazmat.primitives import serialization
+    seed = bytes.fromhex(API_KEY) if PROD_MODE else hashlib.sha256(f"hypersomnia-test-server-{apikey}".encode()).digest()
+    key = Ed25519PrivateKey.from_private_bytes(seed)
+    public = key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw).hex()
+    signature = key.sign(b"hs-report-v1" + data).hex()
     req = urllib.request.Request(URL, data=data, headers={
         "Content-Type": "application/json",
-        "apikey": report_key,
+        "X-Server-Key": public,
+        "X-Signature": signature,
     })
     try:
         with urllib.request.urlopen(req) as resp:

@@ -6,7 +6,8 @@ const db = require('../db');
 const config = require('../config');
 
 module.exports = (app) => {
-  app.use(express.json({ limit: '10mb' }));
+  // The raw body is kept for the signatures over it (match reports) - see official_servers.js
+  app.use(express.json({ limit: '10mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   app.use(session({
     store: new BetterSqlite3Store({

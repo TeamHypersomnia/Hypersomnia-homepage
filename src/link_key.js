@@ -149,7 +149,8 @@ function verifySignature(publicKeyHex, message, signatureHex) {
       type: 'spki'
     });
 
-    return crypto.verify(null, Buffer.from(message, 'utf8'), key, Buffer.from(signatureHex, 'hex'));
+    const bytes = Buffer.isBuffer(message) ? message : Buffer.from(message, 'utf8');
+    return crypto.verify(null, bytes, key, Buffer.from(signatureHex, 'hex'));
   } catch {
     return false;
   }
@@ -297,4 +298,4 @@ router.post('/unlink', (req, res) => {
   res.json({ unlinked: child, from: parent.parent_id });
 });
 
-module.exports = { router, createCode, linkedKeys, verifySignature, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };
+module.exports = { router, createCode, linkedKeys, verifySignature, limitKey, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };

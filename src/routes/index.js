@@ -35,6 +35,7 @@ module.exports = (app) => {
   app.use('/auth', require('../auth')(passport));
   app.use('/profile', authenticated, require('../profile'));
   app.use('/link_key', require('../link_key').router);
+  app.use('/cert', require('../broker').router);
   app.post('/logout', authenticated, (req, res) => req.logout(() => res.redirect('/')));
   app.use('/upload', require('../upload'));
   app.use('/report_match', require('../report_match'));

@@ -2,41 +2,20 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const config = require('./config');
+const identityCert = require('./identity_cert');
 
 /*
   The official servers: one file per server in OFFICIAL_SERVERS_DIR, named after its server id
-  (e.g. "de", "us-central") and holding nothing but its official_server_secret.
-  The masterserver reads the same directory to recognize the official servers by their signed heartbeats.
+  (e.g. "de", "us-central") and holding nothing but its public key in hex - what its --print-server-key prints.
+  The masterserver reads the same directory to list them as official.
 
   Re-read at most every few seconds, so that adding or removing a file takes effect right away.
+  Read exactly like the masterserver does (official_servers_registry.h): a key shared by two files authorizes neither.
 
-  Read exactly like the masterserver does (official_servers_registry.h): the secret trimmed of spaces,
-  tabs and line breaks only, and a secret shared by two files authorizes neither.
+  An official server signs its match reports with its key: X-Server-Key and X-Signature over "hs-report-v1" and the body.
 */
 
 const dir = config.OFFICIAL_SERVERS_DIR;
-
-function seedTestServers() {
-  if (!config.IS_TEST) return;
-
-  // The secrets "pl" and "au" are public: never in production, where the masterserver reads the same directory
-  if (config.IS_PROD) {
-    console.error('[test] Not seeding the test official servers in production.');
-    return;
-  }
-
-  fs.mkdirSync(dir, { recursive: true });
-
-  for (const id of ['pl', 'au']) {
-    const file = path.join(dir, id);
-
-    if (!fs.existsSync(file)) {
-      fs.writeFileSync(file, id + '\n', { mode: 0o600 });
-    }
-  }
-
-  console.log('[test] Seeded official servers: pl, au');
-}
 
 const CACHE_MS = 5000;
 let cached = null;
@@ -74,60 +53,100 @@ function readOfficialServersNow() {
     try {
       if (!fs.statSync(file).isFile()) continue;
 
-      const secret = trimmed(fs.readFileSync(file, 'utf8'));
-      if (secret) servers.push({ server_id: name, secret });
+      const key = trimmed(fs.readFileSync(file, 'utf8'));
+
+      if (/^[0-9a-f]{64}$/.test(key)) servers.push({ server_id: name, key });
+      else console.error(`Official server ${name}: not a public key, skipping.`);
     } catch (err) {
       console.error(`Could not read the official server ${name}:`, err.message);
     }
   }
 
   const count = new Map();
-  for (const server of servers) count.set(server.secret, (count.get(server.secret) || 0) + 1);
+  for (const server of servers) count.set(server.key, (count.get(server.key) || 0) + 1);
 
   return servers.filter(server => {
-    if (count.get(server.secret) === 1) return true;
+    if (count.get(server.key) === 1) return true;
 
-    console.error(`Official server ${server.server_id}: the same secret as another one, skipping both.`);
+    console.error(`Official server ${server.server_id}: the same key as another one, skipping both.`);
     return false;
   });
 }
 
 /*
-  Servers report with this key in hex instead of the secret itself,
-  so that a mistyped report URL reveals only this key - see official_server_keys.h.
+  --test: the official servers "pl" and "au" with keys from public seeds (sha256 of "hypersomnia-test-server-<id>"),
+  which run_mmr_tests.py signs its reports with. Never in production, where the masterserver reads the same directory.
 */
-const reportKey = (secret) => crypto.createHmac('sha256', secret).update('hypersomnia-report-v1').digest('hex');
+function seedTestServers() {
+  if (!config.IS_TEST) return;
 
-/*
-  Compares digests so that the comparison takes the same time
-  whatever the length of the secrets and wherever they differ.
-*/
-const digest = (s) => crypto.createHash('sha256').update(s, 'utf8').digest();
-
-function findServerIdByReportKey(key) {
-  if (typeof key !== 'string' || !key) return null;
-
-  const given = digest(key);
-  let found = null;
-
-  for (const server of readOfficialServers()) {
-    if (crypto.timingSafeEqual(given, digest(reportKey(server.secret)))) {
-      found = server.server_id;
-    }
+  if (config.IS_PROD) {
+    console.error('[test] Not seeding the test official servers in production.');
+    return;
   }
 
-  return found;
+  fs.mkdirSync(dir, { recursive: true });
+
+  for (const id of ['pl', 'au']) {
+    const file = path.join(dir, id);
+    const seed = crypto.createHash('sha256').update(`hypersomnia-test-server-${id}`).digest();
+    const key = identityCert.rawPublicKey(identityCert.privateKeyFromSeed(seed)).toString('hex');
+
+    fs.writeFileSync(file, key + '\n', { mode: 0o600 });
+  }
+
+  console.log('[test] Seeded official servers: pl, au');
+}
+
+seedTestServers();
+
+function findServerIdByKey(keyHex) {
+  if (typeof keyHex !== 'string' || !/^[0-9a-f]{64}$/.test(keyHex)) return null;
+
+  const found = readOfficialServers().find(server => server.key === keyHex);
+  return found ? found.server_id : null;
+}
+
+let lastRefusalLog = 0;
+
+function logRefusal(message) {
+  const now = Date.now();
+
+  if (now - lastRefusalLog > 10000) {
+    lastRefusalLog = now;
+    console.error(message);
+  }
 }
 
 /*
-  Express middleware: authorizes an official server by its report key in the "apikey" header
+  Express middleware: authorizes an official server by the signature of its key over the raw body
   and sets req.server_id. With onlyServerIds, only those servers are let in.
 */
 function officialServerAuth(onlyServerIds = null) {
   return (req, res, next) => {
-    const serverId = findServerIdByReportKey(req.headers['apikey']);
+    const keyHex = String(req.headers['x-server-key'] || '');
+    const signatureHex = String(req.headers['x-signature'] || '');
+    const serverId = findServerIdByKey(keyHex);
 
-    if (!serverId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!serverId) {
+      logRefusal(`[official] Refused a request signed by an unknown key ${keyHex.slice(0, 16)}... - not in ${dir}.`);
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!/^[0-9a-f]{128}$/.test(signatureHex) || !req.rawBody) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    let valid = false;
+
+    try {
+      const message = Buffer.concat([Buffer.from('hs-report-v1'), req.rawBody]);
+      valid = crypto.verify(null, message, identityCert.publicKeyFromRaw(Buffer.from(keyHex, 'hex')), Buffer.from(signatureHex, 'hex'));
+    } catch {
+      valid = false;
+    }
+
+    if (!valid) return res.status(401).json({ error: 'Unauthorized' });
     if (onlyServerIds && !onlyServerIds.includes(serverId)) return res.status(401).json({ error: 'Unauthorized' });
 
     req.server_id = serverId;
@@ -135,6 +154,4 @@ function officialServerAuth(onlyServerIds = null) {
   };
 }
 
-seedTestServers();
-
-module.exports = { officialServerAuth, findServerIdByReportKey, reportKey };
+module.exports = { officialServerAuth, findServerIdByKey };
