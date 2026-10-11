@@ -163,9 +163,17 @@ async function crazyGamesAccount(token) {
     throw { status: 400, message: 'Invalid CrazyGames token.' };
   }
 
-  const header = JSON.parse(decodeBase64Url(parts[0]).toString('utf8'));
+  const parseJson = (part) => {
+    try {
+      return JSON.parse(decodeBase64Url(part).toString('utf8'));
+    } catch (err) {
+      throw { status: 400, message: 'Invalid CrazyGames token.' };
+    }
+  };
 
-  if (header.alg !== 'RS256') {
+  const header = parseJson(parts[0]);
+
+  if (!header || header.alg !== 'RS256') {
     throw { status: 401, message: 'Invalid CrazyGames token.' };
   }
 
@@ -176,9 +184,9 @@ async function crazyGamesAccount(token) {
     throw { status: 401, message: 'Invalid CrazyGames token.' };
   }
 
-  const payload = JSON.parse(decodeBase64Url(parts[1]).toString('utf8'));
+  const payload = parseJson(parts[1]);
 
-  if (typeof payload.exp !== 'number' || payload.exp * 1000 <= Date.now()) {
+  if (!payload || typeof payload.exp !== 'number' || payload.exp * 1000 <= Date.now()) {
     throw { status: 401, message: 'The CrazyGames sign in has expired. Sign in again.' };
   }
 
