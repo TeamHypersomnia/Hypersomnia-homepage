@@ -97,6 +97,8 @@ const config = {
 
   // The identity broker's key (see broker.js): "hypersomnia-key-v1:<seed hex>", owner-readable only
   BROKER_KEY_PATH: process.env.BROKER_KEY_PATH || './private/broker.key',
+  // Where "Sign in with Steam" sends the link code back to the web build - a fixed page of the game
+  LINK_RETURN_URL: process.env.LINK_RETURN_URL || 'https://play.hypersomnia.io/assets/auth_redirect.html',
   // Only the CrazyGames tokens of this game are accepted. Unset: any (logged at start)
   CRAZYGAMES_GAME_ID: process.env.CRAZYGAMES_GAME_ID || '',
   // Tests only: verify CrazyGames tokens with this key instead of fetching CrazyGames' one

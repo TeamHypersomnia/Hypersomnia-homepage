@@ -29,7 +29,8 @@ module.exports = (passport) => {
   // Steam authentication
   router.get('/steam', passport.authenticate('steam', { failureRedirect: '/' }));
   
-  router.get('/steam/return', passport.authenticate('steam', { failureRedirect: '/' }), (req, res) => {
+  // keepSessionInfo: a sign in started by the game ("Sign in with Steam") continues where it was - see link_key.js
+  router.get('/steam/return', passport.authenticate('steam', { failureRedirect: '/', keepSessionInfo: true }), (req, res) => {
     try {
       stmts.upsertUser.run(
         req.user.id,
@@ -38,6 +39,13 @@ module.exports = (passport) => {
         req.get('user-agent') || null,
         req.get('accept-language')?.split(',')[0] || null
       );
+      const after = req.session.after_login;
+      delete req.session.after_login;
+
+      if (typeof after === 'string' && after.startsWith('/link_key/start?')) {
+        return res.redirect(after);
+      }
+
       res.redirect('/profile');
     } catch (err) {
       console.error('DB Error:', err.message);

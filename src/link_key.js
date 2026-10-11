@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const net = require('net');
 const express = require('express');
 const db = require('./db');
+const config = require('./config');
 
 /*
   Linking an identity key (the account of a player without Steam, "key_<public key in hex>")
@@ -21,9 +22,20 @@ const db = require('./db');
 
 const router = express.Router();
 
+// The web build of the game runs on another origin. These need no cookies - the key's signature is the proof.
+router.use(['/info', '/link', '/unlink'], (req, res, next) => {
+  if (req.method === 'GET') {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Cache-Control', 'no-store');
+  }
+
+  next();
+});
+
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const CODE_LENGTH = 8;
 const CODE_LIFETIME_MS = 10 * 60 * 1000;
+const MAX_KEYS_PER_STEAM_ACCOUNT = 10;
 
 // code -> { steamId, steamName, expires }; one live code per Steam account
 const codes = new Map();
@@ -194,14 +206,12 @@ router.get('/info', (req, res) => {
   res.json({ steam_id: entry.steamId, name: entry.steamName || '' });
 });
 
-router.post('/', (req, res) => {
-  const ip = req.headers['x-real-ip'] || req.ip;
-
+function link(params, ip, res) {
   if (!allowAttempt(ip)) {
     return res.status(429).send('Too many attempts. Try again in a minute.');
   }
 
-  const { public_key, code, signature } = req.body || {};
+  const { public_key, code, signature } = params || {};
 
   if (typeof public_key !== 'string' || !/^[0-9a-f]{64}$/.test(public_key)
     || typeof signature !== 'string' || !/^[0-9a-f]{128}$/.test(signature)
@@ -230,13 +240,67 @@ router.post('/', (req, res) => {
     return res.status(409).send('This key is already linked to another Steam account. Unlink it there first.');
   }
 
+  // Every new device or browser is a new key: a few are fine, an endless stream is not
+  if (!parent && linkedKeys(entry.steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT) {
+    return res.status(409).send(`This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked. Unlink old ones on hypersomnia.io/profile.`);
+  }
+
   // Single use: a code is gone once it linked a key
   codes.delete(normalizedCode);
 
-  stmts.link.run(child, entry.steamId);
+  db.transaction(() => {
+    stmts.link.run(child, entry.steamId);
+    moveProgressIfFirst(child, entry.steamId);
+  })();
+
   console.log(`[link_key] Linked ${child} to ${entry.steamId}.`);
 
   res.json({ linked: child, to: entry.steamId });
+}
+
+/*
+  Progress on linking: the key's ranked progress in a mode moves to the Steam account only if that account has no matches
+  in that mode yet - otherwise it stays with the key, to be seen on its profile. Never merged.
+*/
+function moveProgressIfFirst(child, steamId) {
+  for (const table of ['mmr_team', 'mmr_ffa']) {
+    const own = db.prepare(`SELECT * FROM ${table} WHERE account_id = ?`).get(child);
+    if (!own) continue;
+
+    const steam = db.prepare(`SELECT matches_won, matches_lost FROM ${table} WHERE account_id = ?`).get(steamId);
+    if (steam && (steam.matches_won + steam.matches_lost) > 0) continue;
+
+    db.prepare(`DELETE FROM ${table} WHERE account_id = ?`).run(steamId);
+    db.prepare(`UPDATE ${table} SET account_id = ? WHERE account_id = ?`).run(steamId, child);
+    console.log(`[link_key] Moved the ${table} progress of ${child} to ${steamId}.`);
+  }
+}
+
+router.post('/', (req, res) => link(req.body, req.headers['x-real-ip'] || req.ip, res));
+
+// The web build can only make GET requests
+router.get('/link', (req, res) => link(req.query, req.headers['x-real-ip'] || req.ip, res));
+
+/*
+  "Sign in with Steam" in the web build: the game opens /link_key/start?state=<its random state> in a new tab.
+  Signed in through Steam (here, or on the way), the player gets a code that goes back to the game - only ever to
+  LINK_RETURN_URL, with the game's state, which the game checks. The game still shows whose Steam account it is
+  and links only once the player confirms.
+*/
+router.get('/start', (req, res) => {
+  const { state } = req.query;
+
+  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)) {
+    return res.status(400).send('Invalid request.');
+  }
+
+  if (!req.user) {
+    req.session.after_login = `/link_key/start?state=${state}`;
+    return res.redirect('/auth/steam');
+  }
+
+  const code = createCode(`steam_${req.user.id}`, req.user.displayName);
+  res.redirect(`${config.LINK_RETURN_URL}#code=${code}&state=${state}`);
 });
 
 /*
@@ -261,14 +325,13 @@ function allowUnlink(ip) {
   return count <= MAX_ATTEMPTS_PER_MINUTE;
 }
 
-router.post('/unlink', (req, res) => {
-  const ip = req.headers['x-real-ip'] || req.ip;
-
+function unlinkBySignature(params, ip, res) {
   if (!allowUnlink(ip)) {
     return res.status(429).send('Too many attempts. Try again in a minute.');
   }
 
-  const { public_key, timestamp, signature } = req.body || {};
+  const { public_key, signature } = params || {};
+  const timestamp = typeof params.timestamp === 'string' ? Number(params.timestamp) : params.timestamp;
 
   if (typeof public_key !== 'string' || !/^[0-9a-f]{64}$/.test(public_key)
     || typeof signature !== 'string' || !/^[0-9a-f]{128}$/.test(signature)
@@ -296,6 +359,9 @@ router.post('/unlink', (req, res) => {
   console.log(`[link_key] Unlinked ${child} from ${parent.parent_id} by its own signature.`);
 
   res.json({ unlinked: child, from: parent.parent_id });
-});
+}
+
+router.post('/unlink', (req, res) => unlinkBySignature(req.body, req.headers['x-real-ip'] || req.ip, res));
+router.get('/unlink', (req, res) => unlinkBySignature(req.query, req.headers['x-real-ip'] || req.ip, res));
 
 module.exports = { router, createCode, linkedKeys, verifySignature, limitKey, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };
