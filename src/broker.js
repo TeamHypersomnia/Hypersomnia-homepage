@@ -28,7 +28,7 @@ const router = express.Router();
 const CERT_LIFETIME_SECS = 2 * 60 * 60;
 const STEAM_APP_ID = 2660970;
 const MAX_REQUESTS_PER_MINUTE = 30;
-const MAX_ALL_REQUESTS_PER_MINUTE = 6000;
+const MAX_ALL_REQUESTS_PER_MINUTE = 60000;
 
 // Every Steam ticket costs a call to the Steam Web API, whose key has a daily quota: a flood of bogus tickets
 // must not use it up for everyone. A real player asks about once an hour - so a few calls a minute per address
@@ -88,6 +88,8 @@ const requests = new Map();
 let allRequests = 0;
 let windowStart = Date.now();
 
+// Per address (an IPv6 /64) and per IPv6 /48 - one user can hold a whole /48. The global cap only bounds the CPU:
+// it is far above what players need, so that a flood from many addresses does not lock everyone out of certs.
 function allowRequest(ip) {
   const now = Date.now();
 
@@ -97,11 +99,14 @@ function allowRequest(ip) {
     windowStart = now;
   }
 
-  const key = limitKey(ip);
-  const count = (requests.get(key) || 0) + 1;
-  requests.set(key, count);
+  const counts = [[limitKey(ip), MAX_REQUESTS_PER_MINUTE], [limitKey(ip, 3) + '#48', 4 * MAX_REQUESTS_PER_MINUTE]];
 
-  if (count > MAX_REQUESTS_PER_MINUTE) return false;
+  for (const [key, limit] of counts) {
+    const count = (requests.get(key) || 0) + 1;
+    requests.set(key, count);
+
+    if (count > limit) return false;
+  }
 
   // Counted only once an address passed its own limit, so one address can not use up everyone's
   return ++allRequests <= MAX_ALL_REQUESTS_PER_MINUTE;
@@ -147,7 +152,8 @@ async function steamAccount(ticketHex, sessionPublicKey, ip) {
       ticket: ticketHex,
       identity: steamTicketIdentity(sessionPublicKey)
     },
-    timeout: 5000,
+    // Shorter than the game's own wait for /cert, so that it gets this answer rather than giving up first
+    timeout: 3000,
     maxRedirects: 0
   });
 
@@ -275,6 +281,12 @@ router.get('/', async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
 
   const ip = clientIp(req);
+  const { session, steam, crazygames, key, sig } = req.query;
+
+  // Malformed requests are refused before they count against anyone's limits
+  if (typeof session !== 'string' || !/^[0-9a-f]{64}$/.test(session)) {
+    return res.status(400).send('Invalid request.');
+  }
 
   if (!allowRequest(ip)) {
     return res.status(429).send('Too many requests. Try again in a minute.');
@@ -282,12 +294,6 @@ router.get('/', async (req, res) => {
 
   if (!brokerKey) {
     return res.status(503).send('Signing in is not available right now.');
-  }
-
-  const { session, steam, crazygames, key, sig } = req.query;
-
-  if (typeof session !== 'string' || !/^[0-9a-f]{64}$/.test(session)) {
-    return res.status(400).send('Invalid request.');
   }
 
   const sessionPublicKey = Buffer.from(session, 'hex');

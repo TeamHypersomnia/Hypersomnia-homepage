@@ -99,11 +99,13 @@ function allowAttempt(ip) {
     attemptsWindowStart = now;
   }
 
-  const key = limitKey(ip);
-  const count = (attempts.get(key) || 0) + 1;
-  attempts.set(key, count);
+  // Per address (an IPv6 /64) and per IPv6 /48, which one user can hold whole
+  for (const [key, limit] of [[limitKey(ip), MAX_ATTEMPTS_PER_MINUTE], [limitKey(ip, 3) + '#48', 4 * MAX_ATTEMPTS_PER_MINUTE]]) {
+    const count = (attempts.get(key) || 0) + 1;
+    attempts.set(key, count);
 
-  if (count > MAX_ATTEMPTS_PER_MINUTE) return false;
+    if (count > limit) return false;
+  }
 
   // Only the attempts let through count overall, so one address over its limit can not use up everyone's
   return ++allAttempts <= MAX_ALL_ATTEMPTS_PER_MINUTE;
