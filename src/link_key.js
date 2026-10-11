@@ -238,4 +238,45 @@ router.post('/', (req, res) => {
   res.json({ linked: child, to: entry.steamId });
 });
 
+/*
+  Unlinking from the game, signed with the key - for a player who linked it to a Steam account that is not theirs
+  (e.g. a code someone gave them) and can not sign in there. The signed timestamp must be within 10 minutes.
+*/
+router.post('/unlink', (req, res) => {
+  const ip = req.headers['x-real-ip'] || req.ip;
+
+  if (!allowAttempt(ip)) {
+    return res.status(429).send('Too many attempts. Try again in a minute.');
+  }
+
+  const { public_key, timestamp, signature } = req.body || {};
+
+  if (typeof public_key !== 'string' || !/^[0-9a-f]{64}$/.test(public_key)
+    || typeof signature !== 'string' || !/^[0-9a-f]{128}$/.test(signature)
+    || !Number.isSafeInteger(timestamp)
+  ) {
+    return res.status(400).send('Invalid request.');
+  }
+
+  if (Math.abs(Date.now() / 1000 - timestamp) > 10 * 60) {
+    return res.status(401).send('The clock of this computer is off. Set it right and try again.');
+  }
+
+  if (!verifySignature(public_key, `hypersomnia-unlink-v1 ${public_key} ${timestamp}`, signature)) {
+    return res.status(401).send('Invalid signature.');
+  }
+
+  const child = `key_${public_key}`;
+  const parent = stmts.parentOf.get(child);
+
+  if (!parent) {
+    return res.json({ unlinked: child, from: null });
+  }
+
+  stmts.unlink.run(child, parent.parent_id);
+  console.log(`[link_key] Unlinked ${child} from ${parent.parent_id} by its own signature.`);
+
+  res.json({ unlinked: child, from: parent.parent_id });
+});
+
 module.exports = { router, createCode, linkedKeys, verifySignature, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };

@@ -51,7 +51,7 @@
           <% linkedKeys.forEach(function(key) { %>
           <div>
             <a href="/user/<%= key %>"><%= key.slice(0, 16) %>…</a>
-            <form method="POST" action="/profile/unlink_key" style="display:inline">
+            <form method="POST" action="/profile/unlink_key" style="display:inline" onsubmit="return confirm('Unlink this game key? Its ranked matches will no longer count for this Steam account.');">
               <input type="hidden" name="key" value="<%= key %>">
               <button type="submit">Unlink</button>
             </form>
