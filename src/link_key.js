@@ -78,8 +78,10 @@ let allAttempts = 0;
 let attemptsWindowStart = Date.now();
 
 // An IPv6 client usually has a whole /64 to rotate through, so it is limited as one
-// An IPv6 address counts as its /64 (or another prefix of groups of 16 bits, e.g. 3 for a /48)
-function limitKey(ip, groups = 4) {
+// An IPv6 address counts as its /64
+function limitKey(ip) {
+  const groups = 4;
+
   if (!net.isIPv6(ip) || ip.startsWith('::ffff:')) return ip;
 
   const [head, tail = ''] = ip.split('::');
@@ -99,13 +101,11 @@ function allowAttempt(ip) {
     attemptsWindowStart = now;
   }
 
-  // Per address (an IPv6 /64) and per IPv6 /48, which one user can hold whole
-  for (const [key, limit] of [[limitKey(ip), MAX_ATTEMPTS_PER_MINUTE], [limitKey(ip, 3) + '#48', 4 * MAX_ATTEMPTS_PER_MINUTE]]) {
-    const count = (attempts.get(key) || 0) + 1;
-    attempts.set(key, count);
+  const key = limitKey(ip);
+  const count = (attempts.get(key) || 0) + 1;
+  attempts.set(key, count);
 
-    if (count > limit) return false;
-  }
+  if (count > MAX_ATTEMPTS_PER_MINUTE) return false;
 
   // Only the attempts let through count overall, so one address over its limit can not use up everyone's
   return ++allAttempts <= MAX_ALL_ATTEMPTS_PER_MINUTE;
