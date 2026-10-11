@@ -31,18 +31,28 @@ const MAX_REQUESTS_PER_MINUTE = 30;
 const MAX_ALL_REQUESTS_PER_MINUTE = 6000;
 
 // Every Steam ticket costs a call to the Steam Web API, whose key has a daily quota: a flood of bogus tickets
-// must not use it up for everyone. A real player asks about once an hour.
+// must not use it up for everyone. A real player asks about once an hour - so a few calls a minute per address
+// (an IPv6 /48 - one user can hold a whole one), and a global cap within the quota.
 const MAX_STEAM_CALLS_PER_MINUTE = 120;
+const MAX_STEAM_CALLS_PER_ADDRESS_PER_MINUTE = 10;
 let steamCalls = 0;
+const steamCallsByAddress = new Map();
 let steamWindowStart = Date.now();
 
-function allowSteamCall() {
+function allowSteamCall(ip) {
   const now = Date.now();
 
   if (now - steamWindowStart > 60 * 1000) {
     steamCalls = 0;
+    steamCallsByAddress.clear();
     steamWindowStart = now;
   }
+
+  const key = limitKey(ip, 3);
+  const count = (steamCallsByAddress.get(key) || 0) + 1;
+  steamCallsByAddress.set(key, count);
+
+  if (count > MAX_STEAM_CALLS_PER_ADDRESS_PER_MINUTE) return false;
 
   return ++steamCalls <= MAX_STEAM_CALLS_PER_MINUTE;
 }
@@ -99,7 +109,8 @@ function allowRequest(ip) {
 
 const stmts = {
   parentOf: db.prepare('SELECT parent_id FROM associations WHERE child_id = ?'),
-  banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?')
+  banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?'),
+  ban: db.prepare('INSERT OR IGNORE INTO broker_bans (account, reason) VALUES (?, ?)')
 };
 
 function bannedReason(account) {
@@ -115,12 +126,17 @@ function steamTicketIdentity(sessionPublicKey) {
   return crypto.createHash('sha256').update(Buffer.concat([Buffer.from('hs-steam-v1'), sessionPublicKey])).digest().subarray(0, 15).toString('hex');
 }
 
-async function steamAccount(ticketHex, sessionPublicKey) {
+async function steamAccount(ticketHex, sessionPublicKey, ip) {
   if (!config.STEAM_API_KEY) {
     throw { status: 503, message: 'Steam sign in is not available right now.' };
   }
 
-  if (!allowSteamCall()) {
+  // A Web API ticket is a few hundred bytes - nothing shorter is worth asking Steam about
+  if (ticketHex.length < 200 || ticketHex.length % 2 !== 0) {
+    throw { status: 401, message: 'Steam did not accept the ticket.' };
+  }
+
+  if (!allowSteamCall(ip)) {
     throw { status: 503, message: 'Too many sign ins right now. Retrying soon.' };
   }
 
@@ -152,6 +168,8 @@ async function steamAccount(ticketHex, sessionPublicKey) {
   }
 
   if (params.publisherbanned || params.vacbanned) {
+    // Remembered, so that keys linked to this account are refused too - they never show Steam a ticket
+    stmts.ban.run(`steam_${params.steamid}`, 'This Steam account is banned.');
     throw { status: 403, message: 'This Steam account is banned.' };
   }
 
@@ -276,7 +294,7 @@ router.get('/', async (req, res) => {
 
   try {
     const account = await (async () => {
-      if (typeof steam === 'string' && /^[0-9a-f]{2,4096}$/.test(steam)) return steamAccount(steam, sessionPublicKey);
+      if (typeof steam === 'string' && /^[0-9a-f]{2,4096}$/.test(steam)) return steamAccount(steam, sessionPublicKey, ip);
       if (typeof crazygames === 'string' && crazygames.length <= 4096) return crazyGamesAccount(crazygames);
       if (typeof key === 'string' && typeof sig === 'string') return keyAccount(key, sig, sessionPublicKey);
       throw { status: 400, message: 'Invalid request.' };

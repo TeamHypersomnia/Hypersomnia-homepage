@@ -17,7 +17,7 @@ router.get('/:user', function(req, res) {
     const validId =
       config.IS_PROD ? (
         (platform === 'steam' || platform === 'discord') ? /^\d+$/.test(id) :
-        (platform === 'crazygames') ? /^[a-zA-Z0-9]{10,64}$/.test(id) :
+        (platform === 'crazygames') ? /^[A-Za-z0-9_-]{1,64}$/.test(id) :
         (platform === 'key') ? /^[0-9a-f]{64}$/.test(id) :
         false
       ) : true;

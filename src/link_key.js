@@ -78,7 +78,8 @@ let allAttempts = 0;
 let attemptsWindowStart = Date.now();
 
 // An IPv6 client usually has a whole /64 to rotate through, so it is limited as one
-function limitKey(ip) {
+// An IPv6 address counts as its /64 (or another prefix of groups of 16 bits, e.g. 3 for a /48)
+function limitKey(ip, groups = 4) {
   if (!net.isIPv6(ip) || ip.startsWith('::ffff:')) return ip;
 
   const [head, tail = ''] = ip.split('::');
@@ -86,7 +87,7 @@ function limitKey(ip) {
   const tailGroups = tail ? tail.split(':') : [];
   const missing = Array(8 - headGroups.length - tailGroups.length).fill('0');
 
-  return [...headGroups, ...missing, ...tailGroups].slice(0, 4).join(':') + '::/64';
+  return [...headGroups, ...missing, ...tailGroups].slice(0, groups).join(':') + `::/${groups * 16}`;
 }
 
 function allowAttempt(ip) {

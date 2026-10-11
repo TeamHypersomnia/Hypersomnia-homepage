@@ -28,7 +28,14 @@ function readOfficialServers() {
 
   if (cached && now - cachedAt < CACHE_MS) return cached;
 
-  cached = readOfficialServersNow();
+  // A directory that can not be read for a moment (a sync, a permissions change) keeps the previous list:
+  // an empty one would refuse every official report
+  const fresh = readOfficialServersNow();
+
+  if (fresh !== null || !cached) {
+    cached = fresh || [];
+  }
+
   cachedAt = now;
   return cached;
 }
@@ -40,7 +47,7 @@ function readOfficialServersNow() {
     names = fs.readdirSync(dir);
   } catch (err) {
     console.error(`Could not read the official servers from ${dir}:`, err.message);
-    return [];
+    return null;
   }
 
   const servers = [];
@@ -127,6 +134,12 @@ function officialServerAuth(onlyServerIds = null) {
     const keyHex = String(req.headers['x-server-key'] || '');
     const signatureHex = String(req.headers['x-signature'] || '');
     const serverId = findServerIdByKey(keyHex);
+
+    // The list itself unavailable is no verdict on the server - it retries a 503
+    if (!serverId && readOfficialServers().length === 0) {
+      logRefusal(`[official] No official servers known (${dir} empty or unreadable) - answering 503.`);
+      return res.status(503).json({ error: 'Official servers unavailable' });
+    }
 
     if (!serverId) {
       logRefusal(`[official] Refused a request signed by an unknown key ${keyHex.slice(0, 16)}... - not in ${dir}.`);
