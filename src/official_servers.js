@@ -8,8 +8,10 @@ const config = require('./config');
   (e.g. "de", "us-central") and holding nothing but its official_server_secret.
   The masterserver reads the same directory to recognize the official servers by their signed heartbeats.
 
-  Read on every lookup so that adding or removing a file takes effect immediately -
-  there are only a handful of tiny files and the lookups only happen on match reports.
+  Re-read at most every few seconds, so that adding or removing a file takes effect right away.
+
+  Read exactly like the masterserver does (official_servers_registry.h): the secret trimmed of spaces,
+  tabs and line breaks only, and a secret shared by two files authorizes neither.
 */
 
 const dir = config.OFFICIAL_SERVERS_DIR;
@@ -30,7 +32,23 @@ function seedTestServers() {
   console.log('[test] Seeded official servers: pl, au');
 }
 
+const CACHE_MS = 5000;
+let cached = null;
+let cachedAt = 0;
+
+const trimmed = (s) => s.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, '');
+
 function readOfficialServers() {
+  const now = Date.now();
+
+  if (cached && now - cachedAt < CACHE_MS) return cached;
+
+  cached = readOfficialServersNow();
+  cachedAt = now;
+  return cached;
+}
+
+function readOfficialServersNow() {
   let names;
 
   try {
@@ -50,15 +68,29 @@ function readOfficialServers() {
     try {
       if (!fs.statSync(file).isFile()) continue;
 
-      const secret = fs.readFileSync(file, 'utf8').trim();
+      const secret = trimmed(fs.readFileSync(file, 'utf8'));
       if (secret) servers.push({ server_id: name, secret });
     } catch (err) {
       console.error(`Could not read the official server ${name}:`, err.message);
     }
   }
 
-  return servers;
+  const count = new Map();
+  for (const server of servers) count.set(server.secret, (count.get(server.secret) || 0) + 1);
+
+  return servers.filter(server => {
+    if (count.get(server.secret) === 1) return true;
+
+    console.error(`Official server ${server.server_id}: the same secret as another one, skipping both.`);
+    return false;
+  });
 }
+
+/*
+  Servers report with this key in hex instead of the secret itself,
+  so that a mistyped report URL reveals only this key - see official_server_keys.h.
+*/
+const reportKey = (secret) => crypto.createHmac('sha256', secret).update('hypersomnia-report-v1').digest('hex');
 
 /*
   Compares digests so that the comparison takes the same time
@@ -66,14 +98,14 @@ function readOfficialServers() {
 */
 const digest = (s) => crypto.createHash('sha256').update(s, 'utf8').digest();
 
-function findServerIdBySecret(secret) {
-  if (typeof secret !== 'string' || !secret) return null;
+function findServerIdByReportKey(key) {
+  if (typeof key !== 'string' || !key) return null;
 
-  const given = digest(secret);
+  const given = digest(key);
   let found = null;
 
   for (const server of readOfficialServers()) {
-    if (crypto.timingSafeEqual(given, digest(server.secret))) {
+    if (crypto.timingSafeEqual(given, digest(reportKey(server.secret)))) {
       found = server.server_id;
     }
   }
@@ -82,12 +114,12 @@ function findServerIdBySecret(secret) {
 }
 
 /*
-  Express middleware: authorizes an official server by its secret in the "apikey" header
+  Express middleware: authorizes an official server by its report key in the "apikey" header
   and sets req.server_id. With onlyServerIds, only those servers are let in.
 */
 function officialServerAuth(onlyServerIds = null) {
   return (req, res, next) => {
-    const serverId = findServerIdBySecret(req.headers['apikey']);
+    const serverId = findServerIdByReportKey(req.headers['apikey']);
 
     if (!serverId) return res.status(401).json({ error: 'Unauthorized' });
     if (onlyServerIds && !onlyServerIds.includes(serverId)) return res.status(401).json({ error: 'Unauthorized' });
@@ -99,4 +131,4 @@ function officialServerAuth(onlyServerIds = null) {
 
 seedTestServers();
 
-module.exports = { officialServerAuth, findServerIdBySecret };
+module.exports = { officialServerAuth, findServerIdByReportKey, reportKey };

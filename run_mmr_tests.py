@@ -8,6 +8,8 @@ Usage:
   python3 run_mmr_tests.py --prod          # against hypersomnia.io, uses $RANKED_API_KEY
 """
 
+import hashlib
+import hmac
 import json
 import os
 import sqlite3
@@ -85,10 +87,12 @@ def post(filename, apikey="pl"):
     path = os.path.join(ROOT, "tests", filename)
     with open(path, "rb") as f:
         data = f.read()
-    key = API_KEY if PROD_MODE else apikey
+    secret = API_KEY if PROD_MODE else apikey
+    # Servers report with a key derived from their secret, not the secret itself - see src/official_servers.js
+    report_key = hmac.new(secret.encode(), b"hypersomnia-report-v1", hashlib.sha256).hexdigest()
     req = urllib.request.Request(URL, data=data, headers={
         "Content-Type": "application/json",
-        "apikey": key,
+        "apikey": report_key,
     })
     try:
         with urllib.request.urlopen(req) as resp:
