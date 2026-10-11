@@ -39,7 +39,7 @@ router.get('/', (req, res) => renderProfile(req, res));
 
 // A one-time code for the game to link an identity key to this Steam account - see link_key.js
 router.post('/link_code', (req, res) => {
-  const code = linkKey.createCode(`steam_${req.user.id}`);
+  const code = linkKey.createCode(`steam_${req.user.id}`, req.user.displayName);
   renderProfile(req, res, { linkCode: code });
 });
 
