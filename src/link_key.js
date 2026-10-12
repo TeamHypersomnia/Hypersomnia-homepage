@@ -35,7 +35,7 @@ router.use(['/info', '/link', '/unlink'], (req, res, next) => {
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const CODE_LENGTH = 8;
-const CODE_LIFETIME_MS = 10 * 60 * 1000;
+const CODE_LIFETIME_MS = 5 * 60 * 1000;
 const MAX_KEYS_PER_STEAM_ACCOUNT = 10;
 
 // code -> { steamId, steamName, expires }; one live code per Steam account
@@ -70,7 +70,7 @@ function createCode(steamId, steamName) {
   (reloading the page does not invalidate a code already typed into the game), a new one otherwise.
   The same code as from createCode - tied to this Steam session.
 */
-const CODE_MIN_REMAINING_MS = 3 * 60 * 1000;
+const CODE_MIN_REMAINING_MS = 2 * 60 * 1000;
 
 function currentCode(steamId, steamName) {
   const now = Date.now();
@@ -186,7 +186,7 @@ router.get('/info', (req, res) => {
   const entry = liveCode(code.toUpperCase());
 
   if (!entry) {
-    return res.status(404).send('Invalid or expired code. Get a new one on hypersomnia.io/profile.');
+    return res.status(404).send('Invalid or expired code. Get a new one on hypersomnia.io/link.');
   }
 
   res.json({ steam_id: entry.steamId, name: entry.steamName || '' });
@@ -211,7 +211,7 @@ function link(params, ip, res) {
 
   // The cheap check first: no signature verification for guessed codes
   if (!entry) {
-    return res.status(401).send('Invalid or expired code. Get a new one on hypersomnia.io/profile.');
+    return res.status(401).send('Invalid or expired code. Get a new one on hypersomnia.io/link.');
   }
 
   if (!verifySignature(public_key, `hypersomnia-link-v1 ${normalizedCode} ${entry.steamId}`, signature)) {
