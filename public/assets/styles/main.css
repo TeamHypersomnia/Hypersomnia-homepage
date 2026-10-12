@@ -987,9 +987,17 @@ input[type='submit'].danger:hover {
   }
 }
 
-/* linked game keys on /profile: the Unlink buttons in their own narrow column */
+/* linked game keys on /profile: the table only as wide as the whole keys need, the Unlink buttons in their own column */
+table.linked-keys {
+  width: auto;
+}
+
+table.linked-keys .linked-keys-key {
+  white-space: nowrap;
+  font-family: monospace;
+}
+
 table.linked-keys .linked-keys-action {
-  width: 1%;
   white-space: nowrap;
   text-align: right;
 }
