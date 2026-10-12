@@ -9,6 +9,7 @@ const config = require('./config');
 const identityCert = require('./identity_cert');
 const { verifySignature } = require('./link_key');
 const { makeLimiter } = require('./limiter');
+const { getAvatar } = require('./avatars');
 
 /*
   The identity broker: certs that bind a player's account to the session key the game made at start
@@ -19,22 +20,26 @@ const { makeLimiter } = require('./limiter');
   GET /cert?session=<hex>&crazygames=<jwt>         a CrazyGames token of this game
   GET /cert?session=<hex>&key=<hex>&sig=<hex>       an account key's signature of "hs-cert-req-v1" and the session key
 
-  An account key linked to a Steam account gets a cert for that Steam account. 200 with the cert in hex,
+  An account key linked to a Steam account gets a cert for that Steam account. 200 with JSON:
+    {"cert": "<the cert in hex>", "name": "<string>", "avatar": "<base64 of the image bytes>"}
+  name and avatar: a steam_ account's Steam name and medium avatar (a JPEG) - the web build can not ask Steam itself;
+  a key_ account's last nickname and avatar from reported matches (used by the game when a key is imported);
+  empty for crazygames_ (the game has them from the CrazyGames SDK) or when unknown.
   4xx with a reason the game shows to the player. A GET, since the web build fetches only that way -
   nginx keeps /cert out of its logs.
 */
 
 const router = express.Router();
 
-const CERT_LIFETIME_SECS = 2 * 60 * 60;
+const CERT_LIFETIME_SECS = 4 * 60 * 60;
 const STEAM_APP_ID = 2660970;
 // Per address - a school starting the game together fits - and in all only to bound the CPU,
 // far above what players need, so that a flood from many addresses does not lock everyone out of certs
 const allowRequest = makeLimiter({ perAddress: 150, total: 60000 });
 
-// Every Steam ticket costs a call to the Steam Web API, whose key has a daily quota: a flood of bogus tickets
-// must not use it up for everyone. A real player asks about once an hour - so a few calls a minute per address,
-// and a global cap within the quota.
+// Every Steam ticket and every profile fetch costs a call to the Steam Web API, whose key has a daily quota: a flood of
+// bogus tickets must not use it up for everyone. A real player asks every two hours (a cert lives 4) and the profile is
+// cached for a day - so a few calls a minute per address, and a global cap within the quota.
 const allowSteamCall = makeLimiter({ perAddress: 10, total: 120 });
 
 /*
@@ -67,7 +72,15 @@ const brokerKey = loadBrokerKey();
 const stmts = {
   parentOf: db.prepare('SELECT parent_id FROM associations WHERE child_id = ?'),
   banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?'),
-  ban: db.prepare('INSERT OR IGNORE INTO broker_bans (account, reason) VALUES (?, ?)')
+  ban: db.prepare('INSERT OR IGNORE INTO broker_bans (account, reason) VALUES (?, ?)'),
+  steamProfile: db.prepare('SELECT name, avatar, fetched_at FROM steam_profiles WHERE account_id = ?'),
+  setSteamProfile: db.prepare('INSERT OR REPLACE INTO steam_profiles (account_id, name, avatar, fetched_at) VALUES (?, ?, ?, ?)'),
+  lastNickname: db.prepare(`
+    SELECT nickname FROM last_nicknames WHERE account_id = @id
+    UNION ALL SELECT nickname FROM mmr_team WHERE account_id = @id AND nickname IS NOT NULL
+    UNION ALL SELECT nickname FROM mmr_ffa WHERE account_id = @id AND nickname IS NOT NULL
+    LIMIT 1
+  `)
 };
 
 function bannedReason(account) {
@@ -139,6 +152,99 @@ async function steamAccount(ticketHex, sessionPublicKey, ip) {
   }
 
   return `steam_${params.steamid}`;
+}
+
+/*
+  A Steam account's name and medium avatar (64x64 JPEG) for the game's profile, from GetPlayerSummaries with the broker's key.
+  Cached a day per account; Steam failing or the call limit reached gives the stale cache or nothing - never fails the cert.
+  The avatar is fetched only from https://*.steamstatic.com, at most 64 KB.
+*/
+const STEAM_PROFILE_CACHE_SECS = 24 * 60 * 60;
+const MAX_STEAM_AVATAR_BYTES = 64 * 1024;
+
+function isSteamAvatarUrl(text) {
+  try {
+    const url = new URL(text);
+    return url.protocol === 'https:' && url.port === '' && url.username === '' &&
+      (url.hostname === 'steamstatic.com' || url.hostname.endsWith('.steamstatic.com'));
+  } catch {
+    return false;
+  }
+}
+
+async function fetchSteamProfile(steamId, deadline) {
+  // Whatever is left of the request's time, so that the game gets its cert before it gives up waiting
+  const timeLeft = () => Math.min(3000, deadline - Date.now());
+
+  if (timeLeft() < 500) return null;
+
+  const response = await axios.get('https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/', {
+    params: { key: config.STEAM_API_KEY, steamids: steamId },
+    timeout: timeLeft(),
+    maxRedirects: 0
+  });
+
+  const players = response.data && response.data.response && response.data.response.players;
+  const player = Array.isArray(players) ? players.find(p => p && p.steamid === steamId) : null;
+
+  if (!player || typeof player.personaname !== 'string') return null;
+
+  const name = player.personaname.slice(0, 64);
+
+  if (!isSteamAvatarUrl(player.avatarmedium)) {
+    return { name, avatar: null };
+  }
+
+  if (timeLeft() < 500) return null;
+
+  const image = await axios.get(player.avatarmedium, {
+    responseType: 'arraybuffer',
+    timeout: timeLeft(),
+    maxRedirects: 0,
+    maxContentLength: MAX_STEAM_AVATAR_BYTES
+  });
+
+  return { name, avatar: Buffer.from(image.data) };
+}
+
+async function steamProfile(account, ip, deadline) {
+  const cached = stmts.steamProfile.get(account);
+  const now = Math.floor(Date.now() / 1000);
+
+  if (cached && now - cached.fetched_at < STEAM_PROFILE_CACHE_SECS) {
+    return cached;
+  }
+
+  const stale = cached || { name: '', avatar: null };
+
+  if (!config.STEAM_API_KEY || !allowSteamCall(ip)) {
+    return stale;
+  }
+
+  try {
+    const fetched = await fetchSteamProfile(account.slice('steam_'.length), deadline);
+
+    if (!fetched) return stale;
+
+    stmts.setSteamProfile.run(account, fetched.name, fetched.avatar, now);
+    return fetched;
+  } catch (err) {
+    console.error(`[broker] Could not fetch the Steam profile of ${account}:`, err && err.message ? err.message : err);
+    return stale;
+  }
+}
+
+async function accountProfile(account, ip, deadline) {
+  if (account.startsWith('steam_')) {
+    return steamProfile(account, ip, deadline);
+  }
+
+  if (account.startsWith('key_')) {
+    const nickname = stmts.lastNickname.get({ id: account });
+    return { name: nickname ? nickname.nickname : '', avatar: getAvatar(account) };
+  }
+
+  return { name: '', avatar: null };
 }
 
 let crazyGamesKey = null;
@@ -249,6 +355,8 @@ router.get('/', async (req, res) => {
   }
 
   const sessionPublicKey = Buffer.from(session, 'hex');
+  // The game waits 5 seconds for /cert: the profile is fetched only within the first 4
+  const deadline = Date.now() + 4000;
 
   try {
     const account = await (async () => {
@@ -273,7 +381,13 @@ router.get('/', async (req, res) => {
       notAfter: now + CERT_LIFETIME_SECS
     });
 
-    res.type('text/plain').send(cert.toString('hex'));
+    const profile = await accountProfile(account, ip, deadline);
+
+    res.json({
+      cert: cert.toString('hex'),
+      name: profile.name || '',
+      avatar: profile.avatar ? Buffer.from(profile.avatar).toString('base64') : ''
+    });
   } catch (err) {
     if (err && err.status) {
       return res.status(err.status).send(err.message);
@@ -285,4 +399,4 @@ router.get('/', async (req, res) => {
   }
 });
 
-module.exports = { router, steamTicketIdentity };
+module.exports = { router, steamTicketIdentity, isSteamAvatarUrl };
