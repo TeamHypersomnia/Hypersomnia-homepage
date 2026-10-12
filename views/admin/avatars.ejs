@@ -2,7 +2,7 @@
 <%- include('nav'); %>
 
 <% if (deleted) { %>
-<p>Deleted the avatar of <a href="/user/<%= deleted %>"><%= deleted %></a>.</p>
+<p>Deleted the avatar of <a href="/user/<%= deleted %>"><%= fullAccountId(deleted) %></a>.</p>
 <% } %>
 
 <div class="responsive">
@@ -19,7 +19,7 @@
       <% avatars.forEach(a => { %>
         <tr>
           <td><img class="avatar" src="/avatar/<%= a.account_id %>.png" alt=""></td>
-          <td><a href="/user/<%= a.account_id %>"><%= a.account_id %></a></td>
+          <td><a href="/user/<%= a.account_id %>"><%= fullAccountId(a.account_id) %></a></td>
           <td><%= new Date(a.updated_at * 1000).toISOString().replace('T', ' ').slice(0, 19) %></td>
           <td>
             <form method="POST" action="/admin/avatars/delete">

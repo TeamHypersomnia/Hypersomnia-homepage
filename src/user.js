@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db');
 const { timeAgoShort } = require('./utilities/timeAgo');
-const { formatMMRDelta, getRank, countryCodeToEmoji } = require('./utils');
+const { formatMMRDelta, getRank, countryCodeToEmoji, accountLabel } = require('./utils');
 const { getAvatar } = require('./avatars');
 
 router.get('/:user', function(req, res) {
@@ -53,7 +53,6 @@ router.get('/:user', function(req, res) {
     const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
     const linkedTo = parentAssociation ? parentAssociation.parent_id : null;
     const linkedAccounts = linkedTo ? [] : db.prepare("SELECT child_id FROM associations WHERE parent_id = ? ORDER BY child_id NOT LIKE 'discord_%', child_id").all(userid).map(r => r.child_id);
-    const accountLabel = (id) => id.startsWith('key_') ? `key ${id.slice(4, 12)}…` : id.split('_')[0];
     
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
     const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
@@ -131,7 +130,6 @@ router.get('/:user', function(req, res) {
       matches: matches,
       linkedTo,
       linkedAccounts,
-      accountLabel,
       formatMMRDelta: formatMMRDelta,
       longestWinStreak,
       mostPlayedArena,

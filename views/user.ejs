@@ -26,24 +26,25 @@
             <% } %>
           </td>
         </tr>
+        <% if (linkedTo) { %>
         <tr>
-          <td>
-            <% if (linkedTo) { %>
-              Plays as
-            <% } else { %>
-              Linked accounts
-            <% } %>
-          </td>
-          <td>
-            <% if (linkedTo) { %>
-              <a href="/user/<%= linkedTo %>"><%= accountLabel(linkedTo) %></a>
-            <% } else if (linkedAccounts.length > 0) { %>
-              <% linkedAccounts.forEach(function(id, i) { %><%= i > 0 ? ', ' : '' %><a href="/user/<%= id %>"><%= accountLabel(id) %></a><% }); %>
-            <% } else { %>
-              None
-            <% } %>
-          </td>
+          <td>Plays as</td>
+          <td><a href="/user/<%= linkedTo %>"><%= accountLabel(linkedTo) %></a></td>
         </tr>
+        <% } else if (linkedAccounts.length === 0) { %>
+        <tr>
+          <td>Linked accounts</td>
+          <td>None</td>
+        </tr>
+        <% } else { %>
+        <%# one row per linked account, the label only in the first %>
+        <% linkedAccounts.forEach(function(id, i) { %>
+        <tr>
+          <td><%= i === 0 ? 'Linked accounts' : '' %></td>
+          <td><a href="/user/<%= id %>"><%= accountLabel(id) %></a></td>
+        </tr>
+        <% }); %>
+        <% } %>
         <% if (playedAny) { %>
         <tr>
           <td><abbr title="Match Making Rating">MMR</abbr> (Bomb Defusal)</td>

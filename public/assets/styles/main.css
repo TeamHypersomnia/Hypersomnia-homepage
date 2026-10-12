@@ -893,6 +893,36 @@ input[type='submit']:hover {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
 }
 
+/* a small button next to a value in a table cell, e.g. Unlink on /profile */
+.inline-form {
+  display: inline;
+}
+
+input[type='submit'].small {
+  margin: 0 0 0 0.75em;
+  padding: 0 6px;
+  font-size: 10.8px;
+  line-height: 1.6;
+  color: var(--dim);
+  border-color: var(--table-line);
+}
+
+/* a button that removes something: red only on hover */
+input[type='submit'].danger:hover {
+  color: var(--red);
+  border-color: var(--red);
+  box-shadow: 0 0 10px rgba(244, 71, 71, 0.3);
+}
+
+/* the code to link a game key on /profile */
+.link-code {
+  margin-bottom: 0.25em;
+  font-family: var(--mono);
+  font-size: 2em;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {

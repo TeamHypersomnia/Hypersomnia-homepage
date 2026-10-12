@@ -23,12 +23,17 @@ async function renderProfile(req, res, extra = {}) {
     }
   }
   
+  // The code to link a game key, valid right away - see link_key.js. Never cached: it is this session's.
+  const linkCode = linkKey.currentCode(steamId, req.user.displayName);
+  res.set('Cache-Control', 'no-store');
+
   res.render('profile', {
     page: 'Profile',
     user: req.user,
     discordData,
     linkedKeys: linkKey.linkedKeys(steamId),
-    linkCode: null,
+    linkCode: linkCode.code,
+    linkCodeExpires: linkCode.expires,
     success: req.query.success === 'true',
     is_admin: config.ADMIN_IDS.includes(req.user.id),
     ...extra
@@ -37,10 +42,10 @@ async function renderProfile(req, res, extra = {}) {
 
 router.get('/', (req, res) => renderProfile(req, res));
 
-// A one-time code for the game to link an identity key to this Steam account - see link_key.js
+// A new one-time code in place of the one shown (/profile shows one right away) - see link_key.js
 router.post('/link_code', (req, res) => {
-  const code = linkKey.createCode(`steam_${req.user.id}`, req.user.displayName);
-  renderProfile(req, res, { linkCode: code });
+  linkKey.createCode(`steam_${req.user.id}`, req.user.displayName);
+  renderProfile(req, res);
 });
 
 router.post('/unlink_key', (req, res) => {

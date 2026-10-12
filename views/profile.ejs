@@ -37,35 +37,56 @@
         <td>Discord</td>
         <td><% if (discordData) { %><%= discordData.username %><% } else { %>Not connected<% } %></td>
       </tr>
+      <% if (linkedKeys.length === 0) { %>
       <tr>
         <td>Game keys</td>
+        <td>None linked</td>
+      </tr>
+      <% } %>
+      <%# one row per linked key, the label only in the first %>
+      <% linkedKeys.forEach(function(key, i) { %>
+      <tr>
+        <td><%= i === 0 ? 'Game keys' : '' %></td>
         <td>
-          <% if (linkedKeys.length === 0) { %>None linked<% } %>
-          <% linkedKeys.forEach(function(key) { %>
-          <div>
-            <a href="/user/<%= key %>"><%= key.slice(0, 16) %>…</a>
-            <form method="POST" action="/profile/unlink_key" style="display:inline" onsubmit="return confirm('Unlink this game key? Its ranked matches will no longer count for this Steam account.');">
-              <input type="hidden" name="key" value="<%= key %>">
-              <button type="submit">Unlink</button>
-            </form>
-          </div>
-          <% }) %>
+          <a href="/user/<%= key %>"><%= accountLabel(key) %></a>
+          <form class="inline-form" method="POST" action="/profile/unlink_key" onsubmit="return confirm('Unlink this game key? Progress from its ranked matches will no longer count towards this Steam account.');">
+            <input type="hidden" name="key" value="<%= key %>">
+            <input class="small danger" type="submit" value="Unlink">
+          </form>
         </td>
       </tr>
+      <% }) %>
     </tbody>
   </table>
 </div>
 
 <h2>Play without Steam</h2>
-<p>Without Steam - outside Steam, or in the browser - the game keeps your account as a key on your computer or in the browser. Link it here, and the ranked matches you play with it count for this Steam account. In the browser, <b>Sign in with Steam</b> in <b>Settings → Client → Account</b> does it in one step.</p>
-<% if (linkCode) { %>
-<p>In the game without Steam, open <b>Settings → Client → Account</b> and enter this code under <i>Link to your Steam account</i>. It is valid for 10 minutes, once:</p>
-<p style="font-size: 2em; letter-spacing: 0.15em; font-family: monospace;"><b><%= linkCode %></b></p>
-<% } else { %>
-<form class="btn" method="POST" action="/profile/link_code">
-  <button type="submit">Link a game key</button>
-</form>
-<% } %>
+<p>Without Steam - outside Steam, or in the browser - the game keeps your account as a key on your computer or in the browser. Link it here, and progress from the ranked matches you play with it counts towards this Steam account. In the browser, <b>Sign in with Steam</b> in <b>Settings → Client → Account</b> does it in one step.</p>
+<p>In the game without Steam, open <b>Settings → Client → Account</b> and enter this code under <i>Link to your Steam account</i>. It links one key, once:</p>
+<p class="link-code"><b><%= linkCode %></b></p>
+<% const linkCodeLeftMs = Math.max(0, linkCodeExpires - Date.now()); %>
+<small class="form-hint">Valid for <span id="link-code-left" data-left-ms="<%= linkCodeLeftMs %>"><%= Math.ceil(linkCodeLeftMs / 60000) %> min</span> - a new one comes when it runs out.</small>
+<script>
+  // the code expires: count down (from the time left, so a wrong clock does not matter), then load a new one
+  (function() {
+    const left = document.getElementById('link-code-left');
+    const expires = Date.now() + Number(left.dataset.leftMs);
+
+    function tick() {
+      const secs = Math.max(0, Math.ceil((expires - Date.now()) / 1000));
+
+      if (secs === 0) {
+        location.href = '/profile';
+        return;
+      }
+
+      left.textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
+      setTimeout(tick, 1000);
+    }
+
+    tick();
+  })();
+</script>
 <% if (discordData) { %><small class="form-hint">*After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.</small><% } %>
 
 <%- include('overall_footer'); %>

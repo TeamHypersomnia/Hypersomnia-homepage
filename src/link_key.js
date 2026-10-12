@@ -7,9 +7,9 @@ const config = require('./config');
 
 /*
   Linking an identity key (the account of a player without Steam, "key_<public key in hex>")
-  to a Steam account, so that the ranked matches played with the key count for the Steam account.
+  to a Steam account, so that the progress from ranked matches played with the key counts towards the Steam account.
 
-  1. Signed in through Steam, the player gets a one-time code on /profile (createCode).
+  1. Signed in through Steam, the player sees a one-time code on /profile (currentCode, createCode).
   2. The game asks GET /link_key/info?code=<code> whose Steam account it is and shows its name,
      so that a code someone else gave the player ("enter this for a badge") is seen for what it is.
   3. Confirmed, the game signs "hypersomnia-link-v1 <code> <steam account>" with the key and posts it to /link_key.
@@ -63,6 +63,26 @@ function createCode(steamId, steamName) {
 
   codes.set(code, { steamId, steamName, expires: now + CODE_LIFETIME_MS });
   return code;
+}
+
+/*
+  The code /profile shows right away: this Steam account's live code while it has at least a few minutes left
+  (reloading the page does not invalidate a code already typed into the game), a new one otherwise.
+  The same code as from createCode - tied to this Steam session.
+*/
+const CODE_MIN_REMAINING_MS = 3 * 60 * 1000;
+
+function currentCode(steamId, steamName) {
+  const now = Date.now();
+
+  for (const [code, entry] of codes) {
+    if (entry.steamId === steamId && entry.expires - now >= CODE_MIN_REMAINING_MS) {
+      return { code, expires: entry.expires };
+    }
+  }
+
+  const code = createCode(steamId, steamName);
+  return { code, expires: codes.get(code).expires };
 }
 
 function liveCode(code) {
@@ -345,4 +365,4 @@ function unlinkBySignature(params, ip, res) {
 router.post('/unlink', (req, res) => unlinkBySignature(req.body, clientIp(req), res));
 router.get('/unlink', (req, res) => unlinkBySignature(req.query, clientIp(req), res));
 
-module.exports = { router, createCode, linkedKeys, verifySignature, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };
+module.exports = { router, createCode, currentCode, linkedKeys, verifySignature, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };

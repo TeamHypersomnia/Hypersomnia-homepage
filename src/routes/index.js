@@ -9,6 +9,10 @@ module.exports = (app) => {
   // lets any view link an arena name only when that arena exists
   app.locals.hasArena = require('../arenas').hasArena;
 
+  // how an account is shown, e.g. a key as "0xaf2e22db…" - see utils.js
+  app.locals.accountLabel = require('../utils').accountLabel;
+  app.locals.fullAccountId = require('../utils').fullAccountId;
+
   // canonical URL of the current page: production domain, no query, no trailing slash
   app.use((req, res, next) => {
     const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : '/';
