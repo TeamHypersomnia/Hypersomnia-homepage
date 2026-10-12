@@ -13,6 +13,7 @@ const MIN_ROUNDS_TO_COUNT_WINS = 5;
 const MAX_REPORT_AGE_SECS = 3 * 24 * 60 * 60;
 
 const { officialServerAuth } = require('./official_servers');
+const { parseAvatar, setAvatar } = require('./avatars');
 const apiKeyAuth = officialServerAuth();
 
 // Player helpers
@@ -68,10 +69,14 @@ function lose_severity(win, lose) {
 }
 
 /*
-  Linked accounts (a Discord account, identity keys) play as their Steam account.
+  A linked Discord account plays as its Steam account.
   A Steam account can have several linked, so one match could hold two of them: only the first one
   in the report (winners before losers) plays as the Steam account, the others stay themselves -
   otherwise one account would be counted twice, possibly on both teams.
+
+  A linked key is reported as the Steam account whenever the player has the broker's cert for it. Reported as itself
+  (the sign-in failed, or the player removed steam.cert), it stays itself: its own MMR row, hidden from the leaderboards
+  while it is linked - what the game tells the player ("will not count towards your Steam account").
 */
 function buildIdMapping(winPlayers, losePlayers, db) {
   const stmt = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?');
@@ -80,7 +85,7 @@ function buildIdMapping(winPlayers, losePlayers, db) {
   const mapping = new Map();
 
   for (const id of allIds) {
-    const association = stmt.get(id);
+    const association = id.startsWith('key_') ? null : stmt.get(id);
 
     if (association && !taken.has(association.parent_id)) {
       taken.add(association.parent_id);
@@ -224,6 +229,25 @@ router.post('/', apiKeyAuth, (req, res) => {
         const lossIncrement = (should_count_wins || abandoned(info)) ? 1 : 0;
         stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, 0, lossIncrement, info.nickname, id);
         return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], contributed_as_enemy: contributes, ...changeOf(id, newRating, 0, lossIncrement) };
+      });
+
+      // The last nickname and avatar of every account the match counted for: what /cert answers for a key_ account
+      // and what its profile page shows. An avatar that is not a small PNG is ignored, never the report.
+      const stmt_set_nickname = db.prepare('INSERT OR REPLACE INTO last_nicknames (account_id, nickname, updated_at) VALUES (?, ?, ?)');
+      const now = Math.floor(Date.now() / 1000);
+
+      allPlayers.filter(id => !unregistered.has(id)).forEach(id => {
+        const info = player_infos[id] || {};
+
+        if (typeof info.nickname === 'string' && info.nickname.length > 0) {
+          stmt_set_nickname.run(id, info.nickname.slice(0, 64), now);
+        }
+
+        const avatar = parseAvatar(info.avatar);
+
+        if (avatar) {
+          setAvatar(id, avatar);
+        }
       });
 
       db.prepare(`

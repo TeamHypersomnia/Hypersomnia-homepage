@@ -3,6 +3,9 @@ const db = require('./db');
 const { getRank } = require('./utils');
 const router = express.Router();
 
+// A key linked to a Steam account keeps its own row (matches it played without the Steam cert), but is not listed
+const listed = "account_id NOT IN (SELECT child_id FROM associations WHERE child_id LIKE 'key_%')";
+
 router.get('/', (req, res) => {
   if (req.query?.format !== 'json') {
     return res.redirect('/leaderboards/bomb-defusal');
@@ -10,8 +13,8 @@ router.get('/', (req, res) => {
 
   try {
     const leaderboards = {
-      leaderboards_team: db.prepare('SELECT account_id, nickname, mmr FROM mmr_team ORDER BY mmr DESC').all(),
-      leaderboards_ffa: db.prepare('SELECT account_id, nickname, mmr FROM mmr_ffa ORDER BY mmr DESC').all()
+      leaderboards_team: db.prepare(`SELECT account_id, nickname, mmr FROM mmr_team WHERE ${listed} ORDER BY mmr DESC`).all(),
+      leaderboards_ffa: db.prepare(`SELECT account_id, nickname, mmr FROM mmr_ffa WHERE ${listed} ORDER BY mmr DESC`).all()
     };
     return res.json(leaderboards);
   } catch (err) {
@@ -22,7 +25,7 @@ router.get('/', (req, res) => {
 
 router.get('/bomb-defusal', (req, res) => {
   try {
-    const rows = db.prepare('SELECT * FROM mmr_team ORDER BY mmr DESC').all();
+    const rows = db.prepare(`SELECT * FROM mmr_team WHERE ${listed} ORDER BY mmr DESC`).all();
     const leaderboards = rows.map(row => ({
       ...row,
       ...getRank(row.mmr)
@@ -46,7 +49,7 @@ router.get('/bomb-defusal', (req, res) => {
 
 router.get('/ffa', (req, res) => {
   try {
-    const rows = db.prepare('SELECT * FROM mmr_ffa ORDER BY mmr DESC').all();
+    const rows = db.prepare(`SELECT * FROM mmr_ffa WHERE ${listed} ORDER BY mmr DESC`).all();
     const leaderboards = rows.map(row => ({
       ...row,
       ...getRank(row.mmr)

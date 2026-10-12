@@ -90,6 +90,16 @@ The multiplier is stored in the `matches` table — it **does not affect the MMR
 Before computing ratings, all `account_id` values are resolved through the `associations` table:
 - If a `child_id` has a `parent_id` on record, the `parent_id` is used instead
 - This allows merging Steam and Discord accounts into a single ranked profile
+- Except linked keys (`key_...`): a key reported as itself (the player had no Steam cert) keeps its own row, hidden from the leaderboards while it is linked
+
+---
+
+## Nicknames and avatars
+
+Each entry of `player_infos` may carry `"avatar": "<base64 PNG>"` next to `"nickname"`. The last nickname and avatar
+of every account the match counted for are kept (`last_nicknames`, `avatars`) - shown on profile pages, served at
+`/avatar/<account_id>.png` and sent with key certs by `/cert`. An avatar that is not a PNG of at most 80x80 pixels and
+64 KB is ignored, never the report.
 
 ---
 
