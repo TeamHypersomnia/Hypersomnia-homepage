@@ -36,6 +36,7 @@ module.exports = (app) => {
   app.use('/profile', authenticated, require('../profile'));
   app.use('/link_key', require('../link_key').router);
   app.use('/cert', require('../broker').router);
+  app.use('/avatar', require('../avatars').router);
   app.post('/logout', authenticated, (req, res) => req.logout(() => res.redirect('/')));
   app.use('/upload', require('../upload'));
   app.use('/report_match', require('../report_match'));
@@ -46,5 +47,6 @@ module.exports = (app) => {
   app.use('/admin', admin, require('../admin/overview'));
   app.use('/admin/users', admin, require('../admin/users'));
   app.use('/admin/creators', admin, require('../admin/creators'));
+  app.use('/admin/avatars', admin, require('../admin/avatars'));
   app.use((req, res) => res.status(404).render('404', { page: 'Not Found', user: req.user, noindex: true }));
 };

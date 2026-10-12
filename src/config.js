@@ -12,9 +12,9 @@ if (PORT < 1 || PORT > 65535) {
   throw new Error(`Invalid PORT: ${PORT}. Must be between 1 and 65535`);
 }
 
-// Admin user IDs from comma-separated env var
+// Admin user IDs from comma-separated env var: Steam ids, with or without the "steam_" of account ids
 const ADMIN_IDS = process.env.ADMINS ?
-  process.env.ADMINS.split(',').map(id => id.trim()).filter(Boolean) :
+  process.env.ADMINS.split(',').map(id => id.trim().replace(/^steam_/, '')).filter(Boolean) :
   [];
 
 // Base URL with trailing slash

@@ -50,6 +50,37 @@ class DatabaseManager {
 
     this.migrateAssociations();
     this.migrateIdentity();
+    this.migrateProfiles();
+  }
+
+  /*
+    What /cert answers besides the cert and the profile pages show: the avatar and the last nickname each account had
+    in its last reported match (any account type), and the Steam name and avatar the broker fetched, cached for a day.
+    Idempotent.
+  */
+  migrateProfiles() {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS avatars (
+        account_id TEXT PRIMARY KEY,
+        png BLOB NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS avatars_updated ON avatars (updated_at);
+
+      CREATE TABLE IF NOT EXISTS last_nicknames (
+        account_id TEXT PRIMARY KEY,
+        nickname TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS steam_profiles (
+        account_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        avatar BLOB,
+        fetched_at INTEGER NOT NULL
+      );
+    `);
   }
 
   /*

@@ -1,5 +1,5 @@
 <%- include('overall_header'); %>
-<h1><%= nickname %></h1>
+<h1><% if (hasAvatar) { %><img class="avatar" src="/avatar/<%= userid %>.png" alt=""> <% } %><%= nickname %></h1>
 
 <div class="box">
   <div class="responsive">
@@ -44,6 +44,7 @@
             <% } %>
           </td>
         </tr>
+        <% if (playedAny) { %>
         <tr>
           <td><abbr title="Match Making Rating">MMR</abbr> (Bomb Defusal)</td>
           <td>
@@ -56,10 +57,12 @@
             <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= ffaData.rankImg %>" alt="<%= ffaData.rankName %>"><abbr title="μ = <%= ffaData.mu.toFixed(3) %> / σ = <%= ffaData.sigma.toFixed(3) %>"><%= ffaData.mmr.toFixed(2) %></abbr>
           </td>
         </tr>
+        <% } %>
       </tbody>
     </table>
   </div>
 
+  <% if (playedAny) { %>
   <div class="responsive">
     <table class="big">
       <thead>
@@ -87,8 +90,12 @@
       </tbody>
     </table>
   </div>
+  <% } %>
 </div>
 
+<% if (!playedAny) { %>
+<p>This user has not played any match yet.</p>
+<% } else { %>
 <div class="responsive">
   <table class="sortable maxwidth big">
     <thead>
@@ -123,5 +130,6 @@
     </tbody>
   </table>
 </div>
+<% } %>
 
 <%- include('overall_footer'); %>

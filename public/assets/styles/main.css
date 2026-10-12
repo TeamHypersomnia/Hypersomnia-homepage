@@ -267,6 +267,14 @@ hr {
   image-rendering: pixelated;
 }
 
+.avatar {
+  width: 64px;
+  height: 64px;
+  margin-right: 12px;
+  vertical-align: middle;
+  image-rendering: pixelated;
+}
+
 .casual {
   color: var(--dim);
 }

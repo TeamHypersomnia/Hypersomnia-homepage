@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('./db');
 const { timeAgoShort } = require('./utilities/timeAgo');
 const { formatMMRDelta, getRank, countryCodeToEmoji } = require('./utils');
+const { getAvatar } = require('./avatars');
 
 router.get('/:user', function(req, res) {
   try {
@@ -109,10 +110,19 @@ router.get('/:user', function(req, res) {
     const mostPlayedArena = Object.keys(arenaCounts).reduce((a, b) => arenaCounts[a] > arenaCounts[b] ? a : b, null);
     const mostPlayedArenaCount = mostPlayedArena ? arenaCounts[mostPlayedArena] : 0;
     
+    // An account with no match yet (e.g. a key that was just made, or linked before it played) still has a page
+    const playedAny = matches.length > 0 || !!stmtTeam.get(userid) || !!stmtFFA.get(userid);
+    const lastNickname = db.prepare('SELECT nickname FROM last_nicknames WHERE account_id = ?').get(userid);
+    const nickname = (lastNickname && lastNickname.nickname) || userTeam.nickname || userFFA.nickname ||
+      (platform === 'key' ? accountLabel(userid) : 'Unknown');
+
     res.render('user', {
-      page: userTeam.nickname || userFFA.nickname || 'Unknown',
+      page: nickname,
       user: req.user,
-      nickname: userTeam.nickname || userFFA.nickname || 'Unknown',
+      nickname,
+      userid,
+      hasAvatar: !!getAvatar(userid),
+      playedAny,
       platformName: platformName,
       profileUrl: profileUrl,
       platformIconClass: platformIconClass,
