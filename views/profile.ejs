@@ -16,56 +16,19 @@
   </form>
 </div>
 
-<div class="responsive">
-  <table>
-    <thead>
-      <tr>
-        <th width="50%">Key</th>
-        <th width="50%">Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Steam name</td>
-        <td><%= user.displayName %></td>
-      </tr>
-      <tr>
-        <td>Steam ID</td>
-        <td><a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank"><%= user.id %></a></td>
-      </tr>
-      <tr>
-        <td>Discord</td>
-        <td><% if (discordData) { %><%= discordData.username %><% } else { %>Not connected<% } %></td>
-      </tr>
-      <% if (linkedKeys.length === 0) { %>
-      <tr>
-        <td>Game keys</td>
-        <td>None linked</td>
-      </tr>
-      <% } %>
-      <%# one row per linked key, the label only in the first %>
-      <% linkedKeys.forEach(function(key, i) { %>
-      <tr>
-        <td><%= i === 0 ? 'Game keys' : '' %></td>
-        <td>
-          <a href="/user/<%= key %>"><%= accountLabel(key) %></a>
-          <form class="inline-form" method="POST" action="/profile/unlink_key" onsubmit="return confirm('Unlink this game key? Progress from its ranked matches will no longer count towards this Steam account.');">
-            <input type="hidden" name="key" value="<%= key %>">
-            <input class="small danger" type="submit" value="Unlink">
-          </form>
-        </td>
-      </tr>
-      <% }) %>
-    </tbody>
-  </table>
-</div>
-
 <h2>Play without Steam</h2>
 <p>Without Steam - outside Steam, or in the browser - the game keeps your account as a key on your computer or in the browser. Link it here, and progress from the ranked matches you play with it counts towards this Steam account. In the browser, <b>Sign in with Steam</b> in <b>Settings → Client → Account</b> does it in one step.</p>
 <p>In the game without Steam, open <b>Settings → Client → Account</b> and enter this code under <i>Link to your Steam account</i>. It links one key, once:</p>
-<p class="link-code"><b><%= linkCode %></b></p>
+
+<%# only the code in this box: easy to read off and type into the game %>
 <% const linkCodeLeftMs = Math.max(0, linkCodeExpires - Date.now()); %>
-<small class="form-hint">Valid for <span id="link-code-left" data-left-ms="<%= linkCodeLeftMs %>"><%= Math.ceil(linkCodeLeftMs / 60000) %> min</span> - a new one comes when it runs out.</small>
+<div class="link-code-box">
+  <div class="link-code-label">Your code is:</div>
+  <div class="link-code-row">
+    <span class="link-code"><%= linkCode %></span><button type="button" class="copy-btn link-code-copy" id="link-code-copy" data-copy="<%= linkCode %>" title="Copy the code" aria-label="Copy the code"><i class="fa-regular fa-copy"></i></button>
+  </div>
+  <small class="link-code-left">new code in <span id="link-code-left" data-left-ms="<%= linkCodeLeftMs %>"><%= Math.ceil(linkCodeLeftMs / 60000) %> min</span></small>
+</div>
 <script>
   // the code expires: count down (from the time left, so a wrong clock does not matter), then load a new one
   (function() {
@@ -87,6 +50,63 @@
     tick();
   })();
 </script>
+
+<h2>Account</h2>
+<div class="responsive">
+  <table>
+    <thead>
+      <tr>
+        <th width="50%">Key</th>
+        <th width="50%">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Steam name</td>
+        <td><%= user.displayName %></td>
+      </tr>
+      <tr>
+        <td>Steam ID</td>
+        <td><a href="https://steamcommunity.com/profiles/<%= user.id %>" target="_blank"><%= user.id %></a></td>
+      </tr>
+      <tr>
+        <td>Discord</td>
+        <td><% if (discordData) { %><%= discordData.username %><% } else { %>Not connected<% } %></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>Linked game keys</h2>
+<div class="responsive">
+  <%# the Unlink buttons in their own column, so they line up %>
+  <table class="linked-keys">
+    <thead>
+      <tr>
+        <th>Game key</th>
+        <th class="linked-keys-action"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (linkedKeys.length === 0) { %>
+      <tr>
+        <td colspan="2">None linked</td>
+      </tr>
+      <% } %>
+      <% linkedKeys.forEach(function(key) { %>
+      <tr>
+        <td><a href="/user/<%= key %>"><%= accountLabel(key) %></a></td>
+        <td class="linked-keys-action">
+          <form class="inline-form" method="POST" action="/profile/unlink_key" onsubmit="return confirm('Unlink this game key? Progress from its ranked matches will no longer count towards this Steam account.');">
+            <input type="hidden" name="key" value="<%= key %>">
+            <input class="small danger" type="submit" value="Unlink">
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
 <% if (discordData) { %><small class="form-hint">*After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.</small><% } %>
 
 <%- include('overall_footer'); %>

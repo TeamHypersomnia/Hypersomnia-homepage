@@ -914,13 +914,83 @@ input[type='submit'].danger:hover {
   box-shadow: 0 0 10px rgba(244, 71, 71, 0.3);
 }
 
-/* the code to link a game key on /profile */
+/* the code to link a game key on /profile: alone in its box, centered both ways */
+.link-code-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  min-height: 220px;
+  margin: 1em 0 0.75em;
+  padding: 1.5em 10px;
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--table-line);
+}
+
+.link-code-label {
+  font-size: 1.15em;
+  color: var(--bright);
+}
+
+.link-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .link-code {
-  margin-bottom: 0.25em;
   font-family: var(--mono);
-  font-size: 2em;
+  font-size: 3.5em;
+  font-weight: bold;
+  line-height: 1.1;
   letter-spacing: 0.15em;
   color: var(--accent);
+  /* one click selects all of it, should copying fail */
+  user-select: all;
+}
+
+/* the copy icon right of the code, as tall as its letters */
+.copy-btn.link-code-copy {
+  margin: 0 0 0 0.3em;
+  padding: 4px;
+  font-size: 1.9em;
+}
+
+.copy-btn.link-code-copy i {
+  width: 1.1em;
+}
+
+.link-code-left {
+  font-size: 0.85em;
+  color: var(--faint);
+}
+
+@media (max-width: 600px) {
+  .link-code-box {
+    min-height: 180px;
+  }
+
+  .link-code {
+    font-size: 2.2em;
+    letter-spacing: 0.1em;
+  }
+
+  .copy-btn.link-code-copy {
+    font-size: 1.4em;
+  }
+}
+
+/* linked game keys on /profile: the Unlink buttons in their own narrow column */
+table.linked-keys .linked-keys-action {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+table.linked-keys input[type='submit'].small {
+  margin: 0;
 }
 
 input:-webkit-autofill,
