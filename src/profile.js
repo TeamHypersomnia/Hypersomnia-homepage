@@ -23,17 +23,11 @@ async function renderProfile(req, res, extra = {}) {
     }
   }
   
-  // The code to link a game key, valid right away - see link_key.js. Never cached: it is this session's.
-  const linkCode = linkKey.currentCode(steamId, req.user.displayName);
-  res.set('Cache-Control', 'no-store');
-
   res.render('profile', {
     page: 'Profile',
     user: req.user,
     discordData,
     linkedKeys: linkKey.linkedKeys(steamId),
-    linkCode: linkCode.code,
-    linkCodeExpires: linkCode.expires,
     success: req.query.success === 'true',
     is_admin: config.ADMIN_IDS.includes(req.user.id),
     ...extra
@@ -42,10 +36,27 @@ async function renderProfile(req, res, extra = {}) {
 
 router.get('/', (req, res) => renderProfile(req, res));
 
-// A new one-time code in place of the one shown (/profile shows one right away) - see link_key.js
+// The code to link a game key, alone on /link - see link_key.js. Never cached: it is this session's.
+function renderLink(req, res, linkCode) {
+  res.set('Cache-Control', 'no-store');
+
+  res.render('link', {
+    page: 'Link a game key',
+    user: req.user,
+    linkCode: linkCode.code,
+    linkCodeExpires: linkCode.expires
+  });
+}
+
+// GET /link: this Steam account's live code, or a new one
+function linkPage(req, res) {
+  renderLink(req, res, linkKey.currentCode(`steam_${req.user.id}`, req.user.displayName));
+}
+
+// A new one-time code in place of the one shown on /link
 router.post('/link_code', (req, res) => {
-  linkKey.createCode(`steam_${req.user.id}`, req.user.displayName);
-  renderProfile(req, res);
+  const code = linkKey.createCode(`steam_${req.user.id}`, req.user.displayName);
+  renderLink(req, res, { code, expires: linkKey.liveCode(code).expires });
 });
 
 router.post('/unlink_key', (req, res) => {
@@ -59,3 +70,4 @@ router.post('/unlink_key', (req, res) => {
 });
 
 module.exports = router;
+module.exports.linkPage = linkPage;

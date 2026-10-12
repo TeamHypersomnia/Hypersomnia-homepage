@@ -914,23 +914,20 @@ input[type='submit'].danger:hover {
   box-shadow: 0 0 10px rgba(244, 71, 71, 0.3);
 }
 
-/* the code to link a game key on /profile: alone in its box, centered both ways */
+/* the code to link a game key, alone on /link: centered both ways */
 .link-code-box {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.6em;
-  min-height: 220px;
-  margin: 1em 0 0.75em;
+  gap: 0.5em;
+  min-height: 55vh;
   padding: 1.5em 10px;
   text-align: center;
-  background: var(--panel);
-  border: 1px solid var(--table-line);
 }
 
 .link-code-label {
-  font-size: 1.15em;
+  font-size: 2.2em;
   color: var(--bright);
 }
 
@@ -942,7 +939,7 @@ input[type='submit'].danger:hover {
 
 .link-code {
   font-family: var(--mono);
-  font-size: 3.5em;
+  font-size: 5em;
   font-weight: bold;
   line-height: 1.1;
   letter-spacing: 0.15em;
@@ -955,7 +952,7 @@ input[type='submit'].danger:hover {
 .copy-btn.link-code-copy {
   margin: 0 0 0 0.3em;
   padding: 4px;
-  font-size: 1.9em;
+  font-size: 2.6em;
 }
 
 .copy-btn.link-code-copy i {
@@ -963,22 +960,30 @@ input[type='submit'].danger:hover {
 }
 
 .link-code-left {
-  font-size: 0.85em;
+  font-size: 1.6em;
   color: var(--faint);
 }
 
 @media (max-width: 600px) {
   .link-code-box {
-    min-height: 180px;
+    min-height: 45vh;
+  }
+
+  .link-code-label {
+    font-size: 1.5em;
   }
 
   .link-code {
-    font-size: 2.2em;
+    font-size: 2.4em;
     letter-spacing: 0.1em;
   }
 
   .copy-btn.link-code-copy {
-    font-size: 1.4em;
+    font-size: 1.5em;
+  }
+
+  .link-code-left {
+    font-size: 1.2em;
   }
 }
 

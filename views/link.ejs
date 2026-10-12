@@ -1,0 +1,34 @@
+<%- include('overall_header'); %>
+
+<%# only the code on this page: easy to read off and type into the game %>
+<% const linkCodeLeftMs = Math.max(0, linkCodeExpires - Date.now()); %>
+<div class="link-code-box">
+  <div class="link-code-label">Your code is:</div>
+  <div class="link-code-row">
+    <span class="link-code"><%= linkCode %></span><button type="button" class="copy-btn link-code-copy" id="link-code-copy" data-copy="<%= linkCode %>" title="Copy the code" aria-label="Copy the code"><i class="fa-regular fa-copy"></i></button>
+  </div>
+  <div class="link-code-left">new code in <span id="link-code-left" data-left-ms="<%= linkCodeLeftMs %>"><%= Math.ceil(linkCodeLeftMs / 60000) %> min</span></div>
+</div>
+<script>
+  // the code expires: count down (from the time left, so a wrong clock does not matter), then load a new one
+  (function() {
+    const left = document.getElementById('link-code-left');
+    const expires = Date.now() + Number(left.dataset.leftMs);
+
+    function tick() {
+      const secs = Math.max(0, Math.ceil((expires - Date.now()) / 1000));
+
+      if (secs === 0) {
+        location.href = '/link';
+        return;
+      }
+
+      left.textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
+      setTimeout(tick, 1000);
+    }
+
+    tick();
+  })();
+</script>
+
+<%- include('overall_footer'); %>
