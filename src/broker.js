@@ -399,4 +399,4 @@ router.get('/', async (req, res) => {
   }
 });
 
-module.exports = { router, steamTicketIdentity, isSteamAvatarUrl };
+module.exports = { router, steamTicketIdentity, isSteamAvatarUrl, accountProfile };

@@ -169,8 +169,8 @@ function validCode(code) {
   return typeof code === 'string' && /^[A-Z0-9]{8}$/.test(code.toUpperCase());
 }
 
-// Whose Steam account a code links to, for the game to show before the player agrees
-router.get('/info', (req, res) => {
+// Whose Steam account a code links to, for the game to show before the player agrees - with its avatar (base64), as /cert has it
+router.get('/info', async (req, res) => {
   const ip = clientIp(req);
 
   if (!allowAttempt(ip)) {
@@ -189,7 +189,12 @@ router.get('/info', (req, res) => {
     return res.status(404).send('Invalid or expired code. Get a new one on hypersomnia.io/link.');
   }
 
-  res.json({ steam_id: entry.steamId, name: entry.steamName || '' });
+  // Required here: broker.js requires this file
+  const { accountProfile } = require('./broker');
+  const profile = await accountProfile(entry.steamId, ip, Date.now() + 4000).catch(() => null);
+  const avatar = profile && profile.avatar ? Buffer.from(profile.avatar).toString('base64') : '';
+
+  res.json({ steam_id: entry.steamId, name: entry.steamName || '', avatar });
 });
 
 function link(params, ip, res) {
