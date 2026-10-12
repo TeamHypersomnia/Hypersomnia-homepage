@@ -7,7 +7,8 @@ const axios = require('axios');
 const db = require('./db');
 const config = require('./config');
 const identityCert = require('./identity_cert');
-const { verifySignature, limitKey } = require('./link_key');
+const { verifySignature } = require('./link_key');
+const { makeLimiter } = require('./limiter');
 
 /*
   The identity broker: certs that bind a player's account to the session key the game made at start
@@ -27,35 +28,14 @@ const router = express.Router();
 
 const CERT_LIFETIME_SECS = 2 * 60 * 60;
 const STEAM_APP_ID = 2660970;
-const MAX_REQUESTS_PER_MINUTE = 30;
-const MAX_ALL_REQUESTS_PER_MINUTE = 60000;
+// Per address - a school starting the game together fits - and in all only to bound the CPU,
+// far above what players need, so that a flood from many addresses does not lock everyone out of certs
+const allowRequest = makeLimiter({ perAddress: 150, total: 60000 });
 
 // Every Steam ticket costs a call to the Steam Web API, whose key has a daily quota: a flood of bogus tickets
 // must not use it up for everyone. A real player asks about once an hour - so a few calls a minute per address,
 // and a global cap within the quota.
-const MAX_STEAM_CALLS_PER_MINUTE = 120;
-const MAX_STEAM_CALLS_PER_ADDRESS_PER_MINUTE = 10;
-let steamCalls = 0;
-const steamCallsByAddress = new Map();
-let steamWindowStart = Date.now();
-
-function allowSteamCall(ip) {
-  const now = Date.now();
-
-  if (now - steamWindowStart > 60 * 1000) {
-    steamCalls = 0;
-    steamCallsByAddress.clear();
-    steamWindowStart = now;
-  }
-
-  const key = limitKey(ip);
-  const count = (steamCallsByAddress.get(key) || 0) + 1;
-  steamCallsByAddress.set(key, count);
-
-  if (count > MAX_STEAM_CALLS_PER_ADDRESS_PER_MINUTE) return false;
-
-  return ++steamCalls <= MAX_STEAM_CALLS_PER_MINUTE;
-}
+const allowSteamCall = makeLimiter({ perAddress: 10, total: 120 });
 
 /*
   The broker's key: hypersomnia-key-v1:<seed hex>, like the game's key files.
@@ -83,31 +63,6 @@ function loadBrokerKey() {
 }
 
 const brokerKey = loadBrokerKey();
-
-const requests = new Map();
-let allRequests = 0;
-let windowStart = Date.now();
-
-// Per address (an IPv6 /64). The global cap only bounds the CPU: it is far above what players need,
-// so that a flood from many addresses does not lock everyone out of certs.
-function allowRequest(ip) {
-  const now = Date.now();
-
-  if (now - windowStart > 60 * 1000) {
-    requests.clear();
-    allRequests = 0;
-    windowStart = now;
-  }
-
-  const key = limitKey(ip);
-  const count = (requests.get(key) || 0) + 1;
-  requests.set(key, count);
-
-  if (count > MAX_REQUESTS_PER_MINUTE) return false;
-
-  // Counted only once an address passed its own limit, so one address can not use up everyone's
-  return ++allRequests <= MAX_ALL_REQUESTS_PER_MINUTE;
-}
 
 const stmts = {
   parentOf: db.prepare('SELECT parent_id FROM associations WHERE child_id = ?'),

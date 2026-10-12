@@ -1,6 +1,6 @@
 const crypto = require('crypto');
-const net = require('net');
 const express = require('express');
+const { makeLimiter } = require('./limiter');
 const { clientIp } = require('./client_ip');
 const db = require('./db');
 const config = require('./config');
@@ -71,45 +71,7 @@ function liveCode(code) {
 }
 
 // Guessing codes with one's own key would link it to someone else's Steam account
-const attempts = new Map();
-const MAX_ATTEMPTS_PER_MINUTE = 10;
-const MAX_ALL_ATTEMPTS_PER_MINUTE = 600;
-let allAttempts = 0;
-let attemptsWindowStart = Date.now();
-
-// An IPv6 client usually has a whole /64 to rotate through, so it is limited as one
-// An IPv6 address counts as its /64
-function limitKey(ip) {
-  const groups = 4;
-
-  if (!net.isIPv6(ip) || ip.startsWith('::ffff:')) return ip;
-
-  const [head, tail = ''] = ip.split('::');
-  const headGroups = head ? head.split(':') : [];
-  const tailGroups = tail ? tail.split(':') : [];
-  const missing = Array(8 - headGroups.length - tailGroups.length).fill('0');
-
-  return [...headGroups, ...missing, ...tailGroups].slice(0, groups).join(':') + `::/${groups * 16}`;
-}
-
-function allowAttempt(ip) {
-  const now = Date.now();
-
-  if (now - attemptsWindowStart > 60 * 1000) {
-    attempts.clear();
-    allAttempts = 0;
-    attemptsWindowStart = now;
-  }
-
-  const key = limitKey(ip);
-  const count = (attempts.get(key) || 0) + 1;
-  attempts.set(key, count);
-
-  if (count > MAX_ATTEMPTS_PER_MINUTE) return false;
-
-  // Only the attempts let through count overall, so one address over its limit can not use up everyone's
-  return ++allAttempts <= MAX_ALL_ATTEMPTS_PER_MINUTE;
-}
+const allowAttempt = makeLimiter({ perAddress: 10, total: 600 });
 
 // A raw 32-byte Ed25519 public key wrapped as SPKI DER, the form node:crypto takes
 const ED25519_SPKI_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
@@ -338,22 +300,7 @@ router.get('/start', (req, res) => {
   (e.g. a code someone gave them) and can not sign in there. The signed timestamp must be within 10 minutes.
 */
 // Its own limit, without the overall one - nothing to guess here, and a flood of code guesses must not block it
-const unlinkAttempts = new Map();
-let unlinkWindowStart = Date.now();
-
-function allowUnlink(ip) {
-  const now = Date.now();
-
-  if (now - unlinkWindowStart > 60 * 1000) {
-    unlinkAttempts.clear();
-    unlinkWindowStart = now;
-  }
-
-  const key = limitKey(ip);
-  const count = (unlinkAttempts.get(key) || 0) + 1;
-  unlinkAttempts.set(key, count);
-  return count <= MAX_ATTEMPTS_PER_MINUTE;
-}
+const allowUnlink = makeLimiter({ perAddress: 10 });
 
 function unlinkBySignature(params, ip, res) {
   if (!allowUnlink(ip)) {
@@ -398,4 +345,4 @@ function unlinkBySignature(params, ip, res) {
 router.post('/unlink', (req, res) => unlinkBySignature(req.body, clientIp(req), res));
 router.get('/unlink', (req, res) => unlinkBySignature(req.query, clientIp(req), res));
 
-module.exports = { router, createCode, linkedKeys, verifySignature, limitKey, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };
+module.exports = { router, createCode, linkedKeys, verifySignature, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };
