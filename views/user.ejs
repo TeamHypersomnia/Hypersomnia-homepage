@@ -13,7 +13,10 @@
         <tr>
           <td width="50%">External profile</td>
           <td width="50%">
-            <% if (!profileUrl) { %>
+            <% if (userid.startsWith('key_')) { %>
+              <%# A key has no profile elsewhere - its public key, shown only here %>
+              <i class="<%= platformIconClass %>"></i><span class="account-key"><%= fullAccountId(userid) %></span><button type="button" class="copy-btn" data-copy="<%= fullAccountId(userid) %>" title="Copy the public key" aria-label="Copy the public key"><i class="fa-regular fa-copy"></i></button>
+            <% } else if (!profileUrl) { %>
               <i class="<%= platformIconClass %>"></i><%= platformName %> (no external profile)
             <% } else { %>
             <a href="<%= profileUrl %>" target="_blank">
@@ -29,19 +32,14 @@
         <% if (linkedTo) { %>
         <tr>
           <td>Plays as</td>
-          <td><a href="/user/<%= linkedTo %>"><%= accountLabel(linkedTo) %></a></td>
+          <td><a href="/user/<%= linkedTo %>"><%= linkedToName %></a></td>
         </tr>
-        <% } else if (linkedAccounts.length === 0) { %>
+        <% } else if (secondaryAccounts.length > 0) { %>
+        <%# one row per secondary account, the label only in the first %>
+        <% secondaryAccounts.forEach(function(account, i) { %>
         <tr>
-          <td>Linked accounts</td>
-          <td>None</td>
-        </tr>
-        <% } else { %>
-        <%# one row per linked account, the label only in the first %>
-        <% linkedAccounts.forEach(function(id, i) { %>
-        <tr>
-          <td><%= i === 0 ? 'Linked accounts' : '' %></td>
-          <td><a href="/user/<%= id %>"><%= accountLabel(id) %></a></td>
+          <td><%= i === 0 ? 'Secondary accounts' : '' %></td>
+          <td><a href="/user/<%= account.id %>"><%= account.nickname %></a></td>
         </tr>
         <% }); %>
         <% } %>

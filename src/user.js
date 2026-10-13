@@ -52,7 +52,24 @@ router.get('/:user', function(req, res) {
     // (a Discord account and up to 10 game keys) - the Discord one first, then by id
     const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
     const linkedTo = parentAssociation ? parentAssociation.parent_id : null;
-    const linkedAccounts = linkedTo ? [] : db.prepare("SELECT child_id FROM associations WHERE parent_id = ? ORDER BY child_id NOT LIKE 'discord_%', child_id").all(userid).map(r => r.child_id);
+
+    // The name an account last played as - none for one that never played (e.g. a key made and linked right away)
+    const stmtNickname = db.prepare(`
+      SELECT nickname FROM last_nicknames WHERE account_id = @id
+      UNION ALL SELECT nickname FROM mmr_team WHERE account_id = @id
+      UNION ALL SELECT nickname FROM mmr_ffa WHERE account_id = @id
+    `);
+    const nicknameOf = id => {
+      const found = stmtNickname.all({ id }).find(r => r.nickname);
+      return found ? found.nickname : null;
+    };
+
+    // Secondary accounts: only those with progress of their own, by the name they played as - a bare key says nothing
+    const secondaryAccounts = linkedTo ? [] : db.prepare("SELECT child_id FROM associations WHERE parent_id = ? ORDER BY child_id NOT LIKE 'discord_%', child_id")
+      .all(userid)
+      .map(r => ({ id: r.child_id, nickname: nicknameOf(r.child_id) }))
+      .filter(a => a.nickname);
+    const linkedToName = linkedTo ? (nicknameOf(linkedTo) || accountLabel(linkedTo)) : null;
     
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
     const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
@@ -129,7 +146,8 @@ router.get('/:user', function(req, res) {
       ffaData: userFFA,
       matches: matches,
       linkedTo,
-      linkedAccounts,
+      linkedToName,
+      secondaryAccounts,
       formatMMRDelta: formatMMRDelta,
       longestWinStreak,
       mostPlayedArena,
