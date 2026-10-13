@@ -11,7 +11,7 @@ if (!config.CRAZYGAMES_GAME_ID) {
   console.error('[broker] CRAZYGAMES_GAME_ID is not set - every CrazyGames sign-in is refused.');
 }
 const identityCert = require('./identity_cert');
-const { verifySignature, linkBySteamTicket, touchKey } = require('./link_key');
+const { verifySignature, linkBySteamTicket, touchKey, deviceOf } = require('./link_key');
 const { makeLimiter, limitKey, wideLimitKey } = require('./limiter');
 const { getAvatar } = require('./avatars');
 
@@ -426,10 +426,7 @@ router.get('/', async (req, res) => {
   const ip = clientIp(req);
   const { session, steam, key, sig } = req.query;
 
-  // The device the game runs on, as it names it - shown only on its owner's /profile
-  const device = typeof req.query.device === 'string'
-    ? req.query.device.replace(/[\u0000-\u001f\u007f<>]/g, '').trim().slice(0, 64) || null
-    : null;
+  const { device, os } = deviceOf(req.query);
 
   // The CrazyGames token comes in a header - a URL (with it) could end up in a log
   const crazygames = req.query.crazygames === 'header' ? req.get('X-CrazyGames-Token') : undefined;
@@ -465,7 +462,7 @@ router.get('/', async (req, res) => {
             && verifySignature(key, identityCert.linkRequestMessage(sessionPublicKey, Buffer.from(steam, 'hex')), sig);
 
           if (signedByTheKey) {
-            linkBySteamTicket(`key_${session}`, steamId, device);
+            linkBySteamTicket(`key_${session}`, steamId, device, os);
           }
           else {
             console.log(`[broker] Not linking key_${session}: link=1 without the key's signature.`);
@@ -479,7 +476,7 @@ router.get('/', async (req, res) => {
         const resolved = keyAccount(key, sig, sessionPublicKey);
 
         if (resolved !== `key_${key}`) {
-          touchKey(`key_${key}`, device);
+          touchKey(`key_${key}`, device, os);
         }
 
         return resolved;

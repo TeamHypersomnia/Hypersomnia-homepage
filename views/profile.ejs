@@ -3,7 +3,6 @@
 <h1>Profile</h1>
 
 <div class="btn-group">
-  <div class="btn"><a href="/link"><i class="fa-solid fa-link"></i><span>How to link the game</span></a></div>
   <% if (is_admin == true) { %>
   <div class="btn"><a href="/admin"><span>Admin</span></a></div>
   <% } %>
@@ -64,7 +63,7 @@
       <% linkedKeys.forEach(function(linked) { const key = linked.id; %>
       <tr>
         <td class="linked-keys-key"><a href="/user/<%= key %>"><%= fullAccountId(key) %></a><button type="button" class="copy-btn" data-copy="<%= fullAccountId(key) %>" title="Copy the key" aria-label="Copy the key"><i class="fa-regular fa-copy"></i></button></td>
-        <td><% if (linked.via === 'steam') { %><i class="fa-brands fa-steam" title="Linked by the Steam build"></i> <% } %><%= linked.device || '-' %></td>
+        <td><% const osIcons = { windows: ['fa-brands fa-windows', 'Windows'], linux: ['fa-brands fa-linux', 'Linux'], mac: ['fa-brands fa-apple', 'Mac'], web: ['fa-solid fa-globe', 'Browser'] }; %><% if (osIcons[linked.os]) { %><i class="<%= osIcons[linked.os][0] %>" title="<%= osIcons[linked.os][1] %>"></i> <% } %><% if (linked.via === 'steam') { %><i class="fa-brands fa-steam" title="Linked by the Steam build"></i> <% } %><%= linked.device || '-' %></td>
         <td><%= linked.lastCertAt ? new Date(linked.lastCertAt * 1000).toISOString().slice(0, 10) : '-' %></td>
         <td class="linked-keys-action">
           <form class="inline-form" method="POST" action="/profile/unlink_key" onsubmit="return confirm(<%= JSON.stringify(linked.via === 'steam' ? 'Unlink this game key? The Steam build links it again the next time it starts - use this only for a device you no longer have.' : 'Unlink this game key? Progress from its ranked matches will no longer count towards this Steam account.') %>);">
@@ -77,6 +76,7 @@
     </tbody>
   </table>
 </div>
+<p>To link the game to your Steam account, open the game: Settings → Account → Link with Steam.</p>
 <% if (discordData) { %><small class="form-hint">*After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.</small><% } %>
 
 <%- include('overall_footer'); %>

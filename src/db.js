@@ -118,6 +118,13 @@ class DatabaseManager {
       );
     `);
 
+    // The system the key's game runs on (windows, linux, mac, web) - an icon on /profile
+    const keyLinkColumns = this.db.prepare("PRAGMA table_info(key_links)").all().map(c => c.name);
+
+    if (!keyLinkColumns.includes('os')) {
+      this.db.exec('ALTER TABLE key_links ADD COLUMN os TEXT');
+    }
+
     const columns = this.db.prepare("PRAGMA table_info(matches)").all().map(c => c.name);
 
     if (!columns.includes('report_id')) {

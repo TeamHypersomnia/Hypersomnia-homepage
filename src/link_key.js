@@ -148,13 +148,13 @@ const stmts = {
   unlink: db.prepare('DELETE FROM associations WHERE child_id = ? AND parent_id = ?'),
   linkedKeys: db.prepare("SELECT child_id FROM associations WHERE parent_id = ? AND child_id LIKE 'key_%' ORDER BY child_id"),
   banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?'),
-  setLinkMeta: db.prepare('INSERT OR REPLACE INTO key_links (child_id, linked_via, device, last_cert_at) VALUES (?, ?, ?, ?)'),
-  touchKey: db.prepare('UPDATE key_links SET last_cert_at = ?, device = COALESCE(?, device) WHERE child_id = ?'),
+  setLinkMeta: db.prepare('INSERT OR REPLACE INTO key_links (child_id, linked_via, device, last_cert_at, os) VALUES (?, ?, ?, ?, ?)'),
+  touchKey: db.prepare('UPDATE key_links SET last_cert_at = ?, device = COALESCE(?, device), os = COALESCE(?, os) WHERE child_id = ?'),
   oldestSteamBuildKey: db.prepare(`
     SELECT a.child_id FROM associations a JOIN key_links m ON m.child_id = a.child_id
     WHERE a.parent_id = ? AND m.linked_via = 'steam' ORDER BY COALESCE(m.last_cert_at, 0) LIMIT 1
   `),
-  linkMetaOf: db.prepare('SELECT linked_via, device, last_cert_at FROM key_links WHERE child_id = ?'),
+  linkMetaOf: db.prepare('SELECT linked_via, device, last_cert_at, os FROM key_links WHERE child_id = ?'),
   ban: db.prepare('INSERT OR IGNORE INTO broker_bans (account, reason) VALUES (?, ?)')
 };
 
@@ -163,6 +163,17 @@ const stmts = {
   In memory: after a restart the 10 minute window still bounds it.
 */
 const lastUnlinkTimestamp = new Map();
+
+// The device the game runs on, as it names it, and its system - shown next to a linked key on its owner's /profile only
+function deviceOf(query) {
+  const device = typeof query.device === 'string'
+    ? query.device.replace(/[\u0000-\u001f\u007f<>]/g, '').trim().slice(0, 64) || null
+    : null;
+
+  const os = ['windows', 'linux', 'mac', 'web'].includes(query.os) ? query.os : null;
+
+  return { device, os };
+}
 
 function linkedKeys(steamId) {
   return stmts.linkedKeys.all(steamId).map(row => row.child_id);
@@ -249,13 +260,18 @@ function link(params, ip, res) {
       return res.status(409).send(`This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked.\nUnlink the ones you no longer use.`);
     }
 
+    const { device, os } = deviceOf(params);
+
     // Linked to this account already (e.g. by the Steam build): its link stays as it is
     if (!parent) {
       db.transaction(() => {
         stmts.link.run(child, entry.steamId);
         moveProgressIfFirst(child, entry.steamId);
-        stmts.setLinkMeta.run(child, 'browser', null, Math.floor(Date.now() / 1000));
+        stmts.setLinkMeta.run(child, 'browser', device, Math.floor(Date.now() / 1000), os);
       })();
+    }
+    else {
+      touchKey(child, device, os);
     }
   } catch (err) {
     // The code stays usable - nothing was linked
@@ -510,7 +526,7 @@ router.get('/unlink', (req, res) => unlinkBySignature(req.query, clientIp(req), 
   is enough, as for a key linked in the browser. A key linked to another account goes over to the ticket's one;
   at the limit, the account's Steam build key unused for the longest is let go - so the Steam build never hits it.
 */
-function linkBySteamTicket(child, steamId, device) {
+function linkBySteamTicket(child, steamId, device, os = null) {
   const now = Math.floor(Date.now() / 1000);
 
   db.transaction(() => {
@@ -523,10 +539,10 @@ function linkBySteamTicket(child, steamId, device) {
     // Already this account's: only when and where - a key linked in the browser stays one (never let go at the limit)
     if (parent && parent.parent_id === steamId) {
       if (linkMetaOf(child)) {
-        touchKey(child, device);
+        touchKey(child, device, os);
       }
       else {
-        stmts.setLinkMeta.run(child, 'steam', device, now);
+        stmts.setLinkMeta.run(child, 'steam', device, now, os);
       }
 
       return;
@@ -551,18 +567,18 @@ function linkBySteamTicket(child, steamId, device) {
 
     stmts.link.run(child, steamId);
     moveProgressIfFirst(child, steamId);
-    stmts.setLinkMeta.run(child, 'steam', device, now);
+    stmts.setLinkMeta.run(child, 'steam', device, now, os);
     console.log(`[link_key] The Steam build linked ${child} to ${steamId}.`);
   })();
 }
 
 // A linked key got a cert by its signature: when, and the device the game named
-function touchKey(child, device) {
-  stmts.touchKey.run(Math.floor(Date.now() / 1000), device, child);
+function touchKey(child, device, os = null) {
+  stmts.touchKey.run(Math.floor(Date.now() / 1000), device, os, child);
 }
 
 function linkMetaOf(child) {
   return stmts.linkMetaOf.get(child) || null;
 }
 
-module.exports = { router, linkedKeys, verifySignature, unlink: unlinkKey, linkBySteamTicket, touchKey, linkMetaOf };
+module.exports = { router, deviceOf, linkedKeys, verifySignature, unlink: unlinkKey, linkBySteamTicket, touchKey, linkMetaOf };
