@@ -102,6 +102,15 @@ class DatabaseManager {
         matches_after_move INTEGER NOT NULL,
         PRIMARY KEY (child_id, table_name)
       );
+
+      -- About each linked key, for its owner's /profile only: how it was linked (browser: the game's Link with Steam,
+      -- steam: the Steam build by its ticket), the device the game last named, when it last got a cert
+      CREATE TABLE IF NOT EXISTS key_links (
+        child_id TEXT PRIMARY KEY,
+        linked_via TEXT NOT NULL,
+        device TEXT,
+        last_cert_at INTEGER
+      );
     `);
 
     const columns = this.db.prepare("PRAGMA table_info(matches)").all().map(c => c.name);

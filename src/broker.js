@@ -7,19 +7,22 @@ const axios = require('axios');
 const db = require('./db');
 const config = require('./config');
 const identityCert = require('./identity_cert');
-const { verifySignature } = require('./link_key');
+const { verifySignature, linkBySteamTicket, touchKey } = require('./link_key');
 const { makeLimiter, limitKey, wideLimitKey } = require('./limiter');
 const { getAvatar } = require('./avatars');
 
 /*
-  The identity broker: certs that bind a player's account to the session key the game made at start
-  (see identity_cert.h in the game). The game servers check them offline with the broker's public key,
-  built into the game - they never ask Steam, CrazyGames or this site anything.
+  The identity broker: certs that bind a player's account to the game's key (its session key - see identity_cert.h
+  in the game). The game servers check them offline with the broker's public key from their config -
+  they never ask Steam, CrazyGames or this site anything.
 
-  GET /cert?session=<hex>&steam=<ticket hex>       a Steam Web API ticket requested for the session key's identity
+  GET /cert?session=<hex>&steam=<ticket hex>[&link=1] a Steam Web API ticket requested for the session key's identity;
+                                                     link=1 (the Steam build): the key is linked to that Steam account,
+                                                     so later certs need only the key's signature - no Steam API call
   GET /cert?session=<hex>&crazygames=header         a CrazyGames token of this game, in the X-CrazyGames-Token header
   GET /cert?session=<hex>&key=<hex>&sig=<hex>       an account key's signature of "hs-cert-req-v1" and the session key
 
+  &device=<name> on any of them: the device the game runs on, kept for a linked key (shown only on its owner's /profile).
   An account key linked to a Steam account gets a cert for that Steam account. 200 with JSON:
     {"cert": "<the cert in hex>", "name": "<string>", "avatar": "<base64 of the image bytes>"}
   name and avatar: a steam_ account's Steam name and medium avatar (a JPEG) - the web build can not ask Steam itself;
@@ -388,6 +391,11 @@ router.get('/', async (req, res) => {
   const ip = clientIp(req);
   const { session, steam, key, sig } = req.query;
 
+  // The device the game runs on, as it names it - shown only on its owner's /profile
+  const device = typeof req.query.device === 'string'
+    ? req.query.device.replace(/[\u0000-\u001f\u007f<>]/g, '').trim().slice(0, 64) || null
+    : null;
+
   // The CrazyGames token comes in a header - a URL (with it) could end up in a log
   const crazygames = req.query.crazygames === 'header' ? req.get('X-CrazyGames-Token') : undefined;
 
@@ -410,9 +418,26 @@ router.get('/', async (req, res) => {
 
   try {
     const account = await (async () => {
-      if (typeof steam === 'string' && /^[0-9a-f]{2,4096}$/.test(steam)) return steamAccount(steam, sessionPublicKey, ip);
+      if (typeof steam === 'string' && /^[0-9a-f]{2,4096}$/.test(steam)) {
+        const steamId = await steamAccount(steam, sessionPublicKey, ip);
+
+        // The Steam build: linked by this ticket once, by its key's signature from then on (the session key is the key)
+        if (req.query.link === '1') {
+          linkBySteamTicket(`key_${session}`, steamId, device);
+        }
+
+        return steamId;
+      }
       if (typeof crazygames === 'string' && crazygames.length <= 4096) return crazyGamesAccount(crazygames);
-      if (typeof key === 'string' && typeof sig === 'string') return keyAccount(key, sig, sessionPublicKey);
+      if (typeof key === 'string' && typeof sig === 'string') {
+        const resolved = keyAccount(key, sig, sessionPublicKey);
+
+        if (resolved !== `key_${key}`) {
+          touchKey(`key_${key}`, device);
+        }
+
+        return resolved;
+      }
       throw { status: 400, message: 'Invalid request.' };
     })();
 
