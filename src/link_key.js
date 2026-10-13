@@ -138,8 +138,16 @@ const stmts = {
   link: db.prepare('INSERT OR IGNORE INTO associations (child_id, parent_id) VALUES (?, ?)'),
   parentOf: db.prepare('SELECT parent_id FROM associations WHERE child_id = ?'),
   unlink: db.prepare('DELETE FROM associations WHERE child_id = ? AND parent_id = ?'),
-  linkedKeys: db.prepare("SELECT child_id FROM associations WHERE parent_id = ? AND child_id LIKE 'key_%' ORDER BY child_id")
+  linkedKeys: db.prepare("SELECT child_id FROM associations WHERE parent_id = ? AND child_id LIKE 'key_%' ORDER BY child_id"),
+  banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?'),
+  ban: db.prepare('INSERT OR IGNORE INTO broker_bans (account, reason) VALUES (?, ?)')
 };
+
+/*
+  The newest unlink timestamp taken per key - a signed unlink seen once (e.g. in a log) can not be sent again.
+  In memory: after a restart the 10 minute window still bounds it.
+*/
+const lastUnlinkTimestamp = new Map();
 
 function linkedKeys(steamId) {
   return stmts.linkedKeys.all(steamId).map(row => row.child_id);
@@ -204,6 +212,11 @@ function link(params, ip, res) {
   }
 
   const child = `key_${public_key}`;
+
+  if (stmts.banned.get(child)) {
+    return res.status(403).send('This key is banned.');
+  }
+
   const parent = stmts.parentOf.get(child);
 
   // The code stays valid, so it can be used once the key is unlinked from the other account
@@ -216,13 +229,19 @@ function link(params, ip, res) {
     return res.status(409).send(`This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked. Unlink old ones on hypersomnia.io/profile.`);
   }
 
+  try {
+    db.transaction(() => {
+      stmts.link.run(child, entry.steamId);
+      moveProgressIfFirst(child, entry.steamId);
+    })();
+  } catch (err) {
+    // The code stays usable - nothing was linked
+    console.error(`[link_key] Could not link ${child}:`, err && err.message ? err.message : err);
+    return res.status(500).type('text/plain').send('Could not link right now. Try again in a moment.');
+  }
+
   // Single use: a code is gone once it linked a key
   codes.delete(normalizedCode);
-
-  db.transaction(() => {
-    stmts.link.run(child, entry.steamId);
-    moveProgressIfFirst(child, entry.steamId);
-  })();
 
   console.log(`[link_key] Linked ${child} to ${entry.steamId}.`);
 
@@ -326,8 +345,8 @@ function unlinkBySignature(params, ip, res) {
     return res.status(429).send('Too many attempts. Try again in a minute.');
   }
 
-  const { public_key, signature } = params || {};
-  const timestamp = typeof params.timestamp === 'string' ? Number(params.timestamp) : params.timestamp;
+  const { public_key, signature, timestamp: written_timestamp } = params || {};
+  const timestamp = typeof written_timestamp === 'string' ? Number(written_timestamp) : written_timestamp;
 
   if (typeof public_key !== 'string' || !/^[0-9a-f]{64}$/.test(public_key)
     || typeof signature !== 'string' || !/^[0-9a-f]{128}$/.test(signature)
@@ -345,6 +364,13 @@ function unlinkBySignature(params, ip, res) {
   }
 
   const child = `key_${public_key}`;
+
+  if (timestamp <= (lastUnlinkTimestamp.get(child) || 0)) {
+    return res.status(401).send('This unlink was already used. Try again.');
+  }
+
+  lastUnlinkTimestamp.set(child, timestamp);
+
   const parent = stmts.parentOf.get(child);
 
   if (!parent) {
@@ -354,6 +380,13 @@ function unlinkBySignature(params, ip, res) {
   db.transaction(() => {
     stmts.unlink.run(child, parent.parent_id);
     moveProgressBack(child, parent.parent_id);
+
+    // Unlinking does not get a key out of its Steam account's ban
+    const parentBan = stmts.banned.get(parent.parent_id);
+
+    if (parentBan) {
+      stmts.ban.run(child, parentBan.reason || 'Banned.');
+    }
   })();
 
   console.log(`[link_key] Unlinked ${child} from ${parent.parent_id} by its own signature.`);

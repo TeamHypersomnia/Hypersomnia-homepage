@@ -8,7 +8,7 @@ const db = require('./db');
 const config = require('./config');
 const identityCert = require('./identity_cert');
 const { verifySignature } = require('./link_key');
-const { makeLimiter } = require('./limiter');
+const { makeLimiter, limitKey, wideLimitKey } = require('./limiter');
 const { getAvatar } = require('./avatars');
 
 /*
@@ -40,7 +40,36 @@ const allowRequest = makeLimiter({ perAddress: 150, total: 60000 });
 // Every Steam ticket and every profile fetch costs a call to the Steam Web API, whose key has a daily quota: a flood of
 // bogus tickets must not use it up for everyone. A real player asks every two hours (a cert lives 4) and the profile is
 // cached for a day - so a few calls a minute per address, and a global cap within the quota.
-const allowSteamCall = makeLimiter({ perAddress: 10, total: 120 });
+//
+// Addresses whose ticket Steam accepted in the last day are past the global cap (only their own limit counts), so a
+// flood of bogus tickets from new addresses - counted by their /24 or /48 - can not lock out the players already here.
+// Profile fetches have a cap of their own.
+const allowKnownSteamCall = makeLimiter({ perAddress: 10 });
+const allowNewSteamCall = makeLimiter({ perAddress: 10, total: 120, keyOf: wideLimitKey });
+const allowProfileCall = makeLimiter({ perAddress: 10, total: 120 });
+const KNOWN_ADDRESS_MS = 24 * 60 * 60 * 1000;
+const knownSteamAddresses = new Map();
+
+function allowSteamCall(ip) {
+  const key = limitKey(ip);
+  const knownUntil = knownSteamAddresses.get(key);
+
+  if (knownUntil !== undefined && knownUntil > Date.now()) {
+    return allowKnownSteamCall(ip);
+  }
+
+  knownSteamAddresses.delete(key);
+  return allowNewSteamCall(ip);
+}
+
+function rememberSteamAddress(ip) {
+  // Bounded: old entries go first
+  if (knownSteamAddresses.size > 100000) {
+    knownSteamAddresses.delete(knownSteamAddresses.keys().next().value);
+  }
+
+  knownSteamAddresses.set(limitKey(ip), Date.now() + KNOWN_ADDRESS_MS);
+}
 
 /*
   The broker's key: hypersomnia-key-v1:<seed hex>, like the game's key files.
@@ -138,6 +167,8 @@ async function steamAccount(ticketHex, sessionPublicKey, ip) {
     throw { status: 401, message: 'Steam did not accept the ticket.' };
   }
 
+  rememberSteamAddress(ip);
+
   if (params.publisherbanned || params.vacbanned) {
     // Remembered, so that keys linked to this account are refused too - they never show Steam a ticket
     stmts.ban.run(`steam_${params.steamid}`, 'This Steam account is banned.');
@@ -217,7 +248,7 @@ async function steamProfile(account, ip, deadline) {
 
   const stale = cached || { name: '', avatar: null };
 
-  if (!config.STEAM_API_KEY || !allowSteamCall(ip)) {
+  if (!config.STEAM_API_KEY || !allowProfileCall(ip)) {
     return stale;
   }
 
@@ -328,6 +359,14 @@ function keyAccount(publicKeyHex, signatureHex, sessionPublicKey) {
   }
 
   const child = `key_${publicKeyHex}`;
+
+  // A banned key stays banned while linked too
+  const keyBan = bannedReason(child);
+
+  if (keyBan) {
+    throw { status: 403, message: keyBan };
+  }
+
   const parent = stmts.parentOf.get(child);
 
   // A key linked to a Steam account plays on it
