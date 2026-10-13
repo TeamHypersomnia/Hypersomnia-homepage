@@ -46,9 +46,11 @@ const STEAM_APP_ID = 2660970;
 // far above what players need, so that a flood from many addresses does not lock everyone out of certs
 // A whole /24 or /48 has its own limit too - one /48 holds 65536 /64s, enough to use up the total alone.
 // Only what an address was allowed counts there - one host over its own limit does not use up its network's (e.g. CGNAT).
-const allowRequestPerAddress = makeLimiter({ perAddress: 150, total: 60000 });
+// The total last: only what both an address and its network were allowed uses it up.
+const allowRequestPerAddress = makeLimiter({ perAddress: 150 });
 const allowRequestPerNetwork = makeLimiter({ perAddress: 1500, keyOf: wideLimitKey });
-const allowRequest = ip => allowRequestPerAddress(ip) && allowRequestPerNetwork(ip);
+const allowRequestInAll = makeLimiter({ perAddress: Infinity, total: 60000, keyOf: () => 'all' });
+const allowRequest = ip => allowRequestPerAddress(ip) && allowRequestPerNetwork(ip) && allowRequestInAll(ip);
 
 // Every Steam ticket and every profile fetch costs a call to the Steam Web API, whose key has a daily quota: a flood of
 // bogus tickets must not use it up for everyone. A real player asks every two hours (a cert lives 4) and the profile is
