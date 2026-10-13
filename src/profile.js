@@ -36,28 +36,10 @@ async function renderProfile(req, res, extra = {}) {
 
 router.get('/', (req, res) => renderProfile(req, res));
 
-// The code to link a game key, alone on /link - see link_key.js. Never cached: it is this session's.
-function renderLink(req, res, linkCode) {
-  res.set('Cache-Control', 'no-store');
-
-  res.render('link', {
-    page: 'Link a game key',
-    user: req.user,
-    linkCode: linkCode.code,
-    linkCodeExpires: linkCode.expires
-  });
-}
-
-// GET /link: this Steam account's live code, or a new one
+// /link: where linking starts - in the game, which opens the sign-in through Steam by itself
 function linkPage(req, res) {
-  renderLink(req, res, linkKey.currentCode(`steam_${req.user.id}`, req.user.displayName));
+  res.render('link', { page: 'Link a game key', user: req.user });
 }
-
-// A new one-time code in place of the one shown on /link
-router.post('/link_code', (req, res) => {
-  const code = linkKey.createCode(`steam_${req.user.id}`, req.user.displayName);
-  renderLink(req, res, { code, expires: linkKey.liveCode(code).expires });
-});
 
 router.post('/unlink_key', (req, res) => {
   const child = String(req.body.key || '');

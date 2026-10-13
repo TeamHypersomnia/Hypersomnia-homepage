@@ -9,10 +9,10 @@ const config = require('./config');
   Linking an identity key (the account of a player without Steam, "key_<public key in hex>")
   to a Steam account, so that the progress from ranked matches played with the key counts towards the Steam account.
 
-  1. Signed in through Steam, the player sees a one-time code on /link (currentCode, createCode).
-  2. The game asks GET /link_key/info?code=<code> whose Steam account it is and shows its name,
-     so that a code someone else gave the player ("enter this for a badge") is seen for what it is.
-  3. Confirmed, the game signs "hypersomnia-link-v1 <code> <steam account>" with the key and posts it to /link_key.
+  1. The game opens /link_key/start with its random state; signed in through Steam, the player's browser brings
+     a one-time code back to the game (createCode) - to its listener on 127.0.0.1, or to the web build's tab.
+  2. The game asks GET /link_key/info?code=<code> whose Steam account it is (name and avatar, shown while linking).
+  3. The game signs "hypersomnia-link-v1 <code> <steam account>" with the key and sends it to /link_key/link.
   4. A valid signature with a valid code links the key as a child of that Steam account.
 
   The code ties the link to the Steam session that asked for it, and the signature proves the key and
@@ -63,26 +63,6 @@ function createCode(steamId, steamName) {
 
   codes.set(code, { steamId, steamName, expires: now + CODE_LIFETIME_MS });
   return code;
-}
-
-/*
-  The code /link shows right away: this Steam account's live code while it has at least a few minutes left
-  (reloading the page does not invalidate a code already typed into the game), a new one otherwise.
-  The same code as from createCode - tied to this Steam session.
-*/
-const CODE_MIN_REMAINING_MS = 2 * 60 * 1000;
-
-function currentCode(steamId, steamName) {
-  const now = Date.now();
-
-  for (const [code, entry] of codes) {
-    if (entry.steamId === steamId && entry.expires - now >= CODE_MIN_REMAINING_MS) {
-      return { code, expires: entry.expires };
-    }
-  }
-
-  const code = createCode(steamId, steamName);
-  return { code, expires: codes.get(code).expires };
 }
 
 function liveCode(code) {
@@ -186,7 +166,7 @@ router.get('/info', async (req, res) => {
   const entry = liveCode(code.toUpperCase());
 
   if (!entry) {
-    return res.status(404).send('Invalid or expired code. Get a new one on hypersomnia.io/link.');
+    return res.status(404).send('The link expired. Start again from the game: Settings - Account - Link with Steam.');
   }
 
   // Required here: broker.js requires this file
@@ -216,7 +196,7 @@ function link(params, ip, res) {
 
   // The cheap check first: no signature verification for guessed codes
   if (!entry) {
-    return res.status(401).send('Invalid or expired code. Get a new one on hypersomnia.io/link.');
+    return res.status(401).send('The link expired. Start again from the game: Settings - Account - Link with Steam.');
   }
 
   if (!verifySignature(public_key, `hypersomnia-link-v1 ${normalizedCode} ${entry.steamId}`, signature)) {
@@ -299,24 +279,38 @@ router.post('/', (req, res) => link(req.body, clientIp(req), res));
 router.get('/link', (req, res) => link(req.query, clientIp(req), res));
 
 /*
-  "Sign in with Steam" in the web build: the game opens /link_key/start?state=<its random state> in a new tab.
+  "Link with Steam": the game opens /link_key/start?state=<its random state> in the browser.
   Signed in through Steam (here, or on the way), the player gets a code that goes back to the game - only ever to
-  LINK_RETURN_URL, with the game's state, which the game checks. The game still shows whose Steam account it is
-  and links only once the player confirms.
+  the game itself, with the game's state, which the game checks:
+  - the native game: &port=<port> - to the game's listener on http://127.0.0.1:<port> (loopback redirect, RFC 8252);
+  - the web build: to LINK_RETURN_URL, which hands it to the game's tab.
+  A link to this page someone else made leads to their state - the game of whoever opens it does not take it.
 */
 router.get('/start', (req, res) => {
-  const { state } = req.query;
+  const { state, port } = req.query;
 
   if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)) {
     return res.status(400).send('Invalid request.');
   }
 
+  const loopbackPort = port === undefined ? null : Number(port);
+
+  if (loopbackPort !== null && !(Number.isInteger(loopbackPort) && loopbackPort >= 1024 && loopbackPort <= 65535)) {
+    return res.status(400).send('Invalid request.');
+  }
+
   if (!req.user) {
-    req.session.after_login = `/link_key/start?state=${state}`;
+    req.session.after_login = loopbackPort !== null ? `/link_key/start?state=${state}&port=${loopbackPort}` : `/link_key/start?state=${state}`;
     return res.redirect('/auth/steam');
   }
 
   const code = createCode(`steam_${req.user.id}`, req.user.displayName);
+  res.set('Cache-Control', 'no-store');
+
+  if (loopbackPort !== null) {
+    return res.redirect(`http://127.0.0.1:${loopbackPort}/linked?code=${code}&state=${state}`);
+  }
+
   res.redirect(`${config.LINK_RETURN_URL}#code=${code}&state=${state}`);
 });
 
@@ -370,4 +364,4 @@ function unlinkBySignature(params, ip, res) {
 router.post('/unlink', (req, res) => unlinkBySignature(req.body, clientIp(req), res));
 router.get('/unlink', (req, res) => unlinkBySignature(req.query, clientIp(req), res));
 
-module.exports = { router, createCode, currentCode, liveCode, linkedKeys, verifySignature, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };
+module.exports = { router, createCode, liveCode, linkedKeys, verifySignature, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };
