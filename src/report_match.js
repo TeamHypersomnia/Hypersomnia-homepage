@@ -137,7 +137,7 @@ router.post('/', apiKeyAuth, (req, res) => {
     return res.status(400).json({ error: 'Missing match_id or reported_at' });
   }
 
-  if (db.prepare('SELECT 1 FROM matches WHERE report_id = ?').get(report_id)) {
+  if (db.prepare('SELECT 1 FROM matches WHERE report_id = ?').get(report_id) || db.prepare('SELECT 1 FROM reverted_reports WHERE report_id = ?').get(report_id)) {
     return res.status(409).json({ error: 'Already reported' });
   }
 

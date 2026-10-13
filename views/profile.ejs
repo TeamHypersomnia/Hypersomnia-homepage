@@ -3,7 +3,7 @@
 <h1>Profile</h1>
 
 <div class="btn-group">
-  <div class="btn"><a href="/link"><i class="fa-solid fa-link"></i><span>Link a game key</span></a></div>
+  <div class="btn"><a href="/link"><i class="fa-solid fa-link"></i><span>How to link the game</span></a></div>
   <% if (is_admin == true) { %>
   <div class="btn"><a href="/admin"><span>Admin</span></a></div>
   <% } %>
@@ -67,7 +67,7 @@
         <td><% if (linked.via === 'steam') { %><i class="fa-brands fa-steam" title="Linked by the Steam build"></i> <% } %><%= linked.device || '-' %></td>
         <td><%= linked.lastCertAt ? new Date(linked.lastCertAt * 1000).toISOString().slice(0, 10) : '-' %></td>
         <td class="linked-keys-action">
-          <form class="inline-form" method="POST" action="/profile/unlink_key" onsubmit="return confirm('Unlink this game key? Progress from its ranked matches will no longer count towards this Steam account.');">
+          <form class="inline-form" method="POST" action="/profile/unlink_key" onsubmit="return confirm(<%= JSON.stringify(linked.via === 'steam' ? 'Unlink this game key? The Steam build links it again the next time it starts - use this only for a device you no longer have.' : 'Unlink this game key? Progress from its ranked matches will no longer count towards this Steam account.') %>);">
             <input type="hidden" name="key" value="<%= key %>">
             <input class="small danger" type="submit" value="Unlink">
           </form>

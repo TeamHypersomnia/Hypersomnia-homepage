@@ -71,6 +71,12 @@ function certRequestMessage(sessionPublicKey) {
   return Buffer.concat([CERT_REQUEST_TAG, sessionPublicKey]);
 }
 
+// What a key signs to link itself to a Steam ticket's account (/cert link=1): good for that one ticket only -
+// the cert request signature is the same in every request, so one seen anywhere must not move the key
+function linkRequestMessage(sessionPublicKey, steamTicket) {
+  return Buffer.concat([Buffer.from('hs-cert-link-v1'), sessionPublicKey, require('crypto').createHash('sha256').update(steamTicket).digest()]);
+}
+
 module.exports = {
   CERT_TAG,
   CERT_REQUEST_TAG,
@@ -79,5 +85,6 @@ module.exports = {
   rawPublicKey,
   signedMessage,
   makeCert,
-  certRequestMessage
+  certRequestMessage,
+  linkRequestMessage
 };

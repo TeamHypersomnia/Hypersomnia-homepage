@@ -237,8 +237,7 @@ http {
     #--------------------------------------------------------------------------
     # LINKING GAME KEYS - not logged
     #--------------------------------------------------------------------------
-    # A player who pastes their key into the link code field would put it in the query string;
-    # the game refuses to send that, but nothing here may ever log it either.
+    # The query string carries key signatures and link codes.
     location ^~ /link_key {
       access_log off;
 

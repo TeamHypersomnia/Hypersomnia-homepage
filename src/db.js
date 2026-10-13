@@ -111,6 +111,11 @@ class DatabaseManager {
         device TEXT,
         last_cert_at INTEGER
       );
+
+      -- The report ids of reverted matches: a server retrying such a report (it keeps them for days) is not counted again
+      CREATE TABLE IF NOT EXISTS reverted_reports (
+        report_id TEXT PRIMARY KEY
+      );
     `);
 
     const columns = this.db.prepare("PRAGMA table_info(matches)").all().map(c => c.name);

@@ -6,6 +6,10 @@ const { clientIp } = require('./client_ip');
 const axios = require('axios');
 const db = require('./db');
 const config = require('./config');
+
+if (!config.CRAZYGAMES_GAME_ID) {
+  console.error('[broker] CRAZYGAMES_GAME_ID is not set - every CrazyGames sign-in is refused.');
+}
 const identityCert = require('./identity_cert');
 const { verifySignature, linkBySteamTicket, touchKey } = require('./link_key');
 const { makeLimiter, limitKey, wideLimitKey } = require('./limiter');
@@ -40,7 +44,10 @@ const CERT_LIFETIME_SECS = 4 * 60 * 60;
 const STEAM_APP_ID = 2660970;
 // Per address - a school starting the game together fits - and in all only to bound the CPU,
 // far above what players need, so that a flood from many addresses does not lock everyone out of certs
-const allowRequest = makeLimiter({ perAddress: 150, total: 60000 });
+// A whole /24 or /48 has its own limit too - one /48 holds 65536 /64s, enough to use up the total alone
+const allowRequestPerAddress = makeLimiter({ perAddress: 150, total: 60000 });
+const allowRequestPerNetwork = makeLimiter({ perAddress: 1500, keyOf: wideLimitKey });
+const allowRequest = ip => allowRequestPerNetwork(ip) && allowRequestPerAddress(ip);
 
 // Every Steam ticket and every profile fetch costs a call to the Steam Web API, whose key has a daily quota: a flood of
 // bogus tickets must not use it up for everyone. A real player asks every two hours (a cert lives 4) and the profile is
@@ -289,21 +296,43 @@ async function accountProfile(account, ip, deadline, refresh = false) {
 
 let crazyGamesKey = null;
 let crazyGamesKeyFetchedAt = 0;
+let crazyGamesKeyFetch = null;
+let crazyGamesKeyFailedAt = 0;
 
+// One fetch for all the requests waiting on it; a failure is remembered for 30 s - with CrazyGames down,
+// every /cert would otherwise wait for its own timeout, longer than the game waits
 async function crazyGamesPublicKey() {
   if (crazyGamesKey && Date.now() - crazyGamesKeyFetchedAt < 60 * 60 * 1000) {
     return crazyGamesKey;
   }
 
-  const response = await axios.get('https://sdk.crazygames.com/publicKey.json', { timeout: 5000, maxRedirects: 0 });
+  const unavailable = { status: 503, message: 'CrazyGames sign in is not available right now.' };
 
-  if (!response.data || typeof response.data.publicKey !== 'string') {
-    throw { status: 503, message: 'CrazyGames sign in is not available right now.' };
+  if (Date.now() - crazyGamesKeyFailedAt < 30 * 1000) {
+    throw unavailable;
   }
 
-  crazyGamesKey = response.data.publicKey;
-  crazyGamesKeyFetchedAt = Date.now();
-  return crazyGamesKey;
+  if (!crazyGamesKeyFetch) {
+    crazyGamesKeyFetch = axios.get('https://sdk.crazygames.com/publicKey.json', { timeout: 3000, maxRedirects: 0 })
+      .then(response => {
+        if (!response.data || typeof response.data.publicKey !== 'string') {
+          throw unavailable;
+        }
+
+        crazyGamesKey = response.data.publicKey;
+        crazyGamesKeyFetchedAt = Date.now();
+        return crazyGamesKey;
+      })
+      .catch(() => {
+        crazyGamesKeyFailedAt = Date.now();
+        throw unavailable;
+      })
+      .finally(() => {
+        crazyGamesKeyFetch = null;
+      });
+  }
+
+  return crazyGamesKeyFetch;
 }
 
 function decodeBase64Url(s) {
@@ -428,11 +457,12 @@ router.get('/', async (req, res) => {
         const steamId = await steamAccount(steam, sessionPublicKey, ip);
 
         // The Steam build: linked by this ticket once, by its key's signature from then on (the session key is the key).
-        // Only with the key's own signature - a ticket can be asked for any public key, e.g. one off the leaderboards.
+        // Only with the key's own signature over this very ticket - a ticket can be asked for any public key (e.g. one off
+        // the leaderboards), and the cert request signature, the same in every request, could have been seen anywhere.
         if (req.query.link === '1') {
           const signedByTheKey = typeof key === 'string' && typeof sig === 'string' && key === session
             && /^[0-9a-f]{128}$/.test(sig)
-            && verifySignature(key, identityCert.certRequestMessage(sessionPublicKey), sig);
+            && verifySignature(key, identityCert.linkRequestMessage(sessionPublicKey, Buffer.from(steam, 'hex')), sig);
 
           if (signedByTheKey) {
             linkBySteamTicket(`key_${session}`, steamId, device);

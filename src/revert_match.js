@@ -67,6 +67,10 @@ router.post('/', apiKeyAuth, (req, res) => {
       });
 
       // Remove the match entry
+      if (match.report_id) {
+        db.prepare('INSERT OR IGNORE INTO reverted_reports (report_id) VALUES (?)').run(match.report_id);
+      }
+
       stmtRemoveMatch.run(match_id);
 
       // The id of a reverted match is never given to another one: a retried revert would revert that one instead

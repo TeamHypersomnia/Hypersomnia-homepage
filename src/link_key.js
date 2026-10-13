@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const express = require('express');
-const { makeLimiter } = require('./limiter');
+const { makeLimiter, wideLimitKey } = require('./limiter');
 const { clientIp } = require('./client_ip');
 const db = require('./db');
 const config = require('./config');
@@ -17,8 +17,8 @@ const config = require('./config');
 
   The code ties the link to the Steam session that asked for it, and the signature proves the key and
   which Steam account the player agreed to, so nobody can link someone else's key, or link their own key
-  to someone else's Steam account. A key linked to one Steam account is not moved to another -
-  it has to be unlinked there first.
+  to someone else's Steam account. A key linked to one Steam account is not moved to another in the browser -
+  it has to be unlinked there first (the Steam build's signed ticket does move it - see linkBySteamTicket).
 */
 
 const router = express.Router();
@@ -37,6 +37,7 @@ const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const CODE_LENGTH = 8;
 const CODE_LIFETIME_MS = 5 * 60 * 1000;
 const MAX_KEYS_PER_STEAM_ACCOUNT = 32;
+const MAX_LIVE_CODES_PER_ACCOUNT = 4;
 
 // code -> { steamId, steamName, expires }; one live code per Steam account
 const codes = new Map();
@@ -51,8 +52,11 @@ function createCode(steamId, steamName) {
   const now = Date.now();
   removeExpired(now);
 
-  for (const [code, entry] of codes) {
-    if (entry.steamId === steamId) codes.delete(code);
+  // A few devices may link at once - the oldest of this account's codes goes first (a Map keeps the order of insertion)
+  const own = [...codes].filter(([, entry]) => entry.steamId === steamId).map(([code]) => code);
+
+  for (const code of own.slice(0, Math.max(0, own.length - (MAX_LIVE_CODES_PER_ACCOUNT - 1)))) {
+    codes.delete(code);
   }
 
   let code = '';
@@ -71,7 +75,11 @@ function liveCode(code) {
 }
 
 // Guessing codes with one's own key would link it to someone else's Steam account
-const allowAttempt = makeLimiter({ perAddress: 10, total: 600 });
+// Guessing an 8 letter code at 10 a minute is hopeless; no total - 60 addresses could use it up for everyone.
+// A whole /24 or /48 has a limit of its own.
+const allowAttemptPerAddress = makeLimiter({ perAddress: 10 });
+const allowAttemptPerNetwork = makeLimiter({ perAddress: 100, keyOf: wideLimitKey });
+const allowAttempt = ip => allowAttemptPerNetwork(ip) && allowAttemptPerAddress(ip);
 
 // A raw 32-byte Ed25519 public key wrapped as SPKI DER, the form node:crypto takes
 const ED25519_SPKI_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
@@ -181,7 +189,7 @@ router.get('/info', async (req, res) => {
   const entry = liveCode(code.toUpperCase());
 
   if (!entry) {
-    return res.status(404).send('The link expired. Start again from the game: Settings - Account - Link with Steam.');
+    return res.status(404).send('The link took too long (over 5 minutes). Click Link with Steam... in the game again.');
   }
 
   // Required here: broker.js requires this file
@@ -211,7 +219,7 @@ function link(params, ip, res) {
 
   // The cheap check first: no signature verification for guessed codes
   if (!entry) {
-    return res.status(401).send('The link expired. Start again from the game: Settings - Account - Link with Steam.');
+    return res.status(401).send('The link took too long (over 5 minutes). Click Link with Steam... in the game again.');
   }
 
   if (!verifySignature(public_key, `hypersomnia-link-v1 ${normalizedCode} ${entry.steamId}`, signature)) {
@@ -223,6 +231,10 @@ function link(params, ip, res) {
   try {
     if (stmts.banned.get(child)) {
       return res.status(403).send('This key is banned.');
+    }
+
+    if (stmts.banned.get(entry.steamId)) {
+      return res.status(403).send('This Steam account is banned.');
     }
 
     const parent = stmts.parentOf.get(child);
@@ -237,11 +249,14 @@ function link(params, ip, res) {
       return res.status(409).send(`This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked.\nUnlink the ones you no longer use.`);
     }
 
-    db.transaction(() => {
-      stmts.link.run(child, entry.steamId);
-      moveProgressIfFirst(child, entry.steamId);
-      stmts.setLinkMeta.run(child, 'browser', null, Math.floor(Date.now() / 1000));
-    })();
+    // Linked to this account already (e.g. by the Steam build): its link stays as it is
+    if (!parent) {
+      db.transaction(() => {
+        stmts.link.run(child, entry.steamId);
+        moveProgressIfFirst(child, entry.steamId);
+        stmts.setLinkMeta.run(child, 'browser', null, Math.floor(Date.now() / 1000));
+      })();
+    }
   } catch (err) {
     // The code stays usable - nothing was linked
     console.error(`[link_key] Could not link ${child}:`, err && err.message ? err.message : err);
@@ -283,13 +298,17 @@ function moveProgressIfFirst(child, steamId) {
 */
 function unlinkKey(child, steamId, { progressBack = true } = {}) {
   db.transaction(() => {
-    stmts.unlink.run(child, steamId);
+    // Not this account's key (e.g. anyone's key posted to /profile/unlink_key): nothing else may be touched - not its
+    // progress moves, not its link, and above all no ban of this account carried over to it
+    if (stmts.unlink.run(child, steamId).changes === 0) {
+      return;
+    }
 
     if (progressBack) {
       moveProgressBack(child, steamId);
     }
     else {
-      db.prepare('DELETE FROM progress_moves WHERE child_id = ?').run(child);
+      db.prepare('DELETE FROM progress_moves WHERE child_id = ? AND parent_id = ?').run(child, steamId);
     }
 
     db.prepare('DELETE FROM key_links WHERE child_id = ?').run(child);
@@ -323,10 +342,8 @@ function moveProgressBack(child, steamId) {
     }
   }
 
-  db.prepare('DELETE FROM progress_moves WHERE child_id = ?').run(child);
+  db.prepare('DELETE FROM progress_moves WHERE child_id = ? AND parent_id = ?').run(child, steamId);
 }
-
-router.post('/', (req, res) => link(req.body, clientIp(req), res));
 
 // The web build can only make GET requests
 router.get('/link', (req, res) => link(req.query, clientIp(req), res));
@@ -486,7 +503,6 @@ function unlinkBySignature(params, ip, res) {
   res.json({ unlinked: child, from: parent.parent_id });
 }
 
-router.post('/unlink', (req, res) => unlinkBySignature(req.body, clientIp(req), res));
 router.get('/unlink', (req, res) => unlinkBySignature(req.query, clientIp(req), res));
 
 /*
@@ -549,4 +565,4 @@ function linkMetaOf(child) {
   return stmts.linkMetaOf.get(child) || null;
 }
 
-module.exports = { router, createCode, liveCode, linkedKeys, verifySignature, unlink: unlinkKey, linkBySteamTicket, touchKey, linkMetaOf };
+module.exports = { router, linkedKeys, verifySignature, unlink: unlinkKey, linkBySteamTicket, touchKey, linkMetaOf };

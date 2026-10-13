@@ -99,7 +99,7 @@ const config = {
   BROKER_KEY_PATH: process.env.BROKER_KEY_PATH || './private/broker.key',
   // Where "Sign in with Steam" sends the link code back to the web build - a fixed page of the game
   LINK_RETURN_URL: process.env.LINK_RETURN_URL || 'https://play.hypersomnia.io/assets/auth_redirect.html',
-  // Only the CrazyGames tokens of this game are accepted. Unset: any (logged at start)
+  // Only the CrazyGames tokens of this game are accepted. Unset: none (every CrazyGames sign-in fails - logged at start)
   CRAZYGAMES_GAME_ID: process.env.CRAZYGAMES_GAME_ID || '',
   // Tests only: verify CrazyGames tokens with this key instead of fetching CrazyGames' one
   CRAZYGAMES_PUBLIC_KEY: process.env.CRAZYGAMES_PUBLIC_KEY_PEM || '',
