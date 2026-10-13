@@ -22,6 +22,7 @@ const { getAvatar } = require('./avatars');
   GET /cert?session=<hex>&crazygames=header         a CrazyGames token of this game, in the X-CrazyGames-Token header
   GET /cert?session=<hex>&key=<hex>&sig=<hex>       an account key's signature of "hs-cert-req-v1" and the session key
 
+  &refresh_profile=1 on any of them: the Steam name and avatar fetched anew, not from the day's cache (at most once a minute).
   &device=<name> on any of them: the device the game runs on, kept for a linked key (shown only on its owner's /profile).
   An account key linked to a Steam account gets a cert for that Steam account. 200 with JSON:
     {"cert": "<the cert in hex>", "name": "<string>", "avatar": "<base64 of the image bytes>"}
@@ -241,11 +242,15 @@ async function fetchSteamProfile(steamId, deadline) {
   return { name, avatar: Buffer.from(image.data) };
 }
 
-async function steamProfile(account, ip, deadline) {
+// "Refresh" in the game asks for the profile anew - at most once a minute per account
+const PROFILE_REFRESH_MIN_SECS = 60;
+
+async function steamProfile(account, ip, deadline, refresh = false) {
   const cached = stmts.steamProfile.get(account);
   const now = Math.floor(Date.now() / 1000);
+  const maxAge = refresh ? PROFILE_REFRESH_MIN_SECS : STEAM_PROFILE_CACHE_SECS;
 
-  if (cached && now - cached.fetched_at < STEAM_PROFILE_CACHE_SECS) {
+  if (cached && now - cached.fetched_at < maxAge) {
     return cached;
   }
 
@@ -268,9 +273,9 @@ async function steamProfile(account, ip, deadline) {
   }
 }
 
-async function accountProfile(account, ip, deadline) {
+async function accountProfile(account, ip, deadline, refresh = false) {
   if (account.startsWith('steam_')) {
-    return steamProfile(account, ip, deadline);
+    return steamProfile(account, ip, deadline, refresh);
   }
 
   if (account.startsWith('key_')) {
@@ -456,7 +461,7 @@ router.get('/', async (req, res) => {
       notAfter: now + CERT_LIFETIME_SECS
     });
 
-    const profile = await accountProfile(account, ip, deadline);
+    const profile = await accountProfile(account, ip, deadline, req.query.refresh_profile === '1');
 
     res.json({
       cert: cert.toString('hex'),
