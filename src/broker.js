@@ -16,8 +16,9 @@ const { getAvatar } = require('./avatars');
   in the game). The game servers check them offline with the broker's public key from their config -
   they never ask Steam, CrazyGames or this site anything.
 
-  GET /cert?session=<hex>&steam=<ticket hex>[&link=1] a Steam Web API ticket requested for the session key's identity;
-                                                     link=1 (the Steam build): the key is linked to that Steam account,
+  GET /cert?session=<hex>&steam=<ticket hex>[&link=1&key=<hex>&sig=<hex>] a Steam Web API ticket requested for the session key's
+                                                     identity; link=1 (the Steam build) with the key's signature (as below):
+                                                     the key is linked to that Steam account,
                                                      so later certs need only the key's signature - no Steam API call
   GET /cert?session=<hex>&crazygames=header         a CrazyGames token of this game, in the X-CrazyGames-Token header
   GET /cert?session=<hex>&key=<hex>&sig=<hex>       an account key's signature of "hs-cert-req-v1" and the session key
@@ -426,9 +427,19 @@ router.get('/', async (req, res) => {
       if (typeof steam === 'string' && /^[0-9a-f]{2,4096}$/.test(steam)) {
         const steamId = await steamAccount(steam, sessionPublicKey, ip);
 
-        // The Steam build: linked by this ticket once, by its key's signature from then on (the session key is the key)
+        // The Steam build: linked by this ticket once, by its key's signature from then on (the session key is the key).
+        // Only with the key's own signature - a ticket can be asked for any public key, e.g. one off the leaderboards.
         if (req.query.link === '1') {
-          linkBySteamTicket(`key_${session}`, steamId, device);
+          const signedByTheKey = typeof key === 'string' && typeof sig === 'string' && key === session
+            && /^[0-9a-f]{128}$/.test(sig)
+            && verifySignature(key, identityCert.certRequestMessage(sessionPublicKey), sig);
+
+          if (signedByTheKey) {
+            linkBySteamTicket(`key_${session}`, steamId, device);
+          }
+          else {
+            console.log(`[broker] Not linking key_${session}: link=1 without the key's signature.`);
+          }
         }
 
         return steamId;
