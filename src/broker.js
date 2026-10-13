@@ -17,7 +17,7 @@ const { getAvatar } = require('./avatars');
   built into the game - they never ask Steam, CrazyGames or this site anything.
 
   GET /cert?session=<hex>&steam=<ticket hex>       a Steam Web API ticket requested for the session key's identity
-  GET /cert?session=<hex>&crazygames=<jwt>         a CrazyGames token of this game
+  GET /cert?session=<hex>&crazygames=header         a CrazyGames token of this game, in the X-CrazyGames-Token header
   GET /cert?session=<hex>&key=<hex>&sig=<hex>       an account key's signature of "hs-cert-req-v1" and the session key
 
   An account key linked to a Steam account gets a cert for that Steam account. 200 with JSON:
@@ -373,12 +373,23 @@ function keyAccount(publicKeyHex, signatureHex, sessionPublicKey) {
   return parent ? parent.parent_id : child;
 }
 
+// The browser asks first whether it may send the CrazyGames token in its header
+router.options('/', (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Headers', 'X-CrazyGames-Token');
+  res.set('Access-Control-Max-Age', '86400');
+  res.sendStatus(204);
+});
+
 router.get('/', async (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.set('Access-Control-Allow-Origin', '*');
 
   const ip = clientIp(req);
-  const { session, steam, crazygames, key, sig } = req.query;
+  const { session, steam, key, sig } = req.query;
+
+  // The CrazyGames token comes in a header - a URL (with it) could end up in a log
+  const crazygames = req.query.crazygames === 'header' ? req.get('X-CrazyGames-Token') : undefined;
 
   // Malformed requests are refused before they count against anyone's limits
   if (typeof session !== 'string' || !/^[0-9a-f]{64}$/.test(session)) {
