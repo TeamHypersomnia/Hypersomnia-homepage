@@ -220,23 +220,23 @@ function link(params, ip, res) {
 
   const child = `key_${public_key}`;
 
-  if (stmts.banned.get(child)) {
-    return res.status(403).send('This key is banned.');
-  }
-
-  const parent = stmts.parentOf.get(child);
-
-  // The code stays valid, so it can be used once the key is unlinked from the other account
-  if (parent && parent.parent_id !== entry.steamId) {
-    return res.status(409).send('This key is already linked to another Steam account. Unlink it there first.');
-  }
-
-  // Every new device or browser is a new key: many are fine, an endless stream is not
-  if (!parent && linkedKeys(entry.steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT) {
-    return res.status(409).send(`This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked.\nUnlink the ones you no longer use.`);
-  }
-
   try {
+    if (stmts.banned.get(child)) {
+      return res.status(403).send('This key is banned.');
+    }
+
+    const parent = stmts.parentOf.get(child);
+
+    // The code stays valid, so it can be used once the key is unlinked from the other account
+    if (parent && parent.parent_id !== entry.steamId) {
+      return res.status(409).send('This key is already linked to another Steam account. Unlink it there first.');
+    }
+
+    // Every new device or browser is a new key: many are fine, an endless stream is not
+    if (!parent && linkedKeys(entry.steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT) {
+      return res.status(409).send(`This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked.\nUnlink the ones you no longer use.`);
+    }
+
     db.transaction(() => {
       stmts.link.run(child, entry.steamId);
       moveProgressIfFirst(child, entry.steamId);
@@ -245,7 +245,7 @@ function link(params, ip, res) {
   } catch (err) {
     // The code stays usable - nothing was linked
     console.error(`[link_key] Could not link ${child}:`, err && err.message ? err.message : err);
-    return res.status(500).type('text/plain').send('Could not link right now. Try again in a moment.');
+    return res.status(503).type('text/plain').send('Could not link right now. Try again in a moment.');
   }
 
   // Single use: a code is gone once it linked a key
@@ -279,11 +279,19 @@ function moveProgressIfFirst(child, steamId) {
 /*
   Every unlink - by the key's signature or by the Steam account on /profile: the progress the key brought goes back to it
   (see moveProgressBack), and a key does not get out of its Steam account's ban by leaving it.
+  A key let go at the limit (progressBack false) leaves its progress where it is: it is not played on anymore.
 */
-function unlinkKey(child, steamId) {
+function unlinkKey(child, steamId, { progressBack = true } = {}) {
   db.transaction(() => {
     stmts.unlink.run(child, steamId);
-    moveProgressBack(child, steamId);
+
+    if (progressBack) {
+      moveProgressBack(child, steamId);
+    }
+    else {
+      db.prepare('DELETE FROM progress_moves WHERE child_id = ?').run(child);
+    }
+
     db.prepare('DELETE FROM key_links WHERE child_id = ?').run(child);
 
     const parentBan = stmts.banned.get(steamId);
@@ -442,6 +450,26 @@ function unlinkBySignature(params, ip, res) {
     return res.status(401).send('This unlink was already used. Try again.');
   }
 
+  const parent = (() => {
+    try {
+      const found = stmts.parentOf.get(child);
+
+      if (found) {
+        unlinkKey(child, found.parent_id);
+      }
+
+      return found || null;
+    } catch (err) {
+      console.error(`[link_key] Could not unlink ${child}:`, err && err.message ? err.message : err);
+      return undefined;
+    }
+  })();
+
+  // Taken only once it unlinked - a retry of a failed one is not "already used"
+  if (parent === undefined) {
+    return res.status(503).type('text/plain').send('Could not unlink right now. Try again in a moment.');
+  }
+
   // Bounded: the oldest entries go first (the 10 minute window still bounds a replay of those)
   if (lastUnlinkTimestamp.size > 100000) {
     lastUnlinkTimestamp.delete(lastUnlinkTimestamp.keys().next().value);
@@ -449,13 +477,9 @@ function unlinkBySignature(params, ip, res) {
 
   lastUnlinkTimestamp.set(child, timestamp);
 
-  const parent = stmts.parentOf.get(child);
-
   if (!parent) {
     return res.json({ unlinked: child, from: null });
   }
-
-  unlinkKey(child, parent.parent_id);
 
   console.log(`[link_key] Unlinked ${child} from ${parent.parent_id} by its own signature.`);
 
@@ -480,8 +504,23 @@ function linkBySteamTicket(child, steamId, device) {
 
     const parent = stmts.parentOf.get(child);
 
+    // Already this account's: only when and where - a key linked in the browser stays one (never let go at the limit)
     if (parent && parent.parent_id === steamId) {
-      stmts.setLinkMeta.run(child, 'steam', device, now);
+      if (linkMetaOf(child)) {
+        touchKey(child, device);
+      }
+      else {
+        stmts.setLinkMeta.run(child, 'steam', device, now);
+      }
+
+      return;
+    }
+
+    // At the limit, which key makes room - decided before the key leaves its old account, so it never ends up nowhere
+    const oldest = linkedKeys(steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT ? stmts.oldestSteamBuildKey.get(steamId) : null;
+
+    if (linkedKeys(steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT && !oldest) {
+      // Only keys linked in the browser - the Steam build plays on without linking (by its ticket)
       return;
     }
 
@@ -489,15 +528,8 @@ function linkBySteamTicket(child, steamId, device) {
       unlinkKey(child, parent.parent_id);
     }
 
-    if (linkedKeys(steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT) {
-      const oldest = stmts.oldestSteamBuildKey.get(steamId);
-
-      if (!oldest) {
-        // Only keys linked in the browser - the Steam build plays on without linking (by its ticket)
-        return;
-      }
-
-      unlinkKey(oldest.child_id, steamId);
+    if (oldest) {
+      unlinkKey(oldest.child_id, steamId, { progressBack: false });
       console.log(`[link_key] Let go of ${oldest.child_id} (the Steam build key of ${steamId} unused for the longest).`);
     }
 

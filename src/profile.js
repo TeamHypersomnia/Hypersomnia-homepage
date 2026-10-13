@@ -49,7 +49,12 @@ router.post('/unlink_key', (req, res) => {
   const child = String(req.body.key || '');
 
   if (/^key_[0-9a-f]{64}$/.test(child)) {
-    linkKey.unlink(child, `steam_${req.user.id}`);
+    try {
+      linkKey.unlink(child, `steam_${req.user.id}`);
+    } catch (err) {
+      console.error(`[profile] Could not unlink ${child}:`, err && err.message ? err.message : err);
+      return res.status(503).type('text/plain').send('Could not unlink right now. Try again in a moment.');
+    }
   }
 
   res.redirect('/profile');
