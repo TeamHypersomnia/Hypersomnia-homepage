@@ -1751,5 +1751,4 @@ footer > a:hover {
 /* A key account's public key on its own page - the short form, on one line */
 .account-key {
   white-space: nowrap;
-  font-family: monospace;
 }
