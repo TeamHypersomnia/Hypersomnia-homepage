@@ -1682,8 +1682,25 @@ footer > a:hover {
 
 /* /link_key/start: which Steam account the game gets linked to */
 .link-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+  padding: 2em 10px;
   text-align: center;
   font-size: 1.2em;
+}
+
+.link-confirm p {
+  margin: 0.2em 0;
+}
+
+.link-confirm-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1em;
+  margin-top: 0.8em;
 }
 
 .link-confirm-name {
@@ -1691,6 +1708,5 @@ footer > a:hover {
 }
 
 .link-confirm form {
-  display: inline-block;
-  margin: 0.5em;
+  margin: 0;
 }

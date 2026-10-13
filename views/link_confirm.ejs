@@ -1,9 +1,10 @@
 <%- include('overall_header'); %>
 
 <%# the player confirms the Steam account the game gets linked to - on a shared browser the session may be someone else's %>
-<div class="box link-confirm">
+<div class="link-confirm">
   <p>Link the game to this Steam account?</p>
   <p class="link-confirm-name"><i class="fa-brands fa-steam"></i> <a href="https://steamcommunity.com/profiles/<%= steamId %>" target="_blank" rel="noopener"><%= steamName %></a></p>
+  <div class="link-confirm-buttons">
   <form method="post" action="/link_key/start">
     <input type="hidden" name="state" value="<%= state %>">
     <input type="hidden" name="port" value="<%= port %>">
@@ -14,6 +15,7 @@
     <input type="hidden" name="port" value="<%= port %>">
     <div class="btn"><button type="submit"><span>Use a different Steam account</span></button></div>
   </form>
+  </div>
 </div>
 
 <%- include('overall_footer'); %>
