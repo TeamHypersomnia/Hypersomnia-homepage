@@ -11,11 +11,11 @@
       </thead>
       <tbody>
         <tr>
-          <td width="50%">External profile</td>
+          <td width="50%"><%= userid.startsWith('key_') ? 'Public key' : 'External profile' %></td>
           <td width="50%">
             <% if (userid.startsWith('key_')) { %>
-              <%# A key has no profile elsewhere - its public key, shown only here %>
-              <i class="<%= platformIconClass %>"></i><span class="account-key"><%= fullAccountId(userid) %></span><button type="button" class="copy-btn" data-copy="<%= fullAccountId(userid) %>" title="Copy the public key" aria-label="Copy the public key"><i class="fa-regular fa-copy"></i></button>
+              <%# A key has no profile elsewhere - its public key, shown only here: short, copied in full %>
+              <i class="<%= platformIconClass %>"></i><span class="account-key" title="<%= fullAccountId(userid) %>"><%= accountLabel(userid) %></span><button type="button" class="copy-btn" data-copy="<%= fullAccountId(userid) %>" title="Copy the public key" aria-label="Copy the public key"><i class="fa-regular fa-copy"></i></button>
             <% } else if (!profileUrl) { %>
               <i class="<%= platformIconClass %>"></i><%= platformName %> (no external profile)
             <% } else { %>

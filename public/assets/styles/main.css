@@ -1748,7 +1748,8 @@ footer > a:hover {
   }
 }
 
-/* A key account's public key on its own page - long, so it may break anywhere */
+/* A key account's public key on its own page - the short form, on one line */
 .account-key {
-  word-break: break-all;
+  white-space: nowrap;
+  font-family: monospace;
 }
