@@ -269,6 +269,23 @@ function moveProgressIfFirst(child, steamId) {
 }
 
 /*
+  Every unlink - by the key's signature or by the Steam account on /profile: the progress the key brought goes back to it
+  (see moveProgressBack), and a key does not get out of its Steam account's ban by leaving it.
+*/
+function unlinkKey(child, steamId) {
+  db.transaction(() => {
+    stmts.unlink.run(child, steamId);
+    moveProgressBack(child, steamId);
+
+    const parentBan = stmts.banned.get(steamId);
+
+    if (parentBan) {
+      stmts.ban.run(child, parentBan.reason || 'Banned.');
+    }
+  })();
+}
+
+/*
   The key unlinking itself (e.g. linked with a code that was not the player's) takes back the progress it brought -
   as long as the Steam account has played no match since, so nobody's own matches are taken.
 */
@@ -305,32 +322,79 @@ router.get('/link', (req, res) => link(req.query, clientIp(req), res));
   - the web build: to LINK_RETURN_URL, which hands it to the game's tab.
   A link to this page someone else made leads to their state - the game of whoever opens it does not take it.
 */
-router.get('/start', (req, res) => {
-  const { state, port } = req.query;
+function startParams(query) {
+  const { state, port } = query || {};
 
   if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)) {
-    return res.status(400).send('Invalid request.');
+    return null;
   }
 
-  const loopbackPort = port === undefined ? null : Number(port);
+  const loopbackPort = port === undefined || port === '' ? null : Number(port);
 
   if (loopbackPort !== null && !(Number.isInteger(loopbackPort) && loopbackPort >= 1024 && loopbackPort <= 65535)) {
+    return null;
+  }
+
+  return { state, loopbackPort, path: loopbackPort !== null ? `/link_key/start?state=${state}&port=${loopbackPort}` : `/link_key/start?state=${state}` };
+}
+
+/*
+  Signed in already, the player confirms which Steam account to link to: on a shared browser the session may be
+  someone else's. The code is made only by this page's POST (a cross-site form does not carry the session cookie).
+*/
+router.get('/start', (req, res) => {
+  const params = startParams(req.query);
+
+  if (!params) {
     return res.status(400).send('Invalid request.');
   }
 
   if (!req.user) {
-    req.session.after_login = loopbackPort !== null ? `/link_key/start?state=${state}&port=${loopbackPort}` : `/link_key/start?state=${state}`;
+    req.session.after_login = params.path;
     return res.redirect('/auth/steam');
+  }
+
+  res.set('Cache-Control', 'no-store');
+
+  res.render('link_confirm', {
+    page: 'Link the game to Steam',
+    user: req.user,
+    steamName: req.user.displayName,
+    steamId: req.user.id,
+    state: params.state,
+    port: params.loopbackPort === null ? '' : String(params.loopbackPort)
+  });
+});
+
+router.post('/start', (req, res) => {
+  const params = startParams(req.body);
+
+  if (!params || !req.user) {
+    return res.status(400).send('Invalid request. Start again from the game: Settings - Account - Link with Steam.');
   }
 
   const code = createCode(`steam_${req.user.id}`, req.user.displayName);
   res.set('Cache-Control', 'no-store');
 
-  if (loopbackPort !== null) {
-    return res.redirect(`http://127.0.0.1:${loopbackPort}/linked?code=${code}&state=${state}`);
+  if (params.loopbackPort !== null) {
+    return res.redirect(303, `http://127.0.0.1:${params.loopbackPort}/linked?code=${code}&state=${params.state}`);
   }
 
-  res.redirect(`${config.LINK_RETURN_URL}#code=${code}&state=${state}`);
+  res.redirect(303, `${config.LINK_RETURN_URL}#code=${code}&state=${params.state}`);
+});
+
+// "Use a different Steam account": signed out, then the Steam sign-in, back to the same question
+router.post('/start/switch', (req, res) => {
+  const params = startParams(req.body);
+
+  if (!params) {
+    return res.status(400).send('Invalid request.');
+  }
+
+  req.logout(() => {
+    req.session.after_login = params.path;
+    res.redirect(303, '/auth/steam');
+  });
 });
 
 /*
@@ -369,6 +433,11 @@ function unlinkBySignature(params, ip, res) {
     return res.status(401).send('This unlink was already used. Try again.');
   }
 
+  // Bounded: the oldest entries go first (the 10 minute window still bounds a replay of those)
+  if (lastUnlinkTimestamp.size > 100000) {
+    lastUnlinkTimestamp.delete(lastUnlinkTimestamp.keys().next().value);
+  }
+
   lastUnlinkTimestamp.set(child, timestamp);
 
   const parent = stmts.parentOf.get(child);
@@ -377,17 +446,7 @@ function unlinkBySignature(params, ip, res) {
     return res.json({ unlinked: child, from: null });
   }
 
-  db.transaction(() => {
-    stmts.unlink.run(child, parent.parent_id);
-    moveProgressBack(child, parent.parent_id);
-
-    // Unlinking does not get a key out of its Steam account's ban
-    const parentBan = stmts.banned.get(parent.parent_id);
-
-    if (parentBan) {
-      stmts.ban.run(child, parentBan.reason || 'Banned.');
-    }
-  })();
+  unlinkKey(child, parent.parent_id);
 
   console.log(`[link_key] Unlinked ${child} from ${parent.parent_id} by its own signature.`);
 
@@ -397,4 +456,4 @@ function unlinkBySignature(params, ip, res) {
 router.post('/unlink', (req, res) => unlinkBySignature(req.body, clientIp(req), res));
 router.get('/unlink', (req, res) => unlinkBySignature(req.query, clientIp(req), res));
 
-module.exports = { router, createCode, liveCode, linkedKeys, verifySignature, unlink: (child, steamId) => stmts.unlink.run(child, steamId) };
+module.exports = { router, createCode, liveCode, linkedKeys, verifySignature, unlink: unlinkKey };

@@ -163,6 +163,31 @@ router.post('/', apiKeyAuth, (req, res) => {
     lose_players = lose_players.map(id => mapping.get(id));
     player_infos = mapPlayerInfos(player_infos, mapping);
 
+    /*
+      Banned accounts are not rated - also a key that played on its own (e.g. after "Play without signing in")
+      while it or its Steam account is banned. The others' match still counts.
+    */
+    const stmt_banned = db.prepare('SELECT 1 FROM broker_bans WHERE account = ?');
+    const stmt_parent = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?');
+
+    const isBanned = id => {
+      if (stmt_banned.get(id)) return true;
+      const parent = stmt_parent.get(id);
+      return !!(parent && stmt_banned.get(parent.parent_id));
+    };
+
+    const banned = win_players.concat(lose_players).filter(isBanned);
+
+    if (banned.length > 0) {
+      console.log('[report_match] Not rating banned accounts:', JSON.stringify(banned));
+      win_players = win_players.filter(id => !banned.includes(id));
+      lose_players = lose_players.filter(id => !banned.includes(id));
+
+      if (win_players.length === 0 || lose_players.length === 0) {
+        return res.json({ message: 'Skipping match report. A team has only banned players' });
+      }
+    }
+
     db.transaction(() => {
       const is_happy_hours = isWeekendEveningTime(match_start_date, req.server_id);
       const event_match_multiplier = is_happy_hours ? 2 : 1;

@@ -1679,3 +1679,18 @@ footer > a:hover {
 .account-key {
   white-space: nowrap;
 }
+
+/* /link_key/start: which Steam account the game gets linked to */
+.link-confirm {
+  text-align: center;
+  font-size: 1.2em;
+}
+
+.link-confirm-name {
+  font-size: 1.4em;
+}
+
+.link-confirm form {
+  display: inline-block;
+  margin: 0.5em;
+}
