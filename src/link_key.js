@@ -76,10 +76,10 @@ function liveCode(code) {
 
 // Guessing codes with one's own key would link it to someone else's Steam account
 // Guessing an 8 letter code at 10 a minute is hopeless; no total - 60 addresses could use it up for everyone.
-// A whole /24 or /48 has a limit of its own.
+// A whole /24 or /48 has a limit of its own - counting only what an address was allowed (one host must not lock out its CGNAT).
 const allowAttemptPerAddress = makeLimiter({ perAddress: 10 });
 const allowAttemptPerNetwork = makeLimiter({ perAddress: 100, keyOf: wideLimitKey });
-const allowAttempt = ip => allowAttemptPerNetwork(ip) && allowAttemptPerAddress(ip);
+const allowAttempt = ip => allowAttemptPerAddress(ip) && allowAttemptPerNetwork(ip);
 
 // A raw 32-byte Ed25519 public key wrapped as SPKI DER, the form node:crypto takes
 const ED25519_SPKI_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
