@@ -150,14 +150,9 @@ function officialServerAuth(onlyServerIds = null) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    let valid = false;
-
-    try {
-      const message = Buffer.concat([Buffer.from('hs-report-v1'), req.rawBody]);
-      valid = crypto.verify(null, message, identityCert.publicKeyFromRaw(Buffer.from(keyHex, 'hex')), Buffer.from(signatureHex, 'hex'));
-    } catch {
-      valid = false;
-    }
+    // The same check as linking's - weak (small order) keys refused too
+    const { verifySignature } = require('./link_key');
+    const valid = verifySignature(keyHex, Buffer.concat([Buffer.from('hs-report-v1'), req.rawBody]), signatureHex);
 
     if (!valid) return res.status(401).json({ error: 'Unauthorized' });
     if (onlyServerIds && !onlyServerIds.includes(serverId)) return res.status(401).json({ error: 'Unauthorized' });

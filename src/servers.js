@@ -85,7 +85,7 @@ router.get('/:address', async (req, res) => {
     const server = servers.find(s => s.site_displayed_address === req.params.address);
     
     if (!server) {
-      return res.status(404).redirect('/servers');
+      return res.redirect('/servers');
     }
     
     res.render('server', {
@@ -99,7 +99,7 @@ router.get('/:address', async (req, res) => {
     });
   } catch (err) {
     console.error('Error fetching server:', err.message);
-    res.status(500).redirect('/servers');
+    res.redirect('/servers');
   }
 });
 

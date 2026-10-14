@@ -9,8 +9,8 @@ const config = require('./config');
   Linking an identity key (the account of a player without Steam, "key_<public key in hex>")
   to a Steam account, so that the progress from ranked matches played with the key counts towards the Steam account.
 
-  1. The game makes a random state, signs "hypersomnia-link-v1 <state>" with the key and opens
-     /link_key/start?state&key&sig (and the device it runs on, shown on the page).
+  1. The game makes a random state, signs "hypersomnia-link-v1 <state> <unix time>" with the key and opens
+     /link_key/start?state&t&key&sig (and the device it runs on, shown on the page) - good for LINK_URL_LIFETIME_SECS.
   2. Signed in through Steam, the player confirms the device and the Steam account there - the key is linked at once.
   3. The game, asking /link_key/result with its state, learns how it went.
 
@@ -33,7 +33,7 @@ router.use(['/unlink', '/result'], (req, res, next) => {
   next();
 });
 
-const RESULT_LIFETIME_MS = 5 * 60 * 1000;
+const RESULT_LIFETIME_MS = 15 * 60 * 1000;
 const MAX_KEYS_PER_STEAM_ACCOUNT = 32;
 const MAX_LIVE_RESULTS_PER_ACCOUNT = 4;
 
@@ -186,10 +186,10 @@ function moveProgressIfFirst(child, steamId) {
     const own = db.prepare(`SELECT * FROM ${table} WHERE account_id = ?`).get(child);
     if (!own) continue;
 
-    const steam = db.prepare(`SELECT matches_won, matches_lost FROM ${table} WHERE account_id = ?`).get(steamId);
-    if (steam && (steam.matches_won + steam.matches_lost) > 0) continue;
+    // Any row of the Steam account is its progress - an FFA match (0:0) or a short one counts no wins nor losses
+    const steam = db.prepare(`SELECT 1 FROM ${table} WHERE account_id = ?`).get(steamId);
+    if (steam) continue;
 
-    db.prepare(`DELETE FROM ${table} WHERE account_id = ?`).run(steamId);
     db.prepare(`UPDATE ${table} SET account_id = ? WHERE account_id = ?`).run(steamId, child);
     console.log(`[link_key] Moved the ${table} progress of ${child} to ${steamId}.`);
   }
@@ -224,9 +224,10 @@ function unlinkKey(child, steamId) {
 */
 // The game's state, its public key, its signature of the state and the device it runs on (shown on the confirm page)
 function startParams(query) {
-  const { state, key, sig } = query || {};
+  const { state, t, key, sig } = query || {};
 
   if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)
+    || typeof t !== 'string' || !/^[0-9]{1,12}$/.test(t)
     || typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key)
     || typeof sig !== 'string' || !/^[0-9a-f]{128}$/.test(sig)
   ) {
@@ -236,15 +237,28 @@ function startParams(query) {
   const { device, os } = deviceOf(query);
   const deviceQuery = (device ? `&device=${encodeURIComponent(device)}` : '') + (os ? `&os=${os}` : '');
 
-  return { state, key, sig, device, os, path: `/link_key/start?state=${state}&key=${key}&sig=${sig}${deviceQuery}` };
+  return { state, t, key, sig, device, os, path: `/link_key/start?state=${state}&t=${t}&key=${key}&sig=${sig}${deviceQuery}` };
 }
 
 function signedByKey(params) {
-  return verifySignature(params.key, `hypersomnia-link-v1 ${params.state}`, params.sig);
+  return verifySignature(params.key, `hypersomnia-link-v1 ${params.state} ${params.t}`, params.sig);
 }
 
 /*
-  How each state's link went, waiting for the game to fetch it (/link_key/result) - once, within RESULT_LIFETIME_MS.
+  A link page is good for a while only - one left in a browser's history (a shared computer, a stream) links nothing later.
+  Some slack for a clock ahead.
+*/
+const LINK_URL_LIFETIME_SECS = 15 * 60;
+
+function linkUrlExpired(params) {
+  const age = Math.floor(Date.now() / 1000) - Number(params.t);
+  return age > LINK_URL_LIFETIME_SECS || age < -10 * 60;
+}
+
+const expiredLink = 'This link is too old (or the clock of your computer is off). Start again in the game: Settings - Account - Link with Steam.';
+
+/*
+  How each state's link went, waiting for the game to fetch it (/link_key/result) - within RESULT_LIFETIME_MS.
   The state is the game's own random secret: nobody else can ask. At most MAX_LIVE_RESULTS_PER_ACCOUNT per Steam account.
 */
 const resultsForStates = new Map();
@@ -284,6 +298,10 @@ router.get('/start', (req, res) => {
     return renderResult(res, 400, false, 'Error', invalidLink);
   }
 
+  if (linkUrlExpired(params)) {
+    return renderResult(res, 400, false, 'Error', expiredLink);
+  }
+
   if (!req.user) {
     req.session.after_login = params.path;
     return res.redirect('/auth/steam');
@@ -299,6 +317,7 @@ router.get('/start', (req, res) => {
     state: params.state,
     key: params.key,
     sig: params.sig,
+    t: params.t,
     device: params.device,
     os: params.os
   });
@@ -317,6 +336,10 @@ router.post('/start', (req, res) => {
 
   if (!params || !req.user || !signedByKey(params)) {
     return renderResult(res, 400, false, 'Error', invalidLink);
+  }
+
+  if (linkUrlExpired(params)) {
+    return renderResult(res, 400, false, 'Error', expiredLink);
   }
 
   // A state links once - the same page sent again does nothing more
@@ -338,7 +361,7 @@ router.post('/start', (req, res) => {
 
 /*
   The game, while its "Continue in your browser" waits, asks every second how the link for its state went:
-  200 with {"linked": "steam_..."} or {"error", "conflict"} once, 204 until then.
+  200 with {"linked": "steam_..."} or {"error", "conflict"} (the same until it expires), 204 until then.
   Its own limit - a whole linking is up to 300 asks in 5 minutes.
 */
 const allowResult = makeLimiter({ perAddress: 120 });
@@ -358,12 +381,11 @@ router.get('/result', (req, res) => {
 
   const entry = resultsForStates.get(state);
 
-  if (!entry || entry.expires <= Date.now() || entry.taken) {
+  if (!entry || entry.expires <= Date.now()) {
     return res.status(204).end();
   }
 
-  // Taken once, but kept until it expires - the state stays used
-  entry.taken = true;
+  // The same answer until it expires - one lost on the way is asked for again
   res.json(entry.result);
 });
 

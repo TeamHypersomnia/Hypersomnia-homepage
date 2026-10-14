@@ -84,7 +84,10 @@ router.get('/:user', function(req, res) {
     userFFA.rankName = rankFFA.rankName;
     
     const stmt = db.prepare(`SELECT * FROM matches WHERE (winners LIKE ? OR losers LIKE ?) ORDER BY match_id DESC`);
-    const matches = stmt.all(`%${userid}%`, `%${userid}%`).map(match => {
+    // LIKE also matches a nickname that holds the id (or an id that holds this one) - those matches are not this player's
+    const matches = stmt.all(`%${userid}%`, `%${userid}%`).filter(match => {
+      return JSON.parse(match.winners).some(w => w.id === userid) || JSON.parse(match.losers).some(l => l.id === userid);
+    }).map(match => {
       const winnersArray = JSON.parse(match.winners);
       const losersArray = JSON.parse(match.losers);
       const winner = winnersArray.find(w => w.id === userid);
