@@ -95,14 +95,6 @@ class DatabaseManager {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS progress_moves (
-        child_id TEXT NOT NULL,
-        parent_id TEXT NOT NULL,
-        table_name TEXT NOT NULL,
-        matches_after_move INTEGER NOT NULL,
-        PRIMARY KEY (child_id, table_name)
-      );
-
       -- About each linked key, for its owner's /profile only: how it was linked (browser: the game's Link with Steam,
       -- steam: the Steam build by its ticket), the device the game last named, when it last got a cert
       CREATE TABLE IF NOT EXISTS key_links (

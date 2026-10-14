@@ -295,7 +295,7 @@ function link(params, ip, res) {
 
 /*
   Progress on linking: the key's ranked progress in a mode moves to the Steam account only if that account has no matches
-  in that mode yet - otherwise it stays with the key, to be seen on its profile. Never merged.
+  in that mode yet - otherwise it stays with the key, to be seen on its profile. Never merged, and never moved back on an unlink.
 */
 function moveProgressIfFirst(child, steamId) {
   for (const table of ['mmr_team', 'mmr_ffa']) {
@@ -307,30 +307,20 @@ function moveProgressIfFirst(child, steamId) {
 
     db.prepare(`DELETE FROM ${table} WHERE account_id = ?`).run(steamId);
     db.prepare(`UPDATE ${table} SET account_id = ? WHERE account_id = ?`).run(steamId, child);
-    db.prepare('INSERT OR REPLACE INTO progress_moves (child_id, parent_id, table_name, matches_after_move) VALUES (?, ?, ?, ?)')
-      .run(child, steamId, table, own.matches_won + own.matches_lost);
     console.log(`[link_key] Moved the ${table} progress of ${child} to ${steamId}.`);
   }
 }
 
 /*
-  Every unlink - by the key's signature or by the Steam account on /profile: the progress the key brought goes back to it
-  (see moveProgressBack), and a key does not get out of its Steam account's ban by leaving it.
-  A key let go at the limit (progressBack false) leaves its progress where it is: it is not played on anymore.
+  Every unlink - by the key's signature or by the Steam account on /profile: only the link goes - the progress stays where it
+  is - and a key does not get out of its Steam account's ban by leaving it.
 */
-function unlinkKey(child, steamId, { progressBack = true } = {}) {
+function unlinkKey(child, steamId) {
   db.transaction(() => {
     // Not this account's key (e.g. anyone's key posted to /profile/unlink_key): nothing else may be touched - not its
-    // progress moves, not its link, and above all no ban of this account carried over to it
+    // link, and above all no ban of this account carried over to it
     if (stmts.unlink.run(child, steamId).changes === 0) {
       return;
-    }
-
-    if (progressBack) {
-      moveProgressBack(child, steamId);
-    }
-    else {
-      db.prepare('DELETE FROM progress_moves WHERE child_id = ? AND parent_id = ?').run(child, steamId);
     }
 
     db.prepare('DELETE FROM key_links WHERE child_id = ?').run(child);
@@ -341,30 +331,6 @@ function unlinkKey(child, steamId, { progressBack = true } = {}) {
       stmts.ban.run(child, parentBan.reason || 'Banned.');
     }
   })();
-}
-
-/*
-  The key unlinking itself (e.g. linked with a code that was not the player's) takes back the progress it brought -
-  as long as the Steam account has played no match since, so nobody's own matches are taken.
-*/
-function moveProgressBack(child, steamId) {
-  const moves = db.prepare('SELECT table_name, matches_after_move FROM progress_moves WHERE child_id = ? AND parent_id = ?').all(child, steamId);
-
-  for (const move of moves) {
-    const table = move.table_name;
-
-    if (table !== 'mmr_team' && table !== 'mmr_ffa') continue;
-
-    const steam = db.prepare(`SELECT matches_won, matches_lost FROM ${table} WHERE account_id = ?`).get(steamId);
-    const own = db.prepare(`SELECT 1 FROM ${table} WHERE account_id = ?`).get(child);
-
-    if (steam && !own && steam.matches_won + steam.matches_lost === move.matches_after_move) {
-      db.prepare(`UPDATE ${table} SET account_id = ? WHERE account_id = ?`).run(child, steamId);
-      console.log(`[link_key] Moved the ${table} progress of ${child} back from ${steamId}.`);
-    }
-  }
-
-  db.prepare('DELETE FROM progress_moves WHERE child_id = ? AND parent_id = ?').run(child, steamId);
 }
 
 // The web build can only make GET requests
@@ -621,7 +587,7 @@ function linkBySteamTicket(child, steamId, device, os = null) {
     }
 
     if (oldest) {
-      unlinkKey(oldest.child_id, steamId, { progressBack: false });
+      unlinkKey(oldest.child_id, steamId);
       console.log(`[link_key] Let go of ${oldest.child_id} (the Steam build key of ${steamId} unused for the longest).`);
     }
 
