@@ -23,8 +23,9 @@ const config = require('./config');
 
 const router = express.Router();
 
-// The web build of the game runs on another origin. These need no cookies - the key's signature is the proof.
-router.use(['/info', '/link', '/unlink'], (req, res, next) => {
+// The web build of the game runs on another origin. These need no cookies - the key's signature (for /result, the game's
+// secret state) is the proof.
+router.use(['/info', '/link', '/unlink', '/result'], (req, res, next) => {
   if (req.method === 'GET') {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Cache-Control', 'no-store');
