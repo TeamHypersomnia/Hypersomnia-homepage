@@ -258,6 +258,28 @@ const expiredLink = 'This link is too old (or the clock of your computer is off)
 */
 const resultsForStates = new Map();
 
+/*
+  A state is used once - remembered until its link can not be valid anymore (t + the lifetime, the clock slack), apart
+  from the results above (which an account's newer ones may push out): a link page used, then sent again later
+  (from a browser's history), links nothing. Lost on a restart of the site - the window is the link's lifetime.
+*/
+const usedStates = new Map();
+
+function markUsed(state, t) {
+  const now = Date.now();
+
+  for (const [s, until] of usedStates) {
+    if (until <= now) usedStates.delete(s);
+  }
+
+  usedStates.set(state, (Number(t) + LINK_URL_LIFETIME_SECS + 10 * 60) * 1000);
+}
+
+function wasUsed(state) {
+  const until = usedStates.get(state);
+  return (until !== undefined && until > Date.now()) || resultsForStates.has(state);
+}
+
 function keepResult(state, steamId, result) {
   const now = Date.now();
 
@@ -293,7 +315,9 @@ router.get('/start', (req, res) => {
     return renderResult(res, 400, false, 'Error', invalidLink);
   }
 
+  // Too old: the game is told too (it waits for /result) - the state is its secret, signed by its key
   if (linkUrlExpired(params)) {
+    keepResult(params.state, `key_${params.key}`, { error: expiredLink });
     return renderResult(res, 400, false, 'Error', expiredLink);
   }
 
@@ -334,17 +358,19 @@ router.post('/start', (req, res) => {
   }
 
   if (linkUrlExpired(params)) {
+    keepResult(params.state, `key_${params.key}`, { error: expiredLink });
     return renderResult(res, 400, false, 'Error', expiredLink);
   }
 
   // A state links once - the same page sent again does nothing more
-  if (resultsForStates.has(params.state)) {
+  if (wasUsed(params.state)) {
     return renderResult(res, 409, false, 'Error', 'This link was used already. Start again in the game: Settings - Account - Link with Steam.');
   }
 
   const steamId = `steam_${req.user.id}`;
   const result = linkKey(params.key, steamId, params.device, params.os);
 
+  markUsed(params.state, params.t);
   keepResult(params.state, steamId, result);
 
   if (result.error) {
@@ -404,16 +430,25 @@ router.post('/start/switch', (req, res) => {
   /link_key/result. Only that account can: a key linked to someone else's account is not theirs to unlink.
 */
 function unlinkParams(query) {
-  const { state, key } = query || {};
+  const { state, t, key, sig } = query || {};
 
-  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state) || typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key)) {
+  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)
+    || typeof t !== 'string' || !/^[0-9]{1,12}$/.test(t)
+    || typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key)
+    || typeof sig !== 'string' || !/^[0-9a-f]{128}$/.test(sig)
+  ) {
     return null;
   }
 
   const { device, os } = deviceOf(query);
   const deviceQuery = (device ? `&device=${encodeURIComponent(device)}` : '') + (os ? `&os=${os}` : '');
 
-  return { state, key, device, os, path: `/link_key/unlink?state=${state}&key=${key}${deviceQuery}` };
+  return { state, t, key, sig, device, os, path: `/link_key/unlink?state=${state}&t=${t}&key=${key}&sig=${sig}${deviceQuery}` };
+}
+
+// Only the game holding the key opens an unlink page for it - a link to it made by someone else unlinks nothing
+function unlinkSignedByKey(params) {
+  return verifySignature(params.key, `hypersomnia-unlink-v1 ${params.state} ${params.t}`, params.sig);
 }
 
 const invalidUnlink = 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.';
@@ -436,8 +471,13 @@ function notThisAccountsKey(key, steamId) {
 router.get('/unlink', (req, res) => {
   const params = unlinkParams(req.query);
 
-  if (!params) {
+  if (!params || !unlinkSignedByKey(params)) {
     return renderResult(res, 400, false, 'Error', invalidUnlink);
+  }
+
+  if (linkUrlExpired(params)) {
+    keepResult(params.state, `key_${params.key}`, { error: expiredLink });
+    return renderResult(res, 400, false, 'Error', expiredLink);
   }
 
   if (!req.user) {
@@ -447,9 +487,12 @@ router.get('/unlink', (req, res) => {
 
   res.set('Cache-Control', 'no-store');
 
-  const refusal = notThisAccountsKey(params.key, `steam_${req.user.id}`);
+  const steamId = `steam_${req.user.id}`;
+  const refusal = notThisAccountsKey(params.key, steamId);
 
+  // The game is told too - it waits for /result
   if (refusal) {
+    keepResult(params.state, steamId, { error: refusal });
     return renderResult(res, 409, false, 'Error', refusal);
   }
 
@@ -461,8 +504,8 @@ router.get('/unlink', (req, res) => {
     unlink: true,
     state: params.state,
     key: params.key,
-    sig: '',
-    t: '',
+    sig: params.sig,
+    t: params.t,
     device: params.device,
     os: params.os
   });
@@ -479,13 +522,20 @@ router.post('/unlink', (req, res) => {
     return renderResult(res, 429, false, 'Error', 'Too many attempts. Try again in a minute.');
   }
 
-  if (!params || !req.user) {
+  if (!params || !req.user || !unlinkSignedByKey(params)) {
     return renderResult(res, 400, false, 'Error', invalidUnlink);
   }
 
-  if (resultsForStates.has(params.state)) {
+  if (linkUrlExpired(params)) {
+    keepResult(params.state, `key_${params.key}`, { error: expiredLink });
+    return renderResult(res, 400, false, 'Error', expiredLink);
+  }
+
+  if (wasUsed(params.state)) {
     return renderResult(res, 409, false, 'Error', 'This link was used already. Start again in the game: Settings - Account - Link with Steam.');
   }
+
+  markUsed(params.state, params.t);
 
   const steamId = `steam_${req.user.id}`;
   const refusal = notThisAccountsKey(params.key, steamId);

@@ -130,7 +130,8 @@ Dodaj/usuń serwery tutaj. Obecnie:
 ### Oficjalne serwery (`official_servers.d`)
 
 Każdy oficjalny serwer to jeden plik w `/var/www/app/private/official_servers.d/`:
-nazwa pliku = id serwera (`de`, `pl`, `us-central`…), treść = jego klucz publiczny (64 znaki hex).
+nazwa pliku = id serwera (`de`, `pl`, `us-central`…), treść = jego klucz publiczny (64 znaki hex). Kolejne instancje
+tego samego hosta: id z prefiksem hosta i myślnikiem (`de-ranked1`, `pl-casual2`) - strefa czasowa happy hours idzie z prefiksu.
 
 - Dodanie serwera: na dedyku `Hypersomnia --print-server-key` (klucze wyprowadzone z `user/.keys/server.key`, tworzonego przy
   pierwszym starcie), wynik do `official_servers.d/<id>`. Nic tajnego - to klucz publiczny. Przy kilku instancjach

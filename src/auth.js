@@ -42,7 +42,7 @@ module.exports = (passport) => {
       const after = req.session.after_login;
       delete req.session.after_login;
 
-      if (typeof after === 'string' && (after.startsWith('/link_key/start?') || after === '/link')) {
+      if (typeof after === 'string' && (after.startsWith('/link_key/start?') || after.startsWith('/link_key/unlink?') || after === '/link')) {
         return res.redirect(after);
       }
 

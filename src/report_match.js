@@ -41,7 +41,9 @@ function isWeekendEveningTime(isoTimestamp, location_id) {
     "ch": "Europe/Zurich",
     "nl": "Europe/Amsterdam"
   };
-  const timeZone = timeZoneMap[location_id];
+  // Every instance its own id ("de", "de-ranked1", "us-central-2"): the zone of the host's prefix
+  const zoneKey = Object.keys(timeZoneMap).find((k) => location_id === k || (typeof location_id === 'string' && location_id.startsWith(k + '-')));
+  const timeZone = zoneKey ? timeZoneMap[zoneKey] : undefined;
   if (!timeZone) return false;
 
   const dt = new Date(isoTimestamp);
