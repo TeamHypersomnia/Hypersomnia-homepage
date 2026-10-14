@@ -296,8 +296,11 @@ let crazyGamesKeyFailedAt = 0;
 
 // One fetch for all the requests waiting on it; a failure is remembered for 30 s - with CrazyGames down,
 // every /cert would otherwise wait for its own timeout, longer than the game waits
-async function crazyGamesPublicKey() {
-  if (crazyGamesKey && Date.now() - crazyGamesKeyFetchedAt < 60 * 60 * 1000) {
+// fresh: fetched again even if the cached one is younger than an hour (CrazyGames rotated it) - at most once a minute
+async function crazyGamesPublicKey(fresh = false) {
+  const maxAge = fresh ? 60 * 1000 : 60 * 60 * 1000;
+
+  if (crazyGamesKey && Date.now() - crazyGamesKeyFetchedAt < maxAge) {
     return crazyGamesKey;
   }
 
@@ -355,8 +358,12 @@ async function crazyGamesAccount(token) {
     throw { status: 401, message: 'Invalid CrazyGames token.' };
   }
 
-  const publicKey = config.CRAZYGAMES_PUBLIC_KEY || await crazyGamesPublicKey();
-  const valid = crypto.verify('RSA-SHA256', Buffer.from(`${parts[0]}.${parts[1]}`), publicKey, decodeBase64Url(parts[2]));
+  const verifyWith = (publicKey) => crypto.verify('RSA-SHA256', Buffer.from(`${parts[0]}.${parts[1]}`), publicKey, decodeBase64Url(parts[2]));
+
+  // A token that does not verify may be signed with CrazyGames' new key - asked for it once more
+  const valid = config.CRAZYGAMES_PUBLIC_KEY
+    ? verifyWith(config.CRAZYGAMES_PUBLIC_KEY)
+    : verifyWith(await crazyGamesPublicKey()) || verifyWith(await crazyGamesPublicKey(true));
 
   if (!valid) {
     throw { status: 401, message: 'Invalid CrazyGames token.' };
