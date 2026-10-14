@@ -1,18 +1,29 @@
 <%- include('overall_header'); %>
 
-<%# the player confirms the Steam account the game gets linked to - on a shared browser the session may be someone else's %>
+<%# the player confirms the device and the Steam account the game gets linked to - on a shared browser the session may be
+    someone else's, and a link someone sent would carry their device %>
+<% const osIcons = { windows: ['fa-brands fa-windows', 'Windows'], linux: ['fa-brands fa-linux', 'Linux'], mac: ['fa-brands fa-apple', 'Mac'], web: ['fa-solid fa-globe', 'Browser'] }; %>
 <div class="link-confirm">
-  <p>Link the game to this Steam account?</p>
-  <p class="link-confirm-name"><i class="fa-brands fa-steam"></i> <a href="https://steamcommunity.com/profiles/<%= steamId %>" target="_blank" rel="noopener"><%= steamName %></a></p>
+  <p>Link this device to your Steam account?</p>
+  <p class="link-confirm-name"><% if (osIcons[os]) { %><i class="<%= osIcons[os][0] %> fa-fw" title="<%= osIcons[os][1] %>"></i> <% } %><%= device || (osIcons[os] ? osIcons[os][1] : 'Unknown device') %> <span style="opacity: 0.6;">(key 0x<%= key.slice(0, 8) %>...)</span></p>
+  <p class="link-confirm-name"><i class="fa-brands fa-steam fa-fw"></i> <a href="https://steamcommunity.com/profiles/<%= steamId %>" target="_blank" rel="noopener"><%= steamName %></a></p>
+  <p style="color: #ff4040; font-weight: bold; font-size: 1.25em; max-width: 34em;">
+    <i class="fa-solid fa-triangle-exclamation"></i> Only continue if you clicked Link with Steam in your own game just now.
+    If someone sent you this link, close this page - they would play on your Steam account.
+  </p>
   <div class="link-confirm-buttons">
   <form method="post" action="/link_key/start">
     <input type="hidden" name="state" value="<%= state %>">
-    <input type="hidden" name="port" value="<%= port %>">
-    <div class="btn"><button type="submit"><i class="fa-solid fa-link"></i><span>Link</span></button></div>
+    <input type="hidden" name="key" value="<%= key %>">
+    <input type="hidden" name="device" value="<%= device || '' %>">
+    <input type="hidden" name="os" value="<%= os || '' %>">
+    <div class="btn"><button type="submit"><i class="fa-solid fa-link"></i><span>Yes, this is my device - Link</span></button></div>
   </form>
   <form method="post" action="/link_key/start/switch">
     <input type="hidden" name="state" value="<%= state %>">
-    <input type="hidden" name="port" value="<%= port %>">
+    <input type="hidden" name="key" value="<%= key %>">
+    <input type="hidden" name="device" value="<%= device || '' %>">
+    <input type="hidden" name="os" value="<%= os || '' %>">
     <div class="btn"><button type="submit"><span>Use a different Steam account</span></button></div>
   </form>
   </div>

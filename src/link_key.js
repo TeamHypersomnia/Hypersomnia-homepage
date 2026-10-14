@@ -9,8 +9,8 @@ const config = require('./config');
   Linking an identity key (the account of a player without Steam, "key_<public key in hex>")
   to a Steam account, so that the progress from ranked matches played with the key counts towards the Steam account.
 
-  1. The game opens /link_key/start with its random state; signed in through Steam, the player's browser brings
-     a one-time code back to the game (createCode) - to its listener on 127.0.0.1, or to the web build's tab.
+  1. The game opens /link_key/start with its random state; signed in through Steam, the player confirms, and a one-time
+     code (createCode) waits under that state - the game, asking /link_key/result with its state, takes it.
   2. The game asks GET /link_key/info?code=<code> whose Steam account it is (name and avatar, shown while linking).
   3. The game signs "hypersomnia-link-v1 <code> <steam account>" with the key and sends it to /link_key/link.
   4. A valid signature with a valid code links the key as a child of that Steam account.
@@ -48,7 +48,7 @@ function removeExpired(now) {
   }
 }
 
-function createCode(steamId, steamName) {
+function createCode(steamId, steamName, publicKey) {
   const now = Date.now();
   removeExpired(now);
 
@@ -65,7 +65,8 @@ function createCode(steamId, steamName) {
     code += CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)];
   }
 
-  codes.set(code, { steamId, steamName, expires: now + CODE_LIFETIME_MS });
+  // Good only for the key the confirm page showed - the code of a page someone else opened links no other key
+  codes.set(code, { steamId, steamName, publicKey, expires: now + CODE_LIFETIME_MS });
   return code;
 }
 
@@ -233,6 +234,10 @@ function link(params, ip, res) {
     return res.status(401).send('The link took too long (over 5 minutes). Click Link with Steam... in the game again.');
   }
 
+  if (entry.publicKey !== public_key) {
+    return res.status(401).send('This link was made for another device. Click Link with Steam... in the game again.');
+  }
+
   if (!verifySignature(public_key, `hypersomnia-link-v1 ${normalizedCode} ${entry.steamId}`, signature)) {
     return res.status(401).send('Invalid signature.');
   }
@@ -366,26 +371,40 @@ router.get('/link', (req, res) => link(req.query, clientIp(req), res));
 
 /*
   "Link with Steam": the game opens /link_key/start?state=<its random state> in the browser.
-  Signed in through Steam (here, or on the way), the player gets a code that goes back to the game - only ever to
-  the game itself, with the game's state, which the game checks:
-  - the native game: &port=<port> - to the game's listener on http://127.0.0.1:<port> (loopback redirect, RFC 8252);
-  - the web build: to LINK_RETURN_URL, which hands it to the game's tab.
-  A link to this page someone else made leads to their state - the game of whoever opens it does not take it.
+  Signed in through Steam (here, or on the way) and confirmed, the code waits under the state for the game to fetch it
+  (/link_key/result) - nothing goes back through the browser, so it works the same natively, in a tab or in an iframe.
+  A link to this page someone else made carries their state - their game would get the code, for the Steam account of
+  whoever confirmed: the game asks "Is this your Steam account?" (with its name and avatar) before it links.
 */
+// The game's state, its public key and the device it runs on - shown on the confirm page, the code tied to the key
 function startParams(query) {
-  const { state, port } = query || {};
+  const { state, key } = query || {};
 
-  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)) {
+  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state) || typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key)) {
     return null;
   }
 
-  const loopbackPort = port === undefined || port === '' ? null : Number(port);
+  const { device, os } = deviceOf(query);
+  const deviceQuery = (device ? `&device=${encodeURIComponent(device)}` : '') + (os ? `&os=${os}` : '');
 
-  if (loopbackPort !== null && !(Number.isInteger(loopbackPort) && loopbackPort >= 1024 && loopbackPort <= 65535)) {
-    return null;
+  return { state, key, device, os, path: `/link_key/start?state=${state}&key=${key}${deviceQuery}` };
+}
+
+/*
+  The codes made for the game's states, waiting for the game to fetch them (/link_key/result) - each once, within the
+  code's lifetime. The state is the game's own random secret: nobody else can ask for its code.
+*/
+const codesForStates = new Map();
+
+function removeExpiredForStates(now) {
+  for (const [state, entry] of codesForStates) {
+    if (entry.expires <= now) codesForStates.delete(state);
   }
+}
 
-  return { state, loopbackPort, path: loopbackPort !== null ? `/link_key/start?state=${state}&port=${loopbackPort}` : `/link_key/start?state=${state}` };
+// A page saying what happened: the link went through (the game finishes it), or an error
+function renderResult(res, status, ok, title, message) {
+  res.status(status).render('link_result', { page: title, user: res.req.user, ok, title, message });
 }
 
 /*
@@ -396,7 +415,7 @@ router.get('/start', (req, res) => {
   const params = startParams(req.query);
 
   if (!params) {
-    return res.status(400).send('Invalid request.');
+    return renderResult(res, 400, false, 'Error', 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.');
   }
 
   if (!req.user) {
@@ -412,25 +431,58 @@ router.get('/start', (req, res) => {
     steamName: req.user.displayName,
     steamId: req.user.id,
     state: params.state,
-    port: params.loopbackPort === null ? '' : String(params.loopbackPort)
+    key: params.key,
+    device: params.device,
+    os: params.os
   });
 });
 
 router.post('/start', (req, res) => {
   const params = startParams(req.body);
 
-  if (!params || !req.user) {
-    return res.status(400).send('Invalid request. Start again from the game: Settings - Account - Link with Steam.');
-  }
-
-  const code = createCode(`steam_${req.user.id}`, req.user.displayName);
   res.set('Cache-Control', 'no-store');
 
-  if (params.loopbackPort !== null) {
-    return res.redirect(303, `http://127.0.0.1:${params.loopbackPort}/linked?code=${code}&state=${params.state}`);
+  if (!params || !req.user) {
+    return renderResult(res, 400, false, 'Error', 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.');
   }
 
-  res.redirect(303, `${config.LINK_RETURN_URL}#code=${code}&state=${params.state}`);
+  const now = Date.now();
+  removeExpiredForStates(now);
+
+  // Kept for the game, which asks for it with its state - nothing is handed through the browser
+  const code = createCode(`steam_${req.user.id}`, req.user.displayName, params.key);
+  codesForStates.set(params.state, { code, expires: now + CODE_LIFETIME_MS });
+
+  renderResult(res, 200, true, 'You can go back to Hypersomnia', 'This tab can be closed now.');
+});
+
+/*
+  The game, while its "Continue in your browser" waits, asks every second whether the code for its state is there:
+  200 with {"code"} once, 204 until then. Its own limit - a whole linking is up to 300 asks in 5 minutes.
+*/
+const allowResult = makeLimiter({ perAddress: 120 });
+
+router.get('/result', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+
+  if (!allowResult(clientIp(req))) {
+    return res.status(429).send('Too many attempts. Try again in a minute.');
+  }
+
+  const { state } = req.query;
+
+  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)) {
+    return res.status(400).send('Invalid request.');
+  }
+
+  const entry = codesForStates.get(state);
+
+  if (!entry || entry.expires <= Date.now()) {
+    return res.status(204).end();
+  }
+
+  codesForStates.delete(state);
+  res.json({ code: entry.code });
 });
 
 // "Use a different Steam account": signed out, then the Steam sign-in, back to the same question
