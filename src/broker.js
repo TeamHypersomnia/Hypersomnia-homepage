@@ -11,7 +11,7 @@ if (!config.CRAZYGAMES_GAME_ID) {
   console.error('[broker] CRAZYGAMES_GAME_ID is not set - every CrazyGames sign-in is refused.');
 }
 const identityCert = require('./identity_cert');
-const { verifySignature, linkBySteamTicket, touchKey, deviceOf } = require('./link_key');
+const { verifySignature, touchKey } = require('./link_key');
 const { makeLimiter, limitKey, wideLimitKey } = require('./limiter');
 const { getAvatar } = require('./avatars');
 
@@ -20,10 +20,8 @@ const { getAvatar } = require('./avatars');
   in the game). The game servers check them offline with the broker's public key from their config -
   they never ask Steam, CrazyGames or this site anything.
 
-  GET /cert?session=<hex>&steam=<ticket hex>[&link=1&key=<hex>&sig=<hex>] a Steam Web API ticket requested for the session key's
-                                                     identity; link=1 (the Steam build) with the key's signature (as below):
-                                                     the key is linked to that Steam account,
-                                                     so later certs need only the key's signature - no Steam API call
+  GET /cert?session=<hex>&steam=<ticket hex>        a Steam Web API ticket requested for the session key's identity
+                                                     (the Steam build, for every cert - its key is never linked)
   GET /cert?session=<hex>&crazygames=header         a CrazyGames token of this game, in the X-CrazyGames-Token header
   GET /cert?session=<hex>&key=<hex>&sig=<hex>       an account key's signature of "hs-cert-req-v1" and the session key
 
@@ -423,8 +421,6 @@ router.get('/', async (req, res) => {
   const ip = clientIp(req);
   const { session, steam, key, sig } = req.query;
 
-  const { device, os } = deviceOf(req.query);
-
   // The CrazyGames token comes in a header - a URL (with it) could end up in a log
   const crazygames = req.query.crazygames === 'header' ? req.get('X-CrazyGames-Token') : undefined;
 
@@ -448,25 +444,7 @@ router.get('/', async (req, res) => {
   try {
     const account = await (async () => {
       if (typeof steam === 'string' && /^[0-9a-f]{2,4096}$/.test(steam)) {
-        const steamId = await steamAccount(steam, sessionPublicKey, ip);
-
-        // The Steam build: linked by this ticket once, by its key's signature from then on (the session key is the key).
-        // Only with the key's own signature over this very ticket - a ticket can be asked for any public key (e.g. one off
-        // the leaderboards), and the cert request signature, the same in every request, could have been seen anywhere.
-        if (req.query.link === '1') {
-          const signedByTheKey = typeof key === 'string' && typeof sig === 'string' && key === session
-            && /^[0-9a-f]{128}$/.test(sig)
-            && verifySignature(key, identityCert.linkRequestMessage(sessionPublicKey, Buffer.from(steam, 'hex')), sig);
-
-          if (signedByTheKey) {
-            linkBySteamTicket(`key_${session}`, steamId, device, os);
-          }
-          else {
-            console.log(`[broker] Not linking key_${session}: link=1 without the key's signature.`);
-          }
-        }
-
-        return steamId;
+        return steamAccount(steam, sessionPublicKey, ip);
       }
       if (typeof crazygames === 'string' && crazygames.length <= 4096) return crazyGamesAccount(crazygames);
       if (typeof key === 'string' && typeof sig === 'string') {

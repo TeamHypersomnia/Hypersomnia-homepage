@@ -17,7 +17,7 @@ const config = require('./config');
   The signature proves the key's owner started it, the Steam session which account it goes to, so nobody can link
   someone else's key, or link their own key to someone else's Steam account (short of being sent a link and confirming
   it - the page warns). A key linked to one Steam account is not moved to another in the browser -
-  it has to be unlinked there first (the Steam build's signed ticket does move it - see linkBySteamTicket).
+  it has to be unlinked there first. The Steam build never links its key - its certs come by a Steam ticket.
 */
 
 const router = express.Router();
@@ -104,13 +104,9 @@ const stmts = {
   unlink: db.prepare('DELETE FROM associations WHERE child_id = ? AND parent_id = ?'),
   linkedKeys: db.prepare("SELECT child_id FROM associations WHERE parent_id = ? AND child_id LIKE 'key_%' ORDER BY child_id"),
   banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?'),
-  setLinkMeta: db.prepare('INSERT OR REPLACE INTO key_links (child_id, linked_via, device, last_cert_at, os) VALUES (?, ?, ?, ?, ?)'),
-  touchKey: db.prepare('UPDATE key_links SET last_cert_at = ? WHERE child_id = ?'),
-  oldestSteamBuildKey: db.prepare(`
-    SELECT a.child_id FROM associations a JOIN key_links m ON m.child_id = a.child_id
-    WHERE a.parent_id = ? AND m.linked_via = 'steam' ORDER BY COALESCE(m.last_cert_at, 0) LIMIT 1
-  `),
-  linkMetaOf: db.prepare('SELECT linked_via, device, last_cert_at, os FROM key_links WHERE child_id = ?'),
+  setLinkMeta: db.prepare('INSERT OR REPLACE INTO key_devices (child_id, device, os, last_cert_at) VALUES (?, ?, ?, ?)'),
+  touchKey: db.prepare('UPDATE key_devices SET last_cert_at = ? WHERE child_id = ?'),
+  linkMetaOf: db.prepare('SELECT device, os, last_cert_at FROM key_devices WHERE child_id = ?'),
   ban: db.prepare('INSERT OR IGNORE INTO broker_bans (account, reason) VALUES (?, ?)')
 };
 
@@ -161,12 +157,12 @@ function linkKey(publicKey, steamId, device, os) {
       return { error: `This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked.\nUnlink the ones you no longer use.`, conflict: true };
     }
 
-    // Linked to this account already (e.g. by the Steam build): its link stays as it is
+    // Linked to this account already: its link stays as it is
     if (!parent) {
       db.transaction(() => {
         stmts.link.run(child, steamId);
         moveProgressIfFirst(child, steamId);
-        stmts.setLinkMeta.run(child, 'browser', device, Math.floor(Date.now() / 1000), os);
+        stmts.setLinkMeta.run(child, device, os, Math.floor(Date.now() / 1000));
       })();
     }
     else {
@@ -211,7 +207,7 @@ function unlinkKey(child, steamId) {
       return;
     }
 
-    db.prepare('DELETE FROM key_links WHERE child_id = ?').run(child);
+    db.prepare('DELETE FROM key_devices WHERE child_id = ?').run(child);
 
     const parentBan = stmts.banned.get(steamId);
 
@@ -458,58 +454,6 @@ function unlinkBySignature(params, ip, res) {
 
 router.get('/unlink', (req, res) => unlinkBySignature(req.query, clientIp(req), res));
 
-/*
-  The Steam build links its key by the ticket it shows /cert once (see broker.js) - from then on the key's signature
-  is enough, as for a key linked in the browser. A key linked to another account goes over to the ticket's one;
-  at the limit, the account's Steam build key unused for the longest is let go - so the Steam build never hits it.
-*/
-function linkBySteamTicket(child, steamId, device, os = null) {
-  const now = Math.floor(Date.now() / 1000);
-
-  db.transaction(() => {
-    if (stmts.banned.get(child)) {
-      return;
-    }
-
-    const parent = stmts.parentOf.get(child);
-
-    // Already this account's: only when and where - a key linked in the browser stays one (never let go at the limit)
-    if (parent && parent.parent_id === steamId) {
-      if (linkMetaOf(child)) {
-        touchKey(child);
-      }
-      else {
-        stmts.setLinkMeta.run(child, 'steam', device, now, os);
-      }
-
-      return;
-    }
-
-    // At the limit, which key makes room - decided before the key leaves its old account, so it never ends up nowhere
-    const oldest = linkedKeys(steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT ? stmts.oldestSteamBuildKey.get(steamId) : null;
-
-    if (linkedKeys(steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT && !oldest) {
-      // Only keys linked in the browser - the Steam build plays on without linking (by its ticket)
-      return;
-    }
-
-    if (parent) {
-      unlinkKey(child, parent.parent_id);
-    }
-
-    if (oldest) {
-      unlinkKey(oldest.child_id, steamId);
-      console.log(`[link_key] Let go of ${oldest.child_id} (the Steam build key of ${steamId} unused for the longest).`);
-    }
-
-    stmts.link.run(child, steamId);
-    moveProgressIfFirst(child, steamId);
-    stmts.setLinkMeta.run(child, 'steam', device, now, os);
-    console.log(`[link_key] The Steam build linked ${child} to ${steamId}.`);
-  })();
-}
-
-// A linked key got a cert by its signature: when, and the device the game named
 // When a linked key last got a cert - its device and system are kept from the link
 function touchKey(child) {
   stmts.touchKey.run(Math.floor(Date.now() / 1000), child);
@@ -519,4 +463,4 @@ function linkMetaOf(child) {
   return stmts.linkMetaOf.get(child) || null;
 }
 
-module.exports = { router, deviceOf, linkedKeys, verifySignature, unlink: unlinkKey, linkBySteamTicket, touchKey, linkMetaOf };
+module.exports = { router, linkedKeys, verifySignature, unlink: unlinkKey, touchKey, linkMetaOf };

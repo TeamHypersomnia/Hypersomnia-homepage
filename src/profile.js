@@ -27,10 +27,10 @@ async function renderProfile(req, res, extra = {}) {
     page: 'Profile',
     user: req.user,
     discordData,
-    // With what only the owner sees here: the device, how it was linked, when it last signed in
+    // With what only the owner sees here: the device, when it last signed in
     linkedKeys: linkKey.linkedKeys(steamId).map(id => {
       const meta = linkKey.linkMetaOf(id) || {};
-      return { id, device: meta.device || '', os: meta.os || null, via: meta.linked_via || 'browser', lastCertAt: meta.last_cert_at || null };
+      return { id, device: meta.device || '', os: meta.os || null, lastCertAt: meta.last_cert_at || null };
     }),
     success: req.query.success === 'true',
     is_admin: config.ADMIN_IDS.includes(req.user.id),

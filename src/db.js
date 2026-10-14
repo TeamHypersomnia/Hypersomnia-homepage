@@ -95,12 +95,12 @@ class DatabaseManager {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- About each linked key, for its owner's /profile only: how it was linked (browser: the game's Link with Steam,
-      -- steam: the Steam build by its ticket), the device the game last named, when it last got a cert
-      CREATE TABLE IF NOT EXISTS key_links (
+      -- About each linked key, for its owner's /profile only: the device and system (windows, linux, mac, web)
+      -- the game named on linking, when it last got a cert
+      CREATE TABLE IF NOT EXISTS key_devices (
         child_id TEXT PRIMARY KEY,
-        linked_via TEXT NOT NULL,
         device TEXT,
+        os TEXT,
         last_cert_at INTEGER
       );
 
@@ -109,13 +109,6 @@ class DatabaseManager {
         report_id TEXT PRIMARY KEY
       );
     `);
-
-    // The system the key's game runs on (windows, linux, mac, web) - an icon on /profile
-    const keyLinkColumns = this.db.prepare("PRAGMA table_info(key_links)").all().map(c => c.name);
-
-    if (!keyLinkColumns.includes('os')) {
-      this.db.exec('ALTER TABLE key_links ADD COLUMN os TEXT');
-    }
 
     const columns = this.db.prepare("PRAGMA table_info(matches)").all().map(c => c.name);
 
