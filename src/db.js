@@ -104,6 +104,13 @@ class DatabaseManager {
         last_cert_at INTEGER
       );
 
+      -- When a key was last linked or unlinked (unix secs, see link_key.js): a signed link page or unlink not newer
+      -- than that does nothing
+      CREATE TABLE IF NOT EXISTS key_link_changes (
+        child_id TEXT PRIMARY KEY,
+        changed_at INTEGER NOT NULL
+      );
+
       -- The report ids of reverted matches: a server retrying such a report (it keeps them for days) is not counted again
       CREATE TABLE IF NOT EXISTS reverted_reports (
         report_id TEXT PRIMARY KEY

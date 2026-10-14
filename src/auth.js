@@ -42,7 +42,13 @@ module.exports = (passport) => {
       const after = req.session.after_login;
       delete req.session.after_login;
 
-      if (typeof after === 'string' && (after.startsWith('/link_key/start?') || after.startsWith('/link_key/unlink?') || after === '/link')) {
+      if (typeof after === 'string' && after.startsWith('/link_key/start?')) {
+        // Signed in anew for this link page - see link_key.js
+        req.session.fresh_link_state = new URLSearchParams(after.slice(after.indexOf('?') + 1)).get('state');
+        return res.redirect(after);
+      }
+
+      if (after === '/link') {
         return res.redirect(after);
       }
 

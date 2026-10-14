@@ -1,26 +1,11 @@
 <%- include('overall_header'); %>
 
-<%# the player confirms the device and the Steam account the game gets linked to - on a shared browser the session may be
-    someone else's, and a link someone sent would carry their device %>
-<% const osIcons = { windows: ['fa-brands fa-windows', 'Windows'], linux: ['fa-brands fa-linux', 'Linux'], mac: ['fa-brands fa-apple', 'Mac'], web: ['fa-solid fa-globe', 'Browser'] }; %>
+<%# the player confirms the Steam account the game gets linked to - signed in anew for this page, and a link someone
+    sent would carry their key %>
 <div class="link-confirm">
-  <p><%= locals.unlink ? 'Unlink this device from your Steam account?' : 'Link this device to your Steam account?' %></p>
-  <p class="link-confirm-name"><% if (osIcons[os]) { %><i class="<%= osIcons[os][0] %> fa-fw" title="<%= osIcons[os][1] %>"></i> <% } %><%= device || (osIcons[os] ? osIcons[os][1] : 'Unknown device') %> <span style="opacity: 0.6;">(key 0x<%= key.slice(0, 8) %>...)</span></p>
+  <p>Link this game to your Steam account?</p>
+  <p class="link-confirm-name"><i class="fa-solid fa-key fa-fw"></i> Game key <span style="opacity: 0.6;">0x<%= key.slice(0, 8) %>...</span></p>
   <p class="link-confirm-name"><i class="fa-brands fa-steam fa-fw"></i> <a href="https://steamcommunity.com/profiles/<%= steamId %>" target="_blank" rel="noopener"><%= steamName %></a></p>
-<% if (locals.unlink) { %>
-  <p style="max-width: 34em;">Its progress from then on counts towards the game key, not this Steam account.</p>
-  <div class="link-confirm-buttons">
-  <form method="post" action="/link_key/unlink">
-    <input type="hidden" name="state" value="<%= state %>">
-    <input type="hidden" name="t" value="<%= t %>">
-    <input type="hidden" name="key" value="<%= key %>">
-    <input type="hidden" name="sig" value="<%= sig %>">
-    <input type="hidden" name="device" value="<%= device || '' %>">
-    <input type="hidden" name="os" value="<%= os || '' %>">
-    <div class="btn"><button type="submit"><i class="fa-solid fa-link-slash"></i><span>Unlink this game key</span></button></div>
-  </form>
-  </div>
-<% } else { %>
   <p style="color: #ff4040; font-weight: bold; font-size: 1.25em; max-width: 34em;">
     <i class="fa-solid fa-triangle-exclamation"></i> Only continue if you clicked Link with Steam in your own game just now.
     If someone sent you this link, close this page - they would play on your Steam account.
@@ -33,19 +18,9 @@
     <input type="hidden" name="sig" value="<%= sig %>">
     <input type="hidden" name="device" value="<%= device || '' %>">
     <input type="hidden" name="os" value="<%= os || '' %>">
-    <div class="btn"><button type="submit"><i class="fa-solid fa-link"></i><span>Yes, this is my device - Link</span></button></div>
-  </form>
-  <form method="post" action="/link_key/start/switch">
-    <input type="hidden" name="state" value="<%= state %>">
-    <input type="hidden" name="t" value="<%= t %>">
-    <input type="hidden" name="key" value="<%= key %>">
-    <input type="hidden" name="sig" value="<%= sig %>">
-    <input type="hidden" name="device" value="<%= device || '' %>">
-    <input type="hidden" name="os" value="<%= os || '' %>">
-    <div class="btn"><button type="submit"><span>Use a different Steam account</span></button></div>
+    <div class="btn"><button type="submit"><i class="fa-solid fa-link"></i><span>Yes, I started it - Link</span></button></div>
   </form>
   </div>
-<% } %>
 </div>
 
 <%- include('overall_footer'); %>
