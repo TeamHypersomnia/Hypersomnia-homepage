@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const express = require('express');
-const { makeLimiter, wideLimitKey } = require('./limiter');
+const { makeLimiter } = require('./limiter');
 const { clientIp } = require('./client_ip');
 const db = require('./db');
 const config = require('./config');
@@ -9,15 +9,14 @@ const config = require('./config');
   Linking an identity key (the account of a player without Steam, "key_<public key in hex>")
   to a Steam account, so that the progress from ranked matches played with the key counts towards the Steam account.
 
-  1. The game opens /link_key/start with its random state; signed in through Steam, the player confirms, and a one-time
-     code (createCode) waits under that state - the game, asking /link_key/result with its state, takes it.
-  2. The game asks GET /link_key/info?code=<code> whose Steam account it is (name and avatar, shown while linking).
-  3. The game signs "hypersomnia-link-v1 <code> <steam account>" with the key and sends it to /link_key/link.
-  4. A valid signature with a valid code links the key as a child of that Steam account.
+  1. The game makes a random state, signs "hypersomnia-link-v1 <state>" with the key and opens
+     /link_key/start?state&key&sig (and the device it runs on, shown on the page).
+  2. Signed in through Steam, the player confirms the device and the Steam account there - the key is linked at once.
+  3. The game, asking /link_key/result with its state, learns how it went.
 
-  The code ties the link to the Steam session that asked for it, and the signature proves the key and
-  which Steam account the player agreed to, so nobody can link someone else's key, or link their own key
-  to someone else's Steam account. A key linked to one Steam account is not moved to another in the browser -
+  The signature proves the key's owner started it, the Steam session which account it goes to, so nobody can link
+  someone else's key, or link their own key to someone else's Steam account (short of being sent a link and confirming
+  it - the page warns). A key linked to one Steam account is not moved to another in the browser -
   it has to be unlinked there first (the Steam build's signed ticket does move it - see linkBySteamTicket).
 */
 
@@ -25,7 +24,7 @@ const router = express.Router();
 
 // The web build of the game runs on another origin. These need no cookies - the key's signature (for /result, the game's
 // secret state) is the proof.
-router.use(['/info', '/link', '/unlink', '/result'], (req, res, next) => {
+router.use(['/unlink', '/result'], (req, res, next) => {
   if (req.method === 'GET') {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Cache-Control', 'no-store');
@@ -34,54 +33,9 @@ router.use(['/info', '/link', '/unlink', '/result'], (req, res, next) => {
   next();
 });
 
-const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const CODE_LENGTH = 8;
-const CODE_LIFETIME_MS = 5 * 60 * 1000;
+const RESULT_LIFETIME_MS = 5 * 60 * 1000;
 const MAX_KEYS_PER_STEAM_ACCOUNT = 32;
-const MAX_LIVE_CODES_PER_ACCOUNT = 4;
-
-// code -> { steamId, steamName, publicKey, expires }; up to MAX_LIVE_CODES_PER_ACCOUNT per Steam account, each for one key
-const codes = new Map();
-
-function removeExpired(now) {
-  for (const [code, entry] of codes) {
-    if (entry.expires <= now) codes.delete(code);
-  }
-}
-
-function createCode(steamId, steamName, publicKey) {
-  const now = Date.now();
-  removeExpired(now);
-
-  // A few devices may link at once - the oldest of this account's codes goes first (a Map keeps the order of insertion)
-  const own = [...codes].filter(([, entry]) => entry.steamId === steamId).map(([code]) => code);
-
-  for (const code of own.slice(0, Math.max(0, own.length - (MAX_LIVE_CODES_PER_ACCOUNT - 1)))) {
-    codes.delete(code);
-  }
-
-  let code = '';
-
-  for (let i = 0; i < CODE_LENGTH; ++i) {
-    code += CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)];
-  }
-
-  // Good only for the key the confirm page showed - the code of a page someone else opened links no other key
-  codes.set(code, { steamId, steamName, publicKey, expires: now + CODE_LIFETIME_MS });
-  return code;
-}
-
-function liveCode(code) {
-  const entry = codes.get(code);
-  return entry && entry.expires > Date.now() ? entry : null;
-}
-
-// Guessing codes with one's own key would link it to someone else's Steam account
-// Guessing an 8 letter code at 10 a minute is hopeless; no total - 60 addresses could use it up for everyone.
-// A whole /24 or /48 has a limit of its own - counting only what an address was allowed (one host must not lock out its CGNAT).
-const allowAttemptPerAddress = makeLimiter({ perAddress: 10 });
-const allowAttemptPerNetwork = makeLimiter({ perAddress: 100, keyOf: wideLimitKey });
-const allowAttempt = ip => allowAttemptPerAddress(ip) && allowAttemptPerNetwork(ip);
+const MAX_LIVE_RESULTS_PER_ACCOUNT = 4;
 
 // A raw 32-byte Ed25519 public key wrapped as SPKI DER, the form node:crypto takes
 const ED25519_SPKI_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
@@ -181,98 +135,37 @@ function linkedKeys(steamId) {
   return stmts.linkedKeys.all(steamId).map(row => row.child_id);
 }
 
-function validCode(code) {
-  return typeof code === 'string' && /^[A-Z0-9]{8}$/.test(code.toUpperCase());
-}
-
-// Whose Steam account a code links to, for the game to show before the player agrees - with its avatar (base64), as /cert has it
-router.get('/info', async (req, res) => {
-  const ip = clientIp(req);
-
-  if (!allowAttempt(ip)) {
-    return res.status(429).send('Too many attempts. Try again in a minute.');
-  }
-
-  const { code } = req.query;
-
-  if (!validCode(code)) {
-    return res.status(400).send('Invalid request.');
-  }
-
-  const entry = liveCode(code.toUpperCase());
-
-  if (!entry) {
-    return res.status(404).send('The link took too long (over 5 minutes). Click Link with Steam... in the game again.');
-  }
-
-  // Required here: broker.js requires this file
-  const { accountProfile } = require('./broker');
-  const profile = await accountProfile(entry.steamId, ip, Date.now() + 4000).catch(() => null);
-  const avatar = profile && profile.avatar ? Buffer.from(profile.avatar).toString('base64') : '';
-
-  res.json({ steam_id: entry.steamId, name: entry.steamName || '', avatar });
-});
-
-function link(params, ip, res) {
-  if (!allowAttempt(ip)) {
-    return res.status(429).send('Too many attempts. Try again in a minute.');
-  }
-
-  const { public_key, code, signature } = params || {};
-
-  if (typeof public_key !== 'string' || !/^[0-9a-f]{64}$/.test(public_key)
-    || typeof signature !== 'string' || !/^[0-9a-f]{128}$/.test(signature)
-    || !validCode(code)
-  ) {
-    return res.status(400).send('Invalid request.');
-  }
-
-  const normalizedCode = code.toUpperCase();
-  const entry = liveCode(normalizedCode);
-
-  // The cheap check first: no signature verification for guessed codes
-  if (!entry) {
-    return res.status(401).send('The link took too long (over 5 minutes). Click Link with Steam... in the game again.');
-  }
-
-  if (entry.publicKey !== public_key) {
-    return res.status(401).send('This link was made for another device. Click Link with Steam... in the game again.');
-  }
-
-  if (!verifySignature(public_key, `hypersomnia-link-v1 ${normalizedCode} ${entry.steamId}`, signature)) {
-    return res.status(401).send('Invalid signature.');
-  }
-
-  const child = `key_${public_key}`;
+/*
+  Links the key to the signed-in Steam account - a refusal is an { error, conflict } for the game to show.
+*/
+function linkKey(publicKey, steamId, device, os) {
+  const child = `key_${publicKey}`;
 
   try {
     if (stmts.banned.get(child)) {
-      return res.status(403).send('This key is banned.');
+      return { error: 'This key is banned.' };
     }
 
-    if (stmts.banned.get(entry.steamId)) {
-      return res.status(403).send('This Steam account is banned.');
+    if (stmts.banned.get(steamId)) {
+      return { error: 'This Steam account is banned.' };
     }
 
     const parent = stmts.parentOf.get(child);
 
-    // The code stays valid, so it can be used once the key is unlinked from the other account
-    if (parent && parent.parent_id !== entry.steamId) {
-      return res.status(409).send('This key is already linked to another Steam account. Unlink it there first.');
+    if (parent && parent.parent_id !== steamId) {
+      return { error: 'This key is already linked to another Steam account. Unlink it there first.', conflict: true };
     }
 
     // Every new device or browser is a new key: many are fine, an endless stream is not
-    if (!parent && linkedKeys(entry.steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT) {
-      return res.status(409).send(`This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked.\nUnlink the ones you no longer use.`);
+    if (!parent && linkedKeys(steamId).length >= MAX_KEYS_PER_STEAM_ACCOUNT) {
+      return { error: `This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked.\nUnlink the ones you no longer use.`, conflict: true };
     }
-
-    const { device, os } = deviceOf(params);
 
     // Linked to this account already (e.g. by the Steam build): its link stays as it is
     if (!parent) {
       db.transaction(() => {
-        stmts.link.run(child, entry.steamId);
-        moveProgressIfFirst(child, entry.steamId);
+        stmts.link.run(child, steamId);
+        moveProgressIfFirst(child, steamId);
         stmts.setLinkMeta.run(child, 'browser', device, Math.floor(Date.now() / 1000), os);
       })();
     }
@@ -280,17 +173,12 @@ function link(params, ip, res) {
       touchKey(child);
     }
   } catch (err) {
-    // The code stays usable - nothing was linked
     console.error(`[link_key] Could not link ${child}:`, err && err.message ? err.message : err);
-    return res.status(503).type('text/plain').send('Could not link right now. Try again in a moment.');
+    return { error: 'Could not link right now. Try again in a moment.' };
   }
 
-  // Single use: a code is gone once it linked a key
-  codes.delete(normalizedCode);
-
-  console.log(`[link_key] Linked ${child} to ${entry.steamId}.`);
-
-  res.json({ linked: child, to: entry.steamId });
+  console.log(`[link_key] Linked ${child} to ${steamId}.`);
+  return { linked: steamId };
 }
 
 /*
@@ -333,57 +221,71 @@ function unlinkKey(child, steamId) {
   })();
 }
 
-// The web build can only make GET requests
-router.get('/link', (req, res) => link(req.query, clientIp(req), res));
-
 /*
-  "Link with Steam": the game opens /link_key/start?state=<its random state> in the browser.
-  Signed in through Steam (here, or on the way) and confirmed, the code waits under the state for the game to fetch it
-  (/link_key/result) - nothing goes back through the browser, so it works the same natively, in a tab or in an iframe.
-  A link to this page someone else made carries their state - their game would get the code, for the Steam account of
-  whoever confirmed: the game asks "Is this your Steam account?" (with its name and avatar) before it links.
+  "Link with Steam": the game opens /link_key/start?state&key&sig in the browser - nothing goes back through the browser,
+  so it works the same natively, in a tab or in an iframe. A link to this page someone else made carries their key:
+  confirmed, it would link their key to the Steam account of whoever confirmed - the page warns in red.
 */
-// The game's state, its public key and the device it runs on - shown on the confirm page, the code tied to the key
+// The game's state, its public key, its signature of the state and the device it runs on (shown on the confirm page)
 function startParams(query) {
-  const { state, key } = query || {};
+  const { state, key, sig } = query || {};
 
-  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state) || typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key)) {
+  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state)
+    || typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key)
+    || typeof sig !== 'string' || !/^[0-9a-f]{128}$/.test(sig)
+  ) {
     return null;
   }
 
   const { device, os } = deviceOf(query);
   const deviceQuery = (device ? `&device=${encodeURIComponent(device)}` : '') + (os ? `&os=${os}` : '');
 
-  return { state, key, device, os, path: `/link_key/start?state=${state}&key=${key}${deviceQuery}` };
+  return { state, key, sig, device, os, path: `/link_key/start?state=${state}&key=${key}&sig=${sig}${deviceQuery}` };
+}
+
+function signedByKey(params) {
+  return verifySignature(params.key, `hypersomnia-link-v1 ${params.state}`, params.sig);
 }
 
 /*
-  The codes made for the game's states, waiting for the game to fetch them (/link_key/result) - each once, within the
-  code's lifetime. The state is the game's own random secret: nobody else can ask for its code.
+  How each state's link went, waiting for the game to fetch it (/link_key/result) - once, within RESULT_LIFETIME_MS.
+  The state is the game's own random secret: nobody else can ask. At most MAX_LIVE_RESULTS_PER_ACCOUNT per Steam account.
 */
-const codesForStates = new Map();
+const resultsForStates = new Map();
 
-// Also the states whose code is gone (an account's oldest beyond MAX_LIVE_CODES_PER_ACCOUNT) - so they stay as few as the codes
-function removeExpiredForStates(now) {
-  for (const [state, entry] of codesForStates) {
-    if (entry.expires <= now || !codes.has(entry.code)) codesForStates.delete(state);
+function keepResult(state, steamId, result) {
+  const now = Date.now();
+
+  for (const [s, entry] of resultsForStates) {
+    if (entry.expires <= now) resultsForStates.delete(s);
   }
+
+  // A Map keeps the order of insertion - the account's oldest go first
+  const own = [...resultsForStates].filter(([, entry]) => entry.steamId === steamId).map(([s]) => s);
+
+  for (const s of own.slice(0, Math.max(0, own.length - (MAX_LIVE_RESULTS_PER_ACCOUNT - 1)))) {
+    resultsForStates.delete(s);
+  }
+
+  resultsForStates.set(state, { steamId, result, expires: now + RESULT_LIFETIME_MS });
 }
 
-// A page saying what happened: the link went through (the game finishes it), or an error
+// A page saying what happened: linked (the game finishes it), or an error
 function renderResult(res, status, ok, title, message) {
   res.status(status).render('link_result', { page: title, user: res.req.user, ok, title, message });
 }
 
+const invalidLink = 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.';
+
 /*
-  Signed in already, the player confirms which Steam account to link to: on a shared browser the session may be
-  someone else's. The code is made only by this page's POST (a cross-site form does not carry the session cookie).
+  Signed in already, the player confirms the device and which Steam account to link to: on a shared browser the session
+  may be someone else's. The link is made only by this page's POST (a cross-site form does not carry the session cookie).
 */
 router.get('/start', (req, res) => {
   const params = startParams(req.query);
 
-  if (!params) {
-    return renderResult(res, 400, false, 'Error', 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.');
+  if (!params || !signedByKey(params)) {
+    return renderResult(res, 400, false, 'Error', invalidLink);
   }
 
   if (!req.user) {
@@ -400,6 +302,7 @@ router.get('/start', (req, res) => {
     steamId: req.user.id,
     state: params.state,
     key: params.key,
+    sig: params.sig,
     device: params.device,
     os: params.os
   });
@@ -416,23 +319,31 @@ router.post('/start', (req, res) => {
     return renderResult(res, 429, false, 'Error', 'Too many attempts. Try again in a minute.');
   }
 
-  if (!params || !req.user) {
-    return renderResult(res, 400, false, 'Error', 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.');
+  if (!params || !req.user || !signedByKey(params)) {
+    return renderResult(res, 400, false, 'Error', invalidLink);
   }
 
-  const now = Date.now();
+  // A state links once - the same page sent again does nothing more
+  if (resultsForStates.has(params.state)) {
+    return renderResult(res, 409, false, 'Error', 'This link was used already. Start again in the game: Settings - Account - Link with Steam.');
+  }
 
-  // Kept for the game, which asks for it with its state - nothing is handed through the browser
-  const code = createCode(`steam_${req.user.id}`, req.user.displayName, params.key);
-  removeExpiredForStates(now);
-  codesForStates.set(params.state, { code, expires: now + CODE_LIFETIME_MS });
+  const steamId = `steam_${req.user.id}`;
+  const result = linkKey(params.key, steamId, params.device, params.os);
+
+  keepResult(params.state, steamId, result);
+
+  if (result.error) {
+    return renderResult(res, result.conflict ? 409 : 403, false, 'Error', result.error);
+  }
 
   renderResult(res, 200, true, 'You can go back to Hypersomnia', 'This tab can be closed now.');
 });
 
 /*
-  The game, while its "Continue in your browser" waits, asks every second whether the code for its state is there:
-  200 with {"code"} once, 204 until then. Its own limit - a whole linking is up to 300 asks in 5 minutes.
+  The game, while its "Continue in your browser" waits, asks every second how the link for its state went:
+  200 with {"linked": "steam_..."} or {"error", "conflict"} once, 204 until then.
+  Its own limit - a whole linking is up to 300 asks in 5 minutes.
 */
 const allowResult = makeLimiter({ perAddress: 120 });
 
@@ -449,14 +360,15 @@ router.get('/result', (req, res) => {
     return res.status(400).send('Invalid request.');
   }
 
-  const entry = codesForStates.get(state);
+  const entry = resultsForStates.get(state);
 
-  if (!entry || entry.expires <= Date.now()) {
+  if (!entry || entry.expires <= Date.now() || entry.taken) {
     return res.status(204).end();
   }
 
-  codesForStates.delete(state);
-  res.json({ code: entry.code });
+  // Taken once, but kept until it expires - the state stays used
+  entry.taken = true;
+  res.json(entry.result);
 });
 
 // "Use a different Steam account": signed out, then the Steam sign-in, back to the same question
@@ -474,10 +386,9 @@ router.post('/start/switch', (req, res) => {
 });
 
 /*
-  Unlinking from the game, signed with the key - for a player who linked it to a Steam account that is not theirs
-  (e.g. a code someone gave them) and can not sign in there. The signed timestamp must be within 10 minutes.
+  Unlinking from the game, signed with the key - e.g. for a player whose key got linked to a Steam account that is not
+  theirs (a link page someone sent them) and can not sign in there. The signed timestamp must be within 10 minutes.
 */
-// Its own limit, without the overall one - nothing to guess here, and a flood of code guesses must not block it
 const allowUnlink = makeLimiter({ perAddress: 10 });
 
 function unlinkBySignature(params, ip, res) {
