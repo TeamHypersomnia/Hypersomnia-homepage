@@ -40,7 +40,7 @@ async function renderProfile(req, res, extra = {}) {
 
 router.get('/', (req, res) => renderProfile(req, res));
 
-// /link: where linking starts - in the game, which opens the sign-in through Steam by itself
+// /link: where linking starts - in the game, which opens the link page by itself
 function linkPage(req, res) {
   res.render('link', { page: 'Link a game key', user: req.user });
 }

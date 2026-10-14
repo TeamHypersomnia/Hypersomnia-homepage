@@ -38,15 +38,8 @@ module.exports = (app) => {
   app.use('/user', require('../user'));
   app.use('/auth', require('../auth')(passport));
   app.use('/profile', authenticated, require('../profile'));
-  // the code to link a game key, alone on its page - signs in through Steam first and comes back here
-  app.get('/link', (req, res, next) => {
-    if (!req.isAuthenticated()) {
-      req.session.after_login = '/link';
-      return res.redirect('/auth/steam');
-    }
-
-    next();
-  }, require('../profile').linkPage);
+  // Where linking starts (in the game) - for anyone who looks for it here
+  app.get('/link', require('../profile').linkPage);
   app.use('/link_key', require('../link_key').router);
   app.use('/cert', require('../broker').router);
   app.use('/avatar', require('../avatars').router);

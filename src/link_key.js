@@ -157,7 +157,6 @@ function linkKey(publicKey, steamId, device, os) {
       return { error: `This Steam account already has ${MAX_KEYS_PER_STEAM_ACCOUNT} keys linked.\nUnlink the ones you no longer use.`, conflict: true };
     }
 
-    // Linked to this account already: its link stays as it is
     if (!parent) {
       db.transaction(() => {
         stmts.link.run(child, steamId);
@@ -166,6 +165,7 @@ function linkKey(publicKey, steamId, device, os) {
       })();
     }
     else {
+      // Linked to this account already: its link stays as it is
       touchKey(child);
     }
   } catch (err) {
