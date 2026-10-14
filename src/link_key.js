@@ -24,7 +24,7 @@ const router = express.Router();
 
 // The web build of the game runs on another origin. These need no cookies - the key's signature (for /result, the game's
 // secret state) is the proof.
-router.use(['/unlink', '/result'], (req, res, next) => {
+router.use(['/result'], (req, res, next) => {
   if (req.method === 'GET') {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Cache-Control', 'no-store');
@@ -110,11 +110,6 @@ const stmts = {
   ban: db.prepare('INSERT OR IGNORE INTO broker_bans (account, reason) VALUES (?, ?)')
 };
 
-/*
-  The newest unlink timestamp taken per key - a signed unlink seen once (e.g. in a log) can not be sent again.
-  In memory: after a restart the 10 minute window still bounds it.
-*/
-const lastUnlinkTimestamp = new Map();
 
 // The device the game runs on, as it names it, and its system - shown next to a linked key on its owner's /profile only
 function deviceOf(query) {
@@ -404,77 +399,114 @@ router.post('/start/switch', (req, res) => {
 });
 
 /*
-  Unlinking from the game, signed with the key - e.g. for a player whose key got linked to a Steam account that is not
-  theirs (a link page someone sent them) and can not sign in there. The signed timestamp must be within 10 minutes.
+  "Unlink from Steam..." in the game: it opens /link_key/unlink?state&key (and the device) - signed in through Steam,
+  the owner of the account the key is linked to unlinks it with one click, as on /profile; the game learns it from
+  /link_key/result. Only that account can: a key linked to someone else's account is not theirs to unlink.
 */
-const allowUnlink = makeLimiter({ perAddress: 10 });
+function unlinkParams(query) {
+  const { state, key } = query || {};
 
-function unlinkBySignature(params, ip, res) {
-  if (!allowUnlink(ip)) {
-    return res.status(429).send('Too many attempts. Try again in a minute.');
+  if (typeof state !== 'string' || !/^[0-9a-f]{32}$/.test(state) || typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key)) {
+    return null;
   }
 
-  const { public_key, signature, timestamp: written_timestamp } = params || {};
-  const timestamp = typeof written_timestamp === 'string' ? Number(written_timestamp) : written_timestamp;
+  const { device, os } = deviceOf(query);
+  const deviceQuery = (device ? `&device=${encodeURIComponent(device)}` : '') + (os ? `&os=${os}` : '');
 
-  if (typeof public_key !== 'string' || !/^[0-9a-f]{64}$/.test(public_key)
-    || typeof signature !== 'string' || !/^[0-9a-f]{128}$/.test(signature)
-    || !Number.isSafeInteger(timestamp)
-  ) {
-    return res.status(400).send('Invalid request.');
-  }
-
-  if (Math.abs(Date.now() / 1000 - timestamp) > 10 * 60) {
-    return res.status(401).send('The clock of this computer is off. Set it right and try again.');
-  }
-
-  if (!verifySignature(public_key, `hypersomnia-unlink-v1 ${public_key} ${timestamp}`, signature)) {
-    return res.status(401).send('Invalid signature.');
-  }
-
-  const child = `key_${public_key}`;
-
-  if (timestamp <= (lastUnlinkTimestamp.get(child) || 0)) {
-    return res.status(401).send('This unlink was already used. Try again.');
-  }
-
-  const parent = (() => {
-    try {
-      const found = stmts.parentOf.get(child);
-
-      if (found) {
-        unlinkKey(child, found.parent_id);
-      }
-
-      return found || null;
-    } catch (err) {
-      console.error(`[link_key] Could not unlink ${child}:`, err && err.message ? err.message : err);
-      return undefined;
-    }
-  })();
-
-  // Taken only once it unlinked - a retry of a failed one is not "already used"
-  if (parent === undefined) {
-    return res.status(503).type('text/plain').send('Could not unlink right now. Try again in a moment.');
-  }
-
-  // Bounded: the oldest entries go first (the 10 minute window still bounds a replay of those)
-  if (lastUnlinkTimestamp.size > 100000) {
-    lastUnlinkTimestamp.delete(lastUnlinkTimestamp.keys().next().value);
-  }
-
-  lastUnlinkTimestamp.set(child, timestamp);
-
-  if (!parent) {
-    return res.json({ unlinked: child, from: null });
-  }
-
-  console.log(`[link_key] Unlinked ${child} from ${parent.parent_id} by its own signature.`);
-
-  res.json({ unlinked: child, from: parent.parent_id });
+  return { state, key, device, os, path: `/link_key/unlink?state=${state}&key=${key}${deviceQuery}` };
 }
 
-router.get('/unlink', (req, res) => unlinkBySignature(req.query, clientIp(req), res));
+const invalidUnlink = 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.';
+
+// Linked to this Steam account? Otherwise the page says so - and to whose account it is linked, if the player's own
+function notThisAccountsKey(key, steamId) {
+  const parent = stmts.parentOf.get(`key_${key}`);
+
+  if (!parent) {
+    return 'This game key is not linked to any Steam account.';
+  }
+
+  if (parent.parent_id !== steamId) {
+    return 'This game key is linked to another Steam account. Sign in there to unlink it.';
+  }
+
+  return null;
+}
+
+router.get('/unlink', (req, res) => {
+  const params = unlinkParams(req.query);
+
+  if (!params) {
+    return renderResult(res, 400, false, 'Error', invalidUnlink);
+  }
+
+  if (!req.user) {
+    req.session.after_login = params.path;
+    return res.redirect('/auth/steam');
+  }
+
+  res.set('Cache-Control', 'no-store');
+
+  const refusal = notThisAccountsKey(params.key, `steam_${req.user.id}`);
+
+  if (refusal) {
+    return renderResult(res, 409, false, 'Error', refusal);
+  }
+
+  res.render('link_confirm', {
+    page: 'Unlink the game from Steam',
+    user: req.user,
+    steamName: req.user.displayName,
+    steamId: req.user.id,
+    unlink: true,
+    state: params.state,
+    key: params.key,
+    sig: '',
+    t: '',
+    device: params.device,
+    os: params.os
+  });
+});
+
+const allowUnlink = makeLimiter({ perAddress: 10 });
+
+router.post('/unlink', (req, res) => {
+  const params = unlinkParams(req.body);
+
+  res.set('Cache-Control', 'no-store');
+
+  if (!allowUnlink(clientIp(req))) {
+    return renderResult(res, 429, false, 'Error', 'Too many attempts. Try again in a minute.');
+  }
+
+  if (!params || !req.user) {
+    return renderResult(res, 400, false, 'Error', invalidUnlink);
+  }
+
+  if (resultsForStates.has(params.state)) {
+    return renderResult(res, 409, false, 'Error', 'This link was used already. Start again in the game: Settings - Account - Link with Steam.');
+  }
+
+  const steamId = `steam_${req.user.id}`;
+  const refusal = notThisAccountsKey(params.key, steamId);
+
+  if (refusal) {
+    keepResult(params.state, steamId, { error: refusal });
+    return renderResult(res, 409, false, 'Error', refusal);
+  }
+
+  try {
+    unlinkKey(`key_${params.key}`, steamId);
+  } catch (err) {
+    console.error(`[link_key] Could not unlink key_${params.key}:`, err && err.message ? err.message : err);
+    return renderResult(res, 503, false, 'Error', 'Could not unlink right now. Try again in a moment.');
+  }
+
+  console.log(`[link_key] Unlinked key_${params.key} from ${steamId} (from the game).`);
+
+  keepResult(params.state, steamId, { unlinked: steamId });
+  renderResult(res, 200, true, 'You can go back to Hypersomnia', 'The game key is unlinked. This tab can be closed now.');
+});
 
 // When a linked key last got a cert - its device and system are kept from the link
 function touchKey(child) {
