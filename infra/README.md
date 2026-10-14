@@ -132,8 +132,10 @@ Dodaj/usuń serwery tutaj. Obecnie:
 Każdy oficjalny serwer to jeden plik w `/var/www/app/private/official_servers.d/`:
 nazwa pliku = id serwera (`de`, `pl`, `us-central`…), treść = jego klucz publiczny (64 znaki hex).
 
-- Dodanie serwera: na dedyku `Hypersomnia --print-server-key` (klucz z `user/.keys/server.key`, tworzony przy pierwszym starcie),
-  wynik do `official_servers.d/<id>`. Nic tajnego - to klucz publiczny.
+- Dodanie serwera: na dedyku `Hypersomnia --print-server-key` (klucze wyprowadzone z `user/.keys/server.key`, tworzonego przy
+  pierwszym starcie), wynik do `official_servers.d/<id>`. Nic tajnego - to klucz publiczny. Przy kilku instancjach
+  (`num_ranked_servers`, `num_casual_servers`) każda ma swój klucz - linie `ranked 0: <klucz>`, każda do osobnego pliku.
+- Przeniesienie serwera na inny host: skopiować `server.key` i zachować `instance_number` - klucze zostają te same.
 - Odebranie dostępu: `rm official_servers.d/<id>`.
 - Master przeładowuje folder co minutę, strona czyta go przy każdym raporcie meczu. Restart niepotrzebny.
 - Serwer podpisuje kluczem heartbeaty (master pokazuje go jako oficjalny) i raporty meczów (nagłówki `X-Server-Key`, `X-Signature`).
