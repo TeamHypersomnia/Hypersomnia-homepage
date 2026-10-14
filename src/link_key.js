@@ -40,7 +40,7 @@ const CODE_LIFETIME_MS = 5 * 60 * 1000;
 const MAX_KEYS_PER_STEAM_ACCOUNT = 32;
 const MAX_LIVE_CODES_PER_ACCOUNT = 4;
 
-// code -> { steamId, steamName, expires }; one live code per Steam account
+// code -> { steamId, steamName, publicKey, expires }; up to MAX_LIVE_CODES_PER_ACCOUNT per Steam account, each for one key
 const codes = new Map();
 
 function removeExpired(now) {
@@ -397,9 +397,10 @@ function startParams(query) {
 */
 const codesForStates = new Map();
 
+// Also the states whose code is gone (an account's oldest beyond MAX_LIVE_CODES_PER_ACCOUNT) - so they stay as few as the codes
 function removeExpiredForStates(now) {
   for (const [state, entry] of codesForStates) {
-    if (entry.expires <= now) codesForStates.delete(state);
+    if (entry.expires <= now || !codes.has(entry.code)) codesForStates.delete(state);
   }
 }
 
@@ -438,20 +439,26 @@ router.get('/start', (req, res) => {
   });
 });
 
+const allowStart = makeLimiter({ perAddress: 10 });
+
 router.post('/start', (req, res) => {
   const params = startParams(req.body);
 
   res.set('Cache-Control', 'no-store');
+
+  if (!allowStart(clientIp(req))) {
+    return renderResult(res, 429, false, 'Error', 'Too many attempts. Try again in a minute.');
+  }
 
   if (!params || !req.user) {
     return renderResult(res, 400, false, 'Error', 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.');
   }
 
   const now = Date.now();
-  removeExpiredForStates(now);
 
   // Kept for the game, which asks for it with its state - nothing is handed through the browser
   const code = createCode(`steam_${req.user.id}`, req.user.displayName, params.key);
+  removeExpiredForStates(now);
   codesForStates.set(params.state, { code, expires: now + CODE_LIFETIME_MS });
 
   renderResult(res, 200, true, 'You can go back to Hypersomnia', 'This tab can be closed now.');
