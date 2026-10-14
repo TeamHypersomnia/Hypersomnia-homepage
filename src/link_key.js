@@ -151,7 +151,7 @@ const stmts = {
   linkedKeys: db.prepare("SELECT child_id FROM associations WHERE parent_id = ? AND child_id LIKE 'key_%' ORDER BY child_id"),
   banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?'),
   setLinkMeta: db.prepare('INSERT OR REPLACE INTO key_links (child_id, linked_via, device, last_cert_at, os) VALUES (?, ?, ?, ?, ?)'),
-  touchKey: db.prepare('UPDATE key_links SET last_cert_at = ?, device = COALESCE(?, device), os = COALESCE(?, os) WHERE child_id = ?'),
+  touchKey: db.prepare('UPDATE key_links SET last_cert_at = ? WHERE child_id = ?'),
   oldestSteamBuildKey: db.prepare(`
     SELECT a.child_id FROM associations a JOIN key_links m ON m.child_id = a.child_id
     WHERE a.parent_id = ? AND m.linked_via = 'steam' ORDER BY COALESCE(m.last_cert_at, 0) LIMIT 1
@@ -277,7 +277,7 @@ function link(params, ip, res) {
       })();
     }
     else {
-      touchKey(child, device, os);
+      touchKey(child);
     }
   } catch (err) {
     // The code stays usable - nothing was linked
@@ -565,7 +565,7 @@ function linkBySteamTicket(child, steamId, device, os = null) {
     // Already this account's: only when and where - a key linked in the browser stays one (never let go at the limit)
     if (parent && parent.parent_id === steamId) {
       if (linkMetaOf(child)) {
-        touchKey(child, device, os);
+        touchKey(child);
       }
       else {
         stmts.setLinkMeta.run(child, 'steam', device, now, os);
@@ -599,8 +599,9 @@ function linkBySteamTicket(child, steamId, device, os = null) {
 }
 
 // A linked key got a cert by its signature: when, and the device the game named
-function touchKey(child, device, os = null) {
-  stmts.touchKey.run(Math.floor(Date.now() / 1000), device, os, child);
+// When a linked key last got a cert - its device and system are kept from the link
+function touchKey(child) {
+  stmts.touchKey.run(Math.floor(Date.now() / 1000), child);
 }
 
 function linkMetaOf(child) {
