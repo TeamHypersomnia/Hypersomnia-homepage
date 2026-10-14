@@ -46,7 +46,7 @@ all:
           first_udp_port: 8430
           num_udp_ports: 4
           # The official servers are the files in {{ paths.private }}/official_servers.d:
-          # file name = server id, content = its official_server_secret. Not managed by ansible.
+          # file name = server id, content = its public key (Hypersomnia --print-server-key). Not managed by ansible.
 
         # Firewall ports
         firewall_allowed_ports:

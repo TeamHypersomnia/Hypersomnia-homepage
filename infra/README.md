@@ -130,14 +130,14 @@ Dodaj/usuń serwery tutaj. Obecnie:
 ### Oficjalne serwery (`official_servers.d`)
 
 Każdy oficjalny serwer to jeden plik w `/var/www/app/private/official_servers.d/`:
-nazwa pliku = id serwera (`de`, `pl`, `us-central`…), treść = jego `official_server_secret`.
+nazwa pliku = id serwera (`de`, `pl`, `us-central`…), treść = jego klucz publiczny (64 znaki hex).
 
-- Dodanie serwera: `openssl rand -base64 36 | tr -d '/+=' | head -c 50 > official_servers.d/<id>` (`chmod 600`), ten sam sekret do `server_private.official_server_secret` na dedyku.
+- Dodanie serwera: na dedyku `Hypersomnia --print-server-key` (klucz z `user/.keys/server.key`, tworzony przy pierwszym starcie),
+  wynik do `official_servers.d/<id>`. Nic tajnego - to klucz publiczny.
 - Odebranie dostępu: `rm official_servers.d/<id>`.
 - Master przeładowuje folder co minutę, strona czyta go przy każdym raporcie meczu. Restart niepotrzebny.
-- Ten sekret raportuje mecze (nagłówek `apikey`) i podpisuje heartbeaty, więc master pokazuje serwer jako oficjalny.
-- Na dedyku musi działać synchronizacja czasu: podpis z zegarem przesuniętym o ponad 30 s jest odrzucany.
-- Jednorazowa migracja ze starej tabeli `authorized_servers`: `deploy/migrate_authorized_servers.py` (uruchomić na serwerze).
+- Serwer podpisuje kluczem heartbeaty (master pokazuje go jako oficjalny) i raporty meczów (nagłówki `X-Server-Key`, `X-Signature`).
+- Ten sam folder musi być na stronie i na masterze - raport serwera, którego klucza strona jeszcze nie zna, serwer ponawia.
 
 ## 📝 Co Robi Ansible
 

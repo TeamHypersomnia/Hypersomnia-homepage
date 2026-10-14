@@ -208,36 +208,9 @@ http {
     }
     
     #--------------------------------------------------------------------------
-    # BACKEND API - SECURE CONNECT TOKENS
-    #--------------------------------------------------------------------------
-    # The token carries the session keys of a secure connection to an official server,
-    # so it must only ever go over HTTPS and never be cached. The masterserver sets the CORS headers
-    # and rate limits per X-Real-IP.
-    location = /connect_token {
-      proxy_pass http://127.0.0.1:{{ masterserver.server_list_port_http }};
-      proxy_http_version 1.1;
-
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-
-      proxy_no_cache 1;
-      proxy_cache_bypass 1;
-
-      # An add_header here drops the server-level ones, so they are repeated
-      add_header Cache-Control "no-store" always;
-      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-      add_header X-Content-Type-Options "nosniff" always;
-      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-      add_header X-Frame-Options "SAMEORIGIN" always;
-      add_header Alt-Svc 'h3=":443"; ma=86400' always;
-    }
-
-    #--------------------------------------------------------------------------
     # LINKING GAME KEYS - not logged
     #--------------------------------------------------------------------------
-    # The query string carries key signatures and link codes.
+    # The query string carries key signatures.
     location ^~ /link_key {
       access_log off;
 
