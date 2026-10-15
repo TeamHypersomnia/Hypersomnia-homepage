@@ -13,6 +13,9 @@ module.exports = (app) => {
   app.locals.accountLabel = require('../utils').accountLabel;
   app.locals.fullAccountId = require('../utils').fullAccountId;
 
+  // a server's address without the default port - see utils.js
+  app.locals.shownAddress = require('../utils').shownAddress;
+
   // canonical URL of the current page: production domain, no query, no trailing slash
   app.use((req, res, next) => {
     const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : '/';

@@ -112,7 +112,6 @@ function setButtonsLoading(buttons, loadingBtn) {
   buttons.forEach(btn => {
     btn.classList.remove("active");
     btn.disabled = true;
-    btn.dataset.originalText = btn.textContent;
   });
   // The label stays where it is - a spinner to its left, taking no room of its own
   if (loadingBtn) {
@@ -129,7 +128,7 @@ function setButtonsLoading(buttons, loadingBtn) {
 function resetButtons(buttons, activeBtn) {
   buttons.forEach(btn => {
     btn.disabled = false;
-    btn.textContent = btn.dataset.originalText;
+    btn.querySelectorAll(".btn-spinner").forEach(spinner => spinner.remove());
   });
   if (activeBtn) activeBtn.disabled = true;
 }

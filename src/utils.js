@@ -53,10 +53,30 @@ function fullAccountId(id) {
   return id.startsWith('key_') ? `0x${id.slice(4)}` : id;
 }
 
+/*
+  A server's address as the game shows it - without the default port 8412, which a join without a port uses anyway:
+  "1.2.3.4:8412" is "1.2.3.4", "[::1]:8412" is "[::1]"; any other port stays. Never a bare IPv6 nor a WebRTC id
+  ("rtc:..."), and never the address in a URL or a browser join (there the port is part of the server's id).
+*/
+function shownAddress(address) {
+  const a = String(address).trim();
+  const suffix = ':8412';
+
+  if (a.startsWith('rtc:') || !a.endsWith(suffix)) {
+    return a;
+  }
+
+  const host = a.slice(0, -suffix.length);
+  const bracketedIpv6 = host.startsWith('[') && host.endsWith(']');
+
+  return (!bracketedIpv6 && host.includes(':')) ? a : host;
+}
+
 module.exports = {
   getRank,
   formatMMRDelta,
   countryCodeToEmoji,
   accountLabel,
-  fullAccountId
+  fullAccountId,
+  shownAddress
 };

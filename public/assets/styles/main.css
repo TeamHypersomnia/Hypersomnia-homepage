@@ -793,6 +793,16 @@ td.sv-flag + td {
   padding: 0;
 }
 
+.copy-cell {
+  width: 1%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.copy-cell .copy-btn {
+  margin-right: 0;
+}
+
 .copy-btn:hover {
   color: var(--white);
 }
@@ -1706,7 +1716,7 @@ footer > a:hover {
 
 .server-key {
   display: inline-flex;
-  max-width: calc(100% - 2em);
+  max-width: 100%;
   min-width: 0;
   white-space: nowrap;
   vertical-align: bottom;
@@ -1720,6 +1730,17 @@ footer > a:hover {
 
 .server-key-end {
   flex-shrink: 0;
+}
+
+/* The end of Link with Steam in the browser - big, read at a glance before going back to the game */
+.link-result-title {
+  font-size: 2.6em;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+}
+
+.link-result-message {
+  font-size: 1.6em;
 }
 
 /* /link_key/start: which Steam account the game gets linked to */

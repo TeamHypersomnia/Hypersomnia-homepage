@@ -1,30 +1,30 @@
 <%- include('overall_header'); %>
 
 <h1><%= sv.name %></h1>
-<%# A value with an icon copying it - the icon first, so the icons of all the rows make one column %>
+<%# The icons copying the values in a column of their own, between the labels and the values %>
 <% const escaped = (value) => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); %>
-<% const copy_icon = (value, what) => `<button type="button" class="copy-btn" data-copy="${escaped(value)}" title="Copy the ${what}" aria-label="Copy the ${what}"><i class="fa-regular fa-copy"></i></button>`; %>
-<% const copyable = (value, what) => copy_icon(value, what) + `<span>${escaped(value)}</span>`; %>
+<% const copy_cell = (value, what) => `<td class="copy-cell"><button type="button" class="copy-btn" data-copy="${escaped(value)}" title="Copy the ${what}" aria-label="Copy the ${what}"><i class="fa-regular fa-copy"></i></button></td>`; %>
+<% const no_copy_cell = `<td class="copy-cell"></td>`; %>
 <div class="box">
   <div class="responsive">
     <table>
       <thead>
         <tr>
-          <th colspan="2">Details</th>
+          <th colspan="3">Details</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td class="detail-label">Name</td>
-          <td><%- copyable(sv.name, 'name') %></td>
+          <%- copy_cell(sv.name, 'name') %><td><%= sv.name %></td>
         </tr>
         <tr>
           <td class="detail-label">IP address</td>
-          <td><%- copy_icon(sv.ip, 'address') %><code><%= sv.ip %></code></td>
+          <%- copy_cell(shownAddress(sv.ip), 'address') %><td><code><%= shownAddress(sv.ip) %></code></td>
         </tr>
         <tr>
           <td class="detail-label">Version</td>
-          <td><%- copyable(sv.server_version, 'version') %></td>
+          <%- copy_cell(sv.server_version, 'version') %><td><%= sv.server_version %></td>
         </tr>
         <% if (typeof sv.server_public_key === 'string' && /^[0-9a-f]{64}$/.test(sv.server_public_key)) { %>
         <%# what the game checks the server by - the same as in the game's server details %>
@@ -32,36 +32,38 @@
           <td class="detail-label">Server public key</td>
           <%# cut in the middle where the page is too narrow - the end of a key tells keys apart too %>
           <% const full_key = '0x' + sv.server_public_key; %>
-          <td class="server-key-cell"><%- copy_icon(full_key, 'server key') %><span class="server-key" title="<%= full_key %>"><span class="server-key-start"><%= full_key.slice(0, -10) %></span><span class="server-key-end"><%= full_key.slice(-10) %></span></span></td>
+          <%- copy_cell(full_key, 'server key') %><td class="server-key-cell"><span class="server-key" title="<%= full_key %>"><span class="server-key-start"><%= full_key.slice(0, -10) %></span><span class="server-key-end"><%= full_key.slice(-10) %></span></span></td>
         </tr>
         <% } %>
         <tr>
           <td class="detail-label">First / Last Heartbeat</td>
-          <td><%= sv.time_hosted_ago %> / <%= sv.time_last_heartbeat_ago %></td>
+          <%- no_copy_cell %><td><%= sv.time_hosted_ago %> / <%= sv.time_last_heartbeat_ago %></td>
         </tr>
         <tr>
           <td class="detail-label">Arena</td>
-          <td><% if (hasArena(sv.arena)) { %><%- copy_icon(sv.arena, 'arena') %><a class="arena-link" href="/arenas/<%= sv.arena %>"><%= sv.arena %></a><% } else { %><%- copyable(sv.arena, 'arena') %><% } %></td>
+          <%- copy_cell(sv.arena, 'arena') %><td><% if (hasArena(sv.arena)) { %><a class="arena-link" href="/arenas/<%= sv.arena %>"><%= sv.arena %></a><% } else { %><%= sv.arena %><% } %></td>
         </tr>
         <tr>
           <td class="detail-label">Game mode</td>
-          <td><%- copyable(sv.game_mode, 'game mode') %></td>
+          <%- copy_cell(sv.game_mode, 'game mode') %><td><%= sv.game_mode %></td>
         </tr>
         <tr>
           <td class="detail-label">Players</td>
-          <td><%= sv.num_online %>/<%= sv.max_online %></td>
+          <%- no_copy_cell %><td><%= sv.num_online %>/<%= sv.max_online %></td>
         </tr>
         <tr>
           <td class="detail-label">Score</td>
-          <td><%= sv.score_resistance %>-<%= sv.score_metropolis %></td>
+          <%- no_copy_cell %><td><%= sv.score_resistance %>-<%= sv.score_metropolis %></td>
         </tr>
         <tr>
-          <td class="detail-label" rowspan="2">Join server</td>
           <% const keyed = (typeof sv.server_public_key === 'string' && /^[0-9a-f]{64}$/.test(sv.server_public_key)) ? ',' + sv.server_public_key : ''; %>
-          <td><a class="sv-connect" href="steam://run/2660970//<%= sv.site_displayed_address %><%= keyed %>/"><i class="fa-brands fa-steam"></i>Connect via Steam</a></td>
+          <% const steam_link = `steam://run/2660970//${shownAddress(sv.site_displayed_address)}${keyed}/`; %>
+          <% const browser_link = `https://play.hypersomnia.io/game/${sv.browser_connect_string}${keyed}`; %>
+          <td class="detail-label"></td><%- copy_cell(steam_link, 'Steam link') %><td><a class="sv-connect" href="<%= steam_link %>"><i class="fa-brands fa-steam"></i>Connect via Steam</a></td>
         </tr>
         <tr>
-          <td><a class="sv-connect" href="https://play.hypersomnia.io/game/<%= sv.browser_connect_string %><%= keyed %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser</a></td>
+          <td class="detail-label"></td><%- copy_cell(browser_link, 'browser link') %><td><a class="sv-connect" href="<%= browser_link %>"><i class="fa-solid fa-right-to-bracket"></i>Play in Browser</a></td>
+        </tr>
       </tbody>
     </table>
   </div>

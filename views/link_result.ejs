@@ -3,7 +3,7 @@
 <%# the end of "Link with Steam" in the browser: the game takes it from here - or what went wrong %>
 <div class="link-confirm">
   <p class="link-result-title"><% if (ok) { %><i class="fa-solid fa-circle-check" style="color: #4caf50;"></i><% } else { %><i class="fa-solid fa-circle-exclamation" style="color: #e05050;"></i><% } %> <%= title %></p>
-  <p><%= message %></p>
+  <p class="link-result-message"><%= message %></p>
 </div>
 
 <%- include('overall_footer'); %>
