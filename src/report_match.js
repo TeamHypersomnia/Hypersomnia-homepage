@@ -41,9 +41,8 @@ function isWeekendEveningTime(isoTimestamp, location_id) {
     "ch": "Europe/Zurich",
     "nl": "Europe/Amsterdam"
   };
-  // Every instance its own id ("de", "de-ranked1", "us-central-2"): the zone of the host's prefix
-  const zoneKey = Object.keys(timeZoneMap).find((k) => location_id === k || (typeof location_id === 'string' && location_id.startsWith(k + '-')));
-  const timeZone = zoneKey ? timeZoneMap[zoneKey] : undefined;
+  // The host's id - all its instances share it (one key per host)
+  const timeZone = Object.prototype.hasOwnProperty.call(timeZoneMap, location_id) ? timeZoneMap[location_id] : undefined;
   if (!timeZone) return false;
 
   const dt = new Date(isoTimestamp);
