@@ -1,8 +1,10 @@
 <%- include('overall_header'); %>
 
 <h1><%= sv.name %></h1>
-<%# A value with an icon copying it %>
-<% const copyable = (value, what) => `<span>${String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span><button type="button" class="copy-btn" data-copy="${String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}" title="Copy the ${what}" aria-label="Copy the ${what}"><i class="fa-regular fa-copy"></i></button>`; %>
+<%# A value with an icon copying it - the icon first, so the icons of all the rows make one column %>
+<% const escaped = (value) => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); %>
+<% const copy_icon = (value, what) => `<button type="button" class="copy-btn" data-copy="${escaped(value)}" title="Copy the ${what}" aria-label="Copy the ${what}"><i class="fa-regular fa-copy"></i></button>`; %>
+<% const copyable = (value, what) => copy_icon(value, what) + `<span>${escaped(value)}</span>`; %>
 <div class="box">
   <div class="responsive">
     <table>
@@ -18,7 +20,7 @@
         </tr>
         <tr>
           <td class="detail-label">IP address</td>
-          <td><code><%= sv.ip %></code><button type="button" class="copy-btn" data-copy="<%= sv.ip %>" title="Copy the address" aria-label="Copy the address"><i class="fa-regular fa-copy"></i></button></td>
+          <td><%- copy_icon(sv.ip, 'address') %><code><%= sv.ip %></code></td>
         </tr>
         <tr>
           <td class="detail-label">Version</td>
@@ -30,7 +32,7 @@
           <td class="detail-label">Server public key</td>
           <%# cut in the middle where the page is too narrow - the end of a key tells keys apart too %>
           <% const full_key = '0x' + sv.server_public_key; %>
-          <td class="server-key-cell"><span class="server-key" title="<%= full_key %>"><span class="server-key-start"><%= full_key.slice(0, -10) %></span><span class="server-key-end"><%= full_key.slice(-10) %></span></span><button type="button" class="copy-btn" data-copy="0x<%= sv.server_public_key %>" title="Copy the server key" aria-label="Copy the server key"><i class="fa-regular fa-copy"></i></button></td>
+          <td class="server-key-cell"><%- copy_icon(full_key, 'server key') %><span class="server-key" title="<%= full_key %>"><span class="server-key-start"><%= full_key.slice(0, -10) %></span><span class="server-key-end"><%= full_key.slice(-10) %></span></span></td>
         </tr>
         <% } %>
         <tr>
@@ -39,7 +41,7 @@
         </tr>
         <tr>
           <td class="detail-label">Arena</td>
-          <td><% if (hasArena(sv.arena)) { %><a class="arena-link" href="/arenas/<%= sv.arena %>"><%= sv.arena %></a><button type="button" class="copy-btn" data-copy="<%= sv.arena %>" title="Copy the arena" aria-label="Copy the arena"><i class="fa-regular fa-copy"></i></button><% } else { %><%- copyable(sv.arena, 'arena') %><% } %></td>
+          <td><% if (hasArena(sv.arena)) { %><%- copy_icon(sv.arena, 'arena') %><a class="arena-link" href="/arenas/<%= sv.arena %>"><%= sv.arena %></a><% } else { %><%- copyable(sv.arena, 'arena') %><% } %></td>
         </tr>
         <tr>
           <td class="detail-label">Game mode</td>
