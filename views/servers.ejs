@@ -27,10 +27,11 @@
         <td data-sort="<%= humans %>" class="<%= humans > 0 ? 'online' : 'dimmed' %>"><%= humans %>/<%= v.max_online %></td>
         <td class="sv-hide-mobile"><% if (hasArena(v.arena)) { %><a class="arena-link" href="/arenas/<%= v.arena %>"><%= v.arena %></a><% } else { %><%= v.arena %><% } %></td>
         <td class="sv-hide-mobile"><%= v.game_mode %></td>
-        <td class="sv-hide-mobile sv-address" data-sort="<%= v.site_displayed_address %>"><button type="button" class="copy-btn" data-copy="<%= v.site_displayed_address %>" title="Copy address" aria-label="Copy address"><i class="fa-regular fa-copy"></i></button><span><%= v.site_displayed_address %></span></td>
+        <% const keyed = (typeof v.server_public_key === 'string' && /^[0-9a-f]{64}$/.test(v.server_public_key)) ? ',' + v.server_public_key : ''; %>
+        <td class="sv-hide-mobile sv-address" data-sort="<%= v.site_displayed_address %>"><button type="button" class="copy-btn" data-copy="<%= v.site_displayed_address %><%= keyed %>" title="Copy the address with the server's key" aria-label="Copy the address with the server's key"><i class="fa-regular fa-copy"></i></button><span><%= v.site_displayed_address %></span></td>
         <td class="sv-actions">
-          <a href="steam://run/2660970//<%= v.site_displayed_address %>/" title="Connect via Steam"><i class="fa-brands fa-steam"></i>Steam</a>
-          <a href="https://play.hypersomnia.io/game/<%= v.browser_connect_string %>" title="Play in Browser"><i class="fa-solid fa-right-to-bracket"></i>Browser</a>
+          <a href="steam://run/2660970//<%= v.site_displayed_address %><%= keyed %>/" title="Connect via Steam"><i class="fa-brands fa-steam"></i>Steam</a>
+          <a href="https://play.hypersomnia.io/game/<%= v.browser_connect_string %><%= keyed %>" title="Play in Browser"><i class="fa-solid fa-right-to-bracket"></i>Browser</a>
         </td>
       </tr>
       <% }); %>
