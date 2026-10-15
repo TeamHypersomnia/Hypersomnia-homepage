@@ -13,7 +13,7 @@ const MIN_ROUNDS_TO_COUNT_WINS = 5;
 const MAX_REPORT_AGE_SECS = 3 * 24 * 60 * 60;
 
 const { officialServerAuth } = require('./official_servers');
-const { parseAvatar, setAvatar } = require('./avatars');
+const { parseAvatar, setAvatar, isValidAccountId } = require('./avatars');
 const apiKeyAuth = officialServerAuth();
 
 // Player helpers
@@ -29,37 +29,6 @@ const contributed_to_match = (player, is_teammate) => {
   }
   return true;
 };
-
-// Pure JS replacement for moment-timezone
-function isWeekendEveningTime(isoTimestamp, location_id) {
-  const timeZoneMap = {
-    "au": "Australia/Sydney",
-    "ru": "Europe/Moscow",
-    "de": "Europe/Berlin",
-    "us-central": "America/Chicago",
-    "pl": "Europe/Warsaw",
-    "ch": "Europe/Zurich",
-    "nl": "Europe/Amsterdam"
-  };
-  // The host's id - all its instances share it (one key per host)
-  const timeZone = Object.prototype.hasOwnProperty.call(timeZoneMap, location_id) ? timeZoneMap[location_id] : undefined;
-  if (!timeZone) return false;
-
-  const dt = new Date(isoTimestamp);
-  // Get weekday and hour in target timezone
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    weekday: 'short',
-    hour: '2-digit',
-    hour12: false
-  }).formatToParts(new Date(isoTimestamp));
-
-  const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-  const dayOfWeek = dayMap[parts.find(p => p.type === 'weekday').value];
-  const hour = Number(parts.find(p => p.type === 'hour').value);
-
-  return (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) && hour >= 19 && hour < 21;
-}
 
 // Other helpers
 function lose_severity(win, lose) {
@@ -126,6 +95,14 @@ router.post('/', apiKeyAuth, (req, res) => {
   }
   losers_abandoned = losers_abandoned || false;
 
+  // Only accounts someone vouched for - never nick_ ones (nickname auth: anyone could take the name)
+  const invalid = [...win_players, ...lose_players].find(id => !isValidAccountId(id));
+
+  if (invalid !== undefined) {
+    console.error('[report_match] Refused: an account id that is not steam_/discord_/crazygames_/key_.', JSON.stringify({ server_name, server_id: req.server_id, invalid }));
+    return res.status(400).json({ error: 'Invalid account id' });
+  }
+
   /*
     The game server's id of the match: the same report retried after an answer it did not get is not counted twice.
   */
@@ -190,8 +167,9 @@ router.post('/', apiKeyAuth, (req, res) => {
     }
 
     db.transaction(() => {
-      const is_happy_hours = isWeekendEveningTime(match_start_date, req.server_id);
-      const event_match_multiplier = is_happy_hours ? 2 : 1;
+      // The server's event when the match started (happy hours by its own time zone) - an official server is trusted
+      // with it, as with the whole report; 1 or 2 only
+      const event_match_multiplier = req.body.event_match_multiplier === 2 ? 2 : 1;
       const total_rounds_played = win_score + lose_score;
       const should_count_wins = total_rounds_played >= MIN_ROUNDS_TO_COUNT_WINS;
 

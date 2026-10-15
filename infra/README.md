@@ -130,8 +130,7 @@ Dodaj/usuń serwery tutaj. Obecnie:
 ### Oficjalne serwery (`official_servers.d`)
 
 Każdy oficjalny serwer to jeden plik w `/var/www/app/private/official_servers.d/`:
-nazwa pliku = id hosta, a zarazem strefa czasowa happy hours - jedna z `au`, `ru`, `de`, `us-central`, `pl`, `ch`, `nl`,
-`fi` (inna nazwa = bez happy hours; gra bierze strefę z tego samego id przez listę mastera), treść = jego klucz publiczny
+nazwa pliku = id hosta (dowolna, np. `de`, `de-2`), treść = klucz publiczny hosta
 (64 znaki hex). Jeden klucz na host: wszystkie instancje hosta (casuale, rankedy, mecze turnieju) mają ten sam klucz
 i różnią się etykietą w heartbeacie (`c1`, `c2`, `r1`, `t1`).
 
