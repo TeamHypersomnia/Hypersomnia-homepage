@@ -114,9 +114,13 @@ function setButtonsLoading(buttons, loadingBtn) {
     btn.disabled = true;
     btn.dataset.originalText = btn.textContent;
   });
+  // The label stays where it is - a spinner to its left, taking no room of its own
   if (loadingBtn) {
     loadingBtn.classList.add("active");
-    loadingBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+    const spinner = document.createElement("span");
+    spinner.className = "btn-spinner";
+    spinner.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    loadingBtn.prepend(spinner);
   }
 }
 

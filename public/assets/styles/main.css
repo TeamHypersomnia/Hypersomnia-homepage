@@ -1680,6 +1680,14 @@ footer > a:hover {
   white-space: nowrap;
 }
 
+/* A spinner left of a button's label while it loads - no room of its own, so the label never moves */
+.btn-spinner {
+  display: inline-block;
+  width: 0;
+  position: relative;
+  left: -1.3em;
+}
+
 /* A server's details: the labels on one line, as wide as the longest */
 .detail-label {
   white-space: nowrap;
