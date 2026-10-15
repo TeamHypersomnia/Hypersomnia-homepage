@@ -1680,6 +1680,16 @@ footer > a:hover {
   white-space: nowrap;
 }
 
+/* A server's whole public key on its page - cut with "…" only where the page is too narrow for it */
+.server-key {
+  display: inline-block;
+  max-width: calc(100% - 2.5em);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
 /* /link_key/start: which Steam account the game gets linked to */
 .link-confirm {
   display: flex;

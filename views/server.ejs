@@ -22,7 +22,7 @@
         <%# what the game checks the server by - the same as in the game's server details %>
         <tr>
           <td>Server public key</td>
-          <td><span class="account-key" title="0x<%= sv.server_public_key %>">0x<%= sv.server_public_key.slice(0, 8) %>…</span><button type="button" class="copy-btn" data-copy="0x<%= sv.server_public_key %>" title="Copy the server key" aria-label="Copy the server key"><i class="fa-regular fa-copy"></i></button></td>
+          <td><span class="server-key" title="0x<%= sv.server_public_key %>">0x<%= sv.server_public_key %></span><button type="button" class="copy-btn" data-copy="0x<%= sv.server_public_key %>" title="Copy the server key" aria-label="Copy the server key"><i class="fa-regular fa-copy"></i></button></td>
         </tr>
         <% } %>
         <tr>
