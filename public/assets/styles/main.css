@@ -1680,14 +1680,35 @@ footer > a:hover {
   white-space: nowrap;
 }
 
-/* A server's whole public key on its page - cut with "…" only where the page is too narrow for it */
+/* A server's details: the labels on one line, as wide as the longest */
+.detail-label {
+  white-space: nowrap;
+  width: 1%;
+}
+
+/* A server's whole public key on its page - cut with "…" in the middle only where the page is too narrow for it
+   (max-width: 0 lets its cell take only the room the table has, not the key's whole length) */
+.server-key-cell {
+  max-width: 0;
+  width: 100%;
+}
+
 .server-key {
-  display: inline-block;
-  max-width: calc(100% - 2.5em);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: inline-flex;
+  max-width: calc(100% - 2em);
+  min-width: 0;
   white-space: nowrap;
   vertical-align: bottom;
+}
+
+.server-key-start {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.server-key-end {
+  flex-shrink: 0;
 }
 
 /* /link_key/start: which Steam account the game gets linked to */
