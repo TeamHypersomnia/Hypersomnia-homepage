@@ -384,7 +384,7 @@ async function crazyGamesAccount(token) {
     throw { status: 401, message: 'Invalid CrazyGames token.' };
   }
 
-  return `crazygames_${payload.userId}`;
+  return { account: `crazygames_${payload.userId}`, expiresAt: payload.exp };
 }
 
 function keyAccount(publicKeyHex, signatureHex, sessionPublicKey) {
@@ -449,11 +449,18 @@ router.get('/', async (req, res) => {
   const deadline = Date.now() + 4000;
 
   try {
+    // A cert never outlives what proved the account (a CrazyGames token lasts about an hour)
+    let provenUntil = Infinity;
+
     const account = await (async () => {
       if (typeof steam === 'string' && /^[0-9a-f]{2,4096}$/.test(steam)) {
         return steamAccount(steam, sessionPublicKey, ip);
       }
-      if (typeof crazygames === 'string' && crazygames.length <= 4096) return crazyGamesAccount(crazygames);
+      if (typeof crazygames === 'string' && crazygames.length <= 4096) {
+        const proven = await crazyGamesAccount(crazygames);
+        provenUntil = proven.expiresAt;
+        return proven.account;
+      }
       if (typeof key === 'string' && typeof sig === 'string') {
         const resolved = keyAccount(key, sig, sessionPublicKey);
 
@@ -478,7 +485,7 @@ router.get('/', async (req, res) => {
       account,
       sessionPublicKey,
       notBefore: now,
-      notAfter: now + CERT_LIFETIME_SECS
+      notAfter: Math.min(now + CERT_LIFETIME_SECS, provenUntil)
     });
 
     const profile = await accountProfile(account, ip, deadline);

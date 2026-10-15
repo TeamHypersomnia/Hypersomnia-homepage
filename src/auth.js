@@ -80,19 +80,29 @@ module.exports = (passport) => {
       return res.redirect('/?error=login_required');
     }
     
+    // Only the Discord sign-in this session started comes back - a code sent by someone else (their Discord) is refused
+    req.session.discord_state = require('crypto').randomBytes(16).toString('hex');
+
     const authUrl = 'https://discord.com/api/oauth2/authorize?' + querystring.stringify({
       client_id: config.DISCORD_CLIENT_ID,
       redirect_uri: DISCORD_REDIRECT_URI,
       response_type: 'code',
-      scope: 'identify'
+      scope: 'identify',
+      state: req.session.discord_state
     });
     res.redirect(authUrl);
   });
   
   router.get('/discord/return', async (req, res) => {
-    const { code } = req.query;
-    
+    const { code, state } = req.query;
+    const expected = req.session.discord_state;
+    delete req.session.discord_state;
+
     if (!code) {
+      return res.redirect('/profile?error=no_code');
+    }
+
+    if (typeof state !== 'string' || typeof expected !== 'string' || state !== expected) {
       return res.redirect('/profile?error=no_code');
     }
     
