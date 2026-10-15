@@ -58,3 +58,12 @@
     state: started
     enabled: yes
   become: yes
+
+# The host's time zone: an official server's ranked matches get happy hours (2x, Friday to Sunday 19:00-21:00) there.
+# A host left in UTC has none - set `timezone` (an IANA name) for every host in the inventory.
+- name: Set the time zone
+  command: timedatectl set-timezone {{ timezone }}
+  become: yes
+  when: timezone is defined
+  changed_when: false
+

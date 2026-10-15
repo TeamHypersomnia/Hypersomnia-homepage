@@ -14,6 +14,8 @@ all:
           ansible_host: 80.78.132.21
           ansible_port: 10600
           ansible_user: hypersomnia
+          # The host's time zone - happy hours of its ranked matches (UTC: none)
+          timezone: Europe/Amsterdam
           # Optional: Override default ports
           gameserver_port: 10601
           webrtc_first_port: 10610

@@ -134,8 +134,9 @@ nazwa pliku = id hosta (dowolna, np. `de`, `de-2`), treść = klucz publiczny ho
 (64 znaki hex). Jeden klucz na host: wszystkie instancje hosta (casuale, rankedy, mecze turnieju) mają ten sam klucz
 i różnią się etykietą w heartbeacie (`c1`, `c2`, `r1`, `t1`).
 
-- Strefa czasowa hosta (happy hours i lokalizacja na liście): `sudo timedatectl set-timezone Europe/Berlin` (strefa
-  miejsca, gdzie stoi). Host w UTC nie ma happy hours - serwer pisze o tym w logu. Awaryjnie `server.time_zone` w conf.d.
+- Strefa czasowa hosta (happy hours i lokalizacja na liście): zmienna `timezone` hosta w inventory (np. `Europe/Berlin`),
+  ustawia ją `common.yml`; ręcznie `sudo timedatectl set-timezone Europe/Berlin`. Host w UTC nie ma happy hours - serwer
+  pisze o tym w logu. Awaryjnie `server.time_zone` w conf.d.
 - Dodanie serwera: na dedyku `Hypersomnia --print-server-key` (klucz z `user/.keys/server.key`, tworzonego przy
   pierwszym starcie), wynik do `official_servers.d/<id>`. Nic tajnego - to klucz publiczny.
 - Przeniesienie serwera na inny host: skopiować `server.key` - klucz zostaje ten sam. Różne kontynenty = różne klucze.
