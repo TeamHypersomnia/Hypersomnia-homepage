@@ -307,8 +307,8 @@ router.get('/start', (req, res) => {
   }
 
   if (!freshlySignedInFor(req, params)) {
-    req.session.after_login = params.path;
-    return res.redirect('/auth/steam');
+    req.session.link_page = params.path;
+    return res.redirect('/auth/steam/link');
   }
 
   res.set('Cache-Control', 'no-store');

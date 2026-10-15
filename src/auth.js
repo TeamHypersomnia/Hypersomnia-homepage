@@ -26,33 +26,48 @@ const stmts = {
 
 module.exports = (passport) => {
   
-  // Steam authentication
+  function recordSignIn(req) {
+    stmts.upsertUser.run(
+      req.user.id,
+      req.user.displayName,
+      req.ip,
+      req.get('user-agent') || null,
+      req.get('accept-language')?.split(',')[0] || null
+    );
+  }
+
+  // Steam authentication - always back to /profile
   router.get('/steam', passport.authenticate('steam', { failureRedirect: '/' }));
-  
-  // keepSessionInfo: a sign in started by the game ("Sign in with Steam") continues where it was - see link_key.js
-  router.get('/steam/return', passport.authenticate('steam', { failureRedirect: '/', keepSessionInfo: true }), (req, res) => {
+
+  router.get('/steam/return', passport.authenticate('steam', { failureRedirect: '/' }), (req, res) => {
     try {
-      stmts.upsertUser.run(
-        req.user.id,
-        req.user.displayName,
-        req.ip,
-        req.get('user-agent') || null,
-        req.get('accept-language')?.split(',')[0] || null
-      );
-      const after = req.session.after_login;
-      delete req.session.after_login;
-
-      if (typeof after === 'string' && after.startsWith('/link_key/start?')) {
-        // Signed in anew for this link page - see link_key.js
-        req.session.fresh_link_state = new URLSearchParams(after.slice(after.indexOf('?') + 1)).get('state');
-        return res.redirect(after);
-      }
-
-      if (after === '/link') {
-        return res.redirect(after);
-      }
-
+      recordSignIn(req);
       res.redirect('/profile');
+    } catch (err) {
+      console.error('DB Error:', err.message);
+      res.redirect('/profile?error=db_fail');
+    }
+  });
+
+  /*
+    The sign-in of a game's link page (link_key.js): back to that page, signed in anew for its state.
+    keepSessionInfo: the page it came from stays in the session.
+  */
+  router.get('/steam/link', passport.authenticate('steam-link', { failureRedirect: '/' }));
+
+  router.get('/steam/link/return', passport.authenticate('steam-link', { failureRedirect: '/', keepSessionInfo: true }), (req, res) => {
+    try {
+      recordSignIn(req);
+
+      const page = req.session.link_page;
+      delete req.session.link_page;
+
+      if (typeof page !== 'string' || !page.startsWith('/link_key/start?')) {
+        return res.redirect('/profile');
+      }
+
+      req.session.fresh_link_state = new URLSearchParams(page.slice(page.indexOf('?') + 1)).get('state');
+      res.redirect(page);
     } catch (err) {
       console.error('DB Error:', err.message);
       res.redirect('/profile?error=db_fail');
