@@ -117,10 +117,12 @@ function setButtonsLoading(buttons, loadingBtn) {
   // The label stays where it is - a spinner to its left, taking no room of its own
   if (loadingBtn) {
     loadingBtn.classList.add("active");
+    const label = loadingBtn.querySelector("span") || loadingBtn;
     const spinner = document.createElement("span");
     spinner.className = "btn-spinner";
     spinner.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-    loadingBtn.prepend(spinner);
+    label.classList.add("btn-spinner-anchor");
+    label.prepend(spinner);
   }
 }
 

@@ -1681,11 +1681,14 @@ footer > a:hover {
 }
 
 /* A spinner left of a button's label while it loads - no room of its own, so the label never moves */
-.btn-spinner {
-  display: inline-block;
-  width: 0;
+.btn-spinner-anchor {
   position: relative;
-  left: -1.3em;
+}
+
+.btn-spinner {
+  position: absolute;
+  right: 100%;
+  margin-right: 0.4em;
 }
 
 /* A server's details: the labels on one line, as wide as the longest */
