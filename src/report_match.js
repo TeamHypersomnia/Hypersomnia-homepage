@@ -89,6 +89,10 @@ router.post('/', apiKeyAuth, (req, res) => {
     console.error('[report_match] Validation failed: missing required match data.', JSON.stringify({ server_name, arena, game_mode, win_score, lose_score, has_win_players: !!win_players, has_lose_players: !!lose_players, has_player_infos: !!player_infos, match_start_date }));
     return res.status(400).json({ error: 'Missing required match data' });
   }
+  // Shown as they are on players' pages - only whole numbers, whatever a server sends
+  if (!Number.isInteger(win_score) || !Number.isInteger(lose_score) || win_score < 0 || lose_score < 0) {
+    return res.status(400).json({ error: 'The scores must be whole numbers' });
+  }
   if (win_players.length === 0 || lose_players.length === 0) {
     console.error('[report_match] Validation failed: empty player arrays.', JSON.stringify({ win_players_len: win_players.length, lose_players_len: lose_players.length }));
     return res.status(400).json({ error: 'Player arrays cannot be empty' });

@@ -72,7 +72,7 @@ function buildLeaderboardRow(player, index) {
   const rank = RANK_MEDALS[index] ?? index + 1;
   const rankImg = `https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/${player.rankImg}`;
   const profile = `/user/${player.account_id}`;
-  const name = player.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const name = String(player.nickname).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const total = player.matches_won + player.matches_lost;
   const winRate = total === 0 ? "0%" : `${Math.round((player.matches_won / total) * 100)}%`;
   const wlDiff = player.matches_won - player.matches_lost;
