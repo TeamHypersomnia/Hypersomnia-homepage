@@ -48,23 +48,6 @@ router.post('/', apiKeyAuth, (req, res) => {
         WHERE account_id = ?
       `);
 
-      /*
-        A key linked or unlinked since the match: its progress row is not the one the match changed (moved to the Steam
-        account, or a fresh one) - refused instead of a silent no-op or negative counts.
-      */
-      const matchTime = Math.floor(Date.parse(match.match_start_date) / 1000) || 0;
-      const changedAt = db.prepare('SELECT changed_at FROM key_link_changes WHERE child_id = ?');
-
-      for (const player of [...winners, ...losers]) {
-        const change = typeof player.id === 'string' && player.id.startsWith('key_') ? changedAt.get(player.id) : null;
-
-        if (change && change.changed_at >= matchTime) {
-          const error = new Error(`Match ${match_id}: ${player.id} was linked or unlinked since - not reverting`);
-          error.status = 409;
-          throw error;
-        }
-      }
-
       const revertRecorded = (player) => {
         if (typeof player.won !== 'number') return false;
 

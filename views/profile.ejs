@@ -66,7 +66,7 @@
         <td><% const osIcons = { windows: ['fa-brands fa-windows', 'Windows'], linux: ['fa-brands fa-linux', 'Linux'], mac: ['fa-brands fa-apple', 'Mac'], web: ['fa-solid fa-globe', 'Browser'] }; %><% if (osIcons[linked.os]) { %><i class="<%= osIcons[linked.os][0] %> fa-fw" title="<%= osIcons[linked.os][1] %>"></i> <% } %><%= linked.device || '-' %></td>
         <td><%= linked.lastCertAt ? new Date(linked.lastCertAt * 1000).toISOString().slice(0, 10) : '-' %></td>
         <td class="linked-keys-action">
-          <form class="inline-form" method="POST" action="/profile/unlink_key" onsubmit="return confirm(<%= JSON.stringify('Unlink this game key? Progress from its ranked matches will no longer count towards this Steam account.') %>);">
+          <form class="inline-form" method="POST" action="/profile/unlink_key" onsubmit="return confirm(<%= JSON.stringify('Unlink this game key? Its ranked matches will no longer count towards this Steam account - on a device already signed in, from its next start (at most a few hours).') %>);">
             <input type="hidden" name="key" value="<%= key %>">
             <input class="small danger" type="submit" value="Unlink">
           </form>

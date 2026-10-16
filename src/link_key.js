@@ -22,6 +22,10 @@ const config = require('./config');
   A link or unlink of a key is remembered by its time (key_link_changes): a signed page or request not newer than the
   last change does nothing - a link page used once and sent again later (a browser's history) links nothing.
 
+  Linking moves no progress: the key's matches count towards the Steam account from then on - whoever confirmed a page
+  they should not have (its address seen on a stream) gains nothing, and the game asks its player whether that Steam
+  account is theirs (a refusal is an unlink).
+
   The signature proves the key's owner started it, the Steam session which account it goes to, so nobody can link
   someone else's key, or link their own key to someone else's Steam account (short of being sent a link and confirming
   it - the page warns). A key linked to one Steam account is not moved to another in the browser -
@@ -174,7 +178,6 @@ function linkKey(publicKey, steamId, device, os, t) {
     if (!parent) {
       db.transaction(() => {
         stmts.link.run(child, steamId);
-        moveProgressIfFirst(child, steamId);
         stmts.setLinkMeta.run(child, device, os, Math.floor(Date.now() / 1000));
         stmts.setChangedAt.run(child, Number(t));
       })();
@@ -190,24 +193,6 @@ function linkKey(publicKey, steamId, device, os, t) {
 
   console.log(`[link_key] Linked ${child} to ${steamId}.`);
   return { linked: steamId };
-}
-
-/*
-  Progress on linking: the key's ranked progress in a mode moves to the Steam account only if that account has no matches
-  in that mode yet - otherwise it stays with the key, to be seen on its profile. Never merged, and never moved back on an unlink.
-*/
-function moveProgressIfFirst(child, steamId) {
-  for (const table of ['mmr_team', 'mmr_ffa']) {
-    const own = db.prepare(`SELECT * FROM ${table} WHERE account_id = ?`).get(child);
-    if (!own) continue;
-
-    // Any row of the Steam account is its progress - an FFA match (0:0) or a short one counts no wins nor losses
-    const steam = db.prepare(`SELECT 1 FROM ${table} WHERE account_id = ?`).get(steamId);
-    if (steam) continue;
-
-    db.prepare(`UPDATE ${table} SET account_id = ? WHERE account_id = ?`).run(steamId, child);
-    console.log(`[link_key] Moved the ${table} progress of ${child} to ${steamId}.`);
-  }
 }
 
 /*
@@ -261,15 +246,16 @@ function signedByKey(params) {
 }
 
 /*
-  A link page is good for a while only - one left in a browser's history (a shared computer, a stream) links nothing later.
-  Some slack for a clock ahead.
+  A link page is good for a few minutes only - whoever else sees its address (a stream, a shared computer) could confirm
+  it with their own Steam account. Some slack for a clock ahead. An unlink's signed time is allowed more (a clock behind).
 */
-const LINK_URL_LIFETIME_SECS = 15 * 60;
+const LINK_URL_LIFETIME_SECS = 3 * 60;
+const UNLINK_LIFETIME_SECS = 15 * 60;
 const CLOCK_SLACK_SECS = 10 * 60;
 
-function linkUrlExpired(params) {
+function linkUrlExpired(params, lifetime = LINK_URL_LIFETIME_SECS) {
   const age = Math.floor(Date.now() / 1000) - Number(params.t);
-  return age > LINK_URL_LIFETIME_SECS || age < -CLOCK_SLACK_SECS;
+  return age > lifetime || age < -CLOCK_SLACK_SECS;
 }
 
 const expiredLink = 'This link is too old (or the clock of your computer is off). Start again in the game: Settings - Account - Link with Steam.';
@@ -291,7 +277,14 @@ function freshlySignedInFor(req, params) {
   return req.user && req.session.fresh_link_state === params.state;
 }
 
+// Every GET may make a session (the sign-in comes back to this page) - a script can not fill the database with them
+const allowStartPage = makeLimiter({ perAddress: 20 });
+
 router.get('/start', (req, res) => {
+  if (!allowStartPage(clientIp(req))) {
+    return renderResult(res, 429, false, 'Error', 'Too many attempts. Try again in a minute.');
+  }
+
   const params = startParams(req.query);
 
   if (!params || !signedByKey(params)) {
@@ -389,8 +382,8 @@ router.get('/unlink', (req, res) => {
     return res.status(400).json({ error: 'Invalid request.' });
   }
 
-  if (linkUrlExpired({ t })) {
-    return res.status(400).json({ error: 'The clock of your computer is off.' });
+  if (linkUrlExpired({ t }, UNLINK_LIFETIME_SECS)) {
+    return res.status(400).json({ error: 'The clock of your computer is off. You can also unlink at hypersomnia.io/profile.' });
   }
 
   const child = `key_${key}`;
