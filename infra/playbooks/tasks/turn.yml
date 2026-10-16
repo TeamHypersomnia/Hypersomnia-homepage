@@ -15,12 +15,63 @@
     enabled: yes
   become: yes
 
+# The TURN credentials are public (in the game), and violet relays to any address it is asked to - also to this host's
+# loopback and private networks, reaching services that trust "only local programs talk to me". Violet has no option
+# against it, so it runs as its own user and the firewall drops that user's packets to this host and private networks.
+- name: Create the violet user
+  user:
+    name: violet
+    system: yes
+    create_home: no
+    shell: /usr/sbin/nologin
+  register: violet_user
+  become: yes
+
+- name: Keep violet off this host and private networks (IPv4)
+  blockinfile:
+    path: /etc/ufw/before.rules
+    marker: "# {mark} violet: no relaying to this host or private networks"
+    insertbefore: "^# allow all on loopback"
+    validate: iptables-restore --test --noflush %s
+    block: |
+      -A ufw-before-output -m owner --uid-owner violet -o lo -j DROP
+      -A ufw-before-output -m owner --uid-owner violet -d 0.0.0.0/8 -j DROP
+      -A ufw-before-output -m owner --uid-owner violet -d 10.0.0.0/8 -j DROP
+      -A ufw-before-output -m owner --uid-owner violet -d 100.64.0.0/10 -j DROP
+      -A ufw-before-output -m owner --uid-owner violet -d 127.0.0.0/8 -j DROP
+      -A ufw-before-output -m owner --uid-owner violet -d 169.254.0.0/16 -j DROP
+      -A ufw-before-output -m owner --uid-owner violet -d 172.16.0.0/12 -j DROP
+      -A ufw-before-output -m owner --uid-owner violet -d 192.168.0.0/16 -j DROP
+  register: violet_rules_v4
+  become: yes
+
+- name: Keep violet off this host and private networks (IPv6)
+  blockinfile:
+    path: /etc/ufw/before6.rules
+    marker: "# {mark} violet: no relaying to this host or private networks"
+    insertbefore: "^# allow all on loopback"
+    validate: ip6tables-restore --test --noflush %s
+    block: |
+      -A ufw6-before-output -m owner --uid-owner violet -o lo -j DROP
+      -A ufw6-before-output -m owner --uid-owner violet -d ::1/128 -j DROP
+      -A ufw6-before-output -m owner --uid-owner violet -d fc00::/7 -j DROP
+      -A ufw6-before-output -m owner --uid-owner violet -d fe80::/10 -j DROP
+  register: violet_rules_v6
+  become: yes
+
+- name: Reload the firewall
+  ufw:
+    state: reloaded
+  when: violet_rules_v4.changed or violet_rules_v6.changed
+  become: yes
+
 - name: Run Violet TURN server
   docker_container:
     name: violet
     image: paullouisageneau/violet
     network_mode: host
     restart_policy: always
+    user: "{{ violet_user.uid }}:{{ violet_user.group }}"
     command: "--credentials=somnia:Re8Iefei"
     state: started
   become: yes
