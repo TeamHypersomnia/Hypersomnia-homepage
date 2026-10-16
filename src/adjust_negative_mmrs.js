@@ -13,10 +13,37 @@ const stmts = {
 const { officialServerAuth } = require('./official_servers');
 
 // Restricted to the 'pl' server
-const apiKeyAuth = officialServerAuth(['pl']);
+const apiKeyAuth = officialServerAuth({ tag: 'hs-adjust-v1', onlyServerIds: ['pl'] });
+
+/*
+  An adjustment applies anew every time it is sent - so a signed one counts once and only for a few minutes:
+  "issued_at" (unix seconds) in its body, its signature remembered for as long as it could still pass.
+*/
+const ISSUED_WINDOW_SECS = 300;
+const usedSignatures = new Map();
+
+function firstUse(signatureHex, nowSecs) {
+  for (const [sig, at] of usedSignatures) {
+    if (nowSecs - at > 2 * ISSUED_WINDOW_SECS) usedSignatures.delete(sig);
+  }
+
+  if (usedSignatures.has(signatureHex)) return false;
+
+  usedSignatures.set(signatureHex, nowSecs);
+  return true;
+}
 
 router.post('/', apiKeyAuth, (req, res) => {
-  const { multiplier } = req.body;
+  const { multiplier, issued_at } = req.body;
+  const nowSecs = Math.floor(Date.now() / 1000);
+
+  if (!Number.isInteger(issued_at) || Math.abs(nowSecs - issued_at) > ISSUED_WINDOW_SECS) {
+    return res.status(400).json({ error: 'issued_at missing or too far from now' });
+  }
+
+  if (!firstUse(String(req.headers['x-signature']), nowSecs)) {
+    return res.status(409).json({ error: 'This adjustment was sent already' });
+  }
 
   // Validation: ensures 0 is allowed but rejects negative numbers
   if (multiplier === undefined || typeof multiplier !== 'number' || multiplier < 0) {

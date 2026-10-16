@@ -14,7 +14,7 @@ const MAX_REPORT_AGE_SECS = 3 * 24 * 60 * 60;
 
 const { officialServerAuth } = require('./official_servers');
 const { parseAvatar, setAvatar, isValidAccountId } = require('./avatars');
-const apiKeyAuth = officialServerAuth();
+const apiKeyAuth = officialServerAuth({ tag: 'hs-report-v1' });
 
 // Player helpers
 const abandoned = (player) => typeof player.abandoned_at_score === 'number' && player.abandoned_at_score >= 0;

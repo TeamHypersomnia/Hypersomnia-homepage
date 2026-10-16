@@ -13,6 +13,7 @@ const identityCert = require('./identity_cert');
   Read exactly like the masterserver does (official_servers_registry.h): a key shared by two files authorizes neither.
 
   An official server signs its match reports with its key: X-Server-Key and X-Signature over "hs-report-v1" and the body.
+  Each endpoint has its own tag ("hs-revert-v1", "hs-adjust-v1") - a body signed for one never passes for another.
 */
 
 const dir = config.OFFICIAL_SERVERS_DIR;
@@ -126,10 +127,10 @@ function logRefusal(message) {
 }
 
 /*
-  Express middleware: authorizes an official server by the signature of its key over the raw body
-  and sets req.server_id. With onlyServerIds, only those servers are let in.
+  Express middleware: authorizes an official server by the signature of its key over the endpoint's tag and the raw
+  body, and sets req.server_id. With onlyServerIds, only those servers are let in.
 */
-function officialServerAuth(onlyServerIds = null) {
+function officialServerAuth({ tag = 'hs-report-v1', onlyServerIds = null } = {}) {
   return (req, res, next) => {
     const keyHex = String(req.headers['x-server-key'] || '');
     const signatureHex = String(req.headers['x-signature'] || '');
@@ -152,7 +153,7 @@ function officialServerAuth(onlyServerIds = null) {
 
     // The same check as linking's - weak (small order) keys refused too
     const { verifySignature } = require('./link_key');
-    const valid = verifySignature(keyHex, Buffer.concat([Buffer.from('hs-report-v1'), req.rawBody]), signatureHex);
+    const valid = verifySignature(keyHex, Buffer.concat([Buffer.from(tag), req.rawBody]), signatureHex);
 
     if (!valid) return res.status(401).json({ error: 'Unauthorized' });
     if (onlyServerIds && !onlyServerIds.includes(serverId)) return res.status(401).json({ error: 'Unauthorized' });

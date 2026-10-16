@@ -4,7 +4,8 @@ const db = require('./db');
 const router = express.Router();
 
 const { officialServerAuth } = require('./official_servers');
-const apiKeyAuth = officialServerAuth();
+// A revert sent again finds no match - nothing to guard against a replay
+const apiKeyAuth = officialServerAuth({ tag: 'hs-revert-v1' });
 
 router.post('/', apiKeyAuth, (req, res) => {
   const { match_id } = req.body;
