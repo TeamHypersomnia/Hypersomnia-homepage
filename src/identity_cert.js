@@ -7,7 +7,11 @@ const crypto = require('crypto');
 
 const CERT_TAG = Buffer.from('hs-cert-v1');
 const CERT_REQUEST_TAG = Buffer.from('hs-cert-req-v1');
-const FORMAT_VERSION = 1;
+const FORMAT_VERSION = 2;
+
+// What proved the account (identity_cert::proof_type in the game) - a server trusts a Steam account with admin rights
+// only when Steam itself proved it, never a key linked to it
+const PROOF = { ACCOUNT_KEY: 0, STEAM_TICKET: 1, CRAZYGAMES_TOKEN: 2 };
 const MAX_ACCOUNT_LENGTH = 80;
 
 // DER prefixes that wrap a raw Ed25519 seed or public key, so node:crypto takes them
@@ -37,7 +41,7 @@ function writeI64(value) {
   return out;
 }
 
-function unsignedBytes({ account, sessionPublicKey, notBefore, notAfter }) {
+function unsignedBytes({ account, sessionPublicKey, notBefore, notAfter, proof }) {
   const accountBytes = Buffer.from(account, 'utf8');
 
   if (accountBytes.length === 0 || accountBytes.length > MAX_ACCOUNT_LENGTH) {
@@ -48,12 +52,17 @@ function unsignedBytes({ account, sessionPublicKey, notBefore, notAfter }) {
     throw new Error('A session public key has 32 bytes');
   }
 
+  if (!Object.values(PROOF).includes(proof)) {
+    throw new Error('Unknown proof of the account');
+  }
+
   return Buffer.concat([
     Buffer.from([FORMAT_VERSION, accountBytes.length]),
     accountBytes,
     sessionPublicKey,
     writeI64(notBefore),
-    writeI64(notAfter)
+    writeI64(notAfter),
+    Buffer.from([proof])
   ]);
 }
 
@@ -72,6 +81,7 @@ function certRequestMessage(sessionPublicKey) {
 }
 
 module.exports = {
+  PROOF,
   CERT_TAG,
   CERT_REQUEST_TAG,
   privateKeyFromSeed,

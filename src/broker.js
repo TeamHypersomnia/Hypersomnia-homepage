@@ -449,16 +449,19 @@ router.get('/', async (req, res) => {
   const deadline = Date.now() + 4000;
 
   try {
-    // A cert never outlives what proved the account (a CrazyGames token lasts about an hour)
+    // A cert never outlives what proved the account (a CrazyGames token lasts about an hour), and says what it was
     let provenUntil = Infinity;
+    let proof = identityCert.PROOF.ACCOUNT_KEY;
 
     const account = await (async () => {
       if (typeof steam === 'string' && /^[0-9a-f]{2,4096}$/.test(steam)) {
+        proof = identityCert.PROOF.STEAM_TICKET;
         return steamAccount(steam, sessionPublicKey, ip);
       }
       if (typeof crazygames === 'string' && crazygames.length <= 4096) {
         const proven = await crazyGamesAccount(crazygames);
         provenUntil = proven.expiresAt;
+        proof = identityCert.PROOF.CRAZYGAMES_TOKEN;
         return proven.account;
       }
       if (typeof key === 'string' && typeof sig === 'string') {
@@ -485,7 +488,8 @@ router.get('/', async (req, res) => {
       account,
       sessionPublicKey,
       notBefore: now,
-      notAfter: Math.min(now + CERT_LIFETIME_SECS, provenUntil)
+      notAfter: Math.min(now + CERT_LIFETIME_SECS, provenUntil),
+      proof
     });
 
     const profile = await accountProfile(account, ip, deadline);
