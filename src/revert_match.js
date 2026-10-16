@@ -90,8 +90,8 @@ router.post('/', apiKeyAuth, (req, res) => {
       return res.status(404).json({ error: 'Match not found' });
     }
 
-    if (error.status === 409) {
-      return res.status(409).json({ error: 'A player\'s account changed since the match' });
+    if (error.status === 403) {
+      return res.status(403).json({ error: 'Another server reported this match' });
     }
 
     res.status(500).json({ error: 'Internal Server Error' });

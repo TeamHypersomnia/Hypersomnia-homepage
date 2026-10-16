@@ -7,9 +7,12 @@ const config = require('../config');
 
 module.exports = (app) => {
   // The raw body is kept for the signatures over it (match reports) - see official_servers.js.
-  // Parsed before any route checks who sent it, so no more than the biggest real one (a 64-player report) -
-  // map uploads come as multipart (see upload.js), not through these.
-  app.use(express.json({ limit: '256kb', verify: (req, res, buf) => { req.rawBody = buf; } }));
+  // Parsed before any route checks who sent it, so small - only a match report is bigger (every player's avatar in it,
+  // a few MB with 64 players); map uploads come as multipart (see upload.js), not through these.
+  const keepRawBody = (req, res, buf) => { req.rawBody = buf; };
+  const jsonOfReport = express.json({ limit: '8mb', verify: keepRawBody });
+  const jsonOfAnything = express.json({ limit: '256kb', verify: keepRawBody });
+  app.use((req, res, next) => (req.path === '/report_match' ? jsonOfReport : jsonOfAnything)(req, res, next));
   app.use(express.urlencoded({ extended: true, limit: '256kb' }));
   app.use(session({
     store: new BetterSqlite3Store({

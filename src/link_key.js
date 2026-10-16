@@ -10,7 +10,7 @@ const config = require('./config');
   to a Steam account, so that the progress from ranked matches played with the key counts towards the Steam account.
 
   1. The game makes a random state, signs "hypersomnia-link-v1 <state> <unix time>" with the key and opens
-     /link_key/start?state&t&key&sig - good for LINK_URL_LIFETIME_SECS.
+     /link_key/start?state&t&key&sig - good for LINK_PAGE_LIFETIME_SECS from when it is first opened.
   2. Signed in through Steam anew (every link - a session left on a shared computer links nothing), the player confirms
      the Steam account there - the key is linked at once.
   3. The game learns it from its own /cert (asked every few seconds while it waits): a cert for the Steam account.
@@ -246,16 +246,70 @@ function signedByKey(params) {
 }
 
 /*
-  A link page is good for a few minutes only - whoever else sees its address (a stream, a shared computer) could confirm
-  it with their own Steam account. Some slack for a clock ahead. An unlink's signed time is allowed more (a clock behind).
+  A link page is good for a few minutes from when it is first opened - whoever else sees its address (a stream, a shared
+  computer) could confirm it with their own Steam account - counted by this server's clock, so a game's clock that is off
+  does not matter. The game's signed time only has to be roughly right (a clock behind or ahead by minutes still links),
+  as an unlink's.
 */
-const LINK_URL_LIFETIME_SECS = 3 * 60;
-const UNLINK_LIFETIME_SECS = 15 * 60;
+const LINK_PAGE_LIFETIME_SECS = 3 * 60;
+const SIGNED_TIME_LIFETIME_SECS = 15 * 60;
 const CLOCK_SLACK_SECS = 10 * 60;
 
-function linkUrlExpired(params, lifetime = LINK_URL_LIFETIME_SECS) {
+function linkUrlExpired(params, lifetime = SIGNED_TIME_LIFETIME_SECS) {
   const age = Math.floor(Date.now() / 1000) - Number(params.t);
   return age > lifetime || age < -CLOCK_SLACK_SECS;
+}
+
+/*
+  A link page belongs to the browser that opened it first - the game opens it at once, so whoever else gets its address
+  (a stream, a screenshot) is always second and is refused. The browser is told by a cookie of its own (a session is
+  made anew at the sign-in through Steam). Its few minutes count from that first opening.
+*/
+const LINK_BROWSER_COOKIE = 'hs_link_browser';
+const linkPages = new Map();
+
+function browserOf(req) {
+  const cookie = String(req.headers.cookie || '').split(';').map(c => c.trim()).find(c => c.startsWith(LINK_BROWSER_COOKIE + '='));
+  const value = cookie ? cookie.slice(LINK_BROWSER_COOKIE.length + 1) : '';
+  return /^[0-9a-f]{32}$/.test(value) ? value : null;
+}
+
+// What is wrong with this page for this browser, or null - opening it first makes it this browser's
+function linkPageRefusal(req, res, params) {
+  const now = Date.now();
+
+  for (const [state, page] of linkPages) {
+    if (now - page.at > SIGNED_TIME_LIFETIME_SECS * 1000) linkPages.delete(state);
+  }
+
+  let browser = browserOf(req);
+
+  if (!linkPages.has(params.state)) {
+    if (!browser) {
+      browser = crypto.randomBytes(16).toString('hex');
+      res.cookie(LINK_BROWSER_COOKIE, browser, { httpOnly: true, sameSite: 'lax', secure: config.IS_PROD, maxAge: SIGNED_TIME_LIFETIME_SECS * 1000 });
+    }
+
+    linkPages.set(params.state, { at: now, browser });
+  }
+
+  const page = linkPages.get(params.state);
+
+  if (browser !== page.browser) {
+    return 'This link page was opened in another browser first. Start again in the game: Settings - Account - Link with Steam.';
+  }
+
+  if (now - page.at > LINK_PAGE_LIFETIME_SECS * 1000) {
+    return expiredLink;
+  }
+
+  return null;
+}
+
+// A POST that changes an account only from this site's own pages (on top of the session cookie's SameSite)
+function fromThisSite(req) {
+  const origin = req.headers.origin;
+  return !origin || origin === new URL(config.BASE_URL).origin;
 }
 
 const expiredLink = 'This link is too old (or the clock of your computer is off). Start again in the game: Settings - Account - Link with Steam.';
@@ -299,6 +353,12 @@ router.get('/start', (req, res) => {
     return renderResult(res, 409, false, 'Error', usedLink);
   }
 
+  const refusal = linkPageRefusal(req, res, params);
+
+  if (refusal) {
+    return renderResult(res, 400, false, 'Error', refusal);
+  }
+
   if (!freshlySignedInFor(req, params)) {
     req.session.link_page = params.path;
     return res.redirect('/auth/steam/link');
@@ -331,7 +391,7 @@ router.post('/start', (req, res) => {
     return renderResult(res, 429, false, 'Error', 'Too many attempts. Try again in a minute.');
   }
 
-  if (!params || !signedByKey(params)) {
+  if (!params || !signedByKey(params) || !fromThisSite(req)) {
     return renderResult(res, 400, false, 'Error', invalidLink);
   }
 
@@ -341,6 +401,12 @@ router.post('/start', (req, res) => {
 
   if (linkUrlExpired(params)) {
     return renderResult(res, 400, false, 'Error', expiredLink);
+  }
+
+  const refusal = linkPageRefusal(req, res, params);
+
+  if (refusal) {
+    return renderResult(res, 400, false, 'Error', refusal);
   }
 
   // A page links once - the same page sent again does nothing more
@@ -382,7 +448,7 @@ router.get('/unlink', (req, res) => {
     return res.status(400).json({ error: 'Invalid request.' });
   }
 
-  if (linkUrlExpired({ t }, UNLINK_LIFETIME_SECS)) {
+  if (linkUrlExpired({ t })) {
     return res.status(400).json({ error: 'The clock of your computer is off. You can also unlink at hypersomnia.io/profile.' });
   }
 
@@ -422,4 +488,4 @@ function linkMetaOf(child) {
   return stmts.linkMetaOf.get(child) || null;
 }
 
-module.exports = { router, linkedKeys, verifySignature, unlink: unlinkKey, touchKey, linkMetaOf };
+module.exports = { router, linkedKeys, verifySignature, unlink: unlinkKey, touchKey, linkMetaOf, fromThisSite };

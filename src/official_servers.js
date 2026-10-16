@@ -130,7 +130,10 @@ function logRefusal(message) {
   Express middleware: authorizes an official server by the signature of its key over the endpoint's tag and the raw
   body, and sets req.server_id. With onlyServerIds, only those servers are let in.
 */
-function officialServerAuth({ tag = 'hs-report-v1', onlyServerIds = null } = {}) {
+function officialServerAuth({ tag, onlyServerIds = null }) {
+  // Every endpoint names its own tag - none falls back to another's
+  if (!tag) throw new Error('officialServerAuth needs the endpoint\'s signature tag');
+
   return (req, res, next) => {
     const keyHex = String(req.headers['x-server-key'] || '');
     const signatureHex = String(req.headers['x-signature'] || '');

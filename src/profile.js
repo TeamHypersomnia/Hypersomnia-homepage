@@ -48,7 +48,7 @@ function linkPage(req, res) {
 router.post('/unlink_key', (req, res) => {
   const child = String(req.body.key || '');
 
-  if (/^key_[0-9a-f]{64}$/.test(child)) {
+  if (/^key_[0-9a-f]{64}$/.test(child) && linkKey.fromThisSite(req)) {
     try {
       linkKey.unlink(child, `steam_${req.user.id}`);
     } catch (err) {
