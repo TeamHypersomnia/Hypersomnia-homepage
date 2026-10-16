@@ -17,7 +17,8 @@
 
 # The TURN credentials are public (in the game), and violet relays to any address it is asked to - also to this host's
 # loopback and private networks, reaching services that trust "only local programs talk to me". Violet has no option
-# against it, so it runs as its own user and the firewall drops that user's packets to this host and private networks.
+# against it, so it runs as its own user and the firewall drops that user's packets to loopback and private networks.
+# Not to this host's public address: the official servers here are reached through it by players who need the relay.
 - name: Create the violet user
   user:
     name: violet
@@ -34,7 +35,6 @@
     insertbefore: "^# allow all on loopback"
     validate: iptables-restore --test --noflush %s
     block: |
-      -A ufw-before-output -m owner --uid-owner violet -o lo -j DROP
       -A ufw-before-output -m owner --uid-owner violet -d 0.0.0.0/8 -j DROP
       -A ufw-before-output -m owner --uid-owner violet -d 10.0.0.0/8 -j DROP
       -A ufw-before-output -m owner --uid-owner violet -d 100.64.0.0/10 -j DROP
@@ -52,7 +52,6 @@
     insertbefore: "^# allow all on loopback"
     validate: ip6tables-restore --test --noflush %s
     block: |
-      -A ufw6-before-output -m owner --uid-owner violet -o lo -j DROP
       -A ufw6-before-output -m owner --uid-owner violet -d ::1/128 -j DROP
       -A ufw6-before-output -m owner --uid-owner violet -d fc00::/7 -j DROP
       -A ufw6-before-output -m owner --uid-owner violet -d fe80::/10 -j DROP
