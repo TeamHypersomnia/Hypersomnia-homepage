@@ -1,6 +1,19 @@
 ---
 all:
   children:
+    # The TURN servers the game uses (arena-pl is the hub) - see playbooks/tasks/turn.yml
+    turn_servers:
+      hosts:
+        hypersomnia.io:
+        arena-us:
+          ansible_host: arena-us.hypersomnia.io
+          ansible_user: ubuntu
+          ansible_python_interpreter: /usr/bin/python3
+      vars:
+        violet_commit: 42b9457b8daee029ae0499580c4a9864899fc90e
+        # TeamHypersomnia/libjuice forbid-local-peers - back to paullouisageneau/violet once upstream merges it
+        libjuice_commit: 1e70c01193585be37f4cc69c5f1df02027506db8
+
     web_servers:
       hosts:
         hypersomnia.io:

@@ -64,6 +64,11 @@
       import_tasks: tasks/gameserver.yml
       tags: [gameserver, servers]
 
+- name: TURN servers
+  hosts: turn_servers
+  gather_facts: yes
+
+  tasks:
     - name: TURN server setup
       import_tasks: tasks/turn.yml
       tags: [turn, servers]

@@ -1,11 +1,18 @@
 ---
+# Docker from apt only where there is none yet - arena-us has it from snap.
+- name: Check for Docker
+  shell: command -v docker
+  register: docker_present
+  changed_when: false
+  failed_when: false
+  become: yes
+
 - name: Install Docker
   apt:
-    name:
-      - docker.io
-      - python3-docker # Required for ansible docker modules
+    name: docker.io
     state: present
     update_cache: yes
+  when: docker_present.rc != 0
   become: yes
 
 - name: Ensure Docker service is running
@@ -13,64 +20,42 @@
     name: docker
     state: started
     enabled: yes
+  when: docker_present.rc != 0
   become: yes
 
-# The TURN credentials are public (in the game), and violet relays to any address it is asked to - also to this host's
-# loopback and private networks, reaching services that trust "only local programs talk to me". Violet has no option
-# against it, so it runs as its own user and the firewall drops that user's packets to loopback and private networks.
-# Not to this host's public address: the official servers here are reached through it by players who need the relay.
-- name: Create the violet user
-  user:
-    name: violet
-    system: yes
-    create_home: no
-    shell: /usr/sbin/nologin
-  register: violet_user
+- name: Install the Docker SDK for Python (for the docker modules)
+  apt:
+    name: python3-docker
+    state: present
   become: yes
 
-- name: Keep violet off this host and private networks (IPv4)
-  blockinfile:
-    path: /etc/ufw/before.rules
-    marker: "# {mark} violet: no relaying to this host or private networks"
-    insertbefore: "^# allow all on loopback"
-    validate: iptables-restore --test --noflush %s
-    block: |
-      -A ufw-before-output -m owner --uid-owner violet -d 0.0.0.0/8 -j DROP
-      -A ufw-before-output -m owner --uid-owner violet -d 10.0.0.0/8 -j DROP
-      -A ufw-before-output -m owner --uid-owner violet -d 100.64.0.0/10 -j DROP
-      -A ufw-before-output -m owner --uid-owner violet -d 127.0.0.0/8 -j DROP
-      -A ufw-before-output -m owner --uid-owner violet -d 169.254.0.0/16 -j DROP
-      -A ufw-before-output -m owner --uid-owner violet -d 172.16.0.0/12 -j DROP
-      -A ufw-before-output -m owner --uid-owner violet -d 192.168.0.0/16 -j DROP
-  register: violet_rules_v4
+# Violet built with our libjuice fork, which refuses relaying to loopback - see docker/violet/Dockerfile.
+# The commits are violet_commit and libjuice_commit in the inventory.
+- name: Copy the Violet Dockerfile
+  copy:
+    src: ../../docker/violet/Dockerfile
+    dest: /opt/violet-build/
+    mode: '0644'
   become: yes
 
-- name: Keep violet off this host and private networks (IPv6)
-  blockinfile:
-    path: /etc/ufw/before6.rules
-    marker: "# {mark} violet: no relaying to this host or private networks"
-    insertbefore: "^# allow all on loopback"
-    validate: ip6tables-restore --test --noflush %s
-    block: |
-      -A ufw6-before-output -m owner --uid-owner violet -d ::1/128 -j DROP
-      -A ufw6-before-output -m owner --uid-owner violet -d fc00::/7 -j DROP
-      -A ufw6-before-output -m owner --uid-owner violet -d fe80::/10 -j DROP
-  register: violet_rules_v6
-  become: yes
-
-- name: Reload the firewall
-  ufw:
-    state: reloaded
-  when: violet_rules_v4.changed or violet_rules_v6.changed
+- name: Build the Violet image
+  docker_image:
+    name: hypersomnia-violet
+    tag: "{{ violet_commit[:8] }}-{{ libjuice_commit[:8] }}"
+    source: build
+    build:
+      path: /opt/violet-build
+      args:
+        VIOLET_COMMIT: "{{ violet_commit }}"
+        LIBJUICE_COMMIT: "{{ libjuice_commit }}"
   become: yes
 
 - name: Run Violet TURN server
   docker_container:
     name: violet
-    image: paullouisageneau/violet
+    image: "hypersomnia-violet:{{ violet_commit[:8] }}-{{ libjuice_commit[:8] }}"
     network_mode: host
     restart_policy: always
-    user: "{{ violet_user.uid }}:{{ violet_user.group }}"
     command: "--credentials=somnia:Re8Iefei"
     state: started
   become: yes
