@@ -20,13 +20,29 @@
 
 ---
 
+## How the ratings change
+
+Team modes (`mmr_team`) - openskill `rate()` with the scores, applied:
+
+- **Score difference:** the match is rated `lose_severity(win, lose)` times in a row: 1 time for a difference under 8,
+  2 times from 8, 3 times from 13 - a crushing win moves the ratings more.
+- **Happy hours:** all of that once more (`event_match_multiplier = 2`, see below).
+- **Who stayed** is rated without the abandoners who did not contribute (below), with the real scores - or `1:0` when
+  the losers abandoned (the team left on the server wins whatever the score was, even 1:5).
+- **Who abandoned** is rated apart, once, with everyone, as a sure loss of their team (`0:1` for a winner-side abandoner,
+  `1:0` against a loser-side one).
+
+FFA Gun Game (`mmr_ffa`) - every player ranked by place in one `rate()`: the winner 1st, the others in the report's order.
+No score difference, no multiplier.
+
+---
+
 ## Short match — wins not counted
 
 If `win_score + lose_score < 5` (fewer than 5 total rounds played):
-- MMR **does change** normally
+- the winners **keep their ratings**, the losers are rated as usual
 - Match **is recorded** in history
-- `matches_won` is **not incremented** for anyone
-- `matches_lost` is **not incremented** for normal losers — **but abandoners always get a loss** regardless of match length
+- `matches_won` and `matches_lost` are **not incremented** — **but abandoners always get a loss** regardless of match length
 
 ---
 
@@ -34,8 +50,8 @@ If `win_score + lose_score < 5` (fewer than 5 total rounds played):
 
 A tie is detected when: `game_mode != 'FFA Gun Game'` **and** `win_score == 15` **and** `lose_score == 15`.
 
-- `rate()` is called with `{ rank: [1, 1] }` — both sides lose a small amount of MMR (uncertainty reduction without a win/loss penalty)
-- W/L are still counted normally (if the match was long enough)
+- rated with the equal scores (15:15) - both sides move by the uncertainty only
+- neither a win nor a loss is counted for anyone, abandoners included
 
 ---
 
@@ -45,43 +61,25 @@ A tie is detected when: `game_mode != 'FFA Gun Game'` **and** `win_score == 15` 
 A player is considered "abandoned" if their `abandoned_at_score` field is a number `>= 0`.
 The value represents the **abandoning player's team score** at the moment they left.
 
-### Effect on the abandoning player's MMR
+### Who contributed
+- a winner-side abandoner contributed if `abandoned_at_score >= 13`, a loser-side one if `>= 4`
+  (as the enemy of the other team)
+- the ratings of the players who stayed are computed without the abandoners who did not contribute
 
-#### Winner-side abandoner:
-- `abandoned_at_score >= 13` → **MMR changes** (rated as a winner)
-- `abandoned_at_score < 13` → **MMR frozen** (too early to have contributed)
-- **Always** gets `matches_lost + 1` regardless of team outcome or match length — abandon always counts as a loss
-
-#### Loser-side abandoner:
-- `abandoned_at_score >= 4` → **MMR changes** (rated as a loser)
-- `abandoned_at_score < 4` → **MMR frozen** (left too early to have contributed)
-- **Always** gets `matches_lost + 1` regardless of match length — abandon always counts as a loss
-
-### Effect on remaining players
-
-An abandon does **not** change how the rating of other players is computed — `rate()` is called for full rosters, then results are selectively applied per player.
+### The abandoner's own rating and counts
+- rated as a sure loss (see "How the ratings change")
+- **always** gets `matches_lost + 1`, regardless of the outcome or the match length (except a tie)
 
 ---
 
 ## Happy Hours (x2 multiplier)
 
-Matches played on **Friday, Saturday, or Sunday between 19:00 and 21:00** local server time get `event_match_multiplier = 2`.
+The game server decides: a ranked match started on **Friday, Saturday or Sunday between 19:00 and 21:00** by the
+server's time zone (its system's, or `time_zone` in its config) is reported with `event_match_multiplier = 2`, any
+other with 1. The site takes 1 or 2 only.
 
-Supported timezones by `server_id`:
-
-| server_id | Timezone |
-|-----------|----------|
-| `pl` | Europe/Warsaw |
-| `de` | Europe/Berlin |
-| `nl` | Europe/Amsterdam |
-| `ch` | Europe/Zurich |
-| `au` | Australia/Sydney |
-| `ru` | Europe/Moscow |
-| `us-central` | America/Chicago |
-
-> Servers with no timezone mapping always get `multiplier = 1`.
-
-The multiplier is stored in the `matches` table — it **does not affect the MMR calculation itself**, it is only display metadata (shown as 🔥 in match history).
+The multiplier **doubles the rating of who stayed** (the match is rated twice as many times) and is stored in the
+`matches` table (shown as 🔥 in match history).
 
 ---
 
@@ -103,12 +101,6 @@ of every account the match counted for are kept (`last_nicknames`, `avatars`) - 
 
 ---
 
-## FFA Gun Game
-
-Matches with `game_mode = 'FFA Gun Game'` are written to the `mmr_ffa` table instead of `mmr_team`. Tie detection only applies to team mode.
-
----
-
 ## Data stored per match
 
 The `winners` and `losers` columns in the `matches` table are JSON arrays:
@@ -120,9 +112,16 @@ The `winners` and `losers` columns in the `matches` table are JSON arrays:
     "nickname": "player",
     "new_mmr": 24.5,
     "mmr_delta": 3.2,
-    "contributed_as_enemy": true
+    "won": 1,
+    "lost": 0,
+    "mu_delta": 1.1,
+    "sigma_delta": -0.2,
+    "contributed_as_enemy": true,
+    "contributed_as_teammate": true
   }
 ]
 ```
 
-`contributed_as_enemy` is only present on loser objects — `false` means the player abandoned too early and their MMR was not updated.
+- `won`, `lost`, `mu_delta`, `sigma_delta`: exactly what the match changed - `revert_match.js` takes them back.
+- `contributed_as_enemy` / `contributed_as_teammate`: on winner objects only - whether a winner-side abandoner counted
+  (a player's page lists the winners who contributed as the opponents of a loser).

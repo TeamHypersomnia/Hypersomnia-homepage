@@ -18,5 +18,6 @@
   ],
   "lose_players": [
     "steam_happyhours_pl_1v1_0to1_normal1"
-  ]
+  ],
+  "event_match_multiplier": 2
 }

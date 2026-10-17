@@ -12,8 +12,8 @@ const stmts = {
 
 const { officialServerAuth } = require('./official_servers');
 
-// Restricted to the 'pl' server
-const apiKeyAuth = officialServerAuth({ tag: 'hs-adjust-v1', onlyServerIds: ['pl'] });
+// Sent only by the official server with the id 'pl' (its file in official_servers.d) - it adjusts every player
+const signedByOfficialServer = officialServerAuth({ tag: 'hs-adjust-v1', onlyServerIds: ['pl'] });
 
 /*
   An adjustment applies anew every time it is sent - so a signed one counts once and only for a few minutes:
@@ -33,7 +33,7 @@ function firstUse(signatureHex, nowSecs) {
   return true;
 }
 
-router.post('/', apiKeyAuth, (req, res) => {
+router.post('/', signedByOfficialServer, (req, res) => {
   const { multiplier, issued_at } = req.body;
   const nowSecs = Math.floor(Date.now() / 1000);
 

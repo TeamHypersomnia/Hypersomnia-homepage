@@ -4,6 +4,8 @@ const { makeLimiter } = require('./limiter');
 const { clientIp } = require('./client_ip');
 const db = require('./db');
 const identityCert = require('./identity_cert');
+const { verifySignature } = identityCert;
+const { parentOf } = require('./ranked_rules');
 const { accountLabel } = require('./utils');
 const config = require('./config');
 
@@ -59,63 +61,8 @@ const expiredLink = 'This link is too old (or the clock of your computer is off)
 const usedLink = 'This link was used already. Start again in the game: Settings - Account - Link with Steam.';
 const invalidLink = 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.';
 
-/*
-  OpenSSL (and so node:crypto) accepts the public keys of small order, for which a fixed signature verifies
-  with any message - e.g. the key 01 00..00 with R = 01 00..00 and S = 0 - so anyone could link such an account.
-  Rejected like libsodium does: those keys and such R (sign bit cleared), and the non-canonical keys.
-  The same check as in the game (augs/misc/ed25519.cpp).
-*/
-const FF = 'ff'.repeat(30);
-const SMALL_ORDER = [
-  '00'.repeat(32),
-  '01' + '00'.repeat(31),
-  '26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc05',
-  'c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a',
-  'ec' + FF + '7f',
-  'ed' + FF + '7f',
-  'ee' + FF + '7f'
-];
-
-function withoutSignBit(pointHex) {
-  const bytes = Buffer.from(pointHex, 'hex');
-  bytes[31] &= 0x7f;
-  return bytes.toString('hex');
-}
-
-function hasSmallOrder(pointHex) {
-  return SMALL_ORDER.includes(withoutSignBit(pointHex));
-}
-
-function isCanonical(pointHex) {
-  const bytes = Buffer.from(withoutSignBit(pointHex), 'hex');
-
-  if (bytes[31] !== 0x7f) return true;
-
-  for (let i = 1; i < 31; ++i) {
-    if (bytes[i] !== 0xff) return true;
-  }
-
-  return bytes[0] < 0xed;
-}
-
-function verifySignature(publicKeyHex, message, signatureHex) {
-  if (!isCanonical(publicKeyHex) || hasSmallOrder(publicKeyHex) || hasSmallOrder(signatureHex.slice(0, 64))) {
-    return false;
-  }
-
-  try {
-    const key = identityCert.publicKeyFromRaw(Buffer.from(publicKeyHex, 'hex'));
-
-    const bytes = Buffer.isBuffer(message) ? message : Buffer.from(message, 'utf8');
-    return crypto.verify(null, bytes, key, Buffer.from(signatureHex, 'hex'));
-  } catch {
-    return false;
-  }
-}
-
 const stmts = {
   link: db.prepare('INSERT OR IGNORE INTO associations (child_id, parent_id) VALUES (?, ?)'),
-  parentOf: db.prepare('SELECT parent_id FROM associations WHERE child_id = ?'),
   unlink: db.prepare('DELETE FROM associations WHERE child_id = ? AND parent_id = ?'),
   linkedKeys: db.prepare("SELECT child_id FROM associations WHERE parent_id = ? AND child_id LIKE 'key_%' ORDER BY child_id"),
   banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?'),
@@ -173,9 +120,9 @@ function linkKey(publicKey, steamId, device, os, t) {
       return { error: 'This Steam account is banned.' };
     }
 
-    const parent = stmts.parentOf.get(child);
+    const parent = parentOf(child);
 
-    if (parent && parent.parent_id !== steamId) {
+    if (parent && parent !== steamId) {
       return { error: 'This key is already linked to another Steam account. Unlink it there first.', conflict: true };
     }
 
@@ -454,11 +401,11 @@ router.get('/unlink', (req, res) => {
     return res.status(409).json({ error: 'This request was sent already.' });
   }
 
-  const parent = stmts.parentOf.get(child);
+  const parent = parentOf(child);
 
   try {
     if (parent) {
-      unlinkKey(child, parent.parent_id, Number(t));
+      unlinkKey(child, parent, Number(t));
     }
     else {
       stmts.setChangedAt.run(child, Number(t));
@@ -484,4 +431,4 @@ function linkMetaOf(child) {
   return stmts.linkMetaOf.get(child) || null;
 }
 
-module.exports = { router, linkedKeys, verifySignature, unlink: unlinkKey, touchKey, linkMetaOf, fromThisSite };
+module.exports = { router, linkedKeys, unlink: unlinkKey, touchKey, linkMetaOf, fromThisSite };

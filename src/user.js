@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db');
 const { timeAgoShort } = require('./utilities/timeAgo');
+const { parentOf } = require('./ranked_rules');
 const { formatMMRDelta, getRank, countryCodeToEmoji, accountLabel } = require('./utils');
 const { getAvatar } = require('./avatars');
 
@@ -50,8 +51,7 @@ router.get('/:user', function(req, res) {
     const { name: platformName, url: profileUrl, icon: platformIconClass } = platforms[platform];
     // A key or a Discord account linked to a Steam account plays as it; a Steam account can have several linked
     // (a Discord account and up to 10 game keys) - the Discord one first, then by id
-    const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
-    const linkedTo = parentAssociation ? parentAssociation.parent_id : null;
+    const linkedTo = parentOf(userid);
 
     // The name an account last played as - none for one that never played (e.g. a key made and linked right away)
     const stmtNickname = db.prepare(`

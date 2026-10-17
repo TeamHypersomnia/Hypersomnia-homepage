@@ -130,7 +130,7 @@ Dodaj/usuń serwery tutaj. Obecnie:
 ### Oficjalne serwery (`official_servers.d`)
 
 Każdy oficjalny serwer to jeden plik w `/var/www/app/private/official_servers.d/`:
-nazwa pliku = id hosta (dowolna, np. `de`, `de-2`), treść = klucz publiczny hosta
+nazwa pliku = id hosta (np. `pl`, `de`, `de-2` - pierwsze dwie litery to kraj: flaga przy meczach na stronie), treść = klucz publiczny hosta (tak jak wypisuje `--print-server-key`, albo `0x...` jak w grze)
 (64 znaki hex). Jeden klucz na host: wszystkie instancje hosta (casuale, rankedy, mecze turnieju) mają ten sam klucz
 i różnią się etykietą w heartbeacie (`c1`, `c2`, `r1`, `t1`).
 
@@ -141,7 +141,8 @@ i różnią się etykietą w heartbeacie (`c1`, `c2`, `r1`, `t1`).
   pierwszym starcie), wynik do `official_servers.d/<id>`. Nic tajnego - to klucz publiczny.
 - Przeniesienie serwera na inny host: skopiować `server.key` - klucz zostaje ten sam. Różne kontynenty = różne klucze.
 - Odebranie dostępu: `rm official_servers.d/<id>`.
-- Master przeładowuje folder co minutę, strona czyta go przy każdym raporcie meczu. Restart niepotrzebny.
+- Master przeładowuje folder co minutę, strona co 5 s. Restart niepotrzebny.
+- `pl` to jedyny serwer, który może wysłać korektę ujemnych MMR (`/adjust_negative_mmrs` - działa na wszystkich graczy).
 - Serwer podpisuje kluczem heartbeaty (master pokazuje go jako oficjalny) i raporty meczów (nagłówki `X-Server-Key`, `X-Signature`).
 - Ten sam folder musi być na stronie i na masterze - raport serwera, którego klucza strona jeszcze nie zna, serwer ponawia.
 

@@ -24,7 +24,7 @@ const stmts = {
 
 function isValidAccountId(id) {
   return typeof id === 'string' && (
-    /^(steam|discord)_[0-9]{1,20}$/.test(id) ||
+    /^steam_[0-9]{1,20}$/.test(id) ||
     /^crazygames_[A-Za-z0-9_-]{1,64}$/.test(id) ||
     /^key_[0-9a-f]{64}$/.test(id)
   );

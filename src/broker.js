@@ -8,7 +8,8 @@ const db = require('./db');
 const config = require('./config');
 
 const identityCert = require('./identity_cert');
-const { verifySignature, touchKey } = require('./link_key');
+const { touchKey } = require('./link_key');
+const { parentOf } = require('./ranked_rules');
 const { makeLimiter, limitKey, wideLimitKey } = require('./limiter');
 const { getAvatar } = require('./avatars');
 
@@ -92,15 +93,14 @@ function loadBrokerKey() {
   const file = config.BROKER_KEY_PATH;
 
   try {
-    const text = fs.readFileSync(file, 'utf8').trim();
-    const match = /^hypersomnia-key-v1:([0-9a-f]{64})$/.exec(text);
+    const seed = identityCert.seedFromKeyFile(fs.readFileSync(file, 'utf8'));
 
-    if (!match) {
+    if (!seed) {
       console.error(`[broker] ${file} is not a key. No certs are issued.`);
       return null;
     }
 
-    const privateKey = identityCert.privateKeyFromSeed(Buffer.from(match[1], 'hex'));
+    const privateKey = identityCert.privateKeyFromSeed(seed);
     console.log(`[broker] Signing certs with ${identityCert.rawPublicKey(privateKey).toString('hex')}.`);
     return privateKey;
   } catch (err) {
@@ -112,7 +112,6 @@ function loadBrokerKey() {
 const brokerKey = loadBrokerKey();
 
 const stmts = {
-  parentOf: db.prepare('SELECT parent_id FROM associations WHERE child_id = ?'),
   banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?'),
   ban: db.prepare('INSERT OR IGNORE INTO broker_bans (account, reason) VALUES (?, ?)'),
   steamProfile: db.prepare('SELECT name, avatar, fetched_at FROM steam_profiles WHERE account_id = ?'),
@@ -392,7 +391,7 @@ function keyAccount(publicKeyHex, signatureHex) {
 
   const message = identityCert.certRequestMessage(Buffer.from(publicKeyHex, 'hex'));
 
-  if (!verifySignature(publicKeyHex, message, signatureHex)) {
+  if (!identityCert.verifySignature(publicKeyHex, message, signatureHex)) {
     throw { status: 401, message: 'Invalid signature.' };
   }
 
@@ -405,10 +404,8 @@ function keyAccount(publicKeyHex, signatureHex) {
     throw { status: 403, message: keyBan };
   }
 
-  const parent = stmts.parentOf.get(child);
-
   // A key linked to a Steam account plays on it
-  return parent ? parent.parent_id : child;
+  return parentOf(child) || child;
 }
 
 // The browser asks first whether it may send the CrazyGames token in its header

@@ -1,3 +1,4 @@
+const { mmrTableOf } = require('./ranked_rules');
 const express = require('express');
 const db = require('./db');
 const { timeAgoShort } = require('./utilities/timeAgo');
@@ -23,7 +24,7 @@ router.get('/', (req, res) => {
         match_end_date: match.match_end_date,
         time_ago: timeAgoShort(match.match_end_date),
         event_match_multiplier: match.event_match_multiplier,
-        is_ffa: match.game_mode === 'FFA Gun Game'
+        is_ffa: mmrTableOf(match.game_mode) === 'mmr_ffa'
       };
     });
 

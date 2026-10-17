@@ -1,4 +1,3 @@
-const assert = require('assert');
 const express = require('express');
 const db = require('./db');
 const { rating, rate, ordinal } = require('openskill');
@@ -13,8 +12,9 @@ const MIN_ROUNDS_TO_COUNT_WINS = 5;
 const MAX_REPORT_AGE_SECS = 3 * 24 * 60 * 60;
 
 const { officialServerAuth } = require('./official_servers');
+const { mmrTableOf, isTie, parentOf } = require('./ranked_rules');
 const { parseAvatar, setAvatar, isValidAccountId } = require('./avatars');
-const apiKeyAuth = officialServerAuth({ tag: 'hs-report-v1' });
+const signedByOfficialServer = officialServerAuth({ tag: 'hs-report-v1' });
 
 // Player helpers
 const abandoned = (player) => typeof player.abandoned_at_score === 'number' && player.abandoned_at_score >= 0;
@@ -39,7 +39,7 @@ function lose_severity(win, lose) {
 }
 
 /*
-  A linked Discord account plays as its Steam account.
+  An account linked to a Steam account plays as it (the game reports a linked key as the Steam account already).
   A Steam account can have several linked, so one match could hold two of them: only the first one
   in the report (winners before losers) plays as the Steam account, the others stay themselves -
   otherwise one account would be counted twice, possibly on both teams.
@@ -49,17 +49,16 @@ function lose_severity(win, lose) {
   while it is linked - what the game tells the player ("will not count towards your Steam account").
 */
 function buildIdMapping(winPlayers, losePlayers, db) {
-  const stmt = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?');
   const allIds = winPlayers.concat(losePlayers);
   const taken = new Set(allIds);
   const mapping = new Map();
 
   for (const id of allIds) {
-    const association = id.startsWith('key_') ? null : stmt.get(id);
+    const parent = id.startsWith('key_') ? null : parentOf(id);
 
-    if (association && !taken.has(association.parent_id)) {
-      taken.add(association.parent_id);
-      mapping.set(id, association.parent_id);
+    if (parent && !taken.has(parent)) {
+      taken.add(parent);
+      mapping.set(id, parent);
     }
     else {
       mapping.set(id, id);
@@ -80,7 +79,7 @@ function mapPlayerInfos(playerInfos, mapping) {
 }
 
 // Route
-router.post('/', apiKeyAuth, (req, res) => {
+router.post('/', signedByOfficialServer, (req, res) => {
   const { match_start_date, server_name, arena, game_mode, win_score, lose_score } = req.body;
   let { losers_abandoned, win_players, lose_players, player_infos } = req.body;
 
@@ -103,7 +102,7 @@ router.post('/', apiKeyAuth, (req, res) => {
   const invalid = [...win_players, ...lose_players].find(id => !isValidAccountId(id));
 
   if (invalid !== undefined) {
-    console.error('[report_match] Refused: an account id that is not steam_/discord_/crazygames_/key_.', JSON.stringify({ server_name, server_id: req.server_id, invalid }));
+    console.error('[report_match] Refused: an account id that is not steam_/crazygames_/key_.', JSON.stringify({ server_name, server_id: req.server_id, invalid }));
     return res.status(400).json({ error: 'Invalid account id' });
   }
 
@@ -150,12 +149,10 @@ router.post('/', apiKeyAuth, (req, res) => {
       while it or its Steam account is banned. The others' match still counts.
     */
     const stmt_banned = db.prepare('SELECT 1 FROM broker_bans WHERE account = ?');
-    const stmt_parent = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?');
-
     const isBanned = id => {
       if (stmt_banned.get(id)) return true;
-      const parent = stmt_parent.get(id);
-      return !!(parent && stmt_banned.get(parent.parent_id));
+      const parent = parentOf(id);
+      return !!(parent && stmt_banned.get(parent));
     };
 
     const banned = win_players.concat(lose_players).filter(isBanned);
@@ -180,8 +177,8 @@ router.post('/', apiKeyAuth, (req, res) => {
       const allPlayers = win_players.concat(lose_players);
       const playerRatings = {};
       const default_rating = rating();
-      const table_name = game_mode === 'FFA Gun Game' ? 'mmr_ffa' : 'mmr_team';
-      const is_tie = table_name === 'mmr_team' && win_score === 15 && lose_score === 15;
+      const table_name = mmrTableOf(game_mode);
+      const is_tie = isTie(table_name, win_score, lose_score);
 
       const stmt_insert_player = db.prepare(`INSERT OR IGNORE INTO ${table_name} (account_id, mu, sigma) VALUES (?, ?, ?)`);
       const stmt_get_player = db.prepare(`SELECT mu, sigma FROM ${table_name} WHERE account_id = ?`);
@@ -206,37 +203,102 @@ router.post('/', apiKeyAuth, (req, res) => {
       const oldMmrs = {};
       allPlayers.forEach(id => { oldMmrs[id] = ordinal(playerRatings[id]); });
 
-      // Compute new ratings via rate()
-      const rateOptions = is_tie ? { rank: [1, 1] } : {};
-      const [newWinnerRatings, newLoserRatings] = rate(
-        [win_players.map(id => playerRatings[id]), lose_players.map(id => playerRatings[id])],
-        rateOptions
-      );
+      const original_winner_ratings = win_players.map(id => playerRatings[id]);
+      const original_loser_ratings = lose_players.map(id => playerRatings[id]);
+
+      /*
+        The new ratings, as designed (lost in 3147266, restored):
+        - FFA: every player ranked by place, the winner first;
+        - team modes: the match is rated lose_severity(win, lose) times (1-3 by the score difference), times the event
+          multiplier (2 in happy hours). Who stayed is rated without the abandoners who did not contribute; who abandoned
+          is rated apart, with everyone, as a sure loss of their team. A team whose opponents abandoned wins whatever
+          the score (the abandoners are always the losers in the report). Winners of a match too short to count keep
+          their ratings.
+      */
+      const [newWinnerRatings, newLoserRatings] = (() => {
+        if (table_name === 'mmr_ffa') {
+          const teams = [[original_winner_ratings[0]], ...original_loser_ratings.map(r => [r])];
+          const ranks = teams.map((_, place) => place + 1);
+          const rated = rate(teams, { rank: ranks }).map(team => team[0]);
+
+          return [[rated[0]], rated.slice(1)];
+        }
+
+        const make_team_ratings = (iterations, pov, count_nocontributors, force_loss_for = -1) => {
+          const contributes = (id, rating_team_is_pov) => count_nocontributors || contributed_to_match(player_infos[id] || {}, rating_team_is_pov);
+
+          const winner_indices = win_players.map((id, i) => i).filter(i => contributes(win_players[i], pov === 'winner'));
+          const loser_indices = lose_players.map((id, i) => i).filter(i => contributes(lose_players[i], pov === 'loser'));
+
+          let it_winners = winner_indices.map(i => original_winner_ratings[i]);
+          let it_losers = loser_indices.map(i => original_loser_ratings[i]);
+
+          const scores = (() => {
+            if (force_loss_for === 0) return [0, 1];
+            if (force_loss_for === 1) return [1, 0];
+            if (losers_abandoned) return [1, 0];
+            return [win_score, lose_score];
+          })();
+
+          for (let i = 0; i < iterations * event_match_multiplier; i++) {
+            [it_winners, it_losers] = rate([it_winners, it_losers], { score: scores });
+          }
+
+          const final_winners = original_winner_ratings.map(() => default_rating);
+          const final_losers = original_loser_ratings.map(() => default_rating);
+
+          winner_indices.forEach((original_index, i) => { final_winners[original_index] = it_winners[i]; });
+          loser_indices.forEach((original_index, i) => { final_losers[original_index] = it_losers[i]; });
+
+          return [final_winners, final_losers];
+        };
+
+        const severity = lose_severity(win_score, lose_score);
+
+        const present_winners = make_team_ratings(severity, 'winner', false)[0];
+        const present_losers = make_team_ratings(severity, 'loser', false)[1];
+        const abandoned_winners = make_team_ratings(1, 'winner', true, 0)[0];
+        const abandoned_losers = make_team_ratings(1, 'loser', true, 1)[1];
+
+        const winners = win_players.map((id, i) => {
+          if (abandoned(player_infos[id] || {})) return abandoned_winners[i];
+          return should_count_wins ? present_winners[i] : original_winner_ratings[i];
+        });
+
+        const losers = lose_players.map((id, i) => abandoned(player_infos[id] || {}) ? abandoned_losers[i] : present_losers[i]);
+
+        return [winners, losers];
+      })();
 
       // Exactly what the match changed, for revert_match.js - nothing for an account the match did not create
       const changeOf = (id, newRating, won, lost) => unregistered.has(id)
         ? { won: 0, lost: 0, mu_delta: 0, sigma_delta: 0, mmr_delta: 0 }
         : { won, lost, mu_delta: newRating.mu - playerRatings[id].mu, sigma_delta: newRating.sigma - playerRatings[id].sigma };
 
+      // A tie counts as neither a win nor a loss, an abandon always as a loss
+      const increments = (id, on_winning_team) => {
+        if (is_tie) return [0, 0];
+        if (abandoned(player_infos[id] || {})) return [0, 1];
+        if (!should_count_wins) return [0, 0];
+        return on_winning_team ? [1, 0] : [0, 1];
+      };
+
       const winnerObjects = win_players.map((id, i) => {
         const info = player_infos[id] || {};
-        const contributes = contributed_to_match(info, true);
-        const newRating = contributes ? newWinnerRatings[i] : playerRatings[id];
+        const newRating = newWinnerRatings[i];
         const newMmr = ordinal(newRating);
-        const winIncrement = !abandoned(info) && should_count_wins ? 1 : 0;
-        const lossIncrement = abandoned(info) ? 1 : 0;  // abandon always counts as a loss
-        stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, winIncrement, lossIncrement, info.nickname, id);
-        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], ...changeOf(id, newRating, winIncrement, lossIncrement) };
+        const [won, lost] = increments(id, true);
+        stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, won, lost, info.nickname, id);
+        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], contributed_as_enemy: contributed_to_match(info, false), contributed_as_teammate: contributed_to_match(info, true), ...changeOf(id, newRating, won, lost) };
       });
 
       const loserObjects = lose_players.map((id, i) => {
         const info = player_infos[id] || {};
-        const contributes = contributed_to_match(info, false);
-        const newRating = contributes ? newLoserRatings[i] : playerRatings[id];
+        const newRating = newLoserRatings[i];
         const newMmr = ordinal(newRating);
-        const lossIncrement = (should_count_wins || abandoned(info)) ? 1 : 0;
-        stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, 0, lossIncrement, info.nickname, id);
-        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], contributed_as_enemy: contributes, ...changeOf(id, newRating, 0, lossIncrement) };
+        const [won, lost] = increments(id, false);
+        stmt_update_player.run(newRating.mu, newRating.sigma, newMmr, won, lost, info.nickname, id);
+        return { id, nickname: info.nickname, new_mmr: newMmr, mmr_delta: newMmr - oldMmrs[id], ...changeOf(id, newRating, won, lost) };
       });
 
       // The last nickname and avatar of every account the match counted for: what /cert answers for a key_ account

@@ -9,7 +9,7 @@
     "crazygames_cBzbxEO750cCE7CvIiokFgp2tBz1": {
       "nickname": "ja kurwa"
     },
-    "whotf": {
+    "steam_whotf": {
       "nickname": "someone",
       "abandoned_at_score": 4
     }
@@ -18,6 +18,6 @@
     "crazygames_cBzbxEO750cCE7CvIiokFgp2tBz1"
   ],
   "lose_players": [
-    "whotf"
+    "steam_whotf"
   ]
 }

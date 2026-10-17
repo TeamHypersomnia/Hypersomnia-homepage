@@ -8,7 +8,7 @@
 */
 const fs = require('fs');
 const crypto = require('crypto');
-const { privateKeyFromSeed, rawPublicKey } = require('../src/identity_cert');
+const { privateKeyFromSeed, rawPublicKey, seedFromKeyFile } = require('../src/identity_cert');
 
 const [siteUrl, keyPath, what, value] = process.argv.slice(2);
 
@@ -17,8 +17,14 @@ if (!siteUrl || !keyPath || !['revert', 'adjust'].includes(what) || value === un
   process.exit(1);
 }
 
-const seedHex = fs.readFileSync(keyPath, 'utf8').trim().split(':')[1];
-const privateKey = privateKeyFromSeed(Buffer.from(seedHex, 'hex'));
+const seed = seedFromKeyFile(fs.readFileSync(keyPath, 'utf8'));
+
+if (!seed) {
+  console.error(`${keyPath} is not a key file (hypersomnia-key-v1:<64 hex>).`);
+  process.exit(1);
+}
+
+const privateKey = privateKeyFromSeed(seed);
 const publicKeyHex = rawPublicKey(privateKey).toString('hex');
 
 const endpoint = what === 'revert' ? { path: '/revert_match', tag: 'hs-revert-v1' } : { path: '/adjust_negative_mmrs', tag: 'hs-adjust-v1' };

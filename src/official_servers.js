@@ -61,7 +61,8 @@ function readOfficialServersNow() {
     try {
       if (!fs.statSync(file).isFile()) continue;
 
-      const key = trimmed(fs.readFileSync(file, 'utf8'));
+      // As --print-server-key prints it, or as the game shows it (0x...) - kept lowercase, without 0x
+      const key = trimmed(fs.readFileSync(file, 'utf8')).replace(/^0x/i, '').toLowerCase();
 
       if (/^[0-9a-f]{64}$/.test(key)) servers.push({ server_id: name, key });
       else console.error(`Official server ${name}: not a public key, skipping.`);
@@ -155,8 +156,7 @@ function officialServerAuth({ tag, onlyServerIds = null }) {
     }
 
     // The same check as linking's - weak (small order) keys refused too
-    const { verifySignature } = require('./link_key');
-    const valid = verifySignature(keyHex, Buffer.concat([Buffer.from(tag), req.rawBody]), signatureHex);
+    const valid = identityCert.verifySignature(keyHex, Buffer.concat([Buffer.from(tag), req.rawBody]), signatureHex);
 
     if (!valid) return res.status(401).json({ error: 'Unauthorized' });
     if (onlyServerIds && !onlyServerIds.includes(serverId)) return res.status(401).json({ error: 'Unauthorized' });
@@ -166,4 +166,4 @@ function officialServerAuth({ tag, onlyServerIds = null }) {
   };
 }
 
-module.exports = { officialServerAuth, findServerIdByKey };
+module.exports = { officialServerAuth };

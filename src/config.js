@@ -85,14 +85,12 @@ const config = {
   
   // Master server config: prod uses localhost, dev uses remote
   SERVER_LIST_URL: process.env.SERVER_LIST_URL || (IS_PROD ? 'http://127.0.0.1:8410/server_list_json' : 'https://masterserver.hypersomnia.io:8420/server_list_json'),
-  SERVER_LIST_REFRESH_INTERVAL: 10000,
   
   // Game builds: prod reads them from disk (same machine), dev asks the live site
   BUILDS_PATH: process.env.BUILDS_PATH || path.resolve(__dirname, '../hosting/builds/latest'),
   BUILDS_URL: 'https://hypersomnia.io/builds/latest/',
   BUILD_SIZES_REFRESH_INTERVAL: 60000,
 
-  DB_PATH: process.env.DB_PATH || './private/mmr.db',
   OFFICIAL_SERVERS_DIR: process.env.OFFICIAL_SERVERS_DIR || './private/official_servers.d',
 
   // The identity broker's key (see broker.js): "hypersomnia-key-v1:<seed hex>", owner-readable only
