@@ -12,7 +12,7 @@ all:
       vars:
         violet_commit: 42b9457b8daee029ae0499580c4a9864899fc90e
         # TeamHypersomnia/libjuice forbid-local-peers - back to paullouisageneau/violet once upstream merges it
-        libjuice_commit: 1e70c01193585be37f4cc69c5f1df02027506db8
+        libjuice_commit: 9a6c96242f15fd5615346eaa2e0eded05ecf524e
 
     web_servers:
       hosts:

@@ -29,7 +29,8 @@
     state: present
   become: yes
 
-# Violet built with our libjuice fork, which refuses relaying to loopback - see docker/violet/Dockerfile.
+# Violet built with our libjuice fork, which refuses relaying to the unspecified, loopback, link-local and multicast
+# addresses - see docker/violet/Dockerfile.
 # The commits are violet_commit and libjuice_commit in the inventory.
 - name: Copy the Violet Dockerfile
   copy:
@@ -56,6 +57,7 @@
     image: "hypersomnia-violet:{{ violet_commit[:8] }}-{{ libjuice_commit[:8] }}"
     network_mode: host
     restart_policy: always
+    user: "65534:65534"
     command: "--credentials=somnia:Re8Iefei"
     state: started
   become: yes
