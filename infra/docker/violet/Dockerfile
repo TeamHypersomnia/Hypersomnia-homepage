@@ -1,6 +1,5 @@
 # Violet (TURN) built with our libjuice fork: it refuses relaying to the unspecified, loopback, link-local and multicast
-# addresses (the TURN credentials are public, in the game). Until upstream merges it - then back to paullouisageneau/violet.
-# The commits come from the inventory (violet_commit, libjuice_commit).
+# addresses (the TURN credentials are public, in the game). The commits come from the inventory.
 FROM alpine:3.20 AS builder
 
 ARG VIOLET_COMMIT

@@ -80,14 +80,18 @@ function certRequestMessage(sessionPublicKey) {
   return Buffer.concat([CERT_REQUEST_TAG, sessionPublicKey]);
 }
 
+// What the game requests the Steam ticket for - identity_cert::steam_ticket_identity
+function steamTicketIdentity(sessionPublicKey) {
+  return crypto.createHash('sha256').update(Buffer.concat([Buffer.from('hs-steam-v1'), sessionPublicKey])).digest().subarray(0, 15).toString('hex');
+}
+
 module.exports = {
   PROOF,
-  CERT_TAG,
-  CERT_REQUEST_TAG,
   privateKeyFromSeed,
   publicKeyFromRaw,
   rawPublicKey,
   signedMessage,
   makeCert,
-  certRequestMessage
+  certRequestMessage,
+  steamTicketIdentity
 };

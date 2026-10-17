@@ -130,13 +130,9 @@ function bannedReason(account) {
   return row ? (row.reason || 'Banned.') : null;
 }
 
-/*
-  What the game requests the Steam ticket for - identity_cert::steam_ticket_identity.
-*/
-
-function steamTicketIdentity(sessionPublicKey) {
-  return crypto.createHash('sha256').update(Buffer.concat([Buffer.from('hs-steam-v1'), sessionPublicKey])).digest().subarray(0, 15).toString('hex');
-}
+// A Steam Web API ticket in hex is a few hundred characters, a CrazyGames token about a thousand
+const MIN_STEAM_TICKET_HEX = 200;
+const MAX_PROOF_LENGTH = 4096;
 
 async function steamAccount(ticketHex, sessionPublicKey, ip) {
   if (!config.STEAM_API_KEY) {
@@ -144,7 +140,7 @@ async function steamAccount(ticketHex, sessionPublicKey, ip) {
   }
 
   // A Web API ticket is a few hundred bytes - nothing shorter is worth asking Steam about
-  if (ticketHex.length < 200 || ticketHex.length % 2 !== 0) {
+  if (ticketHex.length < MIN_STEAM_TICKET_HEX || ticketHex.length % 2 !== 0) {
     throw { status: 401, message: 'Steam did not accept the ticket.' };
   }
 
@@ -157,7 +153,7 @@ async function steamAccount(ticketHex, sessionPublicKey, ip) {
       key: config.STEAM_API_KEY,
       appid: STEAM_APP_ID,
       ticket: ticketHex,
-      identity: steamTicketIdentity(sessionPublicKey)
+      identity: identityCert.steamTicketIdentity(sessionPublicKey)
     },
     // Shorter than the game's own wait for /cert, so that it gets this answer rather than giving up first
     timeout: 3000,
@@ -456,11 +452,11 @@ router.get('/', async (req, res) => {
     let proof = identityCert.PROOF.ACCOUNT_KEY;
 
     const account = await (async () => {
-      if (typeof steam === 'string' && /^[0-9a-f]{2,4096}$/.test(steam)) {
+      if (typeof steam === 'string' && steam.length <= MAX_PROOF_LENGTH && /^[0-9a-f]+$/.test(steam)) {
         proof = identityCert.PROOF.STEAM_TICKET;
         return steamAccount(steam, sessionPublicKey, ip);
       }
-      if (typeof crazygames === 'string' && crazygames.length <= 4096) {
+      if (typeof crazygames === 'string' && crazygames.length <= MAX_PROOF_LENGTH) {
         const proven = await crazyGamesAccount(crazygames);
         provenUntil = proven.expiresAt;
         proof = identityCert.PROOF.CRAZYGAMES_TOKEN;
@@ -512,4 +508,4 @@ router.get('/', async (req, res) => {
   }
 });
 
-module.exports = { router, steamTicketIdentity, isSteamAvatarUrl, accountProfile };
+module.exports = { router };
