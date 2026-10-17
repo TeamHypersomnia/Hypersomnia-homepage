@@ -7,13 +7,14 @@ const axios = require('axios');
 const db = require('./db');
 const config = require('./config');
 
-if (!config.CRAZYGAMES_GAME_ID) {
-  console.error('[broker] CRAZYGAMES_GAME_ID is not set - every CrazyGames sign-in is refused.');
-}
 const identityCert = require('./identity_cert');
 const { verifySignature, touchKey } = require('./link_key');
 const { makeLimiter, limitKey, wideLimitKey } = require('./limiter');
 const { getAvatar } = require('./avatars');
+
+if (!config.CRAZYGAMES_GAME_ID) {
+  console.error('[broker] CRAZYGAMES_GAME_ID is not set - every CrazyGames sign-in is refused.');
+}
 
 /*
   The identity broker: certs that bind a player's account to the game's key (its session key - see identity_cert.h
@@ -23,7 +24,8 @@ const { getAvatar } = require('./avatars');
   GET /cert?session=<hex>&steam=<ticket hex>        a Steam Web API ticket requested for the session key's identity
                                                      (the Steam build, for every cert - its key is never linked)
   GET /cert?session=<hex>&crazygames=header         a CrazyGames token of this game, in the X-CrazyGames-Token header
-  GET /cert?session=<hex>&key=<hex>&sig=<hex>       an account key's signature of "hs-cert-req-v1" and the session key
+  GET /cert?session=<hex>&sig=<hex>                 the account key's signature of "hs-cert-req-v1" and itself - the
+                                                     session key is the account key
 
   An account key linked to a Steam account gets a cert for that Steam account. 200 with JSON:
     {"cert": "<the cert in hex>", "name": "<string>", "avatar": "<base64 of the image bytes>"}
@@ -387,12 +389,12 @@ async function crazyGamesAccount(token) {
   return { account: `crazygames_${payload.userId}`, expiresAt: payload.exp };
 }
 
-function keyAccount(publicKeyHex, signatureHex, sessionPublicKey) {
-  if (!/^[0-9a-f]{64}$/.test(publicKeyHex) || !/^[0-9a-f]{128}$/.test(signatureHex)) {
+function keyAccount(publicKeyHex, signatureHex) {
+  if (!/^[0-9a-f]{128}$/.test(signatureHex)) {
     throw { status: 400, message: 'Invalid request.' };
   }
 
-  const message = identityCert.certRequestMessage(sessionPublicKey);
+  const message = identityCert.certRequestMessage(Buffer.from(publicKeyHex, 'hex'));
 
   if (!verifySignature(publicKeyHex, message, signatureHex)) {
     throw { status: 401, message: 'Invalid signature.' };
@@ -426,7 +428,7 @@ router.get('/', async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
 
   const ip = clientIp(req);
-  const { session, steam, key, sig } = req.query;
+  const { session, steam, sig } = req.query;
 
   // The CrazyGames token comes in a header - a URL (with it) could end up in a log
   const crazygames = req.query.crazygames === 'header' ? req.get('X-CrazyGames-Token') : undefined;
@@ -464,11 +466,11 @@ router.get('/', async (req, res) => {
         proof = identityCert.PROOF.CRAZYGAMES_TOKEN;
         return proven.account;
       }
-      if (typeof key === 'string' && typeof sig === 'string') {
-        const resolved = keyAccount(key, sig, sessionPublicKey);
+      if (typeof sig === 'string') {
+        const resolved = keyAccount(session, sig);
 
-        if (resolved !== `key_${key}`) {
-          touchKey(`key_${key}`);
+        if (resolved !== `key_${session}`) {
+          touchKey(`key_${session}`);
         }
 
         return resolved;

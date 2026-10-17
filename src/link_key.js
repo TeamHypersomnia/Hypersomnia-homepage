@@ -3,6 +3,8 @@ const express = require('express');
 const { makeLimiter } = require('./limiter');
 const { clientIp } = require('./client_ip');
 const db = require('./db');
+const identityCert = require('./identity_cert');
+const { accountLabel } = require('./utils');
 const config = require('./config');
 
 /*
@@ -16,7 +18,7 @@ const config = require('./config');
   3. The game learns it from its own /cert (asked every few seconds while it waits): a cert for the Steam account.
      A refusal (another account's key, too many keys, a ban) is told on the page only.
 
-  Unlinking from the game is a POST signed by the key (unlinkFromGame) - no browser. The Steam account's owner unlinks
+  Unlinking from the game is GET /link_key/unlink signed by the key - no browser. The Steam account's owner unlinks
   on /profile.
 
   A link or unlink of a key is remembered by its time (key_link_changes): a signed page or request not newer than the
@@ -43,8 +45,19 @@ router.use(['/unlink'], (req, res, next) => {
 
 const MAX_KEYS_PER_STEAM_ACCOUNT = 32;
 
-// A raw 32-byte Ed25519 public key wrapped as SPKI DER, the form node:crypto takes
-const ED25519_SPKI_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
+/*
+  A link page is good for a few minutes from when it is first opened - whoever else sees its address (a stream, a shared
+  computer) could confirm it with their own Steam account - counted by this server's clock, so a game's clock that is off
+  does not matter. The game's signed time only has to be roughly right (a clock behind or ahead by minutes still links),
+  as an unlink's.
+*/
+const LINK_PAGE_LIFETIME_SECS = 3 * 60;
+const SIGNED_TIME_LIFETIME_SECS = 15 * 60;
+const CLOCK_SLACK_SECS = 10 * 60;
+
+const expiredLink = 'This link is too old (or the clock of your computer is off). Start again in the game: Settings - Account - Link with Steam.';
+const usedLink = 'This link was used already. Start again in the game: Settings - Account - Link with Steam.';
+const invalidLink = 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.';
 
 /*
   OpenSSL (and so node:crypto) accepts the public keys of small order, for which a fixed signature verifies
@@ -91,11 +104,7 @@ function verifySignature(publicKeyHex, message, signatureHex) {
   }
 
   try {
-    const key = crypto.createPublicKey({
-      key: Buffer.concat([ED25519_SPKI_PREFIX, Buffer.from(publicKeyHex, 'hex')]),
-      format: 'der',
-      type: 'spki'
-    });
+    const key = identityCert.publicKeyFromRaw(Buffer.from(publicKeyHex, 'hex'));
 
     const bytes = Buffer.isBuffer(message) ? message : Buffer.from(message, 'utf8');
     return crypto.verify(null, bytes, key, Buffer.from(signatureHex, 'hex'));
@@ -110,6 +119,7 @@ const stmts = {
   unlink: db.prepare('DELETE FROM associations WHERE child_id = ? AND parent_id = ?'),
   linkedKeys: db.prepare("SELECT child_id FROM associations WHERE parent_id = ? AND child_id LIKE 'key_%' ORDER BY child_id"),
   banned: db.prepare('SELECT reason FROM broker_bans WHERE account = ?'),
+  forgetDevice: db.prepare('DELETE FROM key_devices WHERE child_id = ?'),
   setLinkMeta: db.prepare('INSERT OR REPLACE INTO key_devices (child_id, device, os, last_cert_at) VALUES (?, ?, ?, ?)'),
   touchKey: db.prepare('UPDATE key_devices SET last_cert_at = ? WHERE child_id = ?'),
   linkMetaOf: db.prepare('SELECT device, os, last_cert_at FROM key_devices WHERE child_id = ?'),
@@ -133,7 +143,6 @@ function newerThanLastChange(child, t) {
   return Number(t) > changedAt(child);
 }
 
-
 // The device the game runs on, as it names it, and its system - shown next to a linked key on its owner's /profile only
 function deviceOf(query) {
   const device = typeof query.device === 'string'
@@ -150,7 +159,7 @@ function linkedKeys(steamId) {
 }
 
 /*
-  Links the key to the signed-in Steam account - a refusal is an { error, conflict } for the game to show.
+  Links the key to the signed-in Steam account - a refusal is an { error, conflict } for the result page.
 */
 function linkKey(publicKey, steamId, device, os, t) {
   const child = `key_${publicKey}`;
@@ -207,7 +216,7 @@ function unlinkKey(child, steamId, changeTime = Math.floor(Date.now() / 1000) - 
       return;
     }
 
-    db.prepare('DELETE FROM key_devices WHERE child_id = ?').run(child);
+    stmts.forgetDevice.run(child);
     stmts.setChangedAt.run(child, changeTime);
 
     const parentBan = stmts.banned.get(steamId);
@@ -219,7 +228,7 @@ function unlinkKey(child, steamId, changeTime = Math.floor(Date.now() / 1000) - 
 }
 
 /*
-  "Link with Steam": the game opens /link_key/start?state&key&sig in the browser - nothing goes back through the browser,
+  "Link with Steam": the game opens /link_key/start?state&t&key&sig (&device&os) in the browser - nothing goes back through the browser,
   so it works the same natively, in a tab or in an iframe. A link to this page someone else made carries their key:
   confirmed, it would link their key to the Steam account of whoever confirmed - the page warns in red.
 */
@@ -245,19 +254,9 @@ function signedByKey(params) {
   return verifySignature(params.key, `hypersomnia-link-v1 ${params.state} ${params.t}`, params.sig);
 }
 
-/*
-  A link page is good for a few minutes from when it is first opened - whoever else sees its address (a stream, a shared
-  computer) could confirm it with their own Steam account - counted by this server's clock, so a game's clock that is off
-  does not matter. The game's signed time only has to be roughly right (a clock behind or ahead by minutes still links),
-  as an unlink's.
-*/
-const LINK_PAGE_LIFETIME_SECS = 3 * 60;
-const SIGNED_TIME_LIFETIME_SECS = 15 * 60;
-const CLOCK_SLACK_SECS = 10 * 60;
-
-function linkUrlExpired(params, lifetime = SIGNED_TIME_LIFETIME_SECS) {
+function linkUrlExpired(params) {
   const age = Math.floor(Date.now() / 1000) - Number(params.t);
-  return age > lifetime || age < -CLOCK_SLACK_SECS;
+  return age > SIGNED_TIME_LIFETIME_SECS || age < -CLOCK_SLACK_SECS;
 }
 
 /*
@@ -312,15 +311,11 @@ function fromThisSite(req) {
   return !origin || origin === new URL(config.BASE_URL).origin;
 }
 
-const expiredLink = 'This link is too old (or the clock of your computer is off). Start again in the game: Settings - Account - Link with Steam.';
-const usedLink = 'This link was used already. Start again in the game: Settings - Account - Link with Steam.';
-
-// A page saying what happened: linked (the game finishes it), or an error
-function renderResult(res, status, ok, title, message) {
+// A page saying what happened: linked (200 - the game finishes it), or an error
+function renderResult(res, status, message, title = 'Error') {
+  const ok = status === 200;
   res.status(status).render('link_result', { page: title, user: res.req.user, ok, title, message });
 }
-
-const invalidLink = 'This link is not valid. Start again in the game: Settings - Account - Link with Steam.';
 
 /*
   Signed in through Steam anew for this very page (a session on a shared browser may be someone else's), the player
@@ -336,27 +331,27 @@ const allowStartPage = makeLimiter({ perAddress: 20 });
 
 router.get('/start', (req, res) => {
   if (!allowStartPage(clientIp(req))) {
-    return renderResult(res, 429, false, 'Error', 'Too many attempts. Try again in a minute.');
+    return renderResult(res, 429, 'Too many attempts. Try again in a minute.');
   }
 
   const params = startParams(req.query);
 
   if (!params || !signedByKey(params)) {
-    return renderResult(res, 400, false, 'Error', invalidLink);
+    return renderResult(res, 400, invalidLink);
   }
 
   if (linkUrlExpired(params)) {
-    return renderResult(res, 400, false, 'Error', expiredLink);
+    return renderResult(res, 400, expiredLink);
   }
 
   if (!newerThanLastChange(`key_${params.key}`, params.t)) {
-    return renderResult(res, 409, false, 'Error', usedLink);
+    return renderResult(res, 409, usedLink);
   }
 
   const refusal = linkPageRefusal(req, res, params);
 
   if (refusal) {
-    return renderResult(res, 400, false, 'Error', refusal);
+    return renderResult(res, 400, refusal);
   }
 
   if (!freshlySignedInFor(req, params)) {
@@ -373,6 +368,7 @@ router.get('/start', (req, res) => {
     steamId: req.user.id,
     state: params.state,
     key: params.key,
+    keyLabel: accountLabel(`key_${params.key}`),
     sig: params.sig,
     t: params.t,
     device: params.device,
@@ -388,30 +384,30 @@ router.post('/start', (req, res) => {
   res.set('Cache-Control', 'no-store');
 
   if (!allowStart(clientIp(req))) {
-    return renderResult(res, 429, false, 'Error', 'Too many attempts. Try again in a minute.');
+    return renderResult(res, 429, 'Too many attempts. Try again in a minute.');
   }
 
   if (!params || !signedByKey(params) || !fromThisSite(req)) {
-    return renderResult(res, 400, false, 'Error', invalidLink);
+    return renderResult(res, 400, invalidLink);
   }
 
   if (!freshlySignedInFor(req, params)) {
-    return renderResult(res, 400, false, 'Error', 'Sign in through Steam on this page again. Start again in the game: Settings - Account - Link with Steam.');
+    return renderResult(res, 400, 'Sign in through Steam on this page again. Start again in the game: Settings - Account - Link with Steam.');
   }
 
   if (linkUrlExpired(params)) {
-    return renderResult(res, 400, false, 'Error', expiredLink);
+    return renderResult(res, 400, expiredLink);
   }
 
   const refusal = linkPageRefusal(req, res, params);
 
   if (refusal) {
-    return renderResult(res, 400, false, 'Error', refusal);
+    return renderResult(res, 400, refusal);
   }
 
   // A page links once - the same page sent again does nothing more
   if (!newerThanLastChange(`key_${params.key}`, params.t)) {
-    return renderResult(res, 409, false, 'Error', usedLink);
+    return renderResult(res, 409, usedLink);
   }
 
   delete req.session.fresh_link_state;
@@ -420,10 +416,10 @@ router.post('/start', (req, res) => {
   const result = linkKey(params.key, steamId, params.device, params.os, params.t);
 
   if (result.error) {
-    return renderResult(res, result.conflict ? 409 : 403, false, 'Error', result.error);
+    return renderResult(res, result.conflict ? 409 : 403, result.error);
   }
 
-  renderResult(res, 200, true, 'You can go back to Hypersomnia', 'This tab can be closed now.');
+  renderResult(res, 200, 'This tab can be closed now.', 'You can go back to Hypersomnia');
 });
 
 /*

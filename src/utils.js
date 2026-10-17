@@ -42,11 +42,11 @@ function countryCodeToEmoji(countryCode) {
 
 /*
   How an account is shown on the site. A key account ("key_<public key in hex>") is shown as its public key
-  with "0x" - in short "0xaf2e22db…", in full "0x<all 64 digits>". The id itself ("key_..." in URLs and
+  with "0x" - in short "0xaf2e22db..." (as in the game), in full "0x<all 64 digits>". The id itself ("key_..." in URLs and
   the database) stays as it is.
 */
 function accountLabel(id) {
-  return id.startsWith('key_') ? `0x${id.slice(4, 12)}…` : id.split('_')[0];
+  return id.startsWith('key_') ? `0x${id.slice(4, 12)}...` : id.split('_')[0];
 }
 
 function fullAccountId(id) {

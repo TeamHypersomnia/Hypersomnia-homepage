@@ -1,6 +1,6 @@
 // Certs of the identity broker - the same binary format as src/application/network/identity_cert.h in the game.
 //
-// A cert binds an account to a player's session key (made by the game at every start, kept only in memory).
+// A cert binds an account to the player's account key, which is also the session key the game signs its connections with.
 // The broker signs it after checking a Steam ticket, a CrazyGames token or an account key's signature.
 
 const crypto = require('crypto');

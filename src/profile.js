@@ -6,7 +6,7 @@ const config = require('./config');
 
 const linkKey = require('./link_key');
 
-async function renderProfile(req, res, extra = {}) {
+async function renderProfile(req, res) {
   const steamId = `steam_${req.user.id}`;
   const association = db.prepare("SELECT child_id FROM associations WHERE parent_id = ? AND child_id LIKE 'discord_%'").get(steamId);
   
@@ -32,9 +32,7 @@ async function renderProfile(req, res, extra = {}) {
       const meta = linkKey.linkMetaOf(id) || {};
       return { id, device: meta.device || '', os: meta.os || null, lastCertAt: meta.last_cert_at || null };
     }),
-    success: req.query.success === 'true',
-    is_admin: config.ADMIN_IDS.includes(req.user.id),
-    ...extra
+    is_admin: config.ADMIN_IDS.includes(req.user.id)
   });
 }
 
