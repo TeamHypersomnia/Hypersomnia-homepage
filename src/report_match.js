@@ -224,14 +224,24 @@ router.post('/', signedByOfficialServer, (req, res) => {
           return [[rated[0]], rated.slice(1)];
         }
 
-        const make_team_ratings = (iterations, pov, count_nocontributors, force_loss_for = -1) => {
+        const average_rating = ratings => rating({
+          mu: ratings.reduce((sum, r) => sum + r.mu, 0) / ratings.length,
+          sigma: ratings.reduce((sum, r) => sum + r.sigma, 0) / ratings.length
+        });
+
+        /*
+          winners_as_losers: the winners replaced by the losers' average rating - the same match lost to equal opponents.
+        */
+        const make_team_ratings = (iterations, pov, count_nocontributors, force_loss_for = -1, winners_as_losers = false) => {
           const contributes = (id, rating_team_is_pov) => count_nocontributors || contributed_to_match(player_infos[id] || {}, rating_team_is_pov);
 
           const winner_indices = win_players.map((id, i) => i).filter(i => contributes(win_players[i], pov === 'winner'));
           const loser_indices = lose_players.map((id, i) => i).filter(i => contributes(lose_players[i], pov === 'loser'));
 
-          let it_winners = winner_indices.map(i => original_winner_ratings[i]);
           let it_losers = loser_indices.map(i => original_loser_ratings[i]);
+          let it_winners = winners_as_losers
+            ? winner_indices.map(() => average_rating(it_losers))
+            : winner_indices.map(i => original_winner_ratings[i]);
 
           const scores = (() => {
             if (force_loss_for === 0) return [0, 1];
@@ -256,7 +266,13 @@ router.post('/', signedByOfficialServer, (req, res) => {
         const severity = lose_severity(win_score, lose_score);
 
         const present_winners = make_team_ratings(severity, 'winner', false)[0];
-        const present_losers = make_team_ratings(severity, 'loser', false)[1];
+        /*
+          A loss to weaker opponents costs at most what the same loss to equal opponents would -
+          the winners still gain by their own ratings, so the MMR economy inflates a little.
+        */
+        const losers_vs_weaker = make_team_ratings(severity, 'loser', false)[1];
+        const losers_vs_equal = make_team_ratings(severity, 'loser', false, -1, true)[1];
+        const present_losers = losers_vs_weaker.map((r, i) => ordinal(losers_vs_equal[i]) > ordinal(r) ? losers_vs_equal[i] : r);
         const abandoned_winners = make_team_ratings(1, 'winner', true, 0)[0];
         const abandoned_losers = make_team_ratings(1, 'loser', true, 1)[1];
 

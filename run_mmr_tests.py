@@ -317,6 +317,21 @@ eq("pl: event_match_multiplier = 2", last_match("event_match_multiplier"), 2)
 check_post("happyhours_aus_1v1_0to1_normal.json", apikey="au")
 eq("au: event_match_multiplier = 2", last_match("event_match_multiplier"), 2)
 
+section("a loss to weaker opponents costs at most a loss to equal ones")
+
+def set_rating(account_id, mu, sigma):
+    db_exec(f"INSERT OR REPLACE INTO mmr_team (account_id, mu, sigma, mmr) VALUES ('{account_id}', {mu}, {sigma}, {mu - 3 * sigma})")
+
+strong_vs_weak, weak = ids("cap_strong", 1), ids("cap_weak", 1)
+strong_vs_equal, equal = ids("cap_strong_eq", 1), ids("cap_equal", 1)
+for i in strong_vs_weak + strong_vs_equal + equal:
+    set_rating(i, 61, 7)
+before = mmr(strong_vs_weak[0])
+match(weak, strong_vs_weak, 16, 2)
+match(equal, strong_vs_equal, 16, 2)
+check("lost to 0 MMR = lost to an equal", close(mmr(strong_vs_weak[0]), mmr(strong_vs_equal[0])), f"{mmr(strong_vs_weak[0]) - before:.3f} = {mmr(strong_vs_equal[0]) - before:.3f}")
+check("the weak winner still gains by their own rating", mmr(weak[0]) > 10, f"{mmr(weak[0]):.3f}")
+
 section("tie (15:15 - neither a win nor a loss)")
 
 wt, lt_ = ids("tie_w", 1), ids("tie_l", 1)

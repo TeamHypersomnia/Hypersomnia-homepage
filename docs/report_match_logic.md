@@ -29,6 +29,9 @@ Team modes (`mmr_team`) - openskill `rate()` with the scores, applied:
 - **Happy hours:** all of that once more (`event_match_multiplier = 2`, see below).
 - **Who stayed** is rated without the abandoners who did not contribute (below), with the real scores - or `1:0` when
   the losers abandoned (the team left on the server wins whatever the score was, even 1:5).
+- **A loss to weaker opponents** costs a player who stayed at most what the same loss to equal opponents would: the
+  losers are rated a second time against the winners replaced by the losers' average rating, and each keeps the better
+  of the two. The winners gain by their own ratings, so the MMR economy inflates a little.
 - **Who abandoned** is rated apart, once, with everyone, as a sure loss of their team (`0:1` for a winner-side abandoner,
   `1:0` against a loser-side one).
 
