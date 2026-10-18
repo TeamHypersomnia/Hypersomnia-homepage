@@ -332,13 +332,21 @@ match(equal, strong_vs_equal, 16, 2)
 check("lost to 0 MMR = lost to an equal", close(mmr(strong_vs_weak[0]), mmr(strong_vs_equal[0])), f"{mmr(strong_vs_weak[0]) - before:.3f} = {mmr(strong_vs_equal[0]) - before:.3f}")
 check("the weak winner still gains by their own rating", mmr(weak[0]) > 10, f"{mmr(weak[0]):.3f}")
 
-section("tie (15:15 - neither a win nor a loss)")
+section("tie (any equal score - neither a win nor a loss)")
 
 wt, lt_ = ids("tie_w", 1), ids("tie_l", 1)
 match(wt, lt_, 15, 15)
 check("both the same mmr", close(mmr(wt[0]), mmr(lt_[0])), f"{mmr(wt[0]):.6f} = {mmr(lt_[0]):.6f}")
 eq("no win counted",  table(wt[0], "matches_won"), 0)
 eq("no loss counted", table(lt_[0], "matches_lost"), 0)
+
+w9, l9 = ids("tie9_w", 1), ids("tie9_l", 1)
+match(w9, l9, 9, 9)
+check("9:9 (a short ranked match) is a tie too", close(mmr(w9[0]), mmr(l9[0])), f"{mmr(w9[0]):.6f} = {mmr(l9[0]):.6f}")
+eq("9:9 no win counted", table(w9[0], "matches_won"), 0)
+wa5, la5 = ids("tie_ab_w", 1), ids("tie_ab_l", 1)
+match(wa5, la5, 5, 5, abandoned={la5[0]: 5}, losers_abandoned=True)
+eq("5:5 with the losers abandoned is a win", table(wa5[0], "matches_won"), 1)
 
 section("short match (< 5 rounds - winners keep their ratings, nothing counted)")
 
@@ -382,6 +390,12 @@ for f in ["3v3_abandon_but_no_teammate_contribs.json", "3v3_abandon_but_one_cont
           "1v1_win_by_abandon_at_end.json", "3v3_anni_abandon_but_one_contrib.json", "3v3_tie_abandon_but_none_contrib.json",
           "3v3_tie_abandon_but_one_contrib.json", "3v3_abandon_to_steal.json", "3v3_abandon_no_count_wins.json"]:
     check_post(f)
+
+# Every loser left without contributing: they are rated as abandoners, nobody gets NaN
+wn, ln = ids("all_left_w", 2), ids("all_left_l", 2)
+match(wn, ln, 16, 2, abandoned={ln[0]: 1, ln[1]: 1})
+vals = [mmr(i) for i in wn + ln]
+check("all losers left early: every mmr a number", all(v == v for v in vals) and table(ln[0], "mu") is not None, " ".join(f"{v:.3f}" for v in vals))
 
 section("FFA Gun Game (every player ranked by place)")
 

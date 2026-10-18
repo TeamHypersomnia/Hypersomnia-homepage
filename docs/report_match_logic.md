@@ -51,9 +51,10 @@ If `win_score + lose_score < 5` (fewer than 5 total rounds played):
 
 ## Tie
 
-A tie is detected when: `game_mode != 'FFA Gun Game'` **and** `win_score == 15` **and** `lose_score == 15`.
+A tie is detected when: `game_mode != 'FFA Gun Game'` **and** `win_score == lose_score` **and** not `losers_abandoned`
+(15:15 in a full match, 9:9 in a short one - a browser player in it - or whatever a server's own max team score gives).
 
-- rated with the equal scores (15:15) - both sides move by the uncertainty only
+- rated with the equal scores - both sides move by the uncertainty only
 - neither a win nor a loss is counted for anyone, abandoners included
 
 ---

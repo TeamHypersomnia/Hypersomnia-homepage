@@ -178,7 +178,7 @@ router.post('/', signedByOfficialServer, (req, res) => {
       const playerRatings = {};
       const default_rating = rating();
       const table_name = mmrTableOf(game_mode);
-      const is_tie = isTie(table_name, win_score, lose_score);
+      const is_tie = isTie(table_name, win_score, lose_score, losers_abandoned);
 
       const stmt_insert_player = db.prepare(`INSERT OR IGNORE INTO ${table_name} (account_id, mu, sigma) VALUES (?, ?, ?)`);
       const stmt_get_player = db.prepare(`SELECT mu, sigma FROM ${table_name} WHERE account_id = ?`);
@@ -224,7 +224,8 @@ router.post('/', signedByOfficialServer, (req, res) => {
           return [[rated[0]], rated.slice(1)];
         }
 
-        const average_rating = ratings => rating({
+        // Empty when every loser left without contributing - they are rated as abandoners then, this result unused
+        const average_rating = ratings => ratings.length === 0 ? default_rating : rating({
           mu: ratings.reduce((sum, r) => sum + r.mu, 0) / ratings.length,
           sigma: ratings.reduce((sum, r) => sum + r.sigma, 0) / ratings.length
         });

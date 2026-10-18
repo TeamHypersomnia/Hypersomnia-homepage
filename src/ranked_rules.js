@@ -6,7 +6,12 @@ const db = require('./db');
 */
 
 const mmrTableOf = game_mode => game_mode === 'FFA Gun Game' ? 'mmr_ffa' : 'mmr_team';
-const isTie = (table, win_score, lose_score) => table === 'mmr_team' && win_score === 15 && lose_score === 15;
+/*
+  Any equal score is a tie - not only 15:15: a short ranked match (a browser player) plays to 10 (9:9), and a server
+  may set its own max team score. Unless the losers abandoned: then the team that stayed won, whatever the score.
+*/
+const isTie = (table, win_score, lose_score, losers_abandoned = false) =>
+  table === 'mmr_team' && win_score === lose_score && !losers_abandoned;
 
 const stmtParentOf = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?');
 

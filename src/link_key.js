@@ -416,7 +416,7 @@ router.get('/unlink', (req, res) => {
   }
 
   if (parent) {
-    console.log(`[link_key] Unlinked ${child} from ${parent.parent_id} (from the game).`);
+    console.log(`[link_key] Unlinked ${child} from ${parent} (from the game).`);
   }
 
   res.json({ unlinked: true });
