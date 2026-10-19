@@ -2,12 +2,14 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db');
 const { timeAgoShort } = require('./utilities/timeAgo');
-const { formatMMRDelta, getRank, countryCodeToEmoji } = require('./utils');
+const { parentOf } = require('./ranked_rules');
+const { formatMMRDelta, getRank, countryCodeToEmoji, accountLabel } = require('./utils');
+const { getAvatar } = require('./avatars');
 
 router.get('/:user', function(req, res) {
   try {
     const userid = req.params.user;
-    const match = userid.match(/^(steam|discord|crazygames)_(.+)$/);
+    const match = userid.match(/^(steam|discord|crazygames|key)_(.+)$/);
     if (!match) {
       return res.status(404).render('404', { page: 'Not Found', user: req.user });
     }
@@ -17,7 +19,8 @@ router.get('/:user', function(req, res) {
     const validId =
       config.IS_PROD ? (
         (platform === 'steam' || platform === 'discord') ? /^\d+$/.test(id) :
-        (platform === 'crazygames') ? /^[a-zA-Z0-9]{10,64}$/.test(id) :
+        (platform === 'crazygames') ? /^[A-Za-z0-9_-]{1,64}$/.test(id) :
+        (platform === 'key') ? /^[0-9a-f]{64}$/.test(id) :
         false
       ) : true;
     if (!validId) {
@@ -38,20 +41,35 @@ router.get('/:user', function(req, res) {
         name: 'CrazyGames',
         url: `https://www.crazygames.com/uid/${id}`,
         icon: ''
+      },
+      key: {
+        name: 'Game key',
+        url: null,
+        icon: 'fa-solid fa-key'
       }
     };
     const { name: platformName, url: profileUrl, icon: platformIconClass } = platforms[platform];
-    const parentAssociation = db.prepare('SELECT parent_id FROM associations WHERE child_id = ?').get(userid);
-    const childAssociation = db.prepare('SELECT child_id FROM associations WHERE parent_id = ?').get(userid);
-    let associationType = null;
-    let associatedId = null;
-    if (parentAssociation) {
-      associationType = 'Primary account';
-      associatedId = parentAssociation.parent_id;
-    } else if (childAssociation) {
-      associationType = 'Secondary account';
-      associatedId = childAssociation.child_id;
-    }
+    // A key or a Discord account linked to a Steam account plays as it; a Steam account can have several linked
+    // (a Discord account and up to 10 game keys) - the Discord one first, then by id
+    const linkedTo = parentOf(userid);
+
+    // The name an account last played as - none for one that never played (e.g. a key made and linked right away)
+    const stmtNickname = db.prepare(`
+      SELECT nickname FROM last_nicknames WHERE account_id = @id
+      UNION ALL SELECT nickname FROM mmr_team WHERE account_id = @id
+      UNION ALL SELECT nickname FROM mmr_ffa WHERE account_id = @id
+    `);
+    const nicknameOf = id => {
+      const found = stmtNickname.all({ id }).find(r => r.nickname);
+      return found ? found.nickname : null;
+    };
+
+    // Secondary accounts: only those with progress of their own, by the name they played as - a bare key says nothing
+    const secondaryAccounts = linkedTo ? [] : db.prepare("SELECT child_id FROM associations WHERE parent_id = ? ORDER BY child_id NOT LIKE 'discord_%', child_id")
+      .all(userid)
+      .map(r => ({ id: r.child_id, nickname: nicknameOf(r.child_id) }))
+      .filter(a => a.nickname);
+    const linkedToName = linkedTo ? (nicknameOf(linkedTo) || accountLabel(linkedTo)) : null;
     
     const stmtTeam = db.prepare('SELECT * FROM mmr_team WHERE account_id = ?');
     const userTeam = stmtTeam.get(userid) || { mmr: 0, sigma: 0, mu: 0, matches_won: 0, matches_lost: 0 };
@@ -66,7 +84,10 @@ router.get('/:user', function(req, res) {
     userFFA.rankName = rankFFA.rankName;
     
     const stmt = db.prepare(`SELECT * FROM matches WHERE (winners LIKE ? OR losers LIKE ?) ORDER BY match_id DESC`);
-    const matches = stmt.all(`%${userid}%`, `%${userid}%`).map(match => {
+    // LIKE also matches a nickname that holds the id (or an id that holds this one) - those matches are not this player's
+    const matches = stmt.all(`%${userid}%`, `%${userid}%`).filter(match => {
+      return JSON.parse(match.winners).some(w => w.id === userid) || JSON.parse(match.losers).some(l => l.id === userid);
+    }).map(match => {
       const winnersArray = JSON.parse(match.winners);
       const losersArray = JSON.parse(match.losers);
       const winner = winnersArray.find(w => w.id === userid);
@@ -108,18 +129,28 @@ router.get('/:user', function(req, res) {
     const mostPlayedArena = Object.keys(arenaCounts).reduce((a, b) => arenaCounts[a] > arenaCounts[b] ? a : b, null);
     const mostPlayedArenaCount = mostPlayedArena ? arenaCounts[mostPlayedArena] : 0;
     
+    // An account with no match yet (e.g. a key that was just made, or linked before it played) still has a page
+    const playedAny = matches.length > 0 || !!stmtTeam.get(userid) || !!stmtFFA.get(userid);
+    const lastNickname = db.prepare('SELECT nickname FROM last_nicknames WHERE account_id = ?').get(userid);
+    const nickname = (lastNickname && lastNickname.nickname) || userTeam.nickname || userFFA.nickname ||
+      (platform === 'key' ? accountLabel(userid) : 'Unknown');
+
     res.render('user', {
-      page: userTeam.nickname || userFFA.nickname || 'Unknown',
+      page: nickname,
       user: req.user,
-      nickname: userTeam.nickname || userFFA.nickname || 'Unknown',
+      nickname,
+      userid,
+      hasAvatar: !!getAvatar(userid),
+      playedAny,
       platformName: platformName,
       profileUrl: profileUrl,
       platformIconClass: platformIconClass,
       teamData: userTeam,
       ffaData: userFFA,
       matches: matches,
-      associationType: associationType,
-      associatedId: associatedId,
+      linkedTo,
+      linkedToName,
+      secondaryAccounts,
       formatMMRDelta: formatMMRDelta,
       longestWinStreak,
       mostPlayedArena,

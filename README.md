@@ -56,11 +56,16 @@ DISCORD_CLIENT_ID=YOUR_DISCORD_CLIENT_ID
 DISCORD_CLIENT_SECRET=YOUR_DISCORD_CLIENT_SECRET
 DISCORD_BOT_TOKEN=YOUR_DISCORD_BOT_TOKEN
 ADMINS=76561198012345678,76561198087654321
+# The identity broker's signing key (hypersomnia-key-v1:<seed hex>) - without it no certs are issued; its public key goes
+# to the game servers' configs (identity_broker_public_keys)
+BROKER_KEY_PATH=./private/broker.key
+# Without it every CrazyGames sign-in is refused
+CRAZYGAMES_GAME_ID=YOUR_CRAZYGAMES_GAME_ID
 ```
 
 ## Logs
 
-The app runs under **PM2** in production (deployed via Ansible). All `[report_match]`-prefixed log lines are emitted on every code path — successes, skips, validation failures, and errors with full stack traces.
+The app runs under **PM2** in production (deployed via Ansible). `[report_match]`-prefixed log lines are emitted for successes, skips, validation failures and errors with full stack traces (a duplicate report answered 409 is not logged).
 
 ```bash
 # Live log stream
@@ -88,7 +93,7 @@ grep "\[report_match\]" ~/.pm2/logs/app-error.log | tail -50
 ## Local development
 
 ```bash
-# Start with a test API key pre-seeded (api_key=pl, server_id=pl)
+# Start with test official servers pre-seeded in private/official_servers.d (pl and au - their keys from the seeds sha256("hypersomnia-test-server-<id>"))
 ./test_server.sh
 ```
 

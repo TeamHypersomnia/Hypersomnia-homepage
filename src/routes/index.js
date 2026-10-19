@@ -9,6 +9,13 @@ module.exports = (app) => {
   // lets any view link an arena name only when that arena exists
   app.locals.hasArena = require('../arenas').hasArena;
 
+  // how an account is shown, e.g. a key as "0xaf2e22db…" - see utils.js
+  app.locals.accountLabel = require('../utils').accountLabel;
+  app.locals.fullAccountId = require('../utils').fullAccountId;
+
+  // a server's address without the default port - see utils.js
+  app.locals.shownAddress = require('../utils').shownAddress;
+
   // canonical URL of the current page: production domain, no query, no trailing slash
   app.use((req, res, next) => {
     const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : '/';
@@ -34,6 +41,11 @@ module.exports = (app) => {
   app.use('/user', require('../user'));
   app.use('/auth', require('../auth')(passport));
   app.use('/profile', authenticated, require('../profile'));
+  // Where linking starts (in the game) - for anyone who looks for it here
+  app.get('/link', require('../profile').linkPage);
+  app.use('/link_key', require('../link_key').router);
+  app.use('/cert', require('../broker').router);
+  app.use('/avatar', require('../avatars').router);
   app.post('/logout', authenticated, (req, res) => req.logout(() => res.redirect('/')));
   app.use('/upload', require('../upload'));
   app.use('/report_match', require('../report_match'));
@@ -44,5 +56,6 @@ module.exports = (app) => {
   app.use('/admin', admin, require('../admin/overview'));
   app.use('/admin/users', admin, require('../admin/users'));
   app.use('/admin/creators', admin, require('../admin/creators'));
+  app.use('/admin/avatars', admin, require('../admin/avatars'));
   app.use((req, res) => res.status(404).render('404', { page: 'Not Found', user: req.user, noindex: true }));
 };

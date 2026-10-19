@@ -1,9 +1,6 @@
 <%- include('overall_header'); %>
 
 <h1>Profile</h1>
-<% if (success) { %>
-<p>Success! Go back to the game and press: <i class="fa-brands fa-discord"></i> Sign in with Discord</p>
-<% } %>
 
 <div class="btn-group">
   <% if (is_admin == true) { %>
@@ -13,16 +10,13 @@
   <form class="btn" method="POST" action="/auth/discord/disconnect">
     <button type="submit"><i class="fa-brands fa-discord"></i>Disconnect*</button>
   </form>
-  <% } else { %>
-  <form class="btn" method="GET" action="/auth/discord">
-    <button type="submit"><i class="fa-brands fa-discord"></i>Connect*</button>
-  </form>
   <% } %>
   <form class="btn" method="POST" action="/logout">
     <button type="submit">Logout</button>
   </form>
 </div>
 
+<h2>Account</h2>
 <div class="responsive">
   <table>
     <thead>
@@ -47,6 +41,42 @@
     </tbody>
   </table>
 </div>
-<small class="form-hint">*<% if (discordData) { %>After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.<% } else { %>Discord matches count towards your Steam account. No merging happens, and you can disconnect anytime without losing progress.<% } %></small>
+
+<h2>Linked game keys</h2>
+<div class="responsive">
+  <%# the Unlink buttons in their own column, so they line up %>
+  <table class="linked-keys">
+    <thead>
+      <tr>
+        <th>Game key</th>
+        <th>Device</th>
+        <th>Last signed in</th>
+        <th class="linked-keys-action"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (linkedKeys.length === 0) { %>
+      <tr>
+        <td colspan="4">None linked</td>
+      </tr>
+      <% } %>
+      <% linkedKeys.forEach(function(linked) { const key = linked.id; %>
+      <tr>
+        <td class="linked-keys-key"><a href="/user/<%= key %>"><%= fullAccountId(key) %></a><button type="button" class="copy-btn" data-copy="<%= fullAccountId(key) %>" title="Copy the key" aria-label="Copy the key"><i class="fa-regular fa-copy"></i></button></td>
+        <td><% const osIcons = { windows: ['fa-brands fa-windows', 'Windows'], linux: ['fa-brands fa-linux', 'Linux'], mac: ['fa-brands fa-apple', 'Mac'], web: ['fa-solid fa-globe', 'Browser'] }; %><% if (osIcons[linked.os]) { %><i class="<%= osIcons[linked.os][0] %> fa-fw" title="<%= osIcons[linked.os][1] %>"></i> <% } %><%= linked.device || '-' %></td>
+        <td><%= linked.lastCertAt ? new Date(linked.lastCertAt * 1000).toISOString().slice(0, 10) : '-' %></td>
+        <td class="linked-keys-action">
+          <form class="inline-form" method="POST" action="/profile/unlink_key" onsubmit="return confirm(<%= JSON.stringify('Unlink this game key? Its ranked matches will no longer count towards this Steam account - on a device already signed in, from its next start (at most a few hours).') %>);">
+            <input type="hidden" name="key" value="<%= key %>">
+            <input class="small danger" type="submit" value="Unlink">
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<p>To link the game to your Steam account, open the game: Settings → Account → Link with Steam.</p>
+<% if (discordData) { %><small class="form-hint">*After disconnecting, your Steam and Discord accounts will be separate again, with no loss of ranks or MMR.</small><% } %>
 
 <%- include('overall_footer'); %>

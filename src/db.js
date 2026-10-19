@@ -47,6 +47,109 @@ class DatabaseManager {
     if (!tableExists) {
       this.initializeDatabase();
     }
+
+    this.migrateAssociations();
+    this.migrateIdentity();
+    this.migrateProfiles();
+  }
+
+  /*
+    What /cert answers besides the cert and the profile pages show: the avatar and the last nickname each account had
+    in its last reported match (any account type), and the Steam name and avatar the broker fetched, cached for a day.
+    Idempotent.
+  */
+  migrateProfiles() {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS avatars (
+        account_id TEXT PRIMARY KEY,
+        png BLOB NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS avatars_updated ON avatars (updated_at);
+
+      CREATE TABLE IF NOT EXISTS last_nicknames (
+        account_id TEXT PRIMARY KEY,
+        nickname TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS steam_profiles (
+        account_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        avatar BLOB,
+        fetched_at INTEGER NOT NULL
+      );
+    `);
+  }
+
+  /*
+    The identity broker's bans, and the id a game server gives each match report, so that a report retried
+    after a lost answer is not counted twice. Idempotent.
+  */
+  migrateIdentity() {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS broker_bans (
+        account TEXT PRIMARY KEY,
+        reason TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- About each linked key, for its owner's /profile only: the device and system (windows, linux, mac, web)
+      -- the game named on linking, when it last got a cert
+      CREATE TABLE IF NOT EXISTS key_devices (
+        child_id TEXT PRIMARY KEY,
+        device TEXT,
+        os TEXT,
+        last_cert_at INTEGER
+      );
+
+      -- When a key was last linked or unlinked (unix secs, see link_key.js): a signed link page or unlink not newer
+      -- than that does nothing
+      CREATE TABLE IF NOT EXISTS key_link_changes (
+        child_id TEXT PRIMARY KEY,
+        changed_at INTEGER NOT NULL
+      );
+
+      -- The report ids of reverted matches: a server retrying such a report (it keeps them for days) is not counted again
+      CREATE TABLE IF NOT EXISTS reverted_reports (
+        report_id TEXT PRIMARY KEY
+      );
+    `);
+
+    const columns = this.db.prepare("PRAGMA table_info(matches)").all().map(c => c.name);
+
+    if (!columns.includes('report_id')) {
+      this.db.exec('ALTER TABLE matches ADD COLUMN report_id TEXT');
+    }
+
+    this.db.exec('CREATE UNIQUE INDEX IF NOT EXISTS matches_report_id ON matches (report_id)');
+  }
+
+  // associations.parent_id used to be UNIQUE, allowing a Steam account just one linked account.
+  // Rebuilds the table without it, keeping every row. Idempotent.
+  migrateAssociations() {
+    const indexes = this.db.prepare("PRAGMA index_list(associations)").all();
+
+    const parentIsUnique = indexes.some(index => {
+      if (!index.unique) return false;
+      const columns = this.db.prepare(`PRAGMA index_info("${index.name}")`).all();
+      return columns.length === 1 && columns[0].name === 'parent_id';
+    });
+
+    if (!parentIsUnique) return;
+
+    this.db.transaction(() => {
+      this.db.exec(`
+        CREATE TABLE associations_new (child_id TEXT UNIQUE, parent_id TEXT);
+        INSERT INTO associations_new (child_id, parent_id) SELECT child_id, parent_id FROM associations;
+        DROP TABLE associations;
+        ALTER TABLE associations_new RENAME TO associations;
+        CREATE INDEX IF NOT EXISTS associations_parent ON associations (parent_id);
+      `);
+    })();
+
+    console.log('Migrated associations: a Steam account can now have several linked accounts.');
   }
   
   initializeDatabase() {
@@ -58,21 +161,12 @@ class DatabaseManager {
       const sql = fs.readFileSync(this.sqlPath, 'utf8');
       this.db.exec(sql);
       console.log('Database schema initialized successfully');
-      this.seedTestData();
     } catch (err) {
       console.error('Database initialization error:', err);
       throw err;
     }
   }
 
-  seedTestData() {
-    const config = require('./config');
-    if (!config.IS_TEST) return;
-    this.db.prepare("INSERT OR IGNORE INTO authorized_servers (api_key, server_id) VALUES ('pl', 'pl')").run();
-    this.db.prepare("INSERT OR IGNORE INTO authorized_servers (api_key, server_id) VALUES ('au', 'au')").run();
-    console.log('[test] Seeded authorized_servers: pl, au');
-  }
-  
   // Cache prepared statements for reuse
   prepare(sql) {
     if (this.preparedStatements.has(sql)) {

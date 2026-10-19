@@ -1,11 +1,18 @@
 ---
+# Docker from apt only where there is none yet - arena-us has it from snap.
+- name: Check for Docker
+  shell: command -v docker
+  register: docker_present
+  changed_when: false
+  failed_when: false
+  become: yes
+
 - name: Install Docker
   apt:
-    name:
-      - docker.io
-      - python3-docker # Required for ansible docker modules
+    name: docker.io
     state: present
     update_cache: yes
+  when: docker_present.rc != 0
   become: yes
 
 - name: Ensure Docker service is running
@@ -13,14 +20,42 @@
     name: docker
     state: started
     enabled: yes
+  when: docker_present.rc != 0
+  become: yes
+
+- name: Install the Docker SDK for Python (for the docker modules)
+  apt:
+    name: python3-docker
+    state: present
+  become: yes
+
+# Violet built with our libjuice fork (see docker/violet/Dockerfile), at the commits in the inventory.
+- name: Copy the Violet Dockerfile
+  copy:
+    src: ../../docker/violet/Dockerfile
+    dest: /opt/violet-build/
+    mode: '0644'
+  become: yes
+
+- name: Build the Violet image
+  docker_image:
+    name: hypersomnia-violet
+    tag: "{{ violet_commit[:8] }}-{{ libjuice_commit[:8] }}"
+    source: build
+    build:
+      path: /opt/violet-build
+      args:
+        VIOLET_COMMIT: "{{ violet_commit }}"
+        LIBJUICE_COMMIT: "{{ libjuice_commit }}"
   become: yes
 
 - name: Run Violet TURN server
   docker_container:
     name: violet
-    image: paullouisageneau/violet
+    image: "hypersomnia-violet:{{ violet_commit[:8] }}-{{ libjuice_commit[:8] }}"
     network_mode: host
     restart_policy: always
-    command: "--credentials=somnia:Re8Iefei"
+    user: "65534:65534"
+    command: "--credentials={{ turn_credentials }}"
     state: started
   become: yes

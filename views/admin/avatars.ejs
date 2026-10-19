@@ -1,0 +1,36 @@
+<%- include('../overall_header'); %>
+<%- include('nav'); %>
+
+<% if (deleted) { %>
+<p>Deleted the avatar of <a href="/user/<%= deleted %>"><%= fullAccountId(deleted) %></a>.</p>
+<% } %>
+
+<div class="responsive">
+  <table>
+    <thead>
+      <tr>
+        <th width="10%">Avatar</th>
+        <th width="50%">Account</th>
+        <th width="25%">Reported</th>
+        <th width="15%"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% avatars.forEach(a => { %>
+        <tr>
+          <td><img class="avatar" src="/avatar/<%= a.account_id %>.png" alt=""></td>
+          <td><a href="/user/<%= a.account_id %>"><%= fullAccountId(a.account_id) %></a></td>
+          <td><%= new Date(a.updated_at * 1000).toISOString().replace('T', ' ').slice(0, 19) %></td>
+          <td>
+            <form method="POST" action="/admin/avatars/delete">
+              <input type="hidden" name="account_id" value="<%= a.account_id %>">
+              <input type="submit" value="Delete">
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../overall_footer'); %>

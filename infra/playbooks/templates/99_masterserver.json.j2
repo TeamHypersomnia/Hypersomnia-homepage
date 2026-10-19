@@ -9,6 +9,6 @@
     "num_udp_command_ports": {{ masterserver.num_udp_ports }},
     "server_list_port": {{ masterserver.server_list_port_https }},
     "fallback_http_server_list_port": {{ masterserver.server_list_port_http }},
-    "official_hosts": {{ masterserver.official_hosts | to_json }}
+    "official_servers_dir": "{{ paths.private }}/official_servers.d"
   }
 }

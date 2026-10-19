@@ -8,6 +8,7 @@ Usage:
   python3 run_mmr_tests.py --prod          # against hypersomnia.io, uses $RANKED_API_KEY
 """
 
+import hashlib
 import json
 import os
 import sqlite3
@@ -70,8 +71,14 @@ def db_exec(sql):
     finally:
         con.close()
 
+def numeric_id(account_id):
+    """The site takes steam_ ids of digits only: a fixture's readable id (steam_3v3_normal0) stands for a stable number."""
+    if account_id.startswith("steam_") and not account_id[6:].isdigit():
+        return "steam_" + str(int(hashlib.sha256(account_id.encode()).hexdigest()[:15], 16))
+    return account_id
+
 def player(account_id, field):
-    return db_one(f"SELECT {field} FROM mmr_team WHERE account_id = '{account_id}'")
+    return db_one(f"SELECT {field} FROM mmr_team WHERE account_id = '{numeric_id(account_id)}'")
 
 def last_match(field):
     return db_one(f"SELECT {field} FROM matches ORDER BY match_id DESC LIMIT 1")
@@ -84,11 +91,26 @@ def wipe():
 def post(filename, apikey="pl"):
     path = os.path.join(ROOT, "tests", filename)
     with open(path, "rb") as f:
-        data = f.read()
-    key = API_KEY if PROD_MODE else apikey
+        body = json.loads(f.read())
+    body["win_players"] = [numeric_id(i) for i in body["win_players"]]
+    body["lose_players"] = [numeric_id(i) for i in body["lose_players"]]
+    body["player_infos"] = {numeric_id(i): info for i, info in body["player_infos"].items()}
+    # Like a game server: every report has its own id and the time it was made
+    body.setdefault("match_id", os.urandom(8).hex())
+    body.setdefault("reported_at", int(time.time()))
+    data = json.dumps(body).encode()
+    # Servers sign their reports with their key - see src/official_servers.js.
+    # The test servers' keys come from public seeds (--test seeds them); --prod takes a seed in hex from $RANKED_API_KEY.
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from cryptography.hazmat.primitives import serialization
+    seed = bytes.fromhex(API_KEY) if PROD_MODE else hashlib.sha256(f"hypersomnia-test-server-{apikey}".encode()).digest()
+    key = Ed25519PrivateKey.from_private_bytes(seed)
+    public = key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw).hex()
+    signature = key.sign(b"hs-report-v1" + data).hex()
     req = urllib.request.Request(URL, data=data, headers={
         "Content-Type": "application/json",
-        "apikey": key,
+        "X-Server-Key": public,
+        "X-Signature": signature,
     })
     try:
         with urllib.request.urlopen(req) as resp:
@@ -193,109 +215,210 @@ else:
 
 # ── tests ─────────────────────────────────────────────────────────────────────
 
-section("basic matches")
+def post_body(body, apikey="pl", path="/report_match", tag=b"hs-report-v1"):
+    """A report built here - like a game server's: its own id and the time it was made, signed with the test key."""
+    body = dict(body)
+    body.setdefault("match_id", os.urandom(8).hex())
+    body.setdefault("reported_at", int(time.time()))
+    data = json.dumps(body).encode()
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from cryptography.hazmat.primitives import serialization
+    seed = hashlib.sha256(f"hypersomnia-test-server-{apikey}".encode()).digest()
+    key = Ed25519PrivateKey.from_private_bytes(seed)
+    public = key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw).hex()
+    req = urllib.request.Request(URL.replace("/report_match", path), data=data, headers={
+        "Content-Type": "application/json", "X-Server-Key": public, "X-Signature": key.sign(tag + data).hex(),
+    })
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return json.loads(e.read())
+
+def match(win, lose, win_score, lose_score, abandoned=None, game_mode="Bomb Defusal", **extra):
+    """Fresh players named by `win`/`lose` (each test its own), abandoned = {id: abandoned_at_score}."""
+    abandoned = abandoned or {}
+    infos = {}
+    for i in win + lose:
+        infos[i] = {"nickname": i[-20:]}
+        if i in abandoned:
+            infos[i]["abandoned_at_score"] = abandoned[i]
+    body = {"match_start_date": "2026-10-18T12:00:00Z", "server_name": "mmr test", "arena": "de_cyberaqua",
+            "game_mode": game_mode, "win_score": win_score, "lose_score": lose_score,
+            "win_players": win, "lose_players": lose, "player_infos": infos, **extra}
+    result = post_body(body)
+    if "reported" not in str(result.get("message", "")).lower():
+        global failed
+        print(f"    {RED}✗{RESET} report refused: {result}")
+        failed += 1
+    return body
+
+RUN = os.urandom(3).hex()
+def ids(name, n):
+    return [numeric_id(f"steam_{RUN}_{name}{i}") for i in range(n)]
+
+def table(account_id, field, table_name="mmr_team"):
+    return db_one(f"SELECT {field} FROM {table_name} WHERE account_id = '{account_id}'")
+
+def mmr(account_id, table_name="mmr_team"):
+    return float(table(account_id, "mmr", table_name) or 0)
+
+def close(a, b):
+    return abs(a - b) < 1e-9
+
+def check(label, ok, detail=""):
+    global passed, failed
+    if PROD_MODE:
+        return
+    if ok:
+        print(f"    {GREEN}✓{RESET} {label} {detail}")
+        passed += 1
+    else:
+        print(f"    {RED}✗{RESET} {label} {detail}")
+        failed += 1
+
+section("basic matches (fixtures)")
 
 check_post("3v3_normal.json")
 eq("winner  matches_won",  player("steam_3v3_normal0", "matches_won"),  1)
 eq("loser   matches_lost", player("steam_3v3_normal3", "matches_lost"), 1)
 gt("winner  mmr",          player("steam_3v3_normal0", "mmr"))
 lt("loser   mmr",          player("steam_3v3_normal3", "mmr"))
-
-# (players auto-isolated by unique steam IDs per test file)
 check_post("1v3_normal.json")
 gt("1v3 winner mmr", player("steam_1v3_normal3", "mmr"))
-
-# (players auto-isolated by unique steam IDs per test file)
 check_post("1v8_normal.json")
 gt("1v8 winner mmr", player("steam_1v8_normal0", "mmr"))
 
-# ─────────────────────────────────────────────────────────────────────────────
-section("tie")
+section("score difference (lose_severity: 1x under 8, 2x from 8, 3x from 13)")
 
-# (players auto-isolated by unique steam IDs per test file)
-check_post("1v1_tie_normal.json")
-gt("tie: both players gain mmr (sigma drop)",  player("steam_1v1_tie_normal0", "mmr"))
-gt("tie: both players gain mmr (sigma drop)",  player("steam_1v1_tie_normal1", "mmr"))
-eq("tie: both players same mmr",
-   round(float(player("steam_1v1_tie_normal0", "mmr") or 0), 6),
-   round(float(player("steam_1v1_tie_normal1", "mmr") or 0), 6))
-eq("tie: winner  matches_won",  player("steam_1v1_tie_normal0", "matches_won"),  1)
-eq("tie: winner  matches_lost", player("steam_1v1_tie_normal0", "matches_lost"), 0)
+w1, l1 = ids("sev_close_w", 1), ids("sev_close_l", 1)
+w2, l2 = ids("sev_mid_w", 1), ids("sev_mid_l", 1)
+w3, l3 = ids("sev_crush_w", 1), ids("sev_crush_l", 1)
+match(w1, l1, 16, 14)
+match(w2, l2, 16, 8)
+match(w3, l3, 16, 2)
+check("16:8 moves more than 16:14", mmr(w2[0]) > mmr(w1[0]), f"{mmr(w2[0]):.3f} > {mmr(w1[0]):.3f}")
+check("16:2 moves more than 16:8", mmr(w3[0]) > mmr(w2[0]), f"{mmr(w3[0]):.3f} > {mmr(w2[0]):.3f}")
+check("16:2 losers lose more than 16:14", mmr(l3[0]) < mmr(l1[0]), f"{mmr(l3[0]):.3f} < {mmr(l1[0]):.3f}")
 
-# ─────────────────────────────────────────────────────────────────────────────
-section("short match  (< 5 rounds → W/L not counted)")
+section("happy hours (event_match_multiplier 2 = rated twice as many times)")
 
-# (players auto-isolated by unique steam IDs per test file)
-check_post("3v3_abandon_no_count_wins.json")  # 3:1 = 4 total rounds
-eq("short: winner  matches_won",          player("steam_3v3_abandon_no_count_wins0", "matches_won"),  0)
-eq("short: winner  matches_lost",         player("steam_3v3_abandon_no_count_wins0", "matches_lost"), 0)
-eq("short: loser abandoner matches_lost", player("steam_3v3_abandon_no_count_wins3", "matches_lost"), 1)
-eq("short: winner abandoner matches_lost (abandon always counts)", player("steam_3v3_abandon_no_count_wins2", "matches_lost"), 1)
-
-# ─────────────────────────────────────────────────────────────────────────────
-section("abandons")
-
-# (players auto-isolated by unique steam IDs per test file)
-check_post("3v3_abandon_but_no_teammate_contribs.json")
-# winners abandoned at score 2 < threshold(13) → MMR frozen
-eq("early winner abandon: mmr unchanged",     player("steam_3v3_abandon_but_no_teammate_contribs1", "mmr"),        0)
-eq("early winner abandon: matches_won  = 0",  player("steam_3v3_abandon_but_no_teammate_contribs1", "matches_won"),  0)
-eq("early winner abandon: matches_lost = 1",  player("steam_3v3_abandon_but_no_teammate_contribs1", "matches_lost"), 1)
-
-# (players auto-isolated by unique steam IDs per test file)
-check_post("3v3_abandon_but_one_contrib.json")
-# abandoned at 13 (= threshold) → MMR changes
-gt("at-threshold abandon: mmr changed",       player("steam_3v3_abandon_but_one_contrib2", "mmr"))
-# abandoned at 10 < 13 → MMR frozen
-eq("below-threshold abandon: mmr unchanged",  player("steam_3v3_abandon_but_one_contrib1", "mmr"), 0)
-
-# (players auto-isolated by unique steam IDs per test file)
-check_post("1v3_win_by_abandon_at_end.json")
-# losers abandoned at score 15 >= threshold(4) → MMR changes
-lt("late loser abandon: mmr decreases",       player("steam_1v3_win_by_abandon_at_end3", "mmr"))
-eq("late loser abandon: matches_lost = 1",    player("steam_1v3_win_by_abandon_at_end3", "matches_lost"), 1)
-
-# (players auto-isolated by unique steam IDs per test file)
-check_post("1v1_win_by_abandon_at_end.json")
-eq("abandon-win: winner matches_won = 1",     player("steam_1v1_win_by_abandon_at_end0", "matches_won"), 1)
-
-# (players auto-isolated by unique steam IDs per test file)
-check_post("3v3_anni_abandon_but_one_contrib.json")
-
-# (players auto-isolated by unique steam IDs per test file)
-check_post("3v3_tie_abandon_but_none_contrib.json")
-
-# (players auto-isolated by unique steam IDs per test file)
-check_post("3v3_tie_abandon_but_one_contrib.json")
-
-# (players auto-isolated by unique steam IDs per test file)
-check_post("3v3_abandon_to_steal.json")
-
-# ─────────────────────────────────────────────────────────────────────────────
-section("happy hours  (x2 multiplier)")
-
-# (players auto-isolated by unique steam IDs per test file)
+wh, lh = ids("hh_w", 1), ids("hh_l", 1)
+wd, ld = ids("hh_double_w", 1), ids("hh_double_l", 1)
+match(wh, lh, 16, 14, event_match_multiplier=2)
+match(wd, ld, 16, 8)
+check("16:14 in happy hours = 16:8 (2 rounds of rating)", close(mmr(wh[0]), mmr(wd[0])), f"{mmr(wh[0]):.6f} vs {mmr(wd[0]):.6f}")
+check("happy hours move more than without", mmr(wh[0]) > mmr(w1[0]), f"{mmr(wh[0]):.3f} > {mmr(w1[0]):.3f}")
+eq("multiplier stored", last_match("event_match_multiplier"), 1)
+match(ids("hh_any_w", 1), ids("hh_any_l", 1), 16, 14, event_match_multiplier=7)
+eq("only 1 or 2 taken (7 -> 1)", last_match("event_match_multiplier"), 1)
 check_post("happyhours_pl_1v1_0to1_normal.json", apikey="pl")
 eq("pl: event_match_multiplier = 2", last_match("event_match_multiplier"), 2)
-
-# (players auto-isolated by unique steam IDs per test file)
 check_post("happyhours_aus_1v1_0to1_normal.json", apikey="au")
 eq("au: event_match_multiplier = 2", last_match("event_match_multiplier"), 2)
 
-# (players auto-isolated by unique steam IDs per test file)
-check_post("3v3_normal.json")  # regular match, no happy hours
-eq("normal: event_match_multiplier = 1", last_match("event_match_multiplier"), 1)
+section("a loss to weaker opponents costs at most a loss to equal ones")
 
-# ─────────────────────────────────────────────────────────────────────────────
-section("misc")
+def set_rating(account_id, mu, sigma):
+    db_exec(f"INSERT OR REPLACE INTO mmr_team (account_id, mu, sigma, mmr) VALUES ('{account_id}', {mu}, {sigma}, {mu - 3 * sigma})")
 
-for f in [
-    "pythagtest.json",
-    "pythagcollidtest.json",
-    "1v1_anni_simulated_high_stakes.json",
-    "1v1_simulated_high_stakes.json",
-]:
-# (players auto-isolated by unique steam IDs per test file)
+strong_vs_weak, weak = ids("cap_strong", 1), ids("cap_weak", 1)
+strong_vs_equal, equal = ids("cap_strong_eq", 1), ids("cap_equal", 1)
+for i in strong_vs_weak + strong_vs_equal + equal:
+    set_rating(i, 61, 7)
+before = mmr(strong_vs_weak[0])
+match(weak, strong_vs_weak, 16, 2)
+match(equal, strong_vs_equal, 16, 2)
+check("lost to 0 MMR = lost to an equal", close(mmr(strong_vs_weak[0]), mmr(strong_vs_equal[0])), f"{mmr(strong_vs_weak[0]) - before:.3f} = {mmr(strong_vs_equal[0]) - before:.3f}")
+check("the weak winner still gains by their own rating", mmr(weak[0]) > 10, f"{mmr(weak[0]):.3f}")
+
+section("tie (any equal score - neither a win nor a loss)")
+
+wt, lt_ = ids("tie_w", 1), ids("tie_l", 1)
+match(wt, lt_, 15, 15)
+check("both the same mmr", close(mmr(wt[0]), mmr(lt_[0])), f"{mmr(wt[0]):.6f} = {mmr(lt_[0]):.6f}")
+eq("no win counted",  table(wt[0], "matches_won"), 0)
+eq("no loss counted", table(lt_[0], "matches_lost"), 0)
+
+w9, l9 = ids("tie9_w", 1), ids("tie9_l", 1)
+match(w9, l9, 9, 9)
+check("9:9 (a short ranked match) is a tie too", close(mmr(w9[0]), mmr(l9[0])), f"{mmr(w9[0]):.6f} = {mmr(l9[0]):.6f}")
+eq("9:9 no win counted", table(w9[0], "matches_won"), 0)
+wa5, la5 = ids("tie_ab_w", 1), ids("tie_ab_l", 1)
+match(wa5, la5, 5, 5, abandoned={la5[0]: 5}, losers_abandoned=True)
+eq("5:5 with the losers abandoned is a win", table(wa5[0], "matches_won"), 1)
+
+section("short match (< 5 rounds - winners keep their ratings, nothing counted)")
+
+ws, ls = ids("short_w", 1), ids("short_l", 1)
+match(ws, ls, 3, 1)
+eq("winner mmr unchanged", mmr(ws[0]), 0)
+check("loser rated", mmr(ls[0]) < 0, f"{mmr(ls[0]):.3f}")
+eq("winner matches_won", table(ws[0], "matches_won"), 0)
+eq("loser matches_lost", table(ls[0], "matches_lost"), 0)
+
+section("abandons")
+
+# A winner-side abandoner is rated as a sure loss of their team and always gets a loss
+wa, la = ids("ab_w", 2), ids("ab_l", 2)
+match(wa, la, 16, 10, abandoned={wa[1]: 2})
+check("winner-side abandoner loses mmr", mmr(wa[1]) < 0, f"{mmr(wa[1]):.3f}")
+eq("winner-side abandoner matches_lost", table(wa[1], "matches_lost"), 1)
+eq("winner-side abandoner matches_won", table(wa[1], "matches_won"), 0)
+
+# Who stayed is rated without a non-contributing abandoner (left at 2 < 13): the same as a 1v2
+w_purged, l_purged = ids("purge_w", 2), ids("purge_l", 2)
+w_alone, l_alone = ids("alone_w", 1), ids("alone_l", 2)
+match(w_purged, l_purged, 16, 10, abandoned={w_purged[1]: 2})
+match(w_alone, l_alone, 16, 10)
+check("non-contributing abandoner left out of the stayers' rating", close(mmr(w_purged[0]), mmr(w_alone[0])), f"{mmr(w_purged[0]):.6f} = {mmr(w_alone[0]):.6f}")
+
+# A contributing one (left at 13) counts for the stayers - not the same as playing alone
+w_contrib, l_contrib = ids("contrib_w", 2), ids("contrib_l", 2)
+match(w_contrib, l_contrib, 16, 10, abandoned={w_contrib[1]: 13})
+check("contributing abandoner counted in the stayers' rating", not close(mmr(w_contrib[0]), mmr(w_alone[0])), f"{mmr(w_contrib[0]):.6f} != {mmr(w_alone[0]):.6f}")
+
+# Losers who abandoned: the team that stayed wins whatever the score (1:15 here)
+wl, ll = ids("ab_lose_w", 1), ids("ab_lose_l", 1)
+match(wl, ll, 1, 15, abandoned={ll[0]: 15}, losers_abandoned=True)
+check("stayers win though behind on score", mmr(wl[0]) > 0, f"{mmr(wl[0]):.3f}")
+check("loser-side abandoner loses mmr", mmr(ll[0]) < 0, f"{mmr(ll[0]):.3f}")
+eq("abandon-win: winner matches_won", table(wl[0], "matches_won"), 1)
+eq("loser-side abandoner matches_lost", table(ll[0], "matches_lost"), 1)
+
+for f in ["3v3_abandon_but_no_teammate_contribs.json", "3v3_abandon_but_one_contrib.json", "1v3_win_by_abandon_at_end.json",
+          "1v1_win_by_abandon_at_end.json", "3v3_anni_abandon_but_one_contrib.json", "3v3_tie_abandon_but_none_contrib.json",
+          "3v3_tie_abandon_but_one_contrib.json", "3v3_abandon_to_steal.json", "3v3_abandon_no_count_wins.json"]:
+    check_post(f)
+
+# Every loser left without contributing: they are rated as abandoners, nobody gets NaN
+wn, ln = ids("all_left_w", 2), ids("all_left_l", 2)
+match(wn, ln, 16, 2, abandoned={ln[0]: 1, ln[1]: 1})
+vals = [mmr(i) for i in wn + ln]
+check("all losers left early: every mmr a number", all(v == v for v in vals) and table(ln[0], "mu") is not None, " ".join(f"{v:.3f}" for v in vals))
+
+section("FFA Gun Game (every player ranked by place)")
+
+ffa = ids("ffa", 4)
+match(ffa[:1], ffa[1:], 1, 0, game_mode="FFA Gun Game")
+places = [mmr(i, "mmr_ffa") for i in ffa]
+check("1st > 2nd > 3rd > 4th", places[0] > places[1] > places[2] > places[3], " > ".join(f"{p:.3f}" for p in places))
+check("nothing in mmr_team", table(ffa[0], "mmr") is None)
+
+section("revert (exactly what the match changed)")
+
+wr, lr = ids("rev_w", 1), ids("rev_l", 1)
+match(wr, lr, 16, 2, event_match_multiplier=2)
+match_id = db_one("SELECT match_id FROM matches ORDER BY match_id DESC LIMIT 1")
+result = post_body({"match_id": match_id}, path="/revert_match", tag=b"hs-revert-v1")
+check("revert accepted", "reverted" in str(result.get("message", "")).lower(), str(result))
+check("winner back to 0", abs(mmr(wr[0])) < 1e-6, f"{mmr(wr[0])}")
+check("loser back to 0", abs(mmr(lr[0])) < 1e-6, f"{mmr(lr[0])}")
+eq("winner matches_won back", table(wr[0], "matches_won"), 0)
+
+section("misc fixtures")
+
+for f in ["pythagtest.json", "1v1_anni_simulated_high_stakes.json", "1v1_simulated_high_stakes.json", "1v1_tie_normal.json"]:
     check_post(f)
 
 # ── results ───────────────────────────────────────────────────────────────────

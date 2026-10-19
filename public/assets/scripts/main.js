@@ -72,7 +72,7 @@ function buildLeaderboardRow(player, index) {
   const rank = RANK_MEDALS[index] ?? index + 1;
   const rankImg = `https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/${player.rankImg}`;
   const profile = `/user/${player.account_id}`;
-  const name = player.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const name = String(player.nickname).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const total = player.matches_won + player.matches_lost;
   const winRate = total === 0 ? "0%" : `${Math.round((player.matches_won / total) * 100)}%`;
   const wlDiff = player.matches_won - player.matches_lost;
@@ -112,18 +112,23 @@ function setButtonsLoading(buttons, loadingBtn) {
   buttons.forEach(btn => {
     btn.classList.remove("active");
     btn.disabled = true;
-    btn.dataset.originalText = btn.textContent;
   });
+  // The label stays where it is - a spinner to its left, taking no room of its own
   if (loadingBtn) {
     loadingBtn.classList.add("active");
-    loadingBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+    const label = loadingBtn.querySelector("span") || loadingBtn;
+    const spinner = document.createElement("span");
+    spinner.className = "btn-spinner";
+    spinner.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    label.classList.add("btn-spinner-anchor");
+    label.prepend(spinner);
   }
 }
 
 function resetButtons(buttons, activeBtn) {
   buttons.forEach(btn => {
     btn.disabled = false;
-    btn.textContent = btn.dataset.originalText;
+    btn.querySelectorAll(".btn-spinner").forEach(spinner => spinner.remove());
   });
   if (activeBtn) activeBtn.disabled = true;
 }

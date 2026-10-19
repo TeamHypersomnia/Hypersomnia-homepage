@@ -4,9 +4,11 @@ const axios = require('axios');
 const db = require('./db');
 const config = require('./config');
 
-router.get('/', async (req, res) => {
+const linkKey = require('./link_key');
+
+async function renderProfile(req, res) {
   const steamId = `steam_${req.user.id}`;
-  const association = db.prepare('SELECT child_id FROM associations WHERE parent_id = ?').get(steamId);
+  const association = db.prepare("SELECT child_id FROM associations WHERE parent_id = ? AND child_id LIKE 'discord_%'").get(steamId);
   
   let discordData = null;
   if (association) {
@@ -25,9 +27,36 @@ router.get('/', async (req, res) => {
     page: 'Profile',
     user: req.user,
     discordData,
-    success: req.query.success === 'true',
+    // With what only the owner sees here: the device, when it last signed in
+    linkedKeys: linkKey.linkedKeys(steamId).map(id => {
+      const meta = linkKey.linkMetaOf(id) || {};
+      return { id, device: meta.device || '', os: meta.os || null, lastCertAt: meta.last_cert_at || null };
+    }),
     is_admin: config.ADMIN_IDS.includes(req.user.id)
   });
+}
+
+router.get('/', (req, res) => renderProfile(req, res));
+
+// /link: where linking starts - in the game, which opens the link page by itself
+function linkPage(req, res) {
+  res.render('link', { page: 'Link a game key', user: req.user });
+}
+
+router.post('/unlink_key', (req, res) => {
+  const child = String(req.body.key || '');
+
+  if (/^key_[0-9a-f]{64}$/.test(child) && linkKey.fromThisSite(req)) {
+    try {
+      linkKey.unlink(child, `steam_${req.user.id}`);
+    } catch (err) {
+      console.error(`[profile] Could not unlink ${child}:`, err && err.message ? err.message : err);
+      return res.status(503).type('text/plain').send('Could not unlink right now. Try again in a moment.');
+    }
+  }
+
+  res.redirect('/profile');
 });
 
 module.exports = router;
+module.exports.linkPage = linkPage;

@@ -1,5 +1,5 @@
 <%- include('overall_header'); %>
-<h1><%= nickname %></h1>
+<h1><% if (hasAvatar) { %><img class="avatar" src="/avatar/<%= userid %>.png" alt=""> <% } %><%= nickname %></h1>
 
 <div class="box">
   <div class="responsive">
@@ -11,8 +11,14 @@
       </thead>
       <tbody>
         <tr>
-          <td width="50%">External profile</td>
+          <td width="50%"><%= userid.startsWith('key_') ? 'Public key' : 'External profile' %></td>
           <td width="50%">
+            <% if (userid.startsWith('key_')) { %>
+              <%# A key has no profile elsewhere - its public key, shown only here: short, copied in full %>
+              <i class="<%= platformIconClass %>"></i><span class="account-key" title="<%= fullAccountId(userid) %>"><%= accountLabel(userid) %></span><button type="button" class="copy-btn" data-copy="<%= fullAccountId(userid) %>" title="Copy the public key" aria-label="Copy the public key"><i class="fa-regular fa-copy"></i></button>
+            <% } else if (!profileUrl) { %>
+              <i class="<%= platformIconClass %>"></i><%= platformName %> (no external profile)
+            <% } else { %>
             <a href="<%= profileUrl %>" target="_blank">
               <% if (platformName === 'CrazyGames') { %>
                 <img class="fa-brands rank" src="/assets/images/social_crazygames.png" alt="CrazyGames"><%= platformName %>
@@ -20,23 +26,24 @@
                 <i class="<%= platformIconClass %>"></i><%= platformName %>
               <% } %>
             </a>
+            <% } %>
+          </td>
         </tr>
+        <% if (linkedTo) { %>
         <tr>
-          <td>
-            <% if (associationType && associatedId) { %>
-              <%= associationType %>
-            <% } else { %>
-              Secondary account
-            <% } %>
-          </td>
-          <td>
-            <% if (associationType && associatedId) { %>
-              <a href="/user/<%= associatedId %>"><%= associatedId.split('_')[0] %></a>
-            <% } else { %>
-              N/A
-            <% } %>
-          </td>
+          <td>Plays as</td>
+          <td><a href="/user/<%= linkedTo %>"><%= linkedToName %></a></td>
         </tr>
+        <% } else if (secondaryAccounts.length > 0) { %>
+        <%# one row per secondary account, the label only in the first %>
+        <% secondaryAccounts.forEach(function(account, i) { %>
+        <tr>
+          <td><%= i === 0 ? 'Secondary accounts' : '' %></td>
+          <td><a href="/user/<%= account.id %>"><%= account.nickname %></a></td>
+        </tr>
+        <% }); %>
+        <% } %>
+        <% if (playedAny) { %>
         <tr>
           <td><abbr title="Match Making Rating">MMR</abbr> (Bomb Defusal)</td>
           <td>
@@ -49,10 +56,12 @@
             <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= ffaData.rankImg %>" alt="<%= ffaData.rankName %>"><abbr title="μ = <%= ffaData.mu.toFixed(3) %> / σ = <%= ffaData.sigma.toFixed(3) %>"><%= ffaData.mmr.toFixed(2) %></abbr>
           </td>
         </tr>
+        <% } %>
       </tbody>
     </table>
   </div>
 
+  <% if (playedAny) { %>
   <div class="responsive">
     <table class="big">
       <thead>
@@ -80,8 +89,12 @@
       </tbody>
     </table>
   </div>
+  <% } %>
 </div>
 
+<% if (!playedAny) { %>
+<p>This user has not played any match yet.</p>
+<% } else { %>
 <div class="responsive">
   <table class="sortable maxwidth big">
     <thead>
@@ -116,5 +129,6 @@
     </tbody>
   </table>
 </div>
+<% } %>
 
 <%- include('overall_footer'); %>

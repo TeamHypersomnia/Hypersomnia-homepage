@@ -5,7 +5,7 @@ const setupMiddleware = require('./src/middleware');
 const setupRoutes = require('./src/routes');
 const app = express();
 
-app.set('trust proxy', true);
+app.set('trust proxy', 'loopback');
 app.set('views', './views');
 app.set('view engine', 'ejs');
 app.disable('x-powered-by');

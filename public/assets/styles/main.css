@@ -267,6 +267,14 @@ hr {
   image-rendering: pixelated;
 }
 
+.avatar {
+  width: 64px;
+  height: 64px;
+  margin-right: 12px;
+  vertical-align: middle;
+  image-rendering: pixelated;
+}
+
 .casual {
   color: var(--dim);
 }
@@ -785,6 +793,16 @@ td.sv-flag + td {
   padding: 0;
 }
 
+.copy-cell {
+  width: 1%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.copy-cell .copy-btn {
+  margin-right: 0;
+}
+
 .copy-btn:hover {
   color: var(--white);
 }
@@ -883,6 +901,46 @@ input[type='submit']:hover {
   color: var(--white);
   border-color: var(--white);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+}
+
+/* a small button next to a value in a table cell, e.g. Unlink on /profile */
+.inline-form {
+  display: inline;
+}
+
+input[type='submit'].small {
+  margin: 0 0 0 0.75em;
+  padding: 0 6px;
+  font-size: 10.8px;
+  line-height: 1.6;
+  color: var(--dim);
+  border-color: var(--table-line);
+}
+
+/* a button that removes something: red only on hover */
+input[type='submit'].danger:hover {
+  color: var(--red);
+  border-color: var(--red);
+  box-shadow: 0 0 10px rgba(244, 71, 71, 0.3);
+}
+
+/* linked game keys on /profile: the table only as wide as the whole keys need, the Unlink buttons in their own column */
+table.linked-keys {
+  width: auto;
+}
+
+table.linked-keys .linked-keys-key {
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+table.linked-keys .linked-keys-action {
+  white-space: nowrap;
+  text-align: right;
+}
+
+table.linked-keys input[type='submit'].small {
+  margin: 0;
 }
 
 input:-webkit-autofill,
@@ -1625,4 +1683,93 @@ footer > a:hover {
   nav a.menu-btn {
     font-size: 20px;
   }
+}
+
+/* A key account's public key on its own page - the short form, on one line */
+.account-key {
+  white-space: nowrap;
+}
+
+/* A spinner left of a button's label while it loads - no room of its own, so the label never moves */
+.btn-spinner-anchor {
+  position: relative;
+}
+
+.btn-spinner {
+  position: absolute;
+  right: 100%;
+  margin-right: 0.4em;
+}
+
+/* A server's details: the labels on one line, as wide as the longest */
+.detail-label {
+  white-space: nowrap;
+  width: 1%;
+}
+
+/* A server's whole public key on its page - cut with "…" in the middle only where the page is too narrow for it
+   (max-width: 0 lets its cell take only the room the table has, not the key's whole length) */
+.server-key-cell {
+  max-width: 0;
+  width: 100%;
+}
+
+.server-key {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.server-key-start {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.server-key-end {
+  flex-shrink: 0;
+}
+
+/* The end of Link with Steam in the browser - big, read at a glance before going back to the game */
+.link-result-title {
+  font-size: 2.6em;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+}
+
+.link-result-message {
+  font-size: 1.6em;
+}
+
+/* /link_key/start: which Steam account the game gets linked to */
+.link-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+  padding: 2em 10px;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+.link-confirm p {
+  margin: 0.2em 0;
+}
+
+.link-confirm-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1em;
+  margin-top: 0.8em;
+}
+
+.link-confirm-name {
+  font-size: 1.4em;
+}
+
+.link-confirm form {
+  margin: 0;
 }

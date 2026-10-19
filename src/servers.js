@@ -59,8 +59,8 @@ router.get('/', async (req, res) => {
       return bHumans - aHumans;
     });
     
-    const officialServers = sorted.filter(s => s.official_url);
-    const communityServers = sorted.filter(s => !s.official_url);
+    const officialServers = sorted.filter(s => s.is_official);
+    const communityServers = sorted.filter(s => !s.is_official);
     
     res.render('servers', {
       page: 'Servers',
@@ -85,7 +85,7 @@ router.get('/:address', async (req, res) => {
     const server = servers.find(s => s.site_displayed_address === req.params.address);
     
     if (!server) {
-      return res.status(404).redirect('/servers');
+      return res.redirect('/servers');
     }
     
     res.render('server', {
@@ -99,7 +99,7 @@ router.get('/:address', async (req, res) => {
     });
   } catch (err) {
     console.error('Error fetching server:', err.message);
-    res.status(500).redirect('/servers');
+    res.redirect('/servers');
   }
 });
 

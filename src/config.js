@@ -12,9 +12,9 @@ if (PORT < 1 || PORT > 65535) {
   throw new Error(`Invalid PORT: ${PORT}. Must be between 1 and 65535`);
 }
 
-// Admin user IDs from comma-separated env var
+// Admin user IDs from comma-separated env var: Steam ids, with or without the "steam_" of account ids
 const ADMIN_IDS = process.env.ADMINS ?
-  process.env.ADMINS.split(',').map(id => id.trim()).filter(Boolean) :
+  process.env.ADMINS.split(',').map(id => id.trim().replace(/^steam_/, '')).filter(Boolean) :
   [];
 
 // Base URL with trailing slash
@@ -85,14 +85,20 @@ const config = {
   
   // Master server config: prod uses localhost, dev uses remote
   SERVER_LIST_URL: process.env.SERVER_LIST_URL || (IS_PROD ? 'http://127.0.0.1:8410/server_list_json' : 'https://masterserver.hypersomnia.io:8420/server_list_json'),
-  SERVER_LIST_REFRESH_INTERVAL: 10000,
   
   // Game builds: prod reads them from disk (same machine), dev asks the live site
   BUILDS_PATH: process.env.BUILDS_PATH || path.resolve(__dirname, '../hosting/builds/latest'),
   BUILDS_URL: 'https://hypersomnia.io/builds/latest/',
   BUILD_SIZES_REFRESH_INTERVAL: 60000,
 
-  DB_PATH: process.env.DB_PATH || './private/mmr.db',
+  OFFICIAL_SERVERS_DIR: process.env.OFFICIAL_SERVERS_DIR || './private/official_servers.d',
+
+  // The identity broker's key (see broker.js): "hypersomnia-key-v1:<seed hex>", owner-readable only
+  BROKER_KEY_PATH: process.env.BROKER_KEY_PATH || './private/broker.key',
+  // Only the CrazyGames tokens of this game are accepted. Unset: none (every CrazyGames sign-in fails - logged at start)
+  CRAZYGAMES_GAME_ID: process.env.CRAZYGAMES_GAME_ID || '',
+  // Tests only: verify CrazyGames tokens with this key instead of fetching CrazyGames' one
+  CRAZYGAMES_PUBLIC_KEY: process.env.CRAZYGAMES_PUBLIC_KEY_PEM || '',
   LOG_LEVEL: process.env.LOG_LEVEL || (IS_PROD ? 'info' : 'debug')
 };
 

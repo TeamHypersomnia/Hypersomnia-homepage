@@ -20,24 +20,54 @@ const stmts = {
   `),
   getAssoc: db.prepare('SELECT * FROM associations WHERE child_id = ?'),
   setAssoc: db.prepare('INSERT OR REPLACE INTO associations (child_id, parent_id) VALUES (?, ?)'),
-  delAssoc: db.prepare('DELETE FROM associations WHERE parent_id = ?')
+  // Only the Discord link - the same Steam account can also have identity keys linked
+  delAssoc: db.prepare("DELETE FROM associations WHERE parent_id = ? AND child_id LIKE 'discord_%'")
 };
 
 module.exports = (passport) => {
   
-  // Steam authentication
+  function recordSignIn(req) {
+    stmts.upsertUser.run(
+      req.user.id,
+      req.user.displayName,
+      req.ip,
+      req.get('user-agent') || null,
+      req.get('accept-language')?.split(',')[0] || null
+    );
+  }
+
+  // Steam authentication - always back to /profile
   router.get('/steam', passport.authenticate('steam', { failureRedirect: '/' }));
-  
+
   router.get('/steam/return', passport.authenticate('steam', { failureRedirect: '/' }), (req, res) => {
     try {
-      stmts.upsertUser.run(
-        req.user.id,
-        req.user.displayName,
-        req.ip,
-        req.get('user-agent') || null,
-        req.get('accept-language')?.split(',')[0] || null
-      );
+      recordSignIn(req);
       res.redirect('/profile');
+    } catch (err) {
+      console.error('DB Error:', err.message);
+      res.redirect('/profile?error=db_fail');
+    }
+  });
+
+  /*
+    The sign-in of a game's link page (link_key.js): back to that page, signed in anew for its state.
+    keepSessionInfo: the page it came from stays in the session.
+  */
+  router.get('/steam/link', passport.authenticate('steam-link', { failureRedirect: '/' }));
+
+  router.get('/steam/link/return', passport.authenticate('steam-link', { failureRedirect: '/', keepSessionInfo: true }), (req, res) => {
+    try {
+      recordSignIn(req);
+
+      const page = req.session.link_page;
+      delete req.session.link_page;
+
+      if (typeof page !== 'string' || !page.startsWith('/link_key/start?')) {
+        return res.redirect('/profile');
+      }
+
+      req.session.fresh_link_state = new URLSearchParams(page.slice(page.indexOf('?') + 1)).get('state');
+      res.redirect(page);
     } catch (err) {
       console.error('DB Error:', err.message);
       res.redirect('/profile?error=db_fail');
@@ -50,19 +80,29 @@ module.exports = (passport) => {
       return res.redirect('/?error=login_required');
     }
     
+    // Only the Discord sign-in this session started comes back - a code sent by someone else (their Discord) is refused
+    req.session.discord_state = require('crypto').randomBytes(16).toString('hex');
+
     const authUrl = 'https://discord.com/api/oauth2/authorize?' + querystring.stringify({
       client_id: config.DISCORD_CLIENT_ID,
       redirect_uri: DISCORD_REDIRECT_URI,
       response_type: 'code',
-      scope: 'identify'
+      scope: 'identify',
+      state: req.session.discord_state
     });
     res.redirect(authUrl);
   });
   
   router.get('/discord/return', async (req, res) => {
-    const { code } = req.query;
-    
+    const { code, state } = req.query;
+    const expected = req.session.discord_state;
+    delete req.session.discord_state;
+
     if (!code) {
+      return res.redirect('/profile?error=no_code');
+    }
+
+    if (typeof state !== 'string' || typeof expected !== 'string' || state !== expected) {
       return res.redirect('/profile?error=no_code');
     }
     
@@ -101,7 +141,8 @@ module.exports = (passport) => {
         // Discord account already linked to different Steam account
         res.redirect('/profile?error=discord_already_linked');
       } else {
-        // Create or update association
+        // Replace the Discord account linked so far, if any - a Steam account has at most one
+        stmts.delAssoc.run(steamId);
         stmts.setAssoc.run(discordId, steamId);
         res.redirect('/profile?success=discord_linked');
       }

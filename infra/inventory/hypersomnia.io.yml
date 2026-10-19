@@ -1,6 +1,21 @@
 ---
 all:
   children:
+    # The TURN servers the game uses (arena-pl is the hub) - see playbooks/tasks/turn.yml
+    turn_servers:
+      hosts:
+        hypersomnia.io:
+        arena-us:
+          ansible_host: arena-us.hypersomnia.io
+          ansible_user: ubuntu
+          ansible_python_interpreter: /usr/bin/python3
+      vars:
+        # Public on purpose - the same as in the game (get_ice_servers in server_setup.cpp)
+        turn_credentials: "somnia:Re8Iefei"
+        violet_commit: 42b9457b8daee029ae0499580c4a9864899fc90e
+        # TeamHypersomnia/libjuice forbid-local-peers - back to paullouisageneau/violet once upstream merges it
+        libjuice_commit: 9a6c96242f15fd5615346eaa2e0eded05ecf524e
+
     web_servers:
       hosts:
         hypersomnia.io:
@@ -45,16 +60,8 @@ all:
           server_list_port_http: 8410
           first_udp_port: 8430
           num_udp_ports: 4
-          official_hosts:
-            - arena.hypersomnia.io
-            - arena-us.hypersomnia.io
-            - arena-de.hypersomnia.io
-            - arena-au.hypersomnia.io
-            - arena-ru.hypersomnia.io
-            - arena-ch.hypersomnia.io
-            - arena-fi.hypersomnia.io
-            - arena-nl.hypersomnia.io
-            - fossgralnia.hypersomnia.io
+          # The official servers are the files in {{ paths.private }}/official_servers.d:
+          # file name = server id, content = its public key (Hypersomnia --print-server-key). Not managed by ansible.
 
         # Firewall ports
         firewall_allowed_ports:
