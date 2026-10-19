@@ -87,35 +87,40 @@ function loadArenas() {
     return loadedArenas;
 }
 
-arenas = loadArenas();
+/*
+  The list is loaded again when an arena's JSON or unplayable.json changes - their modification times and sizes,
+  checked every few seconds. fs.watch missed uploads: a map's folder made anew, a file renamed into place by rsync.
+*/
+function arenasSignature() {
+    const parts = [];
 
-function debounce(func, wait) {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
+    try {
+        parts.push(fs.statSync(unplayablePath).mtimeMs);
+    } catch (e) {}
+
+    for (const d of fs.readdirSync(dirPath, { withFileTypes: true })) {
+        if (!d.isDirectory()) continue;
+
+        try {
+            const stats = fs.statSync(path.join(dirPath, d.name, `${d.name}.json`));
+            parts.push(`${d.name}:${stats.mtimeMs}:${stats.size}`);
+        } catch (e) {}
+    }
+
+    return parts.join('|');
 }
 
-const reloadArenas = debounce(() => {
-    arenas = loadArenas();
-}, 1000);
+let signature = arenasSignature();
+arenas = loadArenas();
 
-const arenaWatcher = fs.watch(dirPath, { recursive: true }, (eventType, filename) => {
-    if (filename?.endsWith('.json') && !filename.endsWith('editor_view.json')) {
-        reloadArenas();
+setInterval(() => {
+    const current = arenasSignature();
+
+    if (current !== signature) {
+        signature = current;
+        arenas = loadArenas();
     }
-});
-
-const unplayableWatcher = fs.watch(unplayablePath, (eventType) => {
-    if (eventType === 'change') reloadArenas();
-});
-
-process.on('SIGINT', () => {
-    arenaWatcher.close();
-    unplayableWatcher.close();
-    process.exit();
-});
+}, 5000).unref();
 
 router.get('/', (req, res) => {
     if (req.query.format === 'json') return res.json(arenas);
