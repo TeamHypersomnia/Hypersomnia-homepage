@@ -374,6 +374,8 @@ async function crazyGamesAccount(token) {
 
   // A token of another game on CrazyGames must not pass for an account of this one - without the id configured, none passes
   if (!config.CRAZYGAMES_GAME_ID || String(payload.gameId) !== config.CRAZYGAMES_GAME_ID) {
+    // The game id is no secret - logged so that a wrong CRAZYGAMES_GAME_ID shows at the first refused player
+    console.error(`[broker] Refused a CrazyGames token of game ${JSON.stringify(String(payload.gameId)).slice(0, 80)} (expected ${config.CRAZYGAMES_GAME_ID || 'none'}).`);
     throw { status: 401, message: 'Invalid CrazyGames token.' };
   }
 
