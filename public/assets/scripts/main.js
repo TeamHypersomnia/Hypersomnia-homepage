@@ -316,6 +316,58 @@ function initCopyButtons() {
   });
 }
 
+/*
+  A server key cut in the middle: CSS's ellipsis hides whole characters and leaves the rest of the box empty
+  before the key's end - so the start is cut here to as many characters as fit, the ellipsis right before the end.
+*/
+function initServerKeys() {
+  const keys = [...document.querySelectorAll(".server-key")];
+  if (keys.length === 0) return;
+
+  const fit = () => keys.forEach(key => {
+    const start = key.querySelector(".server-key-start");
+    const end = key.querySelector(".server-key-end");
+    const cell = key.parentElement;
+    const full = start.dataset.full || (start.dataset.full = start.textContent);
+    const style = getComputedStyle(cell);
+    const room = cell.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - end.offsetWidth;
+
+    start.style.overflow = "visible";
+    start.style.flexShrink = "0";
+    start.textContent = full;
+
+    if (start.offsetWidth <= room) {
+      start.style.overflow = "";
+      start.style.flexShrink = "";
+      return;
+    }
+
+    let fits = 0;
+
+    for (let low = 1, high = full.length - 1; low <= high;) {
+      const mid = (low + high) >> 1;
+      start.textContent = full.slice(0, mid) + "…";
+
+      if (start.offsetWidth <= room) {
+        fits = mid;
+        low = mid + 1;
+      }
+      else {
+        high = mid - 1;
+      }
+    }
+
+    start.textContent = full.slice(0, Math.max(fits, 1)) + "…";
+    start.style.overflow = "";
+    start.style.flexShrink = "";
+  });
+
+  fit();
+  // Measured again with the page's font - a fallback one is narrower
+  if (document.fonts) document.fonts.ready.then(fit);
+  window.addEventListener("resize", debounce(fit, 100));
+}
+
 initFirearms();
 initLeaderboard();
 initCopyButtons();
@@ -323,5 +375,6 @@ initSortableTables();
 initSmoothScroll();
 initLazyImages();
 initArenaViews();
+initServerKeys();
 
 window.hypersomniaUtils = { debounce };
