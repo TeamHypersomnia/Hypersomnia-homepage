@@ -1088,6 +1088,22 @@ td img {
   image-rendering: pixelated;
 }
 
+/* weapon sprites at their native size, so the pixel art stays crisp - the column takes the widest one */
+td.weapon-pic {
+  white-space: nowrap;
+}
+
+td.weapon-pic img {
+  max-width: none;
+}
+
+/* thirteen columns and the sprites at their native size - tighter cells to fit the page width */
+#firearms th,
+#firearms td {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
 .maxwidth > tbody > tr > td {
   max-width: 180px;
   overflow: hidden;

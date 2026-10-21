@@ -353,7 +353,7 @@
     {
         "id": "vindicator",
         "display_name": "Vindicator",
-        "pic_filename": "vindicator.png",
+        "pic_filename": "vindicator_shot_1.png",
         "pellets_per_shot": 1,
         "damage": 32.0,
         "penetration": 110.0,
