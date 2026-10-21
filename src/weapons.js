@@ -61,6 +61,9 @@ function layoutFirearmSprite(i) {
 }
 
 const firearms = getWeapons('firearms').map(i => ({ ...i, sprite: layoutFirearmSprite(i) }));
+
+/* Every firearm row as tall as the tallest sprite, so the rows line up. */
+const firearmSpriteHeight = Math.max(0, ...firearms.map(i => i.sprite ? i.sprite.height : i.pic_height || 0));
 const melees = getWeapons('melees');
 const explosives = getWeapons('explosives');
 const spells = getWeapons('spells');
@@ -69,7 +72,7 @@ router.get('/', function (req, res) {
   res.render('weapons', {
     page: 'Weapons',
     user: req.user,
-    firearms, melees, explosives, spells
+    firearms, firearmSpriteHeight, melees, explosives, spells
   });
 });
 

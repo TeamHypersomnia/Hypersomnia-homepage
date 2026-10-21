@@ -1097,10 +1097,14 @@ td.weapon-pic img {
   max-width: none;
 }
 
+/* as tall as the tallest firearm in every row - the sprite centered in it by a whole-pixel margin, never on a half pixel */
+div.weapon-slot {
+  display: flow-root;
+}
+
 span.weapon-sprite {
   position: relative;
-  display: inline-block;
-  vertical-align: middle;
+  display: block;
 }
 
 span.weapon-sprite img {

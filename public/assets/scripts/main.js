@@ -23,7 +23,7 @@ function fitWeaponSpritesToScreenPixels() {
   const dpr = window.devicePixelRatio || 1;
   const scale = Math.max(1, Math.floor(dpr)) / dpr;
 
-  document.querySelectorAll(".weapon-sprite").forEach(el => {
+  document.querySelectorAll(".weapon-scaled").forEach(el => {
     el.style.zoom = scale;
   });
 
