@@ -7,11 +7,11 @@ function debounce(fn, delay) {
 }
 
 const WEAPON_CATEGORIES = {
-  pistols: ["Sn69", "Kek9", "Bulwark", "Calico", "Ao44", "Covert", "Deagle"],
-  rifles: ["Galilea", "Hunter", "Baka47", "Datum", "Amplifier arm", "Awka", "BullDup 2000", "Bilmer2000", "Szturm"],
-  submachineGuns: ["Szczur", "Zamieć", "Cyberspray", "Pro90"],
-  heavyGuns: ["Lews II", "Rocket Launcher ELON"],
-  shotguns: ["Gradobicie", "Warx"],
+  pistols: ["sn69", "kek9", "bulwark", "calico", "covert", "ao44", "deagle"],
+  rifles: ["galilea", "hunter", "vindicator", "bilmik", "bilmer2000", "baka47", "szturm", "datum", "bulldup2000", "awka", "amplifier_arm"],
+  submachineGuns: ["szczur", "zamiec", "cyberspray", "pro90"],
+  heavyGuns: ["lews", "elon", "blunaz"],
+  shotguns: ["gradobicie", "warx", "szkwal"],
 };
 
 function initFirearms() {
@@ -44,8 +44,7 @@ function initFirearms() {
     const list = WEAPON_CATEGORIES[category];
 
     rows.forEach(row => {
-      const name = row.querySelector("td")?.innerText.trim() ?? "";
-      const visible = category === "all" || list?.includes(name);
+      const visible = category === "all" || list?.includes(row.dataset.id);
       row.style.display = visible ? "" : "none";
     });
 

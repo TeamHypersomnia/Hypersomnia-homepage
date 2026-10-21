@@ -22,23 +22,28 @@
         <th><abbr title="Bullet Speed">BS</abbr></th>
         <th class="dir-u">Price</th>
         <th>Award</th>
-        <th>Weight</th>
+        <th><abbr title="Time to kill a 100 HP enemy if every shot hits (seconds)">TTK</abbr></th>
+        <th><abbr title="Time to kill an enemy wearing electric armor - 200 effective HP - if every shot hits (seconds)">TTK armor</abbr></th>
+        <th><abbr title="Top sprint speed holding this weapon, wearing electric armor (logic px/s). Empty-handed: 989">Sprint</abbr></th>
       </tr>
     </thead>
     <tbody>
       <% firearms.forEach(i => { %>
-        <tr>
+        <% const pellets = Math.max(1, i.pellets_per_shot); %>
+        <tr data-id="<%= i.id %>">
           <td><%= i.display_name %></td>
           <td><img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
-          <td><%= i.damage %></td>
-          <td><%= i.headshot_damage %></td>
+          <td data-sort="<%= i.damage * pellets %>"><%= pellets > 1 ? `${i.damage}×${pellets}` : i.damage %></td>
+          <td data-sort="<%= i.headshot_damage * pellets %>"><%= pellets > 1 ? `${Math.round(i.headshot_damage)}×${pellets}` : Math.round(i.headshot_damage) %></td>
           <td><%= i.penetration %></td>
           <td><%= i.shots_per_second.toFixed(2) %></td>
-          <td><%= Math.floor(i.shots_per_second * i.damage) %></td>
+          <td><%= Math.floor(i.shots_per_second * i.damage * pellets) %></td>
           <td><%= (i.min_bullet_speed + i.max_bullet_speed) / 2 %></td>
           <td data-sort="<%= i.price %>">$<%= i.price %></td>
           <td data-sort="<%= i.kill_award %>">$<%= i.kill_award %></td>
-          <td><%= i.weight.toFixed(2) %></td>
+          <td data-sort="<%= i.ttk %>"><%= i.ttk > 0 ? i.ttk.toFixed(2) : '1 shot' %></td>
+          <td data-sort="<%= i.ttk_armor %>"><%= i.ttk_armor > 0 ? i.ttk_armor.toFixed(2) : '1 shot' %></td>
+          <td><%= Math.round(i.sprint_speed) %></td>
         </tr>
       <% }); %>
     </tbody>
