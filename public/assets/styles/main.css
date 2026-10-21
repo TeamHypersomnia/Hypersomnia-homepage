@@ -1097,6 +1097,16 @@ td.weapon-pic img {
   max-width: none;
 }
 
+span.weapon-sprite {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+span.weapon-sprite img {
+  position: absolute;
+}
+
 /* thirteen columns and the sprites at their native size - tighter cells to fit the page width */
 #firearms th,
 #firearms td {

@@ -14,9 +14,27 @@ const WEAPON_CATEGORIES = {
   shotguns: ["gradobicie", "warx", "szkwal"],
 };
 
+/*
+  Pixel art stays crisp only at a whole number of screen pixels per image pixel.
+  With e.g. 125% system scaling the browser would draw the sprites 1.25x - shrink them back to 1:1,
+  and at 200% keep them at 2:1. Again whenever zooming changes the device pixel ratio.
+*/
+function fitWeaponSpritesToScreenPixels() {
+  const dpr = window.devicePixelRatio || 1;
+  const scale = Math.max(1, Math.floor(dpr)) / dpr;
+
+  document.querySelectorAll(".weapon-sprite").forEach(el => {
+    el.style.zoom = scale;
+  });
+
+  matchMedia(`(resolution: ${dpr}dppx)`).addEventListener("change", fitWeaponSpritesToScreenPixels, { once: true });
+}
+
 function initFirearms() {
   const table = document.querySelector("#firearms");
   if (!table) return;
+
+  fitWeaponSpritesToScreenPixels();
 
   const fastBtn = document.querySelector(".fastBtn");
   const strongBtn = document.querySelector(".strongBtn");

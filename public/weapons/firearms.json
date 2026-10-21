@@ -24,7 +24,11 @@
         "magazine_id": "",
         "magazine_x": 0.0,
         "magazine_y": 0.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 0.0,
+        "magazine_height": 0.0,
+        "pic_width": 31.0,
+        "pic_height": 20.0
     },
     {
         "id": "kek9",
@@ -51,7 +55,11 @@
         "magazine_id": "kek9_magazine",
         "magazine_x": 1.0,
         "magazine_y": 6.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 5.0,
+        "magazine_height": 17.0,
+        "pic_width": 30.0,
+        "pic_height": 17.0
     },
     {
         "id": "bulwark",
@@ -78,7 +86,11 @@
         "magazine_id": "bulwark_magazine",
         "magazine_x": -16.0,
         "magazine_y": 4.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 14.0,
+        "magazine_height": 16.0,
+        "pic_width": 44.0,
+        "pic_height": 19.0
     },
     {
         "id": "calico",
@@ -105,7 +117,11 @@
         "magazine_id": "calico_magazine",
         "magazine_x": -6.0,
         "magazine_y": -8.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 22.0,
+        "magazine_height": 7.0,
+        "pic_width": 48.0,
+        "pic_height": 17.0
     },
     {
         "id": "covert",
@@ -132,7 +148,11 @@
         "magazine_id": "covert_magazine",
         "magazine_x": -21.0,
         "magazine_y": 7.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 13.0,
+        "magazine_height": 14.0,
+        "pic_width": 51.0,
+        "pic_height": 21.0
     },
     {
         "id": "ao44",
@@ -159,7 +179,11 @@
         "magazine_id": "ao44_magazine",
         "magazine_x": -9.0,
         "magazine_y": -6.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 11.0,
+        "magazine_height": 7.0,
+        "pic_width": 50.0,
+        "pic_height": 28.0
     },
     {
         "id": "deagle",
@@ -186,7 +210,11 @@
         "magazine_id": "deagle_magazine",
         "magazine_x": -18.0,
         "magazine_y": 5.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 14.0,
+        "magazine_height": 21.0,
+        "pic_width": 52.0,
+        "pic_height": 27.0
     },
     {
         "id": "szczur",
@@ -213,7 +241,11 @@
         "magazine_id": "szczur_magazine",
         "magazine_x": -3.0,
         "magazine_y": 8.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 7.0,
+        "magazine_height": 19.0,
+        "pic_width": 90.0,
+        "pic_height": 20.0
     },
     {
         "id": "gradobicie",
@@ -240,7 +272,11 @@
         "magazine_id": "",
         "magazine_x": 0.0,
         "magazine_y": 0.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 0.0,
+        "magazine_height": 0.0,
+        "pic_width": 122.0,
+        "pic_height": 15.0
     },
     {
         "id": "zamiec",
@@ -267,7 +303,11 @@
         "magazine_id": "zamiec_magazine",
         "magazine_x": 8.0,
         "magazine_y": 11.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 9.0,
+        "magazine_height": 18.0,
+        "pic_width": 47.0,
+        "pic_height": 31.0
     },
     {
         "id": "galilea",
@@ -294,7 +334,11 @@
         "magazine_id": "galilea_magazine",
         "magazine_x": -17.0,
         "magazine_y": 3.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 14.0,
+        "magazine_height": 15.0,
+        "pic_width": 116.0,
+        "pic_height": 16.0
     },
     {
         "id": "hunter",
@@ -321,7 +365,11 @@
         "magazine_id": "hunter_magazine",
         "magazine_x": -12.0,
         "magazine_y": 0.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 15.0,
+        "magazine_height": 14.0,
+        "pic_width": 120.0,
+        "pic_height": 19.0
     },
     {
         "id": "cyberspray",
@@ -348,7 +396,11 @@
         "magazine_id": "cyberspray_magazine",
         "magazine_x": -2.0,
         "magazine_y": 11.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 7.0,
+        "magazine_height": 22.0,
+        "pic_width": 53.0,
+        "pic_height": 19.0
     },
     {
         "id": "vindicator",
@@ -375,7 +427,11 @@
         "magazine_id": "vindicator_magazine",
         "magazine_x": -19.0,
         "magazine_y": 8.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 24.0,
+        "magazine_height": 9.0,
+        "pic_width": 94.0,
+        "pic_height": 19.0
     },
     {
         "id": "blunaz",
@@ -402,7 +458,11 @@
         "magazine_id": "",
         "magazine_x": 0.0,
         "magazine_y": 0.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 0.0,
+        "magazine_height": 0.0,
+        "pic_width": 108.0,
+        "pic_height": 12.0
     },
     {
         "id": "warx",
@@ -429,7 +489,11 @@
         "magazine_id": "warx_fq12_magazine",
         "magazine_x": 20.0,
         "magazine_y": 4.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 34.0,
+        "magazine_height": 8.0,
+        "pic_width": 87.0,
+        "pic_height": 22.0
     },
     {
         "id": "pro90",
@@ -456,7 +520,11 @@
         "magazine_id": "",
         "magazine_x": 0.0,
         "magazine_y": 0.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 0.0,
+        "magazine_height": 0.0,
+        "pic_width": 59.0,
+        "pic_height": 22.0
     },
     {
         "id": "bilmik",
@@ -483,7 +551,11 @@
         "magazine_id": "bilmer2000_magazine",
         "magazine_x": -22.0,
         "magazine_y": 6.0,
-        "magazine_rotation": 90.0
+        "magazine_rotation": 90.0,
+        "magazine_width": 13.0,
+        "magazine_height": 19.0,
+        "pic_width": 98.0,
+        "pic_height": 22.0
     },
     {
         "id": "bilmer2000",
@@ -510,7 +582,11 @@
         "magazine_id": "bilmer2000_magazine",
         "magazine_x": -36.0,
         "magazine_y": 6.0,
-        "magazine_rotation": 90.0
+        "magazine_rotation": 90.0,
+        "magazine_width": 13.0,
+        "magazine_height": 19.0,
+        "pic_width": 126.0,
+        "pic_height": 22.0
     },
     {
         "id": "baka47",
@@ -537,7 +613,11 @@
         "magazine_id": "baka47_magazine",
         "magazine_x": -17.0,
         "magazine_y": 7.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 11.0,
+        "magazine_height": 19.0,
+        "pic_width": 116.0,
+        "pic_height": 15.0
     },
     {
         "id": "szturm",
@@ -564,7 +644,11 @@
         "magazine_id": "szturm_magazine",
         "magazine_x": -18.0,
         "magazine_y": 8.0,
-        "magazine_rotation": -45.0
+        "magazine_rotation": -45.0,
+        "magazine_width": 13.0,
+        "magazine_height": 19.0,
+        "pic_width": 101.0,
+        "pic_height": 22.0
     },
     {
         "id": "datum",
@@ -591,7 +675,11 @@
         "magazine_id": "",
         "magazine_x": 0.0,
         "magazine_y": 0.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 0.0,
+        "magazine_height": 0.0,
+        "pic_width": 80.0,
+        "pic_height": 22.0
     },
     {
         "id": "szkwal",
@@ -618,7 +706,11 @@
         "magazine_id": "",
         "magazine_x": 0.0,
         "magazine_y": 0.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 0.0,
+        "magazine_height": 0.0,
+        "pic_width": 131.0,
+        "pic_height": 24.0
     },
     {
         "id": "amplifier_arm",
@@ -645,7 +737,11 @@
         "magazine_id": "",
         "magazine_x": 0.0,
         "magazine_y": 0.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 0.0,
+        "magazine_height": 0.0,
+        "pic_width": 62.0,
+        "pic_height": 18.0
     },
     {
         "id": "bulldup2000",
@@ -672,7 +768,11 @@
         "magazine_id": "bulldup2000_magazine",
         "magazine_x": 5.0,
         "magazine_y": 4.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 47.0,
+        "magazine_height": 10.0,
+        "pic_width": 136.0,
+        "pic_height": 25.0
     },
     {
         "id": "lews",
@@ -699,7 +799,11 @@
         "magazine_id": "lewsii_magazine",
         "magazine_x": -6.0,
         "magazine_y": -1.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 30.0,
+        "magazine_height": 30.0,
+        "pic_width": 125.0,
+        "pic_height": 18.0
     },
     {
         "id": "awka",
@@ -726,7 +830,11 @@
         "magazine_id": "hpsr_magazine",
         "magazine_x": -15.0,
         "magazine_y": 3.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 11.0,
+        "magazine_height": 14.0,
+        "pic_width": 130.0,
+        "pic_height": 24.0
     },
     {
         "id": "elon",
@@ -753,6 +861,10 @@
         "magazine_id": "skull_rocket",
         "magazine_x": 21.0,
         "magazine_y": 0.0,
-        "magazine_rotation": 0.0
+        "magazine_rotation": 0.0,
+        "magazine_width": 63.0,
+        "magazine_height": 28.0,
+        "pic_width": 92.0,
+        "pic_height": 32.0
     }
 ]
