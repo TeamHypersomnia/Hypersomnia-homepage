@@ -54,24 +54,6 @@
         "weight": 0.8832000494003296
     },
     {
-        "id": "poseidon",
-        "display_name": "Poseidon",
-        "pic_filename": "poseidon.png",
-        "fast_swings_per_second": 4.545454502105713,
-        "strong_swings_per_second": 1.8181818723678589,
-        "fast_damage": 29.0,
-        "strong_damage": 55.0,
-        "fast_hs_damage": 87.0,
-        "strong_hs_damage": 165.0,
-        "fast_stamina_required": 3.0,
-        "strong_stamina_required": 6.0,
-        "throw_damage": 96.0,
-        "throw_hs_damage": 288.0,
-        "price": 1000.0,
-        "kill_award": 6750.0,
-        "weight": 0.9138855338096619
-    },
-    {
         "id": "fury_thrower",
         "display_name": "Fury thrower",
         "pic_filename": "fury_thrower.png",
@@ -88,6 +70,24 @@
         "price": 1000.0,
         "kill_award": 6750.0,
         "weight": 1.1921007633209229
+    },
+    {
+        "id": "poseidon",
+        "display_name": "Poseidon",
+        "pic_filename": "poseidon.png",
+        "fast_swings_per_second": 4.545454502105713,
+        "strong_swings_per_second": 1.8181818723678589,
+        "fast_damage": 29.0,
+        "strong_damage": 55.0,
+        "fast_hs_damage": 87.0,
+        "strong_hs_damage": 165.0,
+        "fast_stamina_required": 3.0,
+        "strong_stamina_required": 6.0,
+        "throw_damage": 96.0,
+        "throw_hs_damage": 288.0,
+        "price": 1000.0,
+        "kill_award": 6750.0,
+        "weight": 0.9138855338096619
     },
     {
         "id": "electric_rapier",
