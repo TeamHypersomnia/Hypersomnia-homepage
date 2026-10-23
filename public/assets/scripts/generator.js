@@ -117,8 +117,47 @@
 
   tabButtons.concat(subtabButtons).forEach(b => b.addEventListener('click', () => selectSetup(b.dataset.setup)));
 
+  /*
+    A profile in the link: /generator#p=<the settings that differ from the defaults, as base64url JSON> -
+    without the secrets (passwords, webhooks, admins), which stay in the browser. Kept in the address bar as
+    the settings change, so a bookmark is a profile.
+  */
+
+  const PROFILE_HASH = '#p=';
+  const SECRET_KEYS = ['password', 'passwordOn', 'webhook', 'admins', 'adminOn'];
+
+  function encodeProfile(profile) {
+    const bytes = new TextEncoder().encode(JSON.stringify(profile));
+    let binary = '';
+    bytes.forEach(b => { binary += String.fromCharCode(b); });
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function decodeProfile(text) {
+    const binary = atob(text.replace(/-/g, '+').replace(/_/g, '/'));
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+
+  const linkedProfile = (() => {
+    if (!location.hash.startsWith(PROFILE_HASH)) {
+      return null;
+    }
+
+    try {
+      return decodeProfile(location.hash.slice(PROFILE_HASH.length));
+    }
+    catch (e) {
+      return null;
+    }
+  })();
+
   // a link to a setup or its group (e.g. /generator#tournament) opens it; otherwise the last one chosen
   const linkedSetup = (() => {
+    if (linkedProfile && setupIds.includes(linkedProfile.setup)) {
+      return linkedProfile.setup;
+    }
+
     const hash = decodeURIComponent(location.hash.slice(1));
 
     if (setupIds.includes(hash)) {
@@ -234,6 +273,14 @@
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     Object.assign(state, saved);
+
+    // a profile from the link replaces the settings - this browser's secrets stay
+    if (linkedProfile) {
+      const secrets = {};
+      SECRET_KEYS.forEach(k => { secrets[k] = state[k]; });
+
+      state = Object.assign({}, defaults, linkedProfile.state || {}, secrets);
+    }
 
     // saved before the password had its switch
     if (saved.password && saved.passwordOn === undefined) {
@@ -1048,6 +1095,27 @@
 
   // how it runs - AppImage, Docker compose, docker run - changes only what is generated: its tabs go under the line
   subtabRows.forEach(r => mount.appendChild(r));
+
+  // under the tabs, over what they make: the whole profile in one link
+  const linkButton = el('button', { type: 'button', class: 'gen-link-button', title: 'Every setting in one link - bookmark it or send it. Passwords, webhooks and admins are left out.' });
+  const linkLabel = '<i class="fa-solid fa-link"></i>Copy a link to this profile';
+  linkButton.innerHTML = linkLabel;
+
+  linkButton.addEventListener('click', () => {
+    const shown = () => {
+      linkButton.innerHTML = '<i class="fa-solid fa-check"></i>Link copied';
+      linkButton.classList.add('copied');
+
+      setTimeout(() => {
+        linkButton.innerHTML = linkLabel;
+        linkButton.classList.remove('copied');
+      }, 1500);
+    };
+
+    navigator.clipboard.writeText(profileLink()).then(shown, () => prompt('The link to this profile:', profileLink()));
+  });
+
+  mount.appendChild(el('div', { class: 'gen-link-row' }, [linkButton]));
   [steps.config, steps.secret, steps.before, steps.service, steps.firewall, steps.start, steps.check].forEach(st => mount.appendChild(st.el));
 
 
@@ -1480,6 +1548,12 @@
     }
     catch (e) {}
 
+    // the address bar holds the profile as it is - a bookmark keeps it; no new history entry for every click
+    try {
+      history.replaceState(null, '', profileLink());
+    }
+    catch (e) {}
+
     const bad = adminIds().filter(id => !ACCOUNT_ID.test(id));
     adminWarning.textContent = bad.length
       ? `Not an account id: ${bad.join(', ')} - copy it from Settings → Account in the game (steam_ + 17 digits, or 0x + 64 characters).`
@@ -1693,9 +1767,16 @@
     return out;
   }
 
+  function profileLink() {
+    const changed = changedFromDefaults();
+    SECRET_KEYS.forEach(k => { delete changed[k]; });
+
+    return location.origin + location.pathname + PROFILE_HASH + encodeProfile({ setup: currentSetup, state: changed });
+  }
+
   function profileMarkdown() {
     const block = (title, lang, text) => `## ${title}\n\n\`\`\`${lang}\n${text}\n\`\`\`\n`;
-    const parts = [`# ${isTournament() ? 'Hypersomnia tournament' : (state.name || 'My server')} - ${setupName()}\n`, 'Made with https://hypersomnia.io/generator\n'];
+    const parts = [`# ${isTournament() ? 'Hypersomnia tournament' : (state.name || 'My server')} - ${setupName()}\n`, 'Made with https://hypersomnia.io/generator\n', `Open these settings again (without the passwords, webhooks and admins): ${profileLink()}\n`];
 
     if (beforeText()) {
       parts.push(block(beforeTitle(), 'sh', beforeText()));
@@ -1808,8 +1889,8 @@
   };
 
   const profileBar = el('div', { class: 'btn-group gen-profile-bar' }, [
-    profileButton('fa-solid fa-download', 'Save complete instructions', saveProfile, 'A Markdown file with every step - you can give it to your LLM.'),
-    profileButton('fa-solid fa-upload', 'Load from instructions', () => profileFile.click()),
+    profileButton('fa-solid fa-download', 'Save profile to .md', saveProfile, 'Every step in one Markdown file - you can give it to your LLM. Unlike the link, it has the passwords, webhooks and admins.'),
+    profileButton('fa-solid fa-upload', 'Load profile', () => profileFile.click(), 'From a .md saved here.'),
     profileButton('fa-solid fa-rotate-left', 'Reset to defaults', resetToDefaults),
     profileFile
   ]);

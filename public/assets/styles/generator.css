@@ -1653,3 +1653,38 @@ body.gen-page {
   color: var(--dim);
   font-style: italic;
 }
+
+/* Copy a link to this profile: under the setup's tabs, centered, longer than the buttons around */
+.gen-link-row {
+  display: flex;
+  justify-content: center;
+  margin: -0.4em 0 1.4em;
+}
+
+#config-generator .gen-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  flex: none;
+  width: auto;
+  min-width: 55%;
+  margin: 0;
+  padding: 10px 24px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#config-generator .gen-link-button:hover {
+  color: var(--white);
+  border-color: var(--white);
+}
+
+#config-generator .gen-link-button.copied {
+  color: var(--online);
+  border-color: var(--online);
+}
