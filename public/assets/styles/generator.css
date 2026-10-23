@@ -588,9 +588,12 @@ body.gen-page {
   padding: 2.5em 16px 3em;
 }
 
-.gen-page-main .guide-title {
+.gen-page-main h1.guide-title {
   text-align: center;
   margin-bottom: 0.8em;
+  /* a terminal's look */
+  font-family: var(--mono);
+  font-style: normal;
 }
 
 .gen-before-box {
@@ -899,8 +902,30 @@ body.gen-page {
 }
 
 .gen-generated-line i {
-  margin-right: 0.5em;
+  margin: 0 0.7em;
   color: var(--accent);
+}
+
+/* YOUR CONFIGS in gold between two golden arrows, how they're made under it in grey */
+.gen-generated {
+  margin: 1.8em 0 1.4em;
+}
+
+.gen-generated .gen-generated-line {
+  margin: 0;
+}
+
+.gen-generated-line span {
+  color: var(--accent);
+  font-size: 1.15em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gen-generated-sub {
+  margin-top: 0.2em;
+  color: var(--dim);
+  text-align: center;
 }
 
 .gen-result {
@@ -1579,4 +1604,52 @@ body.gen-page {
 #config-generator textarea::placeholder {
   color: var(--faint);
   opacity: 1;
+}
+
+/* under the map cycle: the catalogue, and back to the default */
+.gen-cycle-links {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.gen-cycle-links #config-generator .gen-reset,
+#config-generator .gen-cycle-links .gen-reset {
+  margin-top: 0;
+}
+
+.gen-browse {
+  color: var(--link);
+  font-size: 0.9em;
+}
+
+.gen-browse i {
+  margin-right: 5px;
+  font-size: 0.85em;
+}
+
+#config-generator .gen-cycle-links .gen-reset {
+  display: inline;
+  flex: none;
+  width: auto;
+}
+
+/* the title in its own dark box, the tagline under it */
+.gen-title-box {
+  margin: 0 0 1.2em;
+  padding: 1.1em 1em 0.9em;
+  background: var(--panel);
+  border: 1px solid var(--line-dim);
+  text-align: center;
+}
+
+.gen-page-main .gen-title-box h1.guide-title {
+  margin: 0;
+}
+
+.gen-tagline {
+  margin: 0.35em 0 0;
+  color: var(--dim);
+  font-style: italic;
 }

@@ -427,7 +427,8 @@
     }
 
     render();
-    const box = el('div', {}, [chips, randomOption, pool, resetButton]);
+    const browse = el('a', { class: 'gen-browse', href: '/arenas', target: '_blank', html: '<i class="fa-solid fa-arrow-up-right-from-square"></i>Browse the arenas' });
+    const box = el('div', {}, [chips, randomOption, pool, el('div', { class: 'gen-cycle-links' }, [browse, resetButton])]);
     box.refresh = render;
     return box;
   }
@@ -868,7 +869,7 @@
     return row;
   }
 
-  const cycleRow = foldRow('Map cycle', 'The first one starts. The arenas: hypersomnia.io/arenas', cycleBox);
+  const cycleRow = foldRow('Map cycle', 'The first one starts.', cycleBox);
 
   const tablePort = numberInput('port', 1024, 65000, false);
   const tableWebPort = numberInput('webPort', 1024, 65000, false);
@@ -934,7 +935,7 @@
     only(tournamentRows, mapsRow),
     settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io</a>')]),
     portsRow,
-    revealRow('Password', 'passwordOn', textInput('password', 'the password')),
+    revealRow('Join password', 'passwordOn', textInput('password', 'the password'), 'Without it, anyone can join.'),
     only(serverRows, adminRow)
   ]);
 
@@ -1037,7 +1038,10 @@
     check: makeStep('Check that it works', checkBlock)
   };
 
-  const generatedLine = el('div', { class: 'gen-generated-line', html: '<span><i class="fa-solid fa-arrow-down"></i>Generated live from the settings above</span>' });
+  const generatedLine = el('div', { class: 'gen-generated' }, [
+    el('div', { class: 'gen-generated-line', html: '<span><i class="fa-solid fa-arrow-down"></i>Your configs<i class="fa-solid fa-arrow-down"></i></span>' }),
+    el('div', { class: 'gen-generated-sub', text: 'Generated live from the settings above' })
+  ]);
 
   mount.appendChild(steps.configure.el);
   mount.appendChild(generatedLine);
@@ -1075,6 +1079,11 @@
     const byes = size - teams;
     const firstRound = (teams - byes) / 2;
     const secondRound = size / 4;
+
+    // an open first round has a server for every pair of the bracket - nobody knows the byes beforehand
+    if (!pairedBeforehand()) {
+      return { teams, byes, firstRound: size / 2, servers: size / 2 };
+    }
 
     return { teams, byes, firstRound, servers: Math.max(1, firstRound, secondRound) };
   }
@@ -1554,9 +1563,9 @@
 
     // the tournament's round 1, under its own options
     const bracket = tournamentBracket();
-    const byes = bracket.byes ? `, ${bracket.byes} ${bracket.byes > 1 ? 'byes' : 'bye'}` : '';
     // with the teams set up beforehand, their preview already shows round 1
-    roundSummary.innerHTML = pairedBeforehand() ? '' : `<strong>Round 1:</strong> ${bracket.firstRound} ${bracket.firstRound > 1 ? 'matches' : 'match'}${byes}.`;
+    // open: whoever waits alone when round 1 closes advances - the byes aren't known beforehand
+    roundSummary.innerHTML = pairedBeforehand() ? '' : `<strong>Round 1:</strong> ${bracket.firstRound} ${bracket.firstRound > 1 ? 'servers' : 'server'}.`;
 
     const start = startText();
 
