@@ -1639,7 +1639,7 @@ body.gen-page {
 .gen-title-box {
   margin: 0 0 1.2em;
   padding: 1.1em 1em 0.9em;
-  background: var(--panel);
+  /* no background - the tabs under it stand out */
   border: 1px solid var(--line-dim);
   text-align: center;
 }
