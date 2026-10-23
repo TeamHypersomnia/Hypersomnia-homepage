@@ -1053,3 +1053,11 @@ body.gen-page {
 .no-browser .gen-port-row > :nth-child(2) {
   display: none;
 }
+
+.gen-fuse-option {
+  margin: -0.4em 0 1em;
+}
+
+.gen-fuse-option[hidden] {
+  display: none;
+}

@@ -1,5 +1,5 @@
 /*
-  /host: the setup tabs, copy buttons, the side navigation's current section, and the config generator.
+  /generator: the setup tabs, copy buttons and the config generator.
 */
 (function () {
   const guide = document.querySelector('.guide');
@@ -338,26 +338,24 @@
     check.checked = state.fuse;
     check.addEventListener('change', () => { state.fuse = check.checked; update(); });
 
-    return el('div', { class: 'gen-cycle gen-autoupdate' }, [
-      el('label', {}, [check, document.createTextNode('FUSE is installed on this machine')]),
-      el('span', { class: 'gen-tz-note', text: '(fuse / libfuse2 - fuse2 on Arch)' })
+    return el('div', { class: 'gen-cycle gen-autoupdate gen-user-option gen-fuse-option' }, [
+      el('label', {}, [check, document.createTextNode('FUSE installed?')]),
+      el('span', { class: 'gen-tz-note', text: '(skips an extract step)' })
     ]);
   }
 
   const updatesField = field('Updates', autoupdateInput(), {
     wide: true,
     help: 'Players with a newer version cannot join an older server. Every day at this hour the server restarts if a new version is out - or keep it up to date yourself.',
-    hint: '<a href="/host#updates">about updates</a>'
+    hint: '<a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/README_SERVER.md#updates" target="_blank">about updates</a>'
   });
 
   const timeZoneField = field('Time zone', timeZoneSelect(), {
     help: 'Where the server is. Players in the browser see from it roughly how far the server is, and official ranked servers have their happy hours (2x MMR) in it. Empty: the time zone of the machine - often UTC on a VPS.'
   });
 
-  const fuseField = field('AppImage', fuseInput(), {
-    wide: true,
-    help: 'Without FUSE the AppImage needs --appimage-extract-and-run - it then unpacks itself to /tmp at every start. With FUSE it runs as it is.'
-  });
+  // under the start command - it decides the command
+  const fuseField = fuseInput();
 
   function timeZoneSelect() {
     const zones = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [];
@@ -502,7 +500,7 @@
   const adminBox = el('div', { class: 'gen-cycle gen-admin-box' }, [
     el('div', { class: 'gen-admin-head' }, [
       el('label', {}, [adminCheck, document.createTextNode('Admin account id')]),
-      el('span', { class: 'gen-tz-note', html: '<a href="/host#become-an-admin">where to get it?</a>' })
+      el('span', { class: 'gen-tz-note', html: '<a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/README_SERVER.md#become-an-admin" target="_blank">where to get it?</a>' })
     ]),
     admins,
     el('p', { class: 'gen-field-text', text: 'This lets you manage your server in-game (change maps, bans etc).' })
@@ -553,14 +551,13 @@
 
   const advanced = el('div', { class: 'gen-form gen-advanced' }, [
     updatesField,
-    fuseField,
     timeZoneField,
     field('Discord webhook', textInput('webhook', 'optional - posts joins and match results'), { wide: true })
   ]);
 
   const advancedSet = () =>
     state.timeZone !== '' || state.webhook !== '' ||
-    !state.autoupdate || state.updateHour !== 3 || state.fuse
+    !state.autoupdate || state.updateHour !== 3
   ;
   let advancedOpen = advancedSet();
   const advancedButton = el('button', { type: 'button' });
@@ -824,7 +821,8 @@
     el('div', { class: 'guide-code gen-start-code' }, [
       el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' }),
       el('pre', {}, [startCode])
-    ])
+    ]),
+    fuseField
   ]);
 
   // what to do with the result goes under it
@@ -854,17 +852,17 @@
   function updateCheck() {
     if (isTournament() && state.tPairing === 'beforehand') {
       checkText.innerHTML = 'Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Players must join the server that mentions their team/nickname:';
-      checkImage.src = '/host/asset/docs/images/server_browser_tournament.png?ref=release';
+      checkImage.src = '/assets/images/generator/server_browser_tournament.png';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else if (isTournament()) {
       checkText.innerHTML = 'Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Until it is full, a match says <code>(any pair)</code> - anyone may join it.<br>Then it is named by its players:';
-      checkImage.src = '/host/asset/docs/images/server_browser_tournament_open.png?ref=release';
+      checkImage.src = '/assets/images/generator/server_browser_tournament_open.png';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else {
       checkText.innerHTML = 'Within a minute your server is on <a href="/servers" target="_blank">hypersomnia.io/servers</a> and in <code>Browse servers</code> in the game.<br>On the list but nobody can join?<br>Open the ports - see the <code>Firewall</code> tab above.';
-      checkImage.src = '/host/asset/docs/images/server_browser.png?ref=release';
+      checkImage.src = '/assets/images/generator/server_browser.png';
       checkImage.alt = 'Your server in Browse servers';
     }
   }
@@ -923,8 +921,22 @@
     mount.before(beforeBlock);
   }
 
+  /*
+    Under what shows --appimage-extract-and-run: the start command in a terminal, the service's file as a service.
+  */
+
   function updateFuseField() {
-    fuseField.hidden = method() === 'compose' || method() === 'run';
+    const terminal = method() === 'terminal';
+    const service = method() === 'service';
+
+    if (terminal && fuseField.parentElement !== startBlock) {
+      startBlock.appendChild(fuseField);
+    }
+    else if (service && fuseField.parentElement !== output) {
+      codeBox.after(fuseField);
+    }
+
+    fuseField.hidden = !(terminal || (service && shownOutput === 'service'));
   }
 
   function beforeText() {
@@ -1466,6 +1478,7 @@
 
     startBlock.hidden = !start;
     fillStart(start);
+    updateFuseField();
   }
 
   function startText() {

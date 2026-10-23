@@ -37,8 +37,9 @@ module.exports = (app) => {
   app.use('/matches', require('../matches'));
   app.use('/arenas', require('../arenas'));
   app.use('/servers', require('../servers'));
-  app.use('/host', require('../host'));
-  app.get('/generator', require('../host').generatorPage);
+  app.get('/generator', require('../generator'));
+  // the old guide page - the guide is README_SERVER.md on GitHub now
+  app.get('/host', (req, res) => res.redirect(301, '/generator'));
   app.use('/tournament', require('../tournament'));
   app.use('/user', require('../user'));
   app.use('/auth', require('../auth')(passport));
