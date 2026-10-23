@@ -427,16 +427,16 @@
 }
 
 /* a path or a command in the generator's hint, copyable on its own */
-.gen-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25em;
-  white-space: nowrap;
-}
-
+/* a long command breaks between its words, its copy button stays at its end */
 .gen-inline code {
   font-family: var(--mono);
   color: var(--orange);
+  overflow-wrap: anywhere;
+}
+
+.gen-inline .gen-inline-copy {
+  vertical-align: middle;
+  margin-left: 0.25em;
 }
 
 .gen-inline-copy {
@@ -658,11 +658,12 @@ body.gen-page {
   white-space: pre;
 }
 
-.gen-user-option {
-  margin-bottom: 0.6em;
+/* a switch in a generated block: As a service, As a separate user, FUSE installed? */
+.gen-option {
+  margin-bottom: 0.4em;
 }
 
-.gen-user-option[hidden] {
+.gen-option[hidden] {
   display: none;
 }
 
@@ -782,7 +783,7 @@ body.gen-page {
 }
 
 .gen-fuse-option {
-  margin: -0.4em 0 1em;
+  margin: -0.4em 0 0.6em;
 }
 
 .gen-fuse-option[hidden] {
@@ -871,6 +872,11 @@ body.gen-page {
   border-left: 2px solid var(--accent);
 }
 
+/* the block has the accent line - its code doesn't need its own */
+.gen-step.generated .guide-code {
+  border-left: 1px solid var(--line-dim);
+}
+
 .gen-step.generated .gen-step-title {
   color: var(--accent);
 }
@@ -926,9 +932,6 @@ body.gen-page {
   padding-top: 0.6em;
 }
 
-.gen-before-box .gen-user-option {
-  margin-bottom: 0.6em;
-}
 
 /* ---------- sliders: Slots, Server instances ---------- */
 
@@ -991,4 +994,601 @@ body.gen-page {
   font-family: var(--mono);
   color: var(--accent);
   font-size: 1.1em;
+}
+
+/* ---------- Map cycle: chips in its order, the other arenas under them ---------- */
+
+.gen-cycle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 2.2em;
+  padding: 6px;
+  border: 1px solid var(--line);
+  background: #000;
+}
+
+.gen-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px 3px 8px;
+  border: 1px solid var(--accent);
+  background: rgba(255, 176, 64, 0.08);
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 0.85em;
+  cursor: grab;
+  user-select: none;
+}
+
+.gen-chip.dragging {
+  opacity: 0.35;
+}
+
+.gen-chip-no {
+  color: var(--accent);
+  font-size: 0.85em;
+}
+
+#config-generator .gen-chip-remove {
+  flex: none;
+  width: auto;
+  margin: 0;
+  padding: 0 3px;
+  border: 0;
+  background: none;
+  color: var(--dim);
+  font-size: 1em;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#config-generator .gen-chip-remove:hover {
+  color: var(--white);
+}
+
+.gen-cycle-empty {
+  align-self: center;
+  color: var(--faint);
+  font-size: 0.85em;
+}
+
+.gen-cycle-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+#config-generator .gen-pool-chip {
+  flex: none;
+  width: auto;
+  margin: 0;
+  padding: 3px 8px;
+  border: 1px dashed var(--line);
+  background: none;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+#config-generator .gen-pool-chip.official {
+  color: var(--bright);
+}
+
+#config-generator .gen-pool-chip:hover {
+  color: var(--white);
+  border-color: var(--white);
+}
+
+.gen-pool-chip i {
+  margin-right: 4px;
+  font-size: 0.75em;
+}
+
+.gen-random-option {
+  margin-top: 6px;
+}
+
+/* ---------- the persistent server's settings: one table, a label on the left, one control on the right ---------- */
+
+#config-generator .gen-server-form {
+  --h: 32px;
+  margin: 0 0 1.4em;
+}
+
+.gen-table {
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  background: var(--panel);
+}
+
+.gen-table-advanced {
+  border-top: 0;
+}
+
+.gen-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  border-bottom: 1px solid var(--line);
+}
+
+.gen-row[hidden] {
+  display: none;
+}
+
+/* the label's cell runs down along an open editor - one unbroken line between the columns */
+.gen-row-name {
+  grid-row: 1 / 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: calc(var(--h) + 14px);
+  padding: 0 14px;
+  border-right: 1px solid var(--line-dim);
+  color: var(--bright);
+  font-size: 0.95em;
+}
+
+.gen-row.open .gen-row-name {
+  /* still down the whole row, its text level with the first line - the (?) on the text's baseline */
+  align-items: baseline;
+  padding-top: 7px;
+  line-height: var(--h);
+}
+
+.gen-row-help {
+  color: var(--faint);
+  font-size: 0.8em;
+  cursor: help;
+}
+
+.gen-row-help:hover,
+.gen-row-help:focus {
+  color: var(--accent);
+  outline: none;
+}
+
+.gen-row-ctl {
+  grid-row: 1;
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: calc(var(--h) + 14px);
+  padding: 7px 12px;
+  box-sizing: border-box;
+}
+
+.gen-row-editor {
+  display: none;
+  grid-row: 2;
+  grid-column: 2;
+  padding: 0 12px 12px;
+}
+
+.gen-row.open .gen-row-editor {
+  display: block;
+}
+
+/* one height for every control, so all rows line up */
+#config-generator .gen-table input,
+#config-generator .gen-table select,
+#config-generator .gen-table button,
+#config-generator .gen-table label {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+#config-generator .gen-table input[type='text'],
+#config-generator .gen-table input[type='number'],
+#config-generator .gen-table select {
+  width: 100%;
+  height: var(--h);
+  padding: 0 8px;
+  background: #000;
+  color: var(--bright);
+  border: 1px solid var(--line-dim);
+  font-size: 0.9em;
+}
+
+#config-generator .gen-table input:focus,
+#config-generator .gen-table select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+#config-generator .gen-table input[hidden] {
+  display: none;
+}
+
+#config-generator .gen-table select.gen-hour {
+  width: 7em;
+}
+
+/* sliders: half the row */
+.gen-table .gen-slider-row {
+  width: 50%;
+  min-width: 220px;
+  height: var(--h);
+}
+
+.gen-table .gen-slider-value {
+  min-width: 1.4em;
+  text-align: left;
+}
+
+/* a switch */
+#config-generator .gen-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  height: var(--h);
+  padding: 0;
+  color: var(--text);
+  font-size: 0.9em;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+#config-generator .gen-switch input {
+  display: none;
+}
+
+.gen-switch-track {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 18px;
+  border: 1px solid var(--line);
+  box-sizing: border-box;
+}
+
+.gen-switch-track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 10px;
+  height: 10px;
+  background: var(--dim);
+  transition: left 0.12s;
+}
+
+.gen-switch input:checked + .gen-switch-track {
+  border-color: var(--accent);
+}
+
+.gen-switch input:checked + .gen-switch-track::after {
+  left: 21px;
+  background: var(--accent);
+}
+
+.gen-switch-note {
+  color: var(--faint);
+}
+
+.gen-switch-note a {
+  color: var(--link);
+}
+
+#config-generator .gen-random-option {
+  margin-top: 8px;
+}
+
+#config-generator .gen-random-option[hidden] {
+  display: none;
+}
+
+/* a folded value: what is set, in one line */
+#config-generator .gen-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  width: 100%;
+  height: var(--h);
+  padding: 0 8px;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--bright);
+  font-size: 0.9em;
+  text-align: left;
+  cursor: pointer;
+}
+
+#config-generator .gen-summary:hover,
+.gen-row.open .gen-summary {
+  border-color: var(--line-dim);
+}
+
+.gen-summary-value {
+  flex: 1;
+  overflow: hidden;
+  font-family: var(--mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gen-arrow {
+  color: var(--faint);
+}
+
+.gen-summary-tag {
+  margin-left: 8px;
+  color: var(--faint);
+  font-family: var(--font);
+  font-size: 0.9em;
+}
+
+.gen-summary-default {
+  color: var(--faint);
+  font-size: 0.85em;
+}
+
+.gen-summary i {
+  color: var(--dim);
+  transition: transform 0.12s;
+}
+
+.gen-row.open .gen-summary i {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+#config-generator .gen-reset {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--link);
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+#config-generator .gen-reset[hidden] {
+  display: none;
+}
+
+/* the ports' editor */
+.gen-ports {
+  display: grid;
+  grid-template-columns: 7em 7em;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.gen-ports-head {
+  color: var(--faint);
+  font-size: 0.8em;
+}
+
+.gen-ports-head i {
+  margin-right: 5px;
+}
+
+/* the admin's wrong id, under the row */
+.gen-row-note .gen-hint {
+  margin: 0;
+}
+
+#config-generator .gen-table-toggle {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 9px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 0;
+  color: var(--dim);
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#config-generator .gen-table-toggle:hover {
+  color: var(--white);
+}
+
+#config-generator .gen-table-advanced[hidden] {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .gen-row {
+    grid-template-columns: 1fr;
+  }
+
+  .gen-row-name,
+  .gen-row-ctl,
+  .gen-row-editor {
+    grid-row: auto;
+    grid-column: 1;
+  }
+
+  .gen-row-name {
+    min-height: 0;
+    padding-top: 8px;
+    border-right: 0;
+    color: var(--dim);
+    font-size: 0.85em;
+  }
+}
+
+/* the settings' table is its own box - no step frame around it */
+.gen-step.untitled {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.gen-step.untitled .gen-step-body {
+  padding: 0;
+}
+
+/* as wide as the tabs and the generated blocks */
+.gen-step.untitled .gen-step-body > form {
+  margin: 0;
+}
+
+/* round 1 next to the players' slider */
+.gen-row-ctl .gen-field-text {
+  margin: 0;
+  color: var(--faint);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+#config-generator .gen-table textarea {
+  width: 100%;
+  margin: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  background: #000;
+  color: var(--bright);
+  border: 1px solid var(--line-dim);
+  font-family: var(--mono);
+  font-size: 0.85em;
+}
+
+.gen-row-editor .gen-field-text {
+  margin: 6px 0 0;
+  color: var(--faint);
+  font-size: 0.85em;
+}
+
+.gen-row-editor .gen-rounds {
+  margin: 0;
+}
+
+/* typed, not clicked through */
+#config-generator .gen-table input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+#config-generator .gen-table input[type='number']::-webkit-inner-spin-button,
+#config-generator .gen-table input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ---------- one font everywhere: the page's, at the page's size ---------- */
+
+#config-generator button,
+#config-generator input,
+#config-generator select,
+#config-generator textarea {
+  font-family: inherit;
+}
+
+.gen-row-name,
+#config-generator .gen-table input[type='text'],
+#config-generator .gen-table input[type='number'],
+#config-generator .gen-table select,
+#config-generator .gen-summary,
+#config-generator .gen-switch,
+.gen-switch-note,
+.gen-row-editor .gen-field-text,
+.gen-row-ctl .gen-field-text {
+  font-size: 1em;
+}
+
+.gen-summary-value,
+.gen-chip,
+#config-generator .gen-pool-chip {
+  font-size: 1em;
+}
+
+.gen-switch-label {
+  color: var(--bright);
+}
+
+.gen-summary-default,
+.gen-summary-tag,
+.gen-ports-head,
+#config-generator .gen-reset {
+  font-size: 0.9em;
+}
+
+/* as the buttons under everything (Save complete instructions...) */
+#config-generator .gen-table-toggle {
+  padding: 10px;
+  font-size: 1em;
+  letter-spacing: normal;
+}
+
+/* a control wrapped in its own box (the time zone with its list) takes the row */
+.gen-row-ctl > div:not(.gen-slider-row) {
+  flex: 1;
+  min-width: 0;
+}
+
+/* a folded value starts at the same line as the other controls - no frame of its own, it lights up instead */
+#config-generator .gen-summary {
+  padding: 0;
+  border: 0;
+}
+
+#config-generator .gen-summary:hover .gen-summary-value {
+  color: var(--white);
+}
+
+#config-generator .gen-summary:hover i {
+  color: var(--accent);
+}
+
+/* the settings' names: a bit bigger - the column has the room */
+.gen-row-name {
+  font-size: 15px;
+}
+
+/* the (?) tooltips: ours, at once on hover or focus (a tap on a phone) */
+.gen-row-help {
+  position: relative;
+}
+
+.gen-row-help::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: -10px;
+  z-index: 20;
+  width: max-content;
+  max-width: 320px;
+  padding: 8px 10px;
+  background: #000;
+  border: 1px solid var(--accent);
+  color: var(--bright);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  white-space: normal;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.gen-row-help:hover::after,
+.gen-row-help:focus::after {
+  visibility: visible;
+}
+
+/* the hints, the notes and the placeholders: grey, but easy to read */
+body.gen-page {
+  --faint: rgb(135, 135, 135);
+  --dim: rgb(160, 160, 160);
+}
+
+#config-generator input::placeholder,
+#config-generator textarea::placeholder {
+  color: var(--faint);
+  opacity: 1;
 }

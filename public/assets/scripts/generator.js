@@ -204,10 +204,12 @@
 
   const defaults = {
     name: '',
-    cycle: [],
+    cycle: ['de_cyberaqua', 'de_silo', 'fy_minilab'],
+    cycleRandom: true,
     slots: 16,
     admins: '',
     password: '',
+    passwordOn: false,
     casual: 1,
     port: 8412,
     webPort: 9000,
@@ -230,20 +232,30 @@
   let state = Object.assign({}, defaults);
 
   try {
-    Object.assign(state, JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    Object.assign(state, saved);
+
+    // saved before the password had its switch
+    if (saved.password && saved.passwordOn === undefined) {
+      state.passwordOn = true;
+    }
   }
   catch (e) {}
 
-  function field(label, input, opts) {
-    const help = opts && opts.help ? ` <span class="gen-help" tabindex="0" title="${opts.help}">(?)</span>` : '';
-    const l = el('label', { html: label + (opts && opts.hint ? ` <small>${opts.hint}</small>` : '') + help });
-    return el('div', { class: 'gen-field' + (opts && opts.wide ? ' wide' : '') }, [l, input]);
-  }
+  /*
+    Each input re-reads its value when the tab changes - a saved profile or the defaults may differ.
+  */
+  const refreshers = [];
+  const refreshInputs = () => refreshers.forEach(f => f());
+
+  // the password is behind its switch
+  const password = () => state.passwordOn ? state.password : '';
 
   function textInput(key, placeholder) {
     const i = el('input', { type: 'text', placeholder: placeholder || '' });
     i.value = state[key];
     i.addEventListener('input', () => { state[key] = i.value; update(); });
+    refreshers.push(() => { i.value = state[key]; });
     return i;
   }
 
@@ -255,6 +267,11 @@
       const v = parseInt(i.value, 10);
       state[key] = isNaN(v) ? defaults[key] : Math.max(min, Math.min(max, v));
       update();
+    });
+    refreshers.push(() => {
+      if (document.activeElement !== i) {
+        i.value = state[key];
+      }
     });
     return i;
   }
@@ -279,31 +296,8 @@
     });
 
     sync();
+    refreshers.push(sync);
     return el('div', { class: 'gen-slider-row' }, [value, i]);
-  }
-
-  function autoupdateInput() {
-    const check = el('input', { type: 'checkbox' });
-    check.checked = state.autoupdate;
-
-    const hour = el('select', { class: 'gen-hour' });
-
-    for (let h = 0; h < 24; ++h) {
-      hour.appendChild(el('option', { value: String(h), text: `${String(h).padStart(2, '0')}:00` }));
-    }
-
-    hour.value = String(state.updateHour);
-
-    const sync = () => { hour.disabled = !check.checked; };
-    check.addEventListener('change', () => { state.autoupdate = check.checked; sync(); update(); });
-    hour.addEventListener('change', () => { state.updateHour = parseInt(hour.value, 10); update(); });
-    sync();
-
-    return el('div', { class: 'gen-cycle gen-autoupdate' }, [
-      el('label', {}, [check, document.createTextNode('Update every day at')]),
-      hour,
-      el('span', { class: 'gen-tz-note', text: "(the machine's time)" })
-    ]);
   }
 
   // a text box that suggests the matching time zones as you type (a datalist - the browser filters it)
@@ -316,21 +310,15 @@
     check.checked = state.fuse;
     check.addEventListener('change', () => { state.fuse = check.checked; update(); });
 
-    return el('div', { class: 'gen-cycle gen-autoupdate gen-user-option gen-fuse-option' }, [
-      el('label', {}, [check, document.createTextNode('FUSE installed?')]),
-      el('span', { class: 'gen-tz-note', text: '(skips an extract step)' })
+    return el('div', { class: 'gen-option gen-fuse-option' }, [
+      el('label', { class: 'gen-switch' }, [
+        check,
+        el('span', { class: 'gen-switch-track' }),
+        el('span', { class: 'gen-switch-label', text: 'FUSE installed?' }),
+        el('span', { class: 'gen-switch-note', text: 'skips an extract step' })
+      ])
     ]);
   }
-
-  const updatesField = field('Updates', autoupdateInput(), {
-    wide: true,
-    help: 'Players with a newer version cannot join an older server. Every day at this hour the server restarts if a new version is out - or keep it up to date yourself.',
-    hint: '<a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/README_SERVER.md#updates" target="_blank">about updates</a>'
-  });
-
-  const timeZoneField = field('Time zone', timeZoneSelect(), {
-    help: 'Where the server is. Players in the browser see from it roughly how far the server is, and official ranked servers have their happy hours (2x MMR) in it. Empty: the time zone of the machine - often UTC on a VPS.'
-  });
 
   // under the start command - it decides the command
   const fuseField = fuseInput();
@@ -353,68 +341,97 @@
     return el('div', {}, [i, list]);
   }
 
-  // in the order they're checked - the number next to each is its place in the cycle
+  /*
+    The cycle as numbered chips in its order - dragged to reorder, x to remove.
+    Under them the other arenas: a click adds one at the end.
+  */
   function cyclePicker() {
-    const box = el('div', { class: 'gen-cycle' });
-    const all = arenas.official.map(n => [n, true]).concat(arenas.community.map(n => [n, false]));
-    const labels = [];
+    const chips = el('div', { class: 'gen-cycle-chips' });
+    const pool = el('div', { class: 'gen-cycle-pool' });
+    const official = new Set(arenas.official);
+    const all = arenas.official.concat(arenas.community);
+    let dragged = null;
 
-    function renumber() {
-      labels.forEach(l => {
-        const i = state.cycle.indexOf(l.dataset.arena);
-        l.lastChild.textContent = i >= 0 ? String(i + 1) : '';
+    // the game shuffles the cycle by default - unticked, the chips' order is the order played
+    const randomCheck = el('input', { type: 'checkbox' });
+    randomCheck.checked = state.cycleRandom;
+    randomCheck.addEventListener('change', () => { state.cycleRandom = randomCheck.checked; render(); update(); });
+
+    const randomOption = el('label', { class: 'gen-switch gen-random-option' }, [
+      randomCheck,
+      el('span', { class: 'gen-switch-track' }),
+      document.createTextNode('In random order')
+    ]);
+
+    const resetButton = el('button', { type: 'button', class: 'gen-reset', text: 'Back to the default' });
+    resetButton.addEventListener('click', () => {
+      state.cycleRandom = true;
+      randomCheck.checked = true;
+      set(defaults.cycle.slice());
+    });
+
+    const set = cycle => {
+      state.cycle = cycle;
+      render();
+      update();
+    };
+
+    function chip(name, i) {
+      const remove = el('button', { type: 'button', class: 'gen-chip-remove', title: 'Remove', html: '&times;' });
+      remove.addEventListener('click', () => set(state.cycle.filter((_, j) => j !== i)));
+
+      const c = el('span', { class: 'gen-chip', draggable: 'true' }, [
+        el('span', { class: 'gen-chip-no', text: String(i + 1) }),
+        el('span', { text: name }),
+        remove
+      ]);
+
+      c.addEventListener('dragstart', () => { dragged = i; c.classList.add('dragging'); });
+      c.addEventListener('dragend', () => c.classList.remove('dragging'));
+      c.addEventListener('dragover', e => e.preventDefault());
+      c.addEventListener('drop', e => {
+        e.preventDefault();
+
+        if (dragged === null || dragged === i) {
+          return;
+        }
+
+        const cycle = state.cycle.slice();
+        const [moved] = cycle.splice(dragged, 1);
+        cycle.splice(i, 0, moved);
+        dragged = null;
+        set(cycle);
+      });
+
+      return c;
+    }
+
+    function render() {
+      chips.innerHTML = '';
+      state.cycle.forEach((name, i) => chips.appendChild(chip(name, i)));
+
+      if (!state.cycle.length) {
+        chips.appendChild(el('span', { class: 'gen-cycle-empty', text: 'None - de_cyberaqua only' }));
+      }
+
+      randomOption.hidden = state.cycle.length < 2;
+      randomCheck.checked = state.cycleRandom;
+      resetButton.hidden = cycleIsDefault();
+
+      pool.innerHTML = '';
+      all.filter(name => !state.cycle.includes(name)).forEach(name => {
+        const b = el('button', { type: 'button', class: 'gen-pool-chip' + (official.has(name) ? ' official' : ''), html: `<i class="fa-solid fa-plus"></i>${name}` });
+        b.addEventListener('click', () => set(state.cycle.concat([name])));
+        pool.appendChild(b);
       });
     }
 
-    all.forEach(([name, official]) => {
-      const c = el('input', { type: 'checkbox' });
-      c.checked = state.cycle.includes(name);
-      c.addEventListener('change', () => {
-        state.cycle = c.checked ? state.cycle.concat([name]) : state.cycle.filter(n => n !== name);
-        renumber();
-        update();
-      });
-
-      const label = el('label', { class: official ? 'official' : '' }, [c, document.createTextNode(name), el('span', { class: 'gen-stage-no' })]);
-      label.dataset.arena = name;
-      labels.push(label);
-      box.appendChild(label);
-    });
-
-    renumber();
+    render();
+    const box = el('div', {}, [chips, randomOption, pool, resetButton]);
+    box.refresh = render;
     return box;
   }
 
-
-  /*
-    The first server's ports are typed; the ones after them are only shown, one row per server, with what takes them.
-  */
-
-  const portNote = el('span', { class: 'gen-port-note' });
-  const morePorts = el('div', { class: 'gen-more-ports' });
-
-  // players in the browser (play.hypersomnia.io) - on by default; off, no browser ports anywhere
-  const webPortInput = numberInput('webPort', 1024, 65000, false);
-  const browserCheck = el('input', { type: 'checkbox' });
-  browserCheck.checked = state.browser;
-  browserCheck.addEventListener('change', () => { state.browser = browserCheck.checked; update(); });
-
-  const browserOption = el('div', { class: 'gen-cycle gen-autoupdate gen-browser-option' }, [
-    el('label', {}, [browserCheck, document.createTextNode('Allow browser players')]),
-    el('span', { class: 'gen-tz-note', html: '(<a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io</a> - they need the browser ports)' })
-  ]);
-
-  // the columns named once, over the first server's row and the range of the others
-  const portRows = el('div', {}, [
-    el('div', { class: 'gen-port-row gen-port-head' }, [
-      el('span', { html: '<i class="fa-solid fa-gamepad"></i>Game <small>UDP</small>' }),
-      el('span', { html: '<i class="fa-solid fa-globe"></i>Browser <small>UDP</small>' }),
-      el('span')
-    ]),
-    el('div', { class: 'gen-port-row' }, [numberInput('port', 1024, 65000, false), webPortInput, portNote]),
-    morePorts,
-    browserOption
-  ]);
 
   // a tournament opens a server per match and lets in only its players instead
   const casualInput = sliderInput('casual', 1, 8);
@@ -422,139 +439,23 @@
 
 
 
-  /*
-    Always two rows, so nothing below jumps: the first server's ports, then the rest of them as one range.
-  */
-
-  const restGame = el('input', { type: 'text', disabled: 'disabled' });
-  const restWeb = el('input', { type: 'text', disabled: 'disabled' });
-  const restNote = el('span', { class: 'gen-port-note' });
-  const restRow = el('div', { class: 'gen-port-row' }, [restGame, restWeb, restNote]);
-  morePorts.appendChild(restRow);
-
   function updatePortRows() {
     rebuildRounds();
-
-    const n = instanceCount();
-    const kind = isTournament() ? 'Tournament match' : 'Server';
-    const kinds = isTournament() ? 'Tournament matches' : 'Servers';
-    const range = first => n === 2 ? `${first + 1}` : `${first + 1}-${first + n - 1}`;
-
-    [nameField, cycleField, adminField, adminWarningField, slotsField, serversField, updatesField, timeZoneField].forEach(f => { f.hidden = isTournament(); });
-
-    // no browser players, no browser column
-    portRows.classList.toggle('no-browser', !state.browser);
-
-    // the rest of the ports in one row - only when there is more than one server
-    portNote.textContent = n > 1 ? `${kind} 1` : 'The server';
-    restRow.hidden = n < 2;
-
-    if (n > 1) {
-      restGame.value = range(state.port);
-      restWeb.value = state.browser ? range(state.webPort) : '-';
-      restNote.textContent = n === 2 ? `${kind} 2` : `${kinds} 2-${n}`;
-    }
   }
 
 
   const cycleBox = cyclePicker();
-  // the first checked arena is the one the server starts with
-  const cycleField = field('Map cycle', cycleBox, {
-    wide: true,
-    hint: '<a href="/arenas" target="_blank">(browse)</a> the first one checked starts - none checked: de_cyberaqua'
-  });
 
-  const admins = el('textarea', { rows: '2', placeholder: 'steam_76561198000000000\n0x8aed41f2...' });
+  const admins = el('input', { type: 'text', placeholder: 'your account id - 0x8aed41f2... or steam_7656119...' });
   admins.value = state.admins;
   admins.addEventListener('input', () => { state.admins = admins.value; update(); });
 
   const adminWarning = el('div', { class: 'gen-hint' });
 
-  // off by default - the box for the ids only when it's on
-  const adminCheck = el('input', { type: 'checkbox' });
-  adminCheck.checked = state.adminOn;
-
-  // one box: the checkbox, the ids when it's on, and what it is for under them
-  const adminBox = el('div', { class: 'gen-cycle gen-admin-box' }, [
-    el('div', { class: 'gen-admin-head' }, [
-      el('label', {}, [adminCheck, document.createTextNode('Admin account id')]),
-      el('span', { class: 'gen-tz-note', html: '<a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/README_SERVER.md#become-an-admin" target="_blank">where to get it?</a>' })
-    ]),
-    admins,
-    el('p', { class: 'gen-field-text', text: 'This lets you manage your server in-game (change maps, bans etc).' })
-  ]);
-
-  function updateAdmins() {
-    admins.hidden = !state.adminOn;
-  }
-
-  adminCheck.addEventListener('change', () => { state.adminOn = adminCheck.checked; updateAdmins(); update(); });
-  updateAdmins();
-
-  const adminField = el('div', { class: 'gen-field wide' }, [adminBox]);
-
-  const adminWarningField = el('div', { class: 'gen-field wide' }, [adminWarning]);
-
-  // under the tournament's button: what the tournament manages for itself when it's on
-  const slotsField = field('Slots', slotsInput);
-  const serversField = field('Server instances', casualInput, { help: 'If hosting multiple instances, they will take subsequent ports.' });
-
-  /*
-    The name and the ports first - the ports stay in place with a tournament, showing its match servers.
-    What a tournament decides by itself (and the admins - a tournament is a one-off) is hidden while it's on.
-  */
-
-  // a tournament names its match servers by itself: Match #1 (any pair), then by the players
-  const nameField = field('Server name', textInput('name', 'My server'), { wide: true });
-
-  const form = el('div', { class: 'gen-form' }, [
-    nameField,
-    cycleField,
-    slotsField,
-    serversField,
-    field('Ports', portRows, {
-      wide: true,
-      help: 'Only if 8412 or 9000 is taken on this machine. Several servers take the next ports after these.'
-    }),
-    field('Server password', textInput('password', 'none - anyone can join'), { wide: true }),
-    adminField,
-    adminWarningField
-  ]);
-
-  const serversForm = el('div', { class: 'gen-form gen-servers' });
-
-  /*
-    Rarely needed - behind one button, open if anything in it is set.
-  */
-
-  const advanced = el('div', { class: 'gen-form gen-advanced' }, [
-    updatesField,
-    timeZoneField,
-    field('Discord webhook', textInput('webhook', 'optional - posts joins and match results'), { wide: true })
-  ]);
-
   const advancedSet = () =>
     state.timeZone !== '' || state.webhook !== '' ||
     !state.autoupdate || state.updateHour !== 3
   ;
-  let advancedOpen = advancedSet();
-  const advancedButton = el('button', { type: 'button' });
-
-  function showAdvanced(open) {
-    advancedOpen = open;
-    advanced.hidden = !open;
-    advancedButton.textContent = 'Show advanced options';
-    advancedButton.classList.toggle('active', open);
-  }
-
-  advancedButton.addEventListener('click', () => showAdvanced(!advancedOpen));
-  showAdvanced(advancedOpen);
-
-  const advancedToggle = el('div', { class: 'btn-group gen-advanced-toggle' }, [el('div', { class: 'btn' }, [advancedButton])]);
-
-  /*
-    A tournament instead of the usual servers - behind its own button, with a trophy so it stands out.
-  */
 
   /*
     A dropdown per bracket round - as many as the players make (16 players 1v1: 4 rounds), by default
@@ -634,12 +535,6 @@
     Player pairings: by who joins first (nothing to prepare), or the teams and who plays whom written beforehand.
   */
 
-  const PAIRING_TEXT = {
-    first: 'Players join <strong>any server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>In later rounds, they will be paired automatically.',
-    // made by the size of the teams - see beforehandText()
-    beforehand: ''
-  };
-
   // four example teams of the chosen size: alice / bob / ... or "alice, bob, carol" per line
   function examplePlayers() {
     const names = ['alice', 'bob', 'carol', 'dave', 'erin', 'frank', 'gus', 'hal', 'ivy', 'jo', 'kim', 'leo', 'mia', 'ned', 'oli', 'pat', 'quin', 'rex', 'sam', 'tom'];
@@ -650,14 +545,6 @@
     }
 
     return lines.join('\n');
-  }
-
-  function beforehandText() {
-    const how = state.tTeamSize === 1
-      ? 'One player per line.'
-      : `One team per line, its ${state.tTeamSize} players separated by commas.`;
-
-    return `${how} Lines 1 and 2 play each other, 3 and 4, and so on - unless the teams aren't 2, 4, 8, 16...: then the first lines advance without playing.<br>Every match server lets in only its players - players set these exact nicknames to be let in.`;
   }
 
   // how the list was understood: the pairs of round 1, the byes first - a mistyped team shows at once
@@ -699,7 +586,6 @@
     el('option', { value: 'beforehand', text: 'Set up beforehand' })
   ]);
 
-  const pairingText = el('p', { class: 'gen-field-text' });
   const teamsText = el('textarea', { rows: '4', placeholder: 'alice\nbob\ncarol\ndave' });
 
   pairingSelect.value = state.tPairing;
@@ -710,13 +596,10 @@
 
   const playersInput = sliderInput('tPlayers', 2, 64);
   const teamSize = teamSizeSelect();
-  const playersField = field('Players', playersInput, { help: 'How many players come.' });
-  const teamsField = field('Teams', teamSize);
 
   function updatePairing() {
     const beforehand = state.tPairing === 'beforehand';
 
-    pairingText.innerHTML = beforehand ? beforehandText() : PAIRING_TEXT.first;
     teamsText.hidden = !beforehand;
     pairingPreview.hidden = !beforehand;
     teamsText.placeholder = examplePlayers();
@@ -725,25 +608,9 @@
       updatePairingPreview();
     }
 
-    // the list decides how many come - the size of the teams still says how to write it
-    playersField.hidden = beforehand;
   }
 
   const roundSummary = el('p', { class: 'gen-field-text' });
-
-  const tournamentForm = el('div', { class: 'gen-form gen-advanced' }, [
-    // the size of the teams first - it says how to write the list below
-    teamsField,
-    field('Player pairings', el('div', {}, [pairingSelect, pairingText, teamsText, pairingPreview]), { wide: true }),
-    playersField,
-    el('div', { class: 'gen-field wide' }, [roundSummary]),
-    field('Maps for each bracket round', roundsBox, { wide: true })
-  ]);
-
-  // shown on the Tournament tab
-  function updateTournamentForm() {
-    tournamentForm.hidden = !isTournament();
-  }
 
   // what the generator gives for each setup, then the firewall
   // the generator's results for each setup - the firewall's always last
@@ -806,6 +673,7 @@
   // the config's files, and the firewall - remade on every change
   const configResults = el('div');
   const serviceResults = el('div');
+  const secretResults = el('div');
   const firewallResults = el('div');
 
   /*
@@ -862,15 +730,18 @@
     setupListeners.forEach(f => f(currentSetup));
   });
 
-  const serviceOption = el('div', { class: 'gen-cycle gen-autoupdate gen-user-option' }, [
-    el('label', {}, [serviceCheck, document.createTextNode('As a service')]),
-    el('span', { class: 'gen-tz-note', text: '(systemd - starts with the machine, runs without a terminal)' })
+  // the same switches as the settings' table
+  const optionSwitch = (check, label, note) => el('div', { class: 'gen-option' }, [
+    el('label', { class: 'gen-switch' }, [
+      check,
+      el('span', { class: 'gen-switch-track' }),
+      el('span', { class: 'gen-switch-label', text: label }),
+      el('span', { class: 'gen-switch-note', text: note })
+    ])
   ]);
 
-  const userOption = el('div', { class: 'gen-cycle gen-autoupdate gen-user-option' }, [
-    el('label', {}, [userCheck, document.createTextNode('As a separate user')]),
-    el('span', { class: 'gen-tz-note', text: '(hypersomnia, everything in /opt/hypersomnia)' })
-  ]);
+  const serviceOption = optionSwitch(serviceCheck, 'As a service', 'systemd - starts with the machine, runs without a terminal');
+  const userOption = optionSwitch(userCheck, 'As a separate user', 'hypersomnia, everything in /opt/hypersomnia');
 
   // the AppImage's executable, or Docker's data folder
   const beforeTitle = () => 'Your setup commands';
@@ -918,10 +789,213 @@
   setupListeners.push(() => update());
 
   /*
+    The persistent server's settings as one table: a label on the left, one control on the right.
+    A list (the map cycle, the ports) shows its value in one line - a click opens its editor under it.
+  */
+
+  // 3.5 -> "03:30", as the game reads it
+  function hourText(h) {
+    const minutes = Math.round(h * 60);
+    return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  }
+
+  function cycleIsDefault() {
+    return JSON.stringify(state.cycle) === JSON.stringify(defaults.cycle) && state.cycleRandom;
+  }
+
+  function settingRow(label, controls, help) {
+    const name = el('div', { class: 'gen-row-name' }, [document.createTextNode(label)]);
+
+    if (help) {
+      // our own tooltip - shown at once, unlike the browser's title
+      name.appendChild(el('i', { class: 'fa-regular fa-circle-question gen-row-help', 'data-tip': help, 'aria-label': help, tabindex: '0' }));
+    }
+
+    return el('div', { class: 'gen-row' }, [name, el('div', { class: 'gen-row-ctl' }, controls)]);
+  }
+
+  // its value in one line, "default" next to it when it is - a click opens the editor under it
+  function foldRow(label, help, editor) {
+    const value = el('span', { class: 'gen-summary-value' });
+    const isDefault = el('span', { class: 'gen-summary-default', text: 'default' });
+    const button = el('button', { type: 'button', class: 'gen-summary' }, [value, isDefault, el('i', { class: 'fa-solid fa-chevron-down' })]);
+    const row = settingRow(label, [button], help);
+
+    row.appendChild(el('div', { class: 'gen-row-editor' }, [editor]));
+    button.addEventListener('click', () => row.classList.toggle('open'));
+
+    row.show = (html, atDefault) => {
+      value.innerHTML = html;
+      isDefault.hidden = !atDefault;
+    };
+
+    return row;
+  }
+
+  // a switch - the whole of it one click
+  function switchInput(key, onChange, note) {
+    const check = el('input', { type: 'checkbox' });
+    check.checked = state[key];
+    check.addEventListener('change', () => {
+      state[key] = check.checked;
+      onChange();
+      update();
+    });
+    refreshers.push(() => { check.checked = state[key]; });
+
+    const children = [check, el('span', { class: 'gen-switch-track' })];
+
+    if (note) {
+      children.push(el('span', { class: 'gen-switch-note', html: note }));
+    }
+
+    return el('label', { class: 'gen-switch' }, children);
+  }
+
+  // a switch that shows its text box when it's on
+  function revealRow(label, key, input, help) {
+    const sync = () => { input.hidden = !state[key]; };
+    const row = settingRow(label, [switchInput(key, () => {
+      sync();
+
+      if (state[key]) {
+        input.focus();
+      }
+    }), input], help);
+
+    sync();
+    refreshers.push(sync);
+    return row;
+  }
+
+  const cycleRow = foldRow('Map cycle', 'The first one starts. The arenas: hypersomnia.io/arenas', cycleBox);
+
+  const tablePort = numberInput('port', 1024, 65000, false);
+  const tableWebPort = numberInput('webPort', 1024, 65000, false);
+  const tableWebHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-globe"></i>Browser' });
+
+  const portsRow = foldRow('Ports', 'Change them only if 8412 or 9000 is taken on this machine.', el('div', { class: 'gen-ports' }, [
+    el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-gamepad"></i>Game' }),
+    tableWebHead,
+    tablePort,
+    tableWebPort
+  ]));
+
+  const adminRow = revealRow('Admin', 'adminOn', admins, 'In the game: Settings → Account. Lets you manage the server in-game: maps, bans...');
+  adminRow.appendChild(el('div', { class: 'gen-row-editor gen-row-note' }, [adminWarning]));
+
+  const hourSelect = el('select', { class: 'gen-hour' });
+
+  // every half an hour
+  for (let h = 0; h < 24; h += 0.5) {
+    hourSelect.appendChild(el('option', { value: String(h), text: hourText(h) }));
+  }
+
+  hourSelect.value = String(state.updateHour);
+  hourSelect.addEventListener('change', () => { state.updateHour = parseFloat(hourSelect.value); update(); });
+
+  // off: no hour to choose
+  const syncHour = () => { hourSelect.hidden = !state.autoupdate; };
+  syncHour();
+
+  /*
+    The tournament's rows: the size of the teams first - it says how to write the list of them.
+  */
+
+  const pairingRow = settingRow('Player pairings', [pairingSelect]);
+
+  // however they join first: what it means for the players
+  const firstText = el('p', { class: 'gen-field-text', html: 'Players join <strong>any server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>In later rounds, they will be paired automatically.' });
+
+  // set up beforehand: the list and how it was understood - the rounds say it better than any explanation
+  const nicknamesText = el('p', { class: 'gen-field-text', text: 'Players set these exact nicknames to be let in.' });
+  pairingRow.appendChild(el('div', { class: 'gen-row-editor' }, [firstText, teamsText, pairingPreview, nicknamesText]));
+
+  const playersRow = settingRow('Players', [playersInput, roundSummary]);
+
+  const defaultRoundMaps = () => roundMaps().map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo');
+  const mapsRow = foldRow('Maps for each stage', '', roundsBox);
+
+  const serverRows = [];
+  const tournamentRows = [];
+  const only = (list, row) => {
+    list.push(row);
+    return row;
+  };
+
+  const serverTable = el('div', { class: 'gen-table' }, [
+    only(serverRows, settingRow('Server name', [textInput('name', 'My server')])),
+    only(serverRows, cycleRow),
+    only(serverRows, settingRow('Slots', [sliderInput('slots', 4, 26)])),
+    only(serverRows, settingRow('Server instances', [casualInput], 'If hosting multiple instances, they will take subsequent ports.')),
+    only(tournamentRows, settingRow('Teams', [teamSize])),
+    only(tournamentRows, pairingRow),
+    only(tournamentRows, playersRow),
+    only(tournamentRows, mapsRow),
+    settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io</a>')]),
+    portsRow,
+    revealRow('Password', 'passwordOn', textInput('password', 'the password')),
+    only(serverRows, adminRow)
+  ]);
+
+  // rarely needed - behind one button, open if anything in it is set
+  const serverAdvanced = el('div', { class: 'gen-table gen-table-advanced' }, [
+    only(serverRows, settingRow('Daily update', [switchInput('autoupdate', syncHour), hourSelect], "Players with a newer version cannot join an older server. Every day at this hour (the machine's time) the server restarts if a new version is out.")),
+    only(serverRows, settingRow('Time zone', [timeZoneSelect()], 'Where the server is. Players in the browser see from it roughly how far the server is; happy hours (2x MMR) follow it. A VPS is often in UTC.')),
+    settingRow('Discord webhook', [textInput('webhook', 'to post joins and match results to your Discord')])
+  ]);
+
+  const serverAdvancedButton = el('button', { type: 'button', class: 'gen-table-toggle' });
+
+  function showServerAdvanced(open) {
+    serverAdvanced.hidden = !open;
+    serverAdvancedButton.textContent = open ? 'Hide advanced options' : 'Show advanced options';
+  }
+
+  serverAdvancedButton.addEventListener('click', () => showServerAdvanced(serverAdvanced.hidden));
+  showServerAdvanced(advancedSet());
+
+  const serverForm = el('div', { class: 'gen-server-form' }, [serverTable, serverAdvancedButton, serverAdvanced]);
+
+  function updateTable() {
+    serverRows.forEach(r => { r.hidden = isTournament(); });
+    tournamentRows.forEach(r => { r.hidden = !isTournament(); });
+    playersRow.hidden = !isTournament() || pairedBeforehand();
+    pairingRow.classList.add('open');
+    firstText.hidden = pairedBeforehand();
+    nicknamesText.hidden = !pairedBeforehand();
+
+    const maps = roundMaps();
+    mapsRow.show(maps.join(' <span class="gen-arrow">→</span> '), JSON.stringify(maps) === JSON.stringify(defaultRoundMaps()));
+
+    cycleRow.show(
+      state.cycle.length
+        ? state.cycle.join(' <span class="gen-arrow">→</span> ') + (state.cycle.length > 1 ? `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>` : '')
+        : 'de_cyberaqua only',
+      cycleIsDefault()
+    );
+
+    portsRow.show(
+      `${portSpan(state.port)} UDP` + (state.browser ? `, ${portSpan(state.webPort)} UDP` : ''),
+      state.port === 8412 && state.webPort === 9000
+    );
+
+    tableWebPort.hidden = !state.browser;
+    tableWebHead.style.visibility = state.browser ? '' : 'hidden';
+
+    adminRow.classList.toggle('open', adminWarning.style.display !== 'none' && adminWarning.textContent !== '');
+  }
+
+  setupListeners.push(() => {
+    refreshInputs();
+    cycleBox.refresh();
+  });
+
+  /*
     Not a login form: keep password managers (LastPass, 1Password, Bitwarden...) and autofill out of it -
     they jump at the "Password" field and the fields next to it.
   */
-  [form, serversForm, advanced, tournamentForm].forEach(f => f.querySelectorAll('input, textarea').forEach(i => {
+  [serverForm].forEach(f => f.querySelectorAll('input, textarea').forEach(i => {
     i.setAttribute('autocomplete', 'off');
     i.setAttribute('data-lpignore', 'true');
     i.setAttribute('data-1p-ignore', 'true');
@@ -929,7 +1003,7 @@
     i.setAttribute('data-form-type', 'other');
   }));
 
-  const formRoot = el('form', { autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' }, [tournamentForm, form, serversForm, advancedToggle, advanced]);
+  const formRoot = el('form', { autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' }, [serverForm]);
   formRoot.addEventListener('submit', e => e.preventDefault());
 
   /*
@@ -955,6 +1029,7 @@
     before: makeStep('Your setup commands', beforeBlock, true),
     configure: makeStep('', formRoot),
     config: makeStep('Your config', configResults, true),
+    secret: makeStep('Your private config', secretResults, true),
     // under the setup commands with its checkbox - toggling it changes nothing above
     service: makeStep('Your service file', serviceResults, true),
     firewall: makeStep('Your firewall commands', firewallResults, true),
@@ -969,7 +1044,7 @@
 
   // how it runs - AppImage, Docker compose, docker run - changes only what is generated: its tabs go under the line
   subtabRows.forEach(r => mount.appendChild(r));
-  [steps.config, steps.before, steps.service, steps.firewall, steps.start, steps.check].forEach(st => mount.appendChild(st.el));
+  [steps.config, steps.secret, steps.before, steps.service, steps.firewall, steps.start, steps.check].forEach(st => mount.appendChild(st.el));
 
 
   const ACCOUNT_ID = /^(steam_\d{17}|0x[0-9a-f]{64}|key_[0-9a-f]{64}|crazygames_\S+)$/i;
@@ -1062,7 +1137,6 @@
 
     const server = {};
     const config = {};
-    const priv = {};
 
     if (!isTournament()) {
       server.server_name = state.name || 'My server';
@@ -1077,12 +1151,15 @@
       server.game_mode = mode;
     }
 
+    // server_private goes into its own file - the config can be shown to anyone
+    const secrets = {};
+
     if (ids.length && !isTournament()) {
-      priv.admin_profiles = ids.map(account => ({ account, rcon: 'MASTER_RCON' }));
+      secrets.admin_profiles = ids.map(account => ({ account, rcon: 'MASTER_RCON' }));
     }
 
-    if (state.password) {
-      priv.server_password = state.password;
+    if (password()) {
+      secrets.server_password = password();
     }
 
     if (!isTournament() && state.casual !== 1) {
@@ -1093,6 +1170,10 @@
     if (cycleOn()) {
       server.cycle = 'LIST';
       server.cycle_list = state.cycle.map(withMode);
+
+      if (!state.cycleRandom) {
+        server.cycle_randomize_order = false;
+      }
     }
 
     if (!state.browser) {
@@ -1111,11 +1192,11 @@
     */
 
     if (updatesOn() && state.updateHour !== 3) {
-      server.daily_autoupdate_hour = state.updateHour;
+      server.daily_autoupdate_hour = hourText(state.updateHour);
     }
 
     if (state.webhook) {
-      priv.discord_webhook_url = state.webhook;
+      secrets.discord_webhook_url = state.webhook;
     }
 
     const json = {};
@@ -1138,19 +1219,32 @@
       json.server = server;
     }
 
-    if (Object.keys(priv).length) {
-      json.server_private = priv;
-    }
-
     Object.assign(json, config);
 
-    return { json: Object.keys(json).length ? json : null };
+    return {
+      json: Object.keys(json).length ? json : null,
+      secrets: Object.keys(secrets).length ? { server_private: secrets } : null
+    };
   }
 
   /*
     Docker: every field of the generator as its own environment variable - never a file, never HYPERSOMNIA_CONFIG.
     Only what differs from the defaults is written.
   */
+
+  const SECRET_VARS = ['HYPERSOMNIA_PASSWORD', 'HYPERSOMNIA_DISCORD_WEBHOOK'];
+
+  // a .env line: single quotes keep the value as it is
+  function envLine(k, v) {
+    const quoted = v.includes("'") ? JSON.stringify(v) : `'${v}'`;
+    return `${k}=${quoted}`;
+  }
+
+  // compose's secrets go into .env next to it - compose.yaml only names them
+  function dotEnv() {
+    const secret = dockerEnv().filter(([k]) => SECRET_VARS.includes(k));
+    return secret.length ? secret.map(([k, v]) => envLine(k, v)).join('\n') : '';
+  }
 
   function dockerEnv() {
     const env = isTournament() ? [] : [['HYPERSOMNIA_SERVER_NAME', state.name || 'My server']];
@@ -1163,14 +1257,18 @@
 
     if (cycleOn()) {
       put('HYPERSOMNIA_MAP_CYCLE', state.cycle.map(withMode).join(','));
+
+      if (!state.cycleRandom) {
+        put('HYPERSOMNIA_MAP_CYCLE_RANDOM', 'off');
+      }
     }
 
     if (ids.length && !isTournament()) {
       put('HYPERSOMNIA_ADMINS', ids.join(','));
     }
 
-    if (state.password) {
-      put('HYPERSOMNIA_PASSWORD', state.password);
+    if (password()) {
+      put('HYPERSOMNIA_PASSWORD', password());
     }
 
     if (!isTournament() && state.slots !== 16) {
@@ -1196,7 +1294,7 @@
       put('HYPERSOMNIA_DAILY_UPDATE', 'off');
     }
     else if (state.updateHour !== 3) {
-      put('HYPERSOMNIA_DAILY_UPDATE', `${String(state.updateHour).padStart(2, '0')}:00`);
+      put('HYPERSOMNIA_DAILY_UPDATE', hourText(state.updateHour));
     }
 
     if (state.timeZone && !isTournament()) {
@@ -1259,7 +1357,10 @@
     ].filter(line => line !== null);
 
     env.forEach(([k, v]) => {
-      if (v.includes('\n')) {
+      if (SECRET_VARS.includes(k)) {
+        lines.push(`      ${k}: \${${k}}`);
+      }
+      else if (v.includes('\n')) {
         lines.push(`      ${k}: |`);
         v.split('\n').forEach(l => lines.push('        ' + l));
       }
@@ -1377,10 +1478,10 @@
     adminWarning.style.color = bad.length ? 'var(--red)' : '';
     adminWarning.style.display = bad.length ? '' : 'none';
 
-    updateTournamentForm();
     updatePairing();
     updateCheck();
     updatePortRows();
+    updateTable();
 
     const n = instanceCount();
     const ports = state.browser ? `UDP ${portSpan(state.port)} and ${portSpan(state.webPort)}` : `UDP ${portSpan(state.port)}`;
@@ -1390,12 +1491,22 @@
 
     // the config: every file of this setup, open at once
     configResults.innerHTML = '';
+    secretResults.innerHTML = '';
     serviceResults.innerHTML = '';
     let serviceBox = null;
 
     outputsOf().filter(k => k !== 'firewall').forEach(k => {
       if (k === 'compose') {
         configResults.appendChild(resultBox({ file: 'compose.yaml', lang: 'yaml', text: compose(), hint: 'Save it in any folder - the startup command runs in that folder.' }));
+
+        if (dotEnv()) {
+          secretResults.appendChild(resultBox({
+            file: '.env',
+            lang: 'bash',
+            text: dotEnv(),
+            hint: `Next to compose.yaml - it fills in its \${...}. Restrict who can read the file: ${inline('chmod 600 .env')}`
+          }));
+        }
       }
       else if (k === 'run') {
         // nothing to copy: the command is the start - in Your startup command
@@ -1411,13 +1522,24 @@
         serviceResults.appendChild(serviceBox);
       }
       else {
-        const json = buildSettings().json;
+        const { json, secrets } = buildSettings();
+
+        if (secrets) {
+          secretResults.appendChild(resultBox({
+            file: privatePath(),
+            lang: 'json',
+            text: prettyJson(secrets),
+            hint: 'Passwords, webhooks and admins - keep them out of the config you show to others. Restrict who can read the file:'
+          }));
+
+          secretResults.appendChild(resultBox({ lang: 'bash', text: privateChmod() }));
+        }
 
         configResults.appendChild(resultBox({
           file: configPath(),
           lang: json ? 'json' : '',
           text: json ? prettyJson(json) : 'No server config required!',
-          hint: json ? `Make its folder first: ${inline(configMkdir())}` : '',
+          hint: json || secrets ? `Make its folder first: ${inline(configMkdir())}` : '',
           unneeded: !json
         }));
       }
@@ -1446,6 +1568,8 @@
     startHint.hidden = !startHint.innerHTML;
     fillStart(start);
     steps.service.el.hidden = !serviceBox;
+    steps.secret.el.hidden = !secretResults.childElementCount;
+    steps.secret.title.textContent = method() === 'compose' ? 'Your .env' : 'Your private config';
     updateFuseField(serviceBox);
   }
 
@@ -1492,6 +1616,16 @@
 
   function configPath() {
     return separateUser() ? '/opt/hypersomnia/user/conf.d/server.json' : '~/.config/Hypersomnia/user/conf.d/server.json';
+  }
+
+  function privatePath() {
+    return configPath().replace(/server\.json$/, 'private.json');
+  }
+
+  // only the server reads it - as a separate user, it must own the file
+  function privateChmod() {
+    const path = privatePath();
+    return separateUser() ? `sudo chown hypersomnia: ${path}\nsudo chmod 600 ${path}` : `chmod 600 ${path}`;
   }
 
   // conf.d is there only after the first start - made by hand to save the config before
@@ -1566,6 +1700,23 @@
       parts.push(k === 'json' ? `## ${o.title}\n\n\`\`\`sh\n${configMkdir()}\n\`\`\`\n\n\`\`\`json\n${prettyJson(buildSettings().json)}\n\`\`\`\n` : block(o.title, o.lang, o.text()));
     });
 
+    // the secrets apart, as on the page
+    const secrets = method() === 'compose' ? dotEnv() : (method() !== 'run' && buildSettings().secrets);
+
+    if (method() === 'compose' && secrets) {
+      parts.push(block('.env', 'bash', secrets));
+      parts.push(block('Restrict who can read the file', 'sh', 'chmod 600 .env'));
+    }
+    else if (secrets) {
+      // no server.json before it to make the folder
+      if (!buildSettings().json) {
+        parts.push(block('Make the config folder', 'sh', configMkdir()));
+      }
+
+      parts.push(block(privatePath(), 'json', prettyJson(secrets)));
+      parts.push(block('Restrict who can read the file', 'sh', privateChmod()));
+    }
+
     parts.push(block('Your firewall commands', 'sh', firewall()));
 
     if (startText()) {
@@ -1636,14 +1787,19 @@
     profileFile.value = '';
   });
 
-  const profileButton = (icon, text, onClick) => {
+  const profileButton = (icon, text, onClick, tooltip = '') => {
     const b = el('button', { type: 'button', html: `<i class="${icon}"></i>${text}` });
+
+    if (tooltip) {
+      b.title = tooltip;
+    }
+
     b.addEventListener('click', onClick);
     return el('div', { class: 'btn' }, [b]);
   };
 
   const profileBar = el('div', { class: 'btn-group gen-profile-bar' }, [
-    profileButton('fa-solid fa-download', 'Save complete instructions', saveProfile),
+    profileButton('fa-solid fa-download', 'Save complete instructions', saveProfile, 'A Markdown file with every step - you can give it to your LLM.'),
     profileButton('fa-solid fa-upload', 'Load from instructions', () => profileFile.click()),
     profileButton('fa-solid fa-rotate-left', 'Reset to defaults', resetToDefaults),
     profileFile
