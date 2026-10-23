@@ -43,16 +43,12 @@
     return group;
   }
 
-  /* ---------- setups: the tabs at the top pick what is shown, in the article and in the navigation ---------- */
+  /* ---------- setups: what the server is for (the tabs), then how it runs (each one's own tabs) ---------- */
 
   const SETUP_KEY = 'host_setup_v4';
-  const setupSections = Array.from(document.querySelectorAll('.guide-setup'));
   const tabButtons = Array.from(document.querySelectorAll('.guide-setup-tabs button'));
 
-  /*
-    The setups as the tabs name them - the same on the guide and on /generator (which has no sections):
-    a group's own tabs, or the group's tab itself when it has none.
-  */
+  // the setups as the tabs name them: a group's own tabs, or the group's tab itself when it has none
 
   const setupGroups = new Map();
 
@@ -72,7 +68,7 @@
   let currentSetup = setupIds[0];
 
   /*
-    The tabs are what the server is for (Just trying it out, Persistent server, Tournament), their own tabs how it runs.
+    The tabs are what the server is for (Persistent server, Tournament), their own tabs how it runs.
     The generator works by the second: in a terminal, as a service, with Docker compose or docker run.
   */
 
@@ -110,14 +106,6 @@
 
     subtabRows.forEach(r => { r.hidden = r.dataset.group !== group; });
     subtabButtons.forEach(b => b.classList.toggle('active', b.dataset.setup === id));
-    setupSections.forEach(s => { s.hidden = s.dataset.setup !== id; });
-
-    document.querySelectorAll('.guide-only').forEach(o => {
-      const wanted = o.dataset.setups.split(/[ ,]/);
-      o.hidden = !wanted.includes(id) && !wanted.includes(group);
-    });
-
-    document.querySelectorAll('.guide-nav a[data-setup]').forEach(a => { a.hidden = a.dataset.setup !== id; });
 
     try {
       localStorage.setItem(SETUP_KEY, id);
@@ -129,23 +117,16 @@
 
   tabButtons.concat(subtabButtons).forEach(b => b.addEventListener('click', () => selectSetup(b.dataset.setup)));
 
-  // a link to a setup or into it (e.g. /host#appimage) opens that setup; otherwise the last one chosen
-  const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
-
+  // a link to a setup or its group (e.g. /generator#tournament) opens it; otherwise the last one chosen
   const linkedSetup = (() => {
-    if (!target) {
-      return null;
+    const hash = decodeURIComponent(location.hash.slice(1));
+
+    if (setupIds.includes(hash)) {
+      return hash;
     }
 
-    const section = target.closest('.guide-setup');
-
-    if (section) {
-      return section.dataset.setup;
-    }
-
-    // a group's own anchor, e.g. #appimage
-    const first = setupSections.find(s => s.dataset.group === target.id);
-    return first ? first.dataset.setup : null;
+    const groupTab = tabButtons.find(b => b.dataset.group === hash);
+    return groupTab ? groupTab.dataset.setup : null;
   })();
 
   const initialSetup = (() => {
@@ -167,10 +148,6 @@
 
   if (setupIds.length) {
     selectSetup(initialSetup);
-  }
-
-  if (linkedSetup && target) {
-    target.scrollIntoView();
   }
 
   /* ---------- copy buttons ---------- */
@@ -199,7 +176,7 @@
     }
   });
 
-  /* ---------- syntax colors (highlight.js, styled in host.css with the site's colors) ---------- */
+  /* ---------- syntax colors (highlight.js, styled in generator.css with the site's colors) ---------- */
 
   function highlight(codeEl, lang) {
     if (!window.hljs) {
@@ -213,28 +190,6 @@
       window.hljs.highlightElement(codeEl);
     }
   }
-
-  guide.querySelectorAll('.guide-code code[data-lang]').forEach(c => highlight(c, c.dataset.lang));
-
-  /* ---------- side navigation: highlight the section on screen ---------- */
-
-  const navLinks = Array.from(document.querySelectorAll('.guide-nav a[href^="#"]'));
-  const headings = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
-
-  function updateNav() {
-    let active = headings[0];
-
-    headings.forEach(h => {
-      if (h.offsetParent !== null && h.getBoundingClientRect().top < 120) {
-        active = h;
-      }
-    });
-
-    navLinks.forEach(a => a.classList.toggle('active', active && a.getAttribute('href') === '#' + active.id));
-  }
-
-  window.addEventListener('scroll', updateNav, { passive: true });
-  updateNav();
 
   /* ---------- config generator ---------- */
 
@@ -776,39 +731,37 @@
     service: ['json', 'service', 'firewall']
   };
 
-  const OUTPUT_NAMES = {
-    compose: 'docker-compose.yaml',
-    run: 'docker run',
-    json: 'conf.d/server.json',
-    service: 'hypersomnia.service',
-    firewall: 'Firewall'
-  };
-
   const outputsOf = () => OUTPUTS[method()].slice();
 
-  let shownOutput = 'compose';
-
-  const hint = el('p', { class: 'gen-hint' });
-  const code = el('code');
-  const copy = el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' });
   /*
-    Where the result goes, as the block's own first line - copyable apart from it, above a dashed line.
+    A result: its file as the first line - copyable apart from it, above a dashed line - the code, a hint under it.
+    Unneeded: the file's path struck through and grey, nothing to copy.
   */
 
-  const filePath = el('code');
-  const fileLine = el('div', { class: 'guide-code-file' }, [
-    filePath,
-    el('button', { type: 'button', class: 'gen-inline-copy', title: 'Copy the path', html: '<i class="fa-regular fa-copy"></i>' })
-  ]);
+  function resultBox({ file = '', lang = '', text = '', hint = '', unneeded = false }) {
+    const code = el('code', { text });
+    const box = el('div', { class: 'guide-code' + (file ? ' with-file' : '') + (unneeded ? ' unneeded' : '') }, [
+      el('div', { class: 'guide-code-file' }, [
+        el('code', { text: file }),
+        el('button', { type: 'button', class: 'gen-inline-copy', title: 'Copy the path', html: '<i class="fa-regular fa-copy"></i>' })
+      ]),
+      el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' }),
+      el('pre', {}, [code])
+    ]);
 
-  const codeBox = el('div', { class: 'guide-code' }, [fileLine, copy, el('pre', {}, [code])]);
+    if (!file) {
+      box.firstChild.remove();
+    }
 
-  // unneeded: the file's path struck through, grey, nothing to copy
-  function setFile(path, unneeded = false) {
-    filePath.textContent = path || '';
-    fileLine.hidden = !path;
-    codeBox.classList.toggle('with-file', !!path);
-    codeBox.classList.toggle('unneeded', unneeded);
+    highlight(code, lang);
+
+    const out = el('div', { class: 'gen-result' }, [box]);
+
+    if (hint) {
+      out.appendChild(el('p', { class: 'gen-hint', html: hint }));
+    }
+
+    return out;
   }
 
   /*
@@ -816,38 +769,29 @@
   */
 
   const startCode = el('code');
-  const startBlock = el('div', { class: 'gen-start-box' }, [
-    el('div', { class: 'gen-start-label', text: 'Start the server with:' }),
+  const startHint = el('p', { class: 'gen-hint' });
+
+  const startBlock = el('div', {}, [
     el('div', { class: 'guide-code gen-start-code' }, [
       el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' }),
       el('pre', {}, [startCode])
     ]),
+    startHint,
     fuseField
   ]);
 
-  // what to do with the result goes under it
-  const output = el('div', { class: 'gen-output' }, [codeBox, hint]);
-
-  // its own outlined box under the generator, like a second one with only the command
-  mount.after(startBlock);
+  // the config's files, and the firewall - remade on every change
+  const configResults = el('div');
+  const firewallResults = el('div');
 
   /*
-    Check that it works: what the players should see, for a server or a tournament - only on /generator,
-    the guide has its own section.
+    Check that it works: what the players should see, for a server or a tournament.
   */
 
   const checkText = el('p', { class: 'gen-field-text' });
   const checkImage = el('img', { class: 'guide-image', alt: '' });
 
-  const checkBlock = el('div', { class: 'gen-start-box gen-check-box' }, [
-    el('div', { class: 'gen-start-label', text: 'Check that it works:' }),
-    checkText,
-    checkImage
-  ]);
-
-  if (setupSections.length === 0) {
-    startBlock.after(checkBlock);
-  }
+  const checkBlock = el('div', { class: 'gen-check-box' }, [checkText, checkImage]);
 
   function updateCheck() {
     if (isTournament() && state.tPairing === 'beforehand') {
@@ -861,14 +805,14 @@
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else {
-      checkText.innerHTML = 'Within a minute your server is on <a href="/servers" target="_blank">hypersomnia.io/servers</a> and in <code>Browse servers</code> in the game.<br>On the list but nobody can join?<br>Open the ports - see the <code>Firewall</code> tab above.';
+      checkText.innerHTML = 'Within a minute your server is on <a href="/servers" target="_blank">hypersomnia.io/servers</a> and in <code>Browse servers</code> in the game.<br>On the list but nobody can join?<br>Open the ports - see <code>Setup the firewall</code> above.';
       checkImage.src = '/assets/images/generator/server_browser.png';
       checkImage.alt = 'Your server in Browse servers';
     }
   }
 
   /*
-    What to do once before the config - the same steps as the guide's for that setup.
+    What to do once before the config: the executable, or Docker's data folder.
   */
 
   const BEFORE = {
@@ -895,17 +839,19 @@
   });
 
   const serviceOption = el('div', { class: 'gen-cycle gen-autoupdate gen-user-option' }, [
-    el('label', {}, [serviceCheck, document.createTextNode('Run as a service')]),
+    el('label', {}, [serviceCheck, document.createTextNode('As a service')]),
     el('span', { class: 'gen-tz-note', text: '(systemd - starts with the machine, runs without a terminal)' })
   ]);
 
   const userOption = el('div', { class: 'gen-cycle gen-autoupdate gen-user-option' }, [
-    el('label', {}, [userCheck, document.createTextNode('Run as a separate user')]),
+    el('label', {}, [userCheck, document.createTextNode('As a separate user')]),
     el('span', { class: 'gen-tz-note', text: '(hypersomnia, everything in /opt/hypersomnia)' })
   ]);
 
-  const beforeBlock = el('div', { class: 'gen-start-box gen-before-box' }, [
-    el('div', { class: 'gen-start-label', text: 'Before you start:' }),
+  // the AppImage's executable, or Docker's data folder
+  const beforeTitle = () => method() === 'compose' || method() === 'run' ? 'Before you start' : 'Setup the executable';
+
+  const beforeBlock = el('div', { class: 'gen-before-box' }, [
     serviceOption,
     userOption,
     el('div', { class: 'guide-code gen-start-code' }, [
@@ -914,29 +860,22 @@
     ])
   ]);
 
-  // only on /generator - the guide has these steps in its own sections
-  const standalone = setupSections.length === 0;
-
-  if (standalone) {
-    mount.before(beforeBlock);
-  }
 
   /*
     Under what shows --appimage-extract-and-run: the start command in a terminal, the service's file as a service.
   */
 
-  function updateFuseField() {
+  function updateFuseField(serviceBox) {
     const terminal = method() === 'terminal';
-    const service = method() === 'service';
 
     if (terminal && fuseField.parentElement !== startBlock) {
       startBlock.appendChild(fuseField);
     }
-    else if (service && fuseField.parentElement !== output) {
-      codeBox.after(fuseField);
+    else if (serviceBox) {
+      serviceBox.after(fuseField);
     }
 
-    fuseField.hidden = !(terminal || (service && shownOutput === 'service'));
+    fuseField.hidden = !(terminal || serviceBox);
   }
 
   function beforeText() {
@@ -945,33 +884,14 @@
   }
 
   function updateBefore() {
+    steps.before.title.textContent = beforeTitle();
     serviceOption.hidden = currentSetup !== 'server-appimage';
     userOption.hidden = method() !== 'service';
     beforeCode.textContent = beforeText();
-    beforeBlock.hidden = !BEFORE[method()];
+    steps.before.el.hidden = !BEFORE[method()];
     highlight(beforeCode, 'bash');
   }
-  let outputButtons = null;
-  let shownKinds = '';
-
-  function rebuildOutputButtons() {
-    const kinds = outputsOf();
-    const group = buttonGroup(kinds.map(k => OUTPUT_NAMES[k]), i => { shownOutput = kinds[i]; update(); });
-    shownKinds = kinds.join();
-
-    if (outputButtons) {
-      outputButtons.replaceWith(group);
-    }
-    else {
-      output.prepend(group);
-    }
-
-    outputButtons = group;
-    shownOutput = kinds[0];
-  }
-
-  rebuildOutputButtons();
-  setupListeners.push(() => { rebuildOutputButtons(); update(); });
+  setupListeners.push(() => update());
 
   /*
     Not a login form: keep password managers (LastPass, 1Password, Bitwarden...) and autofill out of it -
@@ -987,8 +907,67 @@
 
   const formRoot = el('form', { autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' }, [tournamentForm, form, serversForm, advancedToggle, advanced]);
   formRoot.addEventListener('submit', e => e.preventDefault());
-  mount.appendChild(formRoot);
-  mount.appendChild(output);
+
+  /*
+    The steps, one under another: each with Done - done, it folds to its title, dark green. Only the first one not
+    done is open; the ones after it wait folded until it is.
+  */
+
+  function makeStep(title, body) {
+    const check = el('input', { type: 'checkbox' });
+    const titleEl = el('span', { class: 'gen-step-title', text: title });
+    const mark = el('span', { class: 'gen-step-mark', html: '<i class="fa-solid fa-check"></i>' });
+    const head = el('div', { class: 'gen-step-head' }, [titleEl, mark]);
+
+    // Done: a bar of its own under the step, big and centered
+    const doneBar = el('div', { class: 'gen-step-done-bar' }, [el('label', { class: 'gen-step-done' }, [check, document.createTextNode('Done')])]);
+    const wrap = el('div', { class: 'gen-step' }, [head, el('div', { class: 'gen-step-body' }, [body, doneBar])]);
+    const step = { el: wrap, title: titleEl, check, body: wrap.lastChild, done: false };
+
+    check.addEventListener('change', () => { step.done = check.checked; updateSteps(); });
+
+    // a done step opens again by its title
+    head.addEventListener('click', () => {
+      if (step.done) {
+        step.done = false;
+        check.checked = false;
+        updateSteps();
+      }
+    });
+
+    return step;
+  }
+
+
+  const steps = {
+    before: makeStep('Setup the executable', beforeBlock),
+    configure: makeStep('Configure the server', formRoot),
+    config: makeStep('Copy the config', configResults),
+    firewall: makeStep('Setup the firewall', firewallResults),
+    start: makeStep('Start the server', startBlock),
+    check: makeStep('Check that it works', checkBlock)
+  };
+
+  Object.values(steps).forEach(st => mount.appendChild(st.el));
+
+  function updateSteps() {
+    let open = true;
+
+    Object.values(steps).forEach(st => {
+      if (st.el.hidden) {
+        return;
+      }
+
+      const expanded = !st.done && open;
+      st.body.hidden = !expanded;
+      st.el.classList.toggle('done', st.done);
+      st.el.classList.toggle('waiting', !st.done && !open);
+
+      if (!st.done) {
+        open = false;
+      }
+    });
+  }
 
   const ACCOUNT_ID = /^(steam_\d{17}|0x[0-9a-f]{64}|key_[0-9a-f]{64}|crazygames_\S+)$/i;
 
@@ -1086,7 +1065,8 @@
       server.server_name = state.name || 'My server';
     }
 
-    if (!isTournament()) {
+    // the default arena needs no line
+    if (!isTournament() && startArena() !== 'de_cyberaqua') {
       server.arena = startArena();
     }
 
@@ -1381,23 +1361,6 @@
     return `<span class="gen-inline"><code>${escaped}</code><button type="button" class="gen-inline-copy" title="Copy"><i class="fa-regular fa-copy"></i></button></span>`;
   }
 
-  // the tabs change with the pairings (tournament.json) - keep the shown one if it's still there
-  function refreshOutputButtons() {
-    if (outputsOf().join() === shownKinds) {
-      return;
-    }
-
-    const was = shownOutput;
-    rebuildOutputButtons();
-
-    const kinds = outputsOf();
-
-    if (kinds.includes(was)) {
-      shownOutput = was;
-      outputButtons.querySelectorAll('button').forEach((b, i) => b.classList.toggle('active', kinds[i] === was));
-    }
-  }
-
   function update() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1414,59 +1377,54 @@
     updateTournamentForm();
     updatePairing();
     updateCheck();
-    refreshOutputButtons();
     updatePortRows();
 
     const n = instanceCount();
     const ports = state.browser ? `UDP ${portSpan(state.port)} and ${portSpan(state.webPort)}` : `UDP ${portSpan(state.port)}`;
 
-    // what the ports are for - told in the Firewall tab
+    // what the ports are for - told in Setup the firewall
     const forWhat = isTournament() ? ' (one each per match server)' : n > 1 ? ' (one each per server)' : '';
 
-    if (shownOutput === 'firewall') {
-      hint.innerHTML = `Open ${ports}${forWhat} in the system firewall - and in your cloud provider's panel, if it has one.`;
-      setFile('');
-      code.textContent = firewall();
-      highlight(code, 'bash');
-    }
-    else if (shownOutput === 'compose') {
-      hint.innerHTML = 'Next to the data folder.';
-      setFile('docker-compose.yaml');
-      code.textContent = compose();
-      highlight(code, 'yaml');
-    }
-    else if (shownOutput === 'run') {
-      hint.innerHTML = `Run it instead of the command above (${inline('docker rm -f hypersomnia-server')} first, if it's running).`;
-      setFile('');
-      code.textContent = dockerRun();
-      highlight(code, 'bash');
-    }
-    else if (shownOutput === 'service') {
-      hint.innerHTML = 'The service that starts the server with the machine.';
-      setFile(ownUser() ? '~/.config/systemd/user/hypersomnia.service' : '/etc/systemd/system/hypersomnia.service');
-      code.textContent = serviceUnit();
-      highlight(code, 'ini');
-    }
-    else {
-      const service = method() === 'service';
+    // the config: every file of this setup, open at once
+    configResults.innerHTML = '';
+    let serviceBox = null;
 
-      hint.innerHTML = '';
+    outputsOf().filter(k => k !== 'firewall').forEach(k => {
+      if (k === 'compose') {
+        configResults.appendChild(resultBox({ file: 'docker-compose.yaml', lang: 'yaml', text: compose(), hint: 'Next to the data folder.' }));
+      }
+      else if (k === 'run') {
+        // nothing to copy: the command is the start - in Start the server
+      }
+      else if (k === 'service') {
+        serviceBox = resultBox({
+          file: ownUser() ? '~/.config/systemd/user/hypersomnia.service' : '/etc/systemd/system/hypersomnia.service',
+          lang: 'ini',
+          text: serviceUnit(),
+          hint: 'The service that starts the server with the machine.'
+        });
 
-      const json = buildSettings().json;
-
-      setFile(service && !ownUser() ? '/opt/hypersomnia/user/conf.d/server.json' : '~/.config/Hypersomnia/user/conf.d/server.json', !json);
-
-      if (json) {
-        code.textContent = prettyJson(json);
-        highlight(code, 'json');
+        configResults.appendChild(serviceBox);
       }
       else {
-        code.textContent = 'No server config required!';
-        highlight(code, '');
-      }
-    }
+        const json = buildSettings().json;
+        const service = method() === 'service';
 
-    hint.hidden = !hint.innerHTML;
+        configResults.appendChild(resultBox({
+          file: service && !ownUser() ? '/opt/hypersomnia/user/conf.d/server.json' : '~/.config/Hypersomnia/user/conf.d/server.json',
+          lang: json ? 'json' : '',
+          text: json ? prettyJson(json) : 'No server config required!',
+          unneeded: !json
+        }));
+      }
+    });
+
+    firewallResults.innerHTML = '';
+    firewallResults.appendChild(resultBox({
+      lang: 'bash',
+      text: firewall(),
+      hint: `Open ${ports}${forWhat} in the system firewall - and in your cloud provider's panel, if it has one.`
+    }));
 
     // the tournament's round 1, under its own options
     const bracket = tournamentBracket();
@@ -1476,13 +1434,21 @@
 
     const start = startText();
 
-    startBlock.hidden = !start;
+    steps.start.el.hidden = !start;
+
+    // docker run has no config to copy - everything is in its command, under Start the server
+    steps.config.el.hidden = method() === 'run';
+    steps.config.title.textContent = method() === 'service' ? 'Copy the config and the service' : 'Copy the config';
+    startHint.innerHTML = method() === 'run' ? `If it's running already, ${inline('docker rm -f hypersomnia-server')} first.` : '';
+    startHint.hidden = !startHint.innerHTML;
     fillStart(start);
-    updateFuseField();
+    updateFuseField(serviceBox);
+    updateSteps();
   }
 
   function startText() {
     return {
+      run: dockerRun(),
       compose: 'docker compose up -d',
       terminal: startCommand(),
       service: ownUser()
@@ -1533,7 +1499,7 @@
         lang: 'ini',
         text: () => serviceUnit()
       },
-      firewall: { title: 'Firewall', lang: 'sh', text: () => firewall() }
+      firewall: { title: 'Setup the firewall', lang: 'sh', text: () => firewall() }
     }[kind];
   }
 
@@ -1574,12 +1540,13 @@
     const parts = [`# ${isTournament() ? 'Hypersomnia tournament' : (state.name || 'My server')} - ${setupName()}\n`, 'Made with https://hypersomnia.io/generator\n'];
 
     if (beforeText()) {
-      parts.push(block('Before you start', 'sh', beforeText()));
+      parts.push(block(beforeTitle(), 'sh', beforeText()));
     }
 
     // the files first, the firewall after the start
     // a server.json of all defaults isn't needed - left out
-    outputsOf().filter(k => k !== 'firewall' && !(k === 'json' && !buildSettings().json)).forEach(k => {
+    // docker run is in Start the server
+    outputsOf().filter(k => k !== 'firewall' && k !== 'run' && !(k === 'json' && !buildSettings().json)).forEach(k => {
       const o = outputOf(k);
       parts.push(block(o.title, o.lang, o.text()));
     });
@@ -1588,7 +1555,7 @@
       parts.push(block('Start the server', 'sh', startText()));
     }
 
-    parts.push(block('Firewall', 'sh', firewall()));
+    parts.push(block('Setup the firewall', 'sh', firewall()));
     parts.push(`<!-- ${PROFILE_MARK} ${JSON.stringify({ setup: currentSetup, state: changedFromDefaults() })} -->\n`);
 
     return parts.join('\n');
@@ -1609,7 +1576,7 @@
     const m = new RegExp(`<!--\\s*${PROFILE_MARK}\\s*([\\s\\S]*?)-->`).exec(text);
 
     if (!m) {
-      alert('Not a profile saved by the generator - it has no "' + PROFILE_MARK + '" line at the end.');
+      alert('Not instructions saved by the generator - it has no "' + PROFILE_MARK + '" line at the end.');
       return;
     }
 
@@ -1624,7 +1591,7 @@
       location.reload();
     }
     catch (e) {
-      alert('The profile could not be read: ' + e.message);
+      alert('The instructions could not be read: ' + e.message);
     }
   }
 
@@ -1661,16 +1628,14 @@
   };
 
   const profileBar = el('div', { class: 'btn-group gen-profile-bar' }, [
-    profileButton('fa-solid fa-download', 'Save profile', saveProfile),
-    profileButton('fa-solid fa-upload', 'Load profile', () => profileFile.click()),
+    profileButton('fa-solid fa-download', 'Save complete instructions', saveProfile),
+    profileButton('fa-solid fa-upload', 'Load from instructions', () => profileFile.click()),
     profileButton('fa-solid fa-rotate-left', 'Reset to defaults', resetToDefaults),
     profileFile
   ]);
 
-  // only on /generator, under everything
-  if (setupSections.length === 0) {
-    checkBlock.after(profileBar);
-  }
+  // under everything
+  mount.after(profileBar);
 
   updateBefore();
   updateCheck();
