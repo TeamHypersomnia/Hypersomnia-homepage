@@ -1810,6 +1810,48 @@
 
   updateBefore();
   updateCheck();
+  /*
+    Our own tooltips for everything on the page - the (?) and every button's title - shown at once, unlike the browser's.
+    A title moves into data-tip the first time it's pointed at, so the browser's never shows next to ours.
+  */
+  const tooltip = el('div', { class: 'gen-tooltip' });
+  tooltip.hidden = true;
+  document.body.appendChild(tooltip);
+
+  function showTip(target) {
+    if (target.hasAttribute('title')) {
+      target.dataset.tip = target.getAttribute('title');
+      target.removeAttribute('title');
+    }
+
+    tooltip.textContent = target.dataset.tip;
+    tooltip.hidden = false;
+
+    const r = target.getBoundingClientRect();
+    const left = Math.max(8, Math.min(r.left - 10, document.documentElement.clientWidth - tooltip.offsetWidth - 8));
+    tooltip.style.left = `${left + window.scrollX}px`;
+    tooltip.style.top = `${r.bottom + 8 + window.scrollY}px`;
+  }
+
+  const tipTarget = e => e.target.closest && e.target.closest('.gen-page [title], .gen-page [data-tip]');
+
+  ['mouseover', 'focusin'].forEach(type => document.addEventListener(type, e => {
+    const target = tipTarget(e);
+
+    if (target) {
+      showTip(target);
+    }
+  }));
+
+  ['mouseout', 'focusout'].forEach(type => document.addEventListener(type, e => {
+    if (tipTarget(e)) {
+      tooltip.hidden = true;
+    }
+  }));
+
+  // a click copies or removes - the tip's done its job
+  document.addEventListener('click', () => { tooltip.hidden = true; });
+
   // update() places the FUSE field too - it knows the service file's box
   setupListeners.push(updateCheck);
   setupListeners.push(updateBefore);

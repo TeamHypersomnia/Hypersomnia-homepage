@@ -1550,18 +1550,10 @@ body.gen-page {
   font-size: 15px;
 }
 
-/* the (?) tooltips: ours, at once on hover or focus (a tap on a phone) */
-.gen-row-help {
-  position: relative;
-}
-
-.gen-row-help::after {
-  content: attr(data-tip);
+/* our tooltips: the (?) and every button's title - at once on hover or focus (a tap on a phone) */
+.gen-tooltip {
   position: absolute;
-  top: calc(100% + 8px);
-  left: -10px;
-  z-index: 20;
-  width: max-content;
+  z-index: 50;
   max-width: 320px;
   padding: 8px 10px;
   background: #000;
@@ -1569,16 +1561,12 @@ body.gen-page {
   color: var(--bright);
   font-family: var(--font);
   font-size: 13px;
-  font-weight: 400;
   line-height: 1.45;
-  white-space: normal;
   pointer-events: none;
-  visibility: hidden;
 }
 
-.gen-row-help:hover::after,
-.gen-row-help:focus::after {
-  visibility: visible;
+.gen-tooltip[hidden] {
+  display: none;
 }
 
 /* the hints, the notes and the placeholders: grey, but easy to read */
