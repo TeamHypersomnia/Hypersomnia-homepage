@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Make the config of your Hypersomnia server: docker-compose.yaml, docker run, the AppImage's server.json and service, the ports to open.">
+  <link rel="canonical" href="https://hypersomnia.io/generator">
+  <title>Server config generator - Hypersomnia</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/styles/main.css?t=20261013e">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="/assets/styles/host.css?t=20261026f">
+</head>
+<body class="gen-page">
+  <main class="guide gen-page-main">
+    <h1 class="guide-title">Hypersomnia server config</h1>
+    <%- tabs %>
+    <div id="config-generator"></div>
+    <p class="gen-page-foot">
+      <a href="/host"><i class="fa-solid fa-book"></i>The full guide</a>
+      <a href="/servers"><i class="fa-solid fa-server"></i>Servers</a>
+      <a href="/"><i class="fa-solid fa-house"></i>hypersomnia.io</a>
+    </p>
+  </main>
+
+  <script>
+    window.HOST_ARENAS = <%- JSON.stringify(arenas) %>;
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/highlight.min.js"></script>
+  <script src="/assets/scripts/host.js?t=20261026f"></script>
+</body>
+</html>

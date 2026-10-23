@@ -1,0 +1,30 @@
+<%- include('overall_header'); %>
+
+<link rel="stylesheet" href="/assets/styles/host.css?t=20261026f">
+
+<div class="guide-layout">
+  <aside class="guide-nav" aria-label="Sections">
+    <div class="guide-nav-title">Host a server</div>
+    <% guide.sections.forEach(s => { %>
+      <a href="#<%= s.id %>"<% if (s.setup) { %> data-setup="<%= s.setup %>"<% } %><% if (s.highlight) { %> class="highlight"<% } %>><% if (s.icon) { %><i class="<%= s.icon %>"></i><% } %><%= s.text %></a>
+      <% (s.children || []).forEach(c => { %>
+        <a href="#<%= c.id %>" class="child"><%= c.text %></a>
+      <% }) %>
+    <% }) %>
+    <div class="guide-nav-foot">
+      <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/README_SERVER.md" target="_blank"><i class="fa-brands fa-github"></i>Edit on GitHub</a>
+    </div>
+  </aside>
+
+  <article class="guide">
+    <%- guide.html %>
+  </article>
+</div>
+
+<script>
+  window.HOST_ARENAS = <%- JSON.stringify(arenas) %>;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/highlight.min.js"></script>
+<script src="/assets/scripts/host.js?t=20261026f"></script>
+
+<%- include('overall_footer'); %>

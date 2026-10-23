@@ -37,6 +37,8 @@ module.exports = (app) => {
   app.use('/matches', require('../matches'));
   app.use('/arenas', require('../arenas'));
   app.use('/servers', require('../servers'));
+  app.use('/host', require('../host'));
+  app.get('/generator', require('../host').generatorPage);
   app.use('/tournament', require('../tournament'));
   app.use('/user', require('../user'));
   app.use('/auth', require('../auth')(passport));
