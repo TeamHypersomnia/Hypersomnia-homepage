@@ -259,6 +259,29 @@
     return i;
   }
 
+  // a slider with its value next to it, for small counts
+  function sliderInput(key, min, max) {
+    const i = el('input', { type: 'range', min: String(min), max: String(max), step: '1', class: 'gen-slider' });
+    const value = el('span', { class: 'gen-slider-value' });
+
+    const sync = () => {
+      // a value saved before the range was narrowed
+      state[key] = Math.max(min, Math.min(max, state[key]));
+      i.value = state[key];
+      value.textContent = String(state[key]);
+      i.style.setProperty('--fill', `${(state[key] - min) / (max - min) * 100}%`);
+    };
+
+    i.addEventListener('input', () => {
+      state[key] = parseInt(i.value, 10);
+      sync();
+      update();
+    });
+
+    sync();
+    return el('div', { class: 'gen-slider-row' }, [value, i]);
+  }
+
   function autoupdateInput() {
     const check = el('input', { type: 'checkbox' });
     check.checked = state.autoupdate;
@@ -394,8 +417,8 @@
   ]);
 
   // a tournament opens a server per match and lets in only its players instead
-  const casualInput = numberInput('casual', 1, 16);
-  const slotsInput = numberInput('slots', 2, 64);
+  const casualInput = sliderInput('casual', 1, 8);
+  const slotsInput = sliderInput('slots', 4, 26);
 
 
 
@@ -685,7 +708,7 @@
   pairingSelect.addEventListener('change', () => { state.tPairing = pairingSelect.value; update(); });
   teamsText.addEventListener('input', () => { state.tTeamsText = teamsText.value; update(); });
 
-  const playersInput = numberInput('tPlayers', 2, 128);
+  const playersInput = sliderInput('tPlayers', 2, 64);
   const teamSize = teamSizeSelect();
   const playersField = field('Players', playersInput, { help: 'How many players come.' });
   const teamsField = field('Teams', teamSize);
@@ -782,6 +805,7 @@
 
   // the config's files, and the firewall - remade on every change
   const configResults = el('div');
+  const serviceResults = el('div');
   const firewallResults = el('div');
 
   /*
@@ -805,7 +829,7 @@
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else {
-      checkText.innerHTML = 'Within a minute your server is on <a href="/servers" target="_blank">hypersomnia.io/servers</a> and in <code>Browse servers</code> in the game.<br>On the list but nobody can join?<br>Open the ports - see <code>Setup the firewall</code> above.';
+      checkText.innerHTML = 'Within a minute your server is on <a href="/servers" target="_blank">hypersomnia.io/servers</a> and in <code>Browse servers</code> in the game.<br>On the list but nobody can join?<br>Open the ports - see <code>Your firewall commands</code> above.';
       checkImage.src = '/assets/images/generator/server_browser.png';
       checkImage.alt = 'Your server in Browse servers';
     }
@@ -849,7 +873,7 @@
   ]);
 
   // the AppImage's executable, or Docker's data folder
-  const beforeTitle = () => method() === 'compose' || method() === 'run' ? 'Before you start' : 'Setup the executable';
+  const beforeTitle = () => 'Your setup commands';
 
   const beforeBlock = el('div', { class: 'gen-before-box' }, [
     serviceOption,
@@ -909,65 +933,44 @@
   formRoot.addEventListener('submit', e => e.preventDefault());
 
   /*
-    The steps, one under another: each with Done - done, it folds to its title, dark green. Only the first one not
-    done is open; the ones after it wait folded until it is.
+    The settings first, then what they make - generated live, under a line that says so.
   */
 
-  function makeStep(title, body) {
-    const check = el('input', { type: 'checkbox' });
+  function makeStep(title, body, generated = false) {
     const titleEl = el('span', { class: 'gen-step-title', text: title });
-    const mark = el('span', { class: 'gen-step-mark', html: '<i class="fa-solid fa-check"></i>' });
-    const head = el('div', { class: 'gen-step-head' }, [titleEl, mark]);
+    const head = el('div', { class: 'gen-step-head' }, [titleEl]);
+    const wrap = el('div', { class: 'gen-step' + (generated ? ' generated' : '') + (title ? '' : ' untitled') }, [
+      head,
+      el('div', { class: 'gen-step-body' }, [body])
+    ]);
 
-    // Done: a bar of its own under the step, big and centered
-    const doneBar = el('div', { class: 'gen-step-done-bar' }, [el('label', { class: 'gen-step-done' }, [check, document.createTextNode('Done')])]);
-    const wrap = el('div', { class: 'gen-step' }, [head, el('div', { class: 'gen-step-body' }, [body, doneBar])]);
-    const step = { el: wrap, title: titleEl, check, body: wrap.lastChild, done: false };
+    if (!title) {
+      head.remove();
+    }
 
-    check.addEventListener('change', () => { step.done = check.checked; updateSteps(); });
-
-    // a done step opens again by its title
-    head.addEventListener('click', () => {
-      if (step.done) {
-        step.done = false;
-        check.checked = false;
-        updateSteps();
-      }
-    });
-
-    return step;
+    return { el: wrap, title: titleEl, body: wrap.lastChild };
   }
 
-
   const steps = {
-    before: makeStep('Setup the executable', beforeBlock),
-    configure: makeStep('Configure the server', formRoot),
-    config: makeStep('Copy the config', configResults),
-    firewall: makeStep('Setup the firewall', firewallResults),
-    start: makeStep('Start the server', startBlock),
+    before: makeStep('Your setup commands', beforeBlock, true),
+    configure: makeStep('', formRoot),
+    config: makeStep('Your config', configResults, true),
+    // under the setup commands with its checkbox - toggling it changes nothing above
+    service: makeStep('Your service file', serviceResults, true),
+    firewall: makeStep('Your firewall commands', firewallResults, true),
+    start: makeStep('Your startup command', startBlock, true),
     check: makeStep('Check that it works', checkBlock)
   };
 
-  Object.values(steps).forEach(st => mount.appendChild(st.el));
+  const generatedLine = el('div', { class: 'gen-generated-line', html: '<span><i class="fa-solid fa-arrow-down"></i>Generated live from the settings above</span>' });
 
-  function updateSteps() {
-    let open = true;
+  mount.appendChild(steps.configure.el);
+  mount.appendChild(generatedLine);
 
-    Object.values(steps).forEach(st => {
-      if (st.el.hidden) {
-        return;
-      }
+  // how it runs - AppImage, Docker compose, docker run - changes only what is generated: its tabs go under the line
+  subtabRows.forEach(r => mount.appendChild(r));
+  [steps.config, steps.before, steps.service, steps.firewall, steps.start, steps.check].forEach(st => mount.appendChild(st.el));
 
-      const expanded = !st.done && open;
-      st.body.hidden = !expanded;
-      st.el.classList.toggle('done', st.done);
-      st.el.classList.toggle('waiting', !st.done && !open);
-
-      if (!st.done) {
-        open = false;
-      }
-    });
-  }
 
   const ACCOUNT_ID = /^(steam_\d{17}|0x[0-9a-f]{64}|key_[0-9a-f]{64}|crazygames_\S+)$/i;
 
@@ -1387,14 +1390,15 @@
 
     // the config: every file of this setup, open at once
     configResults.innerHTML = '';
+    serviceResults.innerHTML = '';
     let serviceBox = null;
 
     outputsOf().filter(k => k !== 'firewall').forEach(k => {
       if (k === 'compose') {
-        configResults.appendChild(resultBox({ file: 'docker-compose.yaml', lang: 'yaml', text: compose(), hint: 'Next to the data folder.' }));
+        configResults.appendChild(resultBox({ file: 'compose.yaml', lang: 'yaml', text: compose(), hint: 'Save it in any folder - the startup command runs in that folder.' }));
       }
       else if (k === 'run') {
-        // nothing to copy: the command is the start - in Start the server
+        // nothing to copy: the command is the start - in Your startup command
       }
       else if (k === 'service') {
         serviceBox = resultBox({
@@ -1404,16 +1408,16 @@
           hint: 'The service that starts the server with the machine.'
         });
 
-        configResults.appendChild(serviceBox);
+        serviceResults.appendChild(serviceBox);
       }
       else {
         const json = buildSettings().json;
-        const service = method() === 'service';
 
         configResults.appendChild(resultBox({
-          file: service && !ownUser() ? '/opt/hypersomnia/user/conf.d/server.json' : '~/.config/Hypersomnia/user/conf.d/server.json',
+          file: configPath(),
           lang: json ? 'json' : '',
           text: json ? prettyJson(json) : 'No server config required!',
+          hint: json ? `Make its folder first: ${inline(configMkdir())}` : '',
           unneeded: !json
         }));
       }
@@ -1436,17 +1440,13 @@
 
     steps.start.el.hidden = !start;
 
-    // docker run has no config to copy - everything is in its command, under Start the server
+    // docker run has no config to copy - everything is in its command, under Your startup command
     steps.config.el.hidden = method() === 'run';
-    steps.config.title.innerHTML = {
-      compose: 'Setup <code>docker-compose.yaml</code>',
-      service: 'Copy the config and the service'
-    }[method()] || 'Copy the config';
     startHint.innerHTML = method() === 'run' ? `If it's running already, ${inline('docker rm -f hypersomnia-server')} first.` : '';
     startHint.hidden = !startHint.innerHTML;
     fillStart(start);
+    steps.service.el.hidden = !serviceBox;
     updateFuseField(serviceBox);
-    updateSteps();
   }
 
   function startText() {
@@ -1486,14 +1486,26 @@
 
   const PROFILE_MARK = 'hypersomnia-generator';
 
-  function outputOf(kind) {
-    const service = method() === 'service';
+  function separateUser() {
+    return method() === 'service' && !ownUser();
+  }
 
+  function configPath() {
+    return separateUser() ? '/opt/hypersomnia/user/conf.d/server.json' : '~/.config/Hypersomnia/user/conf.d/server.json';
+  }
+
+  // conf.d is there only after the first start - made by hand to save the config before
+  function configMkdir() {
+    const folder = configPath().replace(/\/server\.json$/, '');
+    return separateUser() ? `sudo -u hypersomnia mkdir -p ${folder}` : `mkdir -p ${folder}`;
+  }
+
+  function outputOf(kind) {
     return {
-      compose: { title: 'docker-compose.yaml', lang: 'yaml', text: () => compose() },
+      compose: { title: 'compose.yaml', lang: 'yaml', text: () => compose() },
       run: { title: 'Start it with docker run', lang: 'sh', text: () => dockerRun() },
       json: {
-        title: service && !ownUser() ? '/opt/hypersomnia/user/conf.d/server.json' : '~/.config/Hypersomnia/user/conf.d/server.json',
+        title: configPath(),
         lang: 'json',
         text: () => prettyJson(buildSettings().json || {})
       },
@@ -1502,7 +1514,7 @@
         lang: 'ini',
         text: () => serviceUnit()
       },
-      firewall: { title: 'Setup the firewall', lang: 'sh', text: () => firewall() }
+      firewall: { title: 'Your firewall commands', lang: 'sh', text: () => firewall() }
     }[kind];
   }
 
@@ -1546,19 +1558,19 @@
       parts.push(block(beforeTitle(), 'sh', beforeText()));
     }
 
-    // the files first, the firewall after the start
+    // in the order they are done: the setup, the files, the firewall, the start
     // a server.json of all defaults isn't needed - left out
-    // docker run is in Start the server
+    // docker run is in Your startup command
     outputsOf().filter(k => k !== 'firewall' && k !== 'run' && !(k === 'json' && !buildSettings().json)).forEach(k => {
       const o = outputOf(k);
-      parts.push(block(o.title, o.lang, o.text()));
+      parts.push(k === 'json' ? `## ${o.title}\n\n\`\`\`sh\n${configMkdir()}\n\`\`\`\n\n\`\`\`json\n${prettyJson(buildSettings().json)}\n\`\`\`\n` : block(o.title, o.lang, o.text()));
     });
 
-    if (startText()) {
-      parts.push(block('Start the server', 'sh', startText()));
-    }
+    parts.push(block('Your firewall commands', 'sh', firewall()));
 
-    parts.push(block('Setup the firewall', 'sh', firewall()));
+    if (startText()) {
+      parts.push(block('Your startup command', 'sh', startText()));
+    }
     parts.push(`<!-- ${PROFILE_MARK} ${JSON.stringify({ setup: currentSetup, state: changedFromDefaults() })} -->\n`);
 
     return parts.join('\n');
@@ -1642,9 +1654,8 @@
 
   updateBefore();
   updateCheck();
-  updateFuseField();
+  // update() places the FUSE field too - it knows the service file's box
   setupListeners.push(updateCheck);
   setupListeners.push(updateBefore);
-  setupListeners.push(updateFuseField);
   update();
 })();
