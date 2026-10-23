@@ -42,4 +42,5 @@ jobs:
       - name: Deploy with Ansible
         run: |
           cd infra
-          ansible-playbook playbooks/site.yml -i inventory/hypersomnia.io.yml --tags "nginx,homepage"
+          # Only the site's host: the TURN play would still gather facts on arena-us, which this key can't reach - and its tasks aren't deployed from here anyway
+          ansible-playbook playbooks/site.yml -i inventory/hypersomnia.io.yml --tags "nginx,homepage" --limit web_servers
