@@ -1438,7 +1438,10 @@
 
     // docker run has no config to copy - everything is in its command, under Start the server
     steps.config.el.hidden = method() === 'run';
-    steps.config.title.textContent = method() === 'service' ? 'Copy the config and the service' : 'Copy the config';
+    steps.config.title.innerHTML = {
+      compose: 'Setup <code>docker-compose.yaml</code>',
+      service: 'Copy the config and the service'
+    }[method()] || 'Copy the config';
     startHint.innerHTML = method() === 'run' ? `If it's running already, ${inline('docker rm -f hypersomnia-server')} first.` : '';
     startHint.hidden = !startHint.innerHTML;
     fillStart(start);

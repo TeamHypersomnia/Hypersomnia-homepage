@@ -952,3 +952,21 @@ body.gen-page {
 .gen-result {
   margin-bottom: 0.4em;
 }
+
+/* Configure the server: one field under another, read from the top down */
+.gen-page .gen-form {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.gen-step-title code {
+  font-family: var(--mono);
+  color: var(--orange);
+}
+
+.gen-step.waiting .gen-step-title code {
+  color: var(--faint);
+}
+
+.gen-step.done .gen-step-title code {
+  color: var(--online);
+}
