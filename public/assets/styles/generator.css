@@ -1672,16 +1672,17 @@ body.gen-page {
   margin: 0;
   padding: 10px 24px;
   background: var(--panel);
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  border: 1px solid var(--line);
+  color: var(--bright);
   font-size: 1em;
   text-transform: uppercase;
   cursor: pointer;
 }
 
+/* quiet until pointed at - as the other buttons */
 #config-generator .gen-link-button:hover {
-  color: var(--white);
-  border-color: var(--white);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 #config-generator .gen-link-button.copied {
