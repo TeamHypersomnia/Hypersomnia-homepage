@@ -1803,3 +1803,9 @@ footer > a:hover {
 .link-confirm form {
   margin: 0;
 }
+
+/* A tournament's live results, at the right of its server's name - one column, whatever the name's length */
+.sv-results {
+  float: right;
+  margin-left: 0.6em;
+}

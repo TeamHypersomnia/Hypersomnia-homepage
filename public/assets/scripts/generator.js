@@ -269,6 +269,7 @@
     tArenas: [],
     tPairing: 'first',
     tPage: true,
+    tPagePort: 0,
     tTeamsText: '',
     webhook: ''
   };
@@ -744,7 +745,7 @@
       return '';
     }
 
-    return `First, open your tournament's results page: <code>http://&lt;your server&gt;:${state.port}/</code> - it is also linked next to your matches on <a href="/servers" target="_blank">hypersomnia.io/servers</a>.<br><br>`;
+    return `First, open your tournament's results page: <code>http://&lt;your server&gt;:${pagePort()}/</code> - it is also linked next to your matches on <a href="/servers" target="_blank">hypersomnia.io/servers</a>.<br><br>`;
   }
 
   function updateCheck() {
@@ -937,7 +938,15 @@
   const tableWebHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-globe"></i>Browser players' });
 
   // a tournament's results page: the game port's number over TCP - shown, not typed
-  const tablePagePort = el('input', { type: 'text', disabled: 'disabled' });
+  const tablePagePort = el('input', { type: 'number', min: '1', max: '65535', class: 'no-spin' });
+
+  tablePagePort.addEventListener('input', () => {
+    const v = parseInt(tablePagePort.value, 10);
+
+    // the game port's number again: no port of its own
+    state.tPagePort = isNaN(v) || v === state.port ? 0 : Math.max(1, Math.min(65535, v));
+    update();
+  });
   const tablePageHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-trophy"></i>Results page' });
 
   const portsRow = foldRow('Ports', 'Change them only if 8412 or 9000 is taken on this machine.', el('div', { class: 'gen-ports' }, [
@@ -1003,7 +1012,7 @@
     only(tournamentRows, settingRow('Live results page', [switchInput('tPage', () => {}, '<code>http://&lt;your server&gt;:<span class="gen-page-port"></span>/</code>')], 'The bracket with live scores. Served by the game server itself over TCP.')),
     settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io</a>')]),
     portsRow,
-    revealRow('Join password', 'passwordOn', textInput('password', 'the password'), 'Without it, anyone can join.'),
+    revealRow('Join password', 'passwordOn', textInput('password', 'what players type to join'), 'Without it, anyone can join.'),
     only(serverRows, adminRow)
   ]);
 
@@ -1045,15 +1054,18 @@
     );
 
     portsRow.show(
-      `${portSpan(state.port)} UDP` + (state.browser ? `, ${portSpan(state.webPort)} UDP` : '') + (pageOn() ? `, ${state.port} TCP` : ''),
-      state.port === 8412 && state.webPort === 9000
+      `${portSpan(state.port)} UDP` + (state.browser ? `, ${portSpan(state.webPort)} UDP` : '') + (pageOn() ? `, ${pagePort()} TCP` : ''),
+      state.port === 8412 && state.webPort === 9000 && !state.tPagePort
     );
 
     tableWebPort.hidden = !state.browser;
-    tablePagePort.value = `${state.port} TCP`;
+    if (document.activeElement !== tablePagePort) {
+      tablePagePort.value = String(pagePort());
+    }
+
     tablePagePort.hidden = !pageOn();
     tablePageHead.style.display = pageOn() ? '' : 'none';
-    document.querySelectorAll('.gen-page-port').forEach(e => { e.textContent = String(state.port); });
+    document.querySelectorAll('.gen-page-port').forEach(e => { e.textContent = String(pagePort()); });
     tableWebHead.style.visibility = state.browser ? '' : 'hidden';
 
     adminRow.classList.toggle('open', adminWarning.style.display !== 'none' && adminWarning.textContent !== '');
@@ -1076,8 +1088,11 @@
     i.setAttribute('data-form-type', 'other');
   }));
 
-  const formRoot = el('form', { autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' }, [serverForm]);
-  formRoot.addEventListener('submit', e => e.preventDefault());
+  /*
+    A plain box, not a <form>: password managers take a form with a "password" in it for a login and fill
+    the fields around it (LastPass did, into the tournament's Players).
+  */
+  const formRoot = el('div', { class: 'gen-settings' }, [serverForm]);
 
   /*
     The settings first, then what they make - generated live, under a line that says so.
@@ -1215,6 +1230,9 @@
 
     if (isTournament() && !state.tPage) {
       out.push('--tournament-page off');
+    }
+    else if (isTournament() && state.tPagePort) {
+      out.push(`--tournament-page ${state.tPagePort}`);
     }
 
     return out.join(' ');
@@ -1430,6 +1448,9 @@
     if (isTournament() && !state.tPage) {
       put('HYPERSOMNIA_TOURNAMENT_PAGE', 'off');
     }
+    else if (isTournament() && state.tPagePort) {
+      put('HYPERSOMNIA_TOURNAMENT_PAGE', String(state.tPagePort));
+    }
 
     return env;
   }
@@ -1463,7 +1484,7 @@
       '      - /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user',
       '    ports:',
       `      - '${game}:${game}/udp'`,
-      pageOn() ? `      - '${state.port}:${state.port}/tcp'` : null,
+      pageOn() ? `      - '${pagePort()}:${pagePort()}/tcp'` : null,
       state.browser ? `      - '${web}:${web}/udp'` : null,
       '    environment:'
     ].filter(line => line !== null);
@@ -1494,7 +1515,7 @@
       'docker run -d --name hypersomnia-server',
       '  --restart unless-stopped',
       `  --publish ${game}:${game}/udp`,
-      pageOn() ? `  --publish ${state.port}:${state.port}/tcp` : null,
+      pageOn() ? `  --publish ${pagePort()}:${pagePort()}/tcp` : null,
       state.browser ? `  --publish ${web}:${web}/udp` : null,
       '  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user'
     ].filter(line => line !== null);
@@ -1558,6 +1579,9 @@
   // a tournament's live page: the first game port's number, over TCP
   const pageOn = () => isTournament() && state.tPage;
 
+  // the results page's TCP port: its own if set, else the first game port's number
+  const pagePort = () => state.tPagePort || state.port;
+
   function firewall() {
     const ufw = s => s.replace('-', ':');
 
@@ -1567,12 +1591,12 @@
       '# ufw (Ubuntu, Debian)',
       `sudo ufw allow ${ufw(portSpan(state.port))}/udp`,
       web ? `sudo ufw allow ${ufw(portSpan(state.webPort))}/udp` : null,
-      pageOn() ? `sudo ufw allow ${state.port}/tcp` : null,
+      pageOn() ? `sudo ufw allow ${pagePort()}/tcp` : null,
       '',
       '# firewalld (Fedora, RHEL)',
       `sudo firewall-cmd --permanent --add-port=${portSpan(state.port)}/udp`,
       web ? `sudo firewall-cmd --permanent --add-port=${portSpan(state.webPort)}/udp` : null,
-      pageOn() ? `sudo firewall-cmd --permanent --add-port=${state.port}/tcp` : null,
+      pageOn() ? `sudo firewall-cmd --permanent --add-port=${pagePort()}/tcp` : null,
       'sudo firewall-cmd --reload'
     ].filter(line => line !== null).join('\n');
   }
@@ -1618,7 +1642,7 @@
 
     // what the ports are for - told in Setup the firewall
     const forWhat = isTournament() ? ' (one each per match server)' : n > 1 ? ' (one each per server)' : '';
-    const page = pageOn() ? `, and TCP ${state.port} for the live results page` : '';
+    const page = pageOn() ? `, and TCP ${pagePort()} for the live results page` : '';
 
     // the config: every file of this setup, open at once
     configResults.innerHTML = '';
