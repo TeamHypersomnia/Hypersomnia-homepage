@@ -1639,8 +1639,8 @@ body.gen-page {
 .gen-title-box {
   margin: 0 0 1.2em;
   padding: 1.1em 1em 0.9em;
-  /* no background - the tabs under it stand out */
-  border: 1px solid var(--line-dim);
+  /* no background - the tabs under it stand out; dashed, as the line over YOUR CONFIGS */
+  border: 1px dashed var(--line);
   text-align: center;
 }
 
