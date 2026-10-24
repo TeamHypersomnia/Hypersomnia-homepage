@@ -1549,8 +1549,14 @@
     catch (e) {}
 
     // the address bar holds the profile as it is - a bookmark keeps it; no new history entry for every click
+    // nothing set: the plain address
+    const changed = changedFromDefaults();
+    SECRET_KEYS.forEach(k => { delete changed[k]; });
+
+    const atDefaults = Object.keys(changed).length === 0 && (!defaultButton || currentSetup === defaultButton.dataset.setup);
+
     try {
-      history.replaceState(null, '', profileLink());
+      history.replaceState(null, '', atDefaults ? location.pathname : profileLink());
     }
     catch (e) {}
 
@@ -1844,7 +1850,8 @@
         localStorage.setItem(SETUP_KEY, saved.setup);
       }
 
-      location.reload();
+      // without the profile in the link - it would win over the loaded one
+      location.replace(location.pathname);
     }
     catch (e) {
       alert('The instructions could not be read: ' + e.message);
@@ -1862,7 +1869,8 @@
     }
     catch (e) {}
 
-    location.reload();
+    // the page with no profile in the link - the defaults, by definition
+    location.replace(location.pathname);
   }
 
   const profileFile = el('input', { type: 'file', accept: '.md,text/markdown,text/plain', hidden: 'hidden' });
