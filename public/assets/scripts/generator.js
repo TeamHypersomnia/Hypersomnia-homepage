@@ -126,6 +126,10 @@
   const PROFILE_HASH = '#p=';
   const SECRET_KEYS = ['password', 'passwordOn', 'webhook', 'admins', 'adminOn'];
 
+  // how this machine runs it is for whoever gets the link to decide - kept in their browser, as the secrets
+  const MACHINE_KEYS = ['asService', 'serviceUser', 'fuse'];
+  const NOT_IN_LINK = SECRET_KEYS.concat(MACHINE_KEYS);
+
   function encodeProfile(profile) {
     const bytes = new TextEncoder().encode(JSON.stringify(profile));
     let binary = '';
@@ -277,7 +281,7 @@
     // a profile from the link replaces the settings - this browser's secrets stay
     if (linkedProfile) {
       const secrets = {};
-      SECRET_KEYS.forEach(k => { secrets[k] = state[k]; });
+      NOT_IN_LINK.forEach(k => { secrets[k] = state[k]; });
 
       state = Object.assign({}, defaults, linkedProfile.state || {}, secrets);
     }
@@ -1096,8 +1100,8 @@
   // how it runs - AppImage, Docker compose, docker run - changes only what is generated: its tabs go under the line
   subtabRows.forEach(r => mount.appendChild(r));
 
-  // under the tabs, over what they make: the whole profile in one link
-  const linkButton = el('button', { type: 'button', class: 'gen-link-button', title: 'Every setting in one link - bookmark it or send it. Passwords, webhooks and admins are left out.' });
+  // the whole profile in one link
+  const linkButton = el('button', { type: 'button', class: 'gen-link-button', title: 'Every setting above in one link - bookmark it or send it. Left out: passwords, webhooks, admins, and how your machine runs it (service, FUSE).' });
   const linkLabel = '<i class="fa-solid fa-link"></i>Copy a link to this profile';
   linkButton.innerHTML = linkLabel;
 
@@ -1115,7 +1119,8 @@
     navigator.clipboard.writeText(profileLink()).then(shown, () => prompt('The link to this profile:', profileLink()));
   });
 
-  mount.appendChild(el('div', { class: 'gen-link-row' }, [linkButton]));
+  // over YOUR CONFIGS: it's the settings above, not what they make
+  generatedLine.before(el('div', { class: 'gen-link-row' }, [linkButton]));
   [steps.config, steps.secret, steps.before, steps.service, steps.firewall, steps.start, steps.check].forEach(st => mount.appendChild(st.el));
 
 
@@ -1551,7 +1556,7 @@
     // the address bar holds the profile as it is - a bookmark keeps it; no new history entry for every click
     // nothing set: the plain address
     const changed = changedFromDefaults();
-    SECRET_KEYS.forEach(k => { delete changed[k]; });
+    NOT_IN_LINK.forEach(k => { delete changed[k]; });
 
     const atDefaults = Object.keys(changed).length === 0 && (!defaultButton || currentSetup === defaultButton.dataset.setup);
 
@@ -1775,7 +1780,7 @@
 
   function profileLink() {
     const changed = changedFromDefaults();
-    SECRET_KEYS.forEach(k => { delete changed[k]; });
+    NOT_IN_LINK.forEach(k => { delete changed[k]; });
 
     return location.origin + location.pathname + PROFILE_HASH + encodeProfile({ setup: currentSetup, state: changed });
   }

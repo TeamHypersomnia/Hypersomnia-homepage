@@ -1654,11 +1654,11 @@ body.gen-page {
   font-style: italic;
 }
 
-/* Copy a link to this profile: under the setup's tabs, centered, longer than the buttons around */
+/* Copy a link to this profile: under the settings, over YOUR CONFIGS, centered, longer than the buttons around */
 .gen-link-row {
   display: flex;
   justify-content: center;
-  margin: -0.4em 0 1.4em;
+  margin: 1.6em 0 0;
 }
 
 #config-generator .gen-link-button {
