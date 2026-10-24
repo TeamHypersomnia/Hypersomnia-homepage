@@ -1692,6 +1692,10 @@ body.gen-page {
 
 /* the game, the browser players and a tournament's results page - one column each */
 .gen-ports {
+  grid-template-columns: repeat(2, max-content);
+}
+
+.gen-ports.with-page {
   grid-template-columns: repeat(3, max-content);
 }
 
@@ -1710,4 +1714,160 @@ body.gen-page {
 
 .gen-chip:hover .gen-chip-remove {
   color: var(--white);
+}
+
+/* Verify players by account ids: a box per player of the list */
+.gen-account-ids {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.gen-account-ids[hidden] {
+  display: none;
+}
+
+.gen-account-name {
+  color: var(--bright);
+  font-family: var(--mono);
+}
+
+/* a setting that changes nothing as the others are set - Join password with the players verified by their accounts */
+.gen-row.gen-row-disabled .gen-row-name,
+.gen-row.gen-row-disabled .gen-switch {
+  opacity: 0.4;
+}
+
+.gen-row.gen-row-disabled .gen-switch {
+  pointer-events: none;
+}
+
+#config-generator .gen-table input.gen-invalid,
+#config-generator .gen-table textarea.gen-invalid {
+  border-color: var(--red);
+}
+
+.gen-account-id-image {
+  margin: 0.6em 0 0.8em;
+  max-width: 360px;
+  /* grey in the file itself (the red frame stays red), darker than the other pictures - a lighter border keeps its edge */
+  border-color: rgb(95, 95, 95);
+  filter: brightness(0.45);
+}
+
+.gen-account-id-image:hover {
+  filter: none;
+}
+
+.gen-account-id-image[hidden] {
+  display: none;
+}
+
+/* a nickname in the rounds' preview */
+.gen-field-text code.gen-nick {
+  color: var(--bright);
+}
+
+.gen-field-text code.gen-nick.gen-bad {
+  color: var(--red);
+}
+
+/* "Insecure, but enough for a LAN." over the rest of the explanation, no gap */
+.gen-row-editor .gen-field-text + .gen-field-text {
+  margin-top: 0;
+}
+
+/* the rounds' preview: a pair per line */
+#config-generator .gen-preview-list {
+  margin: 0.2em 0 0.5em;
+  padding-left: 1.4em;
+}
+
+#config-generator .gen-preview-list li {
+  margin: 0.1em 0;
+}
+
+/* who gets in: secure or not, an icon on the left */
+.gen-security i {
+  margin-right: 0.35em;
+}
+
+.gen-security .gen-insecure {
+  color: var(--accent);
+}
+
+.gen-security .gen-secure {
+  color: var(--online);
+}
+
+/* a line apart from the text over it */
+.gen-row-editor .gen-field-text.gen-after-gap {
+  margin-top: 1.4em;
+}
+
+.gen-tooltip code {
+  font-family: var(--mono);
+  color: var(--orange);
+}
+
+/* anything wrong in the settings: nothing generated to copy, the errors in its place */
+#config-generator.gen-has-errors .guide-setup-subtabs,
+#config-generator.gen-has-errors .gen-step.generated,
+#config-generator.gen-has-errors .gen-check-step {
+  display: none !important;
+}
+
+.gen-errors {
+  margin: 0.4em 0 1.4em;
+  padding: 1.2em 1.4em;
+  border: 2px solid var(--red);
+  background: rgba(244, 71, 71, 0.06);
+}
+
+.gen-errors[hidden] {
+  display: none;
+}
+
+.gen-errors-title {
+  color: var(--red);
+  font-size: 1.4em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gen-errors-title i {
+  margin-right: 0.5em;
+}
+
+.gen-errors ul {
+  margin: 0.8em 0 0;
+  padding-left: 1.4em;
+  color: var(--bright);
+}
+
+.gen-errors li {
+  margin: 0.3em 0;
+}
+
+/* as Results next to a tournament's match on /servers (.sv-tag) */
+.gen-results-tag {
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+/* the game's logo in the place of "Hypersomnia" */
+.gen-page-main h1.guide-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25em 0.5em;
+}
+
+.gen-title-logo {
+  /* drawn 1:1 - a prescaled image, so the browser doesn't shrink it */
+  width: 169px;
+  height: 30px;
 }

@@ -271,6 +271,8 @@
     tPage: true,
     tPagePort: 0,
     tTeamsText: '',
+    tVerify: 'nicknames',
+    tAccountIds: {},
     webhook: ''
   };
 
@@ -302,7 +304,12 @@
   const refreshInputs = () => refreshers.forEach(f => f());
 
   // the password is behind its switch
-  const password = () => state.passwordOn ? state.password : '';
+  const password = () => state.passwordOn && !verifiedByAccounts() ? state.password : '';
+
+  // the teams set up beforehand, every player let in by their account - a join password adds nothing
+  function verifiedByAccounts() {
+    return isTournament() && state.tPairing === 'beforehand' && state.tVerify === 'accounts';
+  }
 
   function textInput(key, placeholder) {
     const i = el('input', { type: 'text', placeholder: placeholder || '' });
@@ -525,6 +532,16 @@
 
   const pairedBeforehand = () => isTournament() && state.tPairing === 'beforehand';
 
+  // "=" joins a nickname to its account id, ";" separates the teams - neither can be in a nickname
+  const unusableNickname = n => /[=;]/.test(n);
+
+  function playerEntry(nickname) {
+    const id = (state.tAccountIds[nickname] || '').trim();
+    return verifiedByAccounts() && id ? `${nickname}=${id}` : nickname;
+  }
+
+  const teamsArgument = separator => listedTeams().map(t => t.map(playerEntry).join(', ')).join(separator);
+
   function teamCount() {
     return pairedBeforehand() ? listedTeams().length : Math.ceil(state.tPlayers / state.tTeamSize);
   }
@@ -606,7 +623,14 @@
 
   function updatePairingPreview() {
     const teams = listedTeams();
-    const name = t => `[${t.join(', ')}]`;
+
+    // "=" joins a nickname to its account id in the flags - a nickname can't have one: red, quietly
+    const unusable = unusableNickname;
+    const escaped = n => n.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    // the nicknames as typed, in monospace - no brackets anyone could take for part of the list's format
+    const name = t => t.map(n => `<code class="gen-nick${unusable(n) ? ' gen-bad' : ''}">${escaped(n)}</code>`).join(', ');
+
+    teamsText.classList.toggle('gen-invalid', teams.some(t => t.some(unusable)));
     const wrong = teams.filter(t => t.length !== state.tTeamSize);
 
     if (teams.length < 2) {
@@ -629,23 +653,40 @@
 
     const advance = teams.slice(0, byes).map(name);
 
+    // a pair per line, the byes too
+    const bullets = items => `<ul class="gen-preview-list">${items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+
     pairingPreview.innerHTML =
-      `<strong>Round 1:</strong> ${lines.join(' &middot; ')}` +
-      (advance.length ? `<br><strong>Byes:</strong> ${advance.join(', ')}` : '') +
-      (wrong.length ? `<br><span class="gen-bad">Not ${state.tTeamSize} ${state.tTeamSize > 1 ? 'players' : 'player'}: ${wrong.map(name).join(', ')}</span>` : '');
+      `<strong>Round 1:</strong>${bullets(lines)}` +
+      (advance.length ? `<strong>Byes:</strong>${bullets(advance)}` : '') +
+      (wrong.length ? `<span class="gen-bad">Not ${state.tTeamSize} ${state.tTeamSize > 1 ? 'players' : 'player'}: ${wrong.map(name).join(', ')}</span>` : '');
   }
 
+  /*
+    Who gets in: anyone (paired as they join), or the listed teams - by their nicknames, or by their accounts.
+  */
+
+  const whoGetsIn = () => state.tPairing !== 'beforehand' ? 'anyone' : state.tVerify === 'accounts' ? 'accounts' : 'nicknames';
+
   const pairingSelect = el('select', {}, [
-    el('option', { value: 'first', text: 'However they join first' }),
-    el('option', { value: 'beforehand', text: 'Set up beforehand' })
+    el('option', { value: 'anyone', text: 'Anyone' }),
+    el('option', { value: 'nicknames', text: 'Listed nicknames' }),
+    el('option', { value: 'accounts', text: 'Listed accounts (secure)' })
   ]);
 
   const teamsText = el('textarea', { rows: '4', placeholder: 'alice\nbob\ncarol\ndave' });
 
-  pairingSelect.value = state.tPairing;
+  pairingSelect.value = whoGetsIn();
   teamsText.value = state.tTeamsText;
 
-  pairingSelect.addEventListener('change', () => { state.tPairing = pairingSelect.value; update(); });
+  pairingSelect.addEventListener('change', () => {
+    const v = pairingSelect.value;
+    state.tPairing = v === 'anyone' ? 'first' : 'beforehand';
+    state.tVerify = v === 'accounts' ? 'accounts' : 'nicknames';
+    update();
+  });
+
+  refreshers.push(() => { pairingSelect.value = whoGetsIn(); });
   teamsText.addEventListener('input', () => { state.tTeamsText = teamsText.value; update(); });
 
   const playersInput = sliderInput('tPlayers', 2, 64);
@@ -745,7 +786,7 @@
       return '';
     }
 
-    return `First, open your tournament's results page: <code>http://&lt;your server&gt;:${pagePort()}/</code> - it is also linked next to your matches on <a href="/servers" target="_blank">hypersomnia.io/servers</a>.<br><br>`;
+    return `Within a minute your matches are on:<br><a href="/servers" target="_blank">hypersomnia.io/servers</a><br>with <span class="gen-results-tag"><i class="fa-solid fa-trophy"></i> Results</span> next to them - your tournament's results page:<br><code>http://&lt;your server&gt;:${pagePort()}/</code><br><br>`;
   }
 
   function updateCheck() {
@@ -760,7 +801,7 @@
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else {
-      checkText.innerHTML = 'Within a minute your server is on <a href="/servers" target="_blank">hypersomnia.io/servers</a> and in <code>Browse servers</code> in the game.<br>On the list but nobody can join?<br>Open the ports - see <code>Your firewall commands</code> above.';
+      checkText.innerHTML = 'Within a minute your server is on:<br><a href="/servers" target="_blank">hypersomnia.io/servers</a><br>and in <code>Browse servers</code> in the game.<br><br>On the list but nobody can join?<br>Open the ports - see <code>Your firewall commands</code> above.';
       checkImage.src = '/assets/images/generator/server_browser.png';
       checkImage.alt = 'Your server in Browse servers';
     }
@@ -979,16 +1020,66 @@
     The tournament's rows: the size of the teams first - it says how to write the list of them.
   */
 
-  const pairingRow = settingRow('Player pairings', [pairingSelect]);
+  const pairingRow = settingRow('Who gets in', [pairingSelect], 'On a LAN, Anyone or Listed nicknames is enough - people there trust each other.');
 
   // however they join first: what it means for the players
   const firstText = el('p', { class: 'gen-field-text', html: 'Players join <strong>any server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>In later rounds, they will be paired automatically.' });
 
   // set up beforehand: the list and how it was understood - the rounds say it better than any explanation
-  const nicknamesText = el('p', { class: 'gen-field-text', text: 'Players set these exact nicknames to be let in.' });
-  pairingRow.appendChild(el('div', { class: 'gen-row-editor' }, [firstText, teamsText, pairingPreview, nicknamesText]));
+  const nicknamesText = el('p', { class: 'gen-field-text' });
+  // right under the list it's about
+  // the first line under the choice, whichever lets anyone take a nickname
+  const insecureText = el('p', { class: 'gen-field-text gen-security' });
+  // over the list, with teams of more than one: how to write it
+  const teamFormatText = el('p', { class: 'gen-field-text' });
+  const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, firstText, teamFormatText, teamsText, nicknamesText, pairingPreview]);
+  pairingRow.appendChild(pairingEditor);
 
   const playersRow = settingRow('Players', [playersInput, roundSummary]);
+
+  /*
+    Verify players by: their nicknames (anyone may take one - enough among friends on a LAN), or their accounts -
+    a box for each player's account id, the nickname only shown.
+  */
+
+  const verifyText = el('p', { class: 'gen-field-text' });
+  const accountIdsBox = el('div', { class: 'gen-account-ids' });
+  let shownIdsFor = '';
+
+  // a box per player of the list - rebuilt only when the list changes, so typing in one keeps its focus
+  function updateAccountIds() {
+    const names = [].concat(...listedTeams());
+    const key = JSON.stringify(names);
+
+    if (key !== shownIdsFor) {
+      shownIdsFor = key;
+      accountIdsBox.innerHTML = '';
+
+      names.forEach(name => {
+        const input = el('input', { type: 'text', placeholder: '0x8aed41f2... or steam_7656119...', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true', autocomplete: 'off' });
+        input.value = state.tAccountIds[name] || '';
+
+        input.addEventListener('input', () => {
+          state.tAccountIds = Object.assign({}, state.tAccountIds, { [name]: input.value.trim() });
+          input.classList.toggle('gen-invalid', input.value.trim() !== '' && !ACCOUNT_ID.test(input.value.trim()));
+          update();
+        });
+
+        input.classList.toggle('gen-invalid', input.value !== '' && !ACCOUNT_ID.test(input.value));
+        accountIdsBox.appendChild(el('span', { class: 'gen-account-name', text: name }));
+        accountIdsBox.appendChild(input);
+      });
+    }
+
+    accountIdsBox.hidden = !verifiedByAccounts() || names.length === 0;
+  }
+
+
+  // where each participant copies theirs - dimmed as the other pictures, lit when pointed at
+  const accountIdImage = el('img', { class: 'guide-image gen-account-id-image', src: '/assets/images/generator/copy_account_id.png?t=3', alt: 'Settings → Account → Copy account id, in the game', loading: 'lazy' });
+  // listed accounts: where to get them and a box for each, right under the list, before the rounds
+  [verifyText, accountIdImage, accountIdsBox].forEach(e => pairingEditor.insertBefore(e, pairingPreview));
+  verifyText.classList.add('gen-after-gap');
 
   const defaultRoundMaps = () => roundMaps().map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo');
   const mapsRow = foldRow('Maps for each stage', '', roundsBox);
@@ -999,6 +1090,10 @@
     list.push(row);
     return row;
   };
+
+  const passwordNote = el('span', { class: 'gen-switch-note', text: 'Redundant - the players are verified by their account ids.' });
+  const passwordRow = revealRow('Join password', 'passwordOn', textInput('password', 'what players type to join'), 'Without it, anyone can join.');
+  passwordRow.querySelector('.gen-row-ctl').appendChild(passwordNote);
 
   const serverTable = el('div', { class: 'gen-table' }, [
     only(serverRows, settingRow('Server name', [textInput('name', 'My server')])),
@@ -1012,7 +1107,7 @@
     only(tournamentRows, settingRow('Live results page', [switchInput('tPage', () => {}, '<code>http://&lt;your server&gt;:<span class="gen-page-port"></span>/</code>')], 'The bracket with live scores. Served by the game server itself over TCP.')),
     settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io</a>')]),
     portsRow,
-    revealRow('Join password', 'passwordOn', textInput('password', 'what players type to join'), 'Without it, anyone can join.'),
+    passwordRow,
     only(serverRows, adminRow)
   ]);
 
@@ -1041,7 +1136,32 @@
     playersRow.hidden = !isTournament() || pairedBeforehand();
     pairingRow.classList.add('open');
     firstText.hidden = pairedBeforehand();
+    teamFormatText.hidden = !pairedBeforehand() || state.tTeamSize < 2;
+    teamFormatText.innerHTML = `One team per line - its ${state.tTeamSize} players separated by commas:`;
+
+    // right under the list: what its nicknames are for
     nicknamesText.hidden = !pairedBeforehand();
+    nicknamesText.innerHTML = verifiedByAccounts()
+      ? 'Nicknames are only for your convenience:<br>participants may play under any other name.'
+      : 'Players set these exact nicknames to be let in to the correct match.';
+    // the same first line for all three - insecure with a warning, or secure with a check - so nothing below jumps
+    insecureText.innerHTML = verifiedByAccounts()
+      ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are with an `Ed25519` signature, so nobody can join in their place."></i>'
+      : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Insecure, but enough for a LAN.';
+
+    const size = `${state.tTeamSize}v${state.tTeamSize}`;
+    firstText.innerHTML = `Players join <strong>any ${size} server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>In later rounds, they will be paired automatically.`;
+
+    verifyText.innerHTML = 'Every participant must send you their account id.<br>Account ids are public - safe to share.<br>In the game: <code>Settings → Account → Copy account id</code>:';
+    verifyText.hidden = !verifiedByAccounts();
+    accountIdImage.hidden = !verifiedByAccounts();
+    updateAccountIds();
+
+    const verified = verifiedByAccounts();
+    passwordRow.classList.toggle('gen-row-disabled', verified);
+    passwordRow.querySelectorAll('input').forEach(i => { i.disabled = verified; });
+    passwordNote.hidden = !verified;
+    passwordRow.querySelector('.gen-row-ctl input[type=text]').hidden = verified || !state.passwordOn;
 
     const maps = roundMaps();
     mapsRow.show(maps.join(' <span class="gen-arrow">→</span> '), JSON.stringify(maps) === JSON.stringify(defaultRoundMaps()));
@@ -1065,6 +1185,8 @@
 
     tablePagePort.hidden = !pageOn();
     tablePageHead.style.display = pageOn() ? '' : 'none';
+    // three columns with a tournament's results page, two without - each port under its own name
+    tablePagePort.parentElement.classList.toggle('with-page', pageOn());
     document.querySelectorAll('.gen-page-port').forEach(e => { e.textContent = String(pagePort()); });
     tableWebHead.style.visibility = state.browser ? '' : 'hidden';
 
@@ -1135,6 +1257,12 @@
 
   // how it runs - AppImage, Docker compose, docker run - changes only what is generated: its tabs go under the line
   subtabRows.forEach(r => mount.appendChild(r));
+
+  // in the place of the tabs and what they show, while anything is wrong
+  const errorBox = el('div', { class: 'gen-errors' });
+  errorBox.hidden = true;
+  mount.appendChild(errorBox);
+  steps.check.el.classList.add('gen-check-step');
 
   // the whole profile in one link
   const linkButton = el('button', { type: 'button', class: 'gen-link-button', title: 'Every setting above in one link - bookmark it or send it. Left out: passwords, webhooks, admins, and how your machine runs it (service, FUSE).' });
@@ -1213,7 +1341,7 @@
 
     if (pairedBeforehand()) {
       // the teams in one argument: "alice, bob; carol, dave"
-      out.push(`--tournament-teams ${quoted(listedTeams().map(t => t.join(', ')).join('; '))}`);
+      out.push(`--tournament-teams ${quoted(teamsArgument('; '))}`);
     }
     else {
       out.push(`--tournament ${state.tPlayers}`);
@@ -1432,7 +1560,7 @@
 
     if (pairedBeforehand()) {
       // a team per line, its players separated by commas
-      put('HYPERSOMNIA_TOURNAMENT_TEAMS', listedTeams().map(t => t.join(', ')).join('\n'));
+      put('HYPERSOMNIA_TOURNAMENT_TEAMS', teamsArgument('\n'));
       put('HYPERSOMNIA_TOURNAMENT_ARENAS', roundMaps().map(withMode).join(','));
     }
     else if (isTournament()) {
@@ -1607,6 +1735,87 @@
     return `<span class="gen-inline"><code>${escaped}</code><button type="button" class="gen-inline-copy" title="Copy"><i class="fa-regular fa-copy"></i></button></span>`;
   }
 
+  /*
+    What's wrong with the settings - nothing is generated until it's fixed, so nobody copies a broken config.
+  */
+
+  function configErrors() {
+    const errors = [];
+    const list = names => [...new Set(names)].join(', ');
+
+    if (!isTournament() && state.adminOn) {
+      const ids = adminIds();
+      const bad = ids.filter(id => !ACCOUNT_ID.test(id));
+
+      if (!ids.length) {
+        errors.push('Admin: paste your account id - or switch it off.');
+      }
+      else if (bad.length) {
+        errors.push(`Admin: not an account id: ${list(bad)}`);
+      }
+    }
+
+    if (state.passwordOn && !verifiedByAccounts() && !state.password.trim()) {
+      errors.push('Join password: type it - or switch it off.');
+    }
+
+    if (state.webhook.trim() && !/^https:\/\/\S+$/.test(state.webhook.trim())) {
+      errors.push('Discord webhook: a link starting with https://');
+    }
+
+    const zones = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [];
+
+    if (!isTournament() && state.timeZone && zones.length && !zones.includes(state.timeZone)) {
+      errors.push(`Time zone: "${state.timeZone}" isn't one - e.g. Europe/Berlin.`);
+    }
+
+    if (pairedBeforehand()) {
+      const teams = listedTeams();
+      const names = [].concat(...teams);
+      const twice = names.filter((n, i) => names.indexOf(n) !== i);
+      const wrong = teams.filter(t => t.length !== state.tTeamSize);
+      const size = `${state.tTeamSize} ${state.tTeamSize > 1 ? 'players' : 'player'}`;
+
+      if (teams.length < 2) {
+        errors.push('Who gets in: list at least 2 teams, one per line.');
+      }
+
+      if (wrong.length) {
+        errors.push(`Who gets in: not ${size}: ${wrong.map(t => t.join(', ')).join(' / ')}`);
+      }
+
+      if (names.some(unusableNickname)) {
+        errors.push(`Who gets in: can't be a nickname: ${list(names.filter(unusableNickname))}`);
+      }
+
+      if (twice.length) {
+        errors.push(`Who gets in: listed more than once: ${list([...new Set(twice)])}`);
+      }
+
+      if (verifiedByAccounts()) {
+        const idOf = n => (state.tAccountIds[n] || '').trim();
+        const missing = names.filter(n => !idOf(n));
+        const bad = names.filter(n => idOf(n) && !ACCOUNT_ID.test(idOf(n)));
+        const ids = names.map(idOf).filter(Boolean).map(id => id.toLowerCase());
+        const shared = names.filter(n => idOf(n) && ids.indexOf(idOf(n).toLowerCase()) !== ids.lastIndexOf(idOf(n).toLowerCase()));
+
+        if (missing.length) {
+          errors.push(`Who gets in: no account id for: ${list(missing)}`);
+        }
+
+        if (bad.length) {
+          errors.push(`Who gets in: not an account id for: ${list(bad)}`);
+        }
+
+        if (shared.length) {
+          errors.push(`Who gets in: the same account id for: ${list(shared)}`);
+        }
+      }
+    }
+
+    return errors;
+  }
+
   function update() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1726,6 +1935,13 @@
     steps.secret.el.hidden = !secretResults.childElementCount;
     steps.secret.title.textContent = method() === 'compose' ? 'Your .env' : 'Your private config';
     updateFuseField(serviceBox);
+
+    const errors = configErrors();
+    const escaped = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+    errorBox.hidden = errors.length === 0;
+    errorBox.innerHTML = `<div class="gen-errors-title"><i class="fa-solid fa-triangle-exclamation"></i>Fix the errors in the settings first</div><ul>${errors.map(e => `<li>${escaped(e)}</li>`).join('')}</ul>`;
+    mount.classList.toggle('gen-has-errors', errors.length > 0);
   }
 
   function startText() {
@@ -1988,7 +2204,9 @@
       target.removeAttribute('title');
     }
 
-    tooltip.textContent = target.dataset.tip;
+    // `code` in a tip shows in monospace
+    const escaped = target.dataset.tip.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    tooltip.innerHTML = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
     tooltip.hidden = false;
 
     const r = target.getBoundingClientRect();
