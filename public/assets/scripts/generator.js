@@ -298,6 +298,68 @@
   catch (e) {}
 
   /*
+    Whatever the link or the browser's storage brought in is checked against the defaults - a link is anyone's:
+    a number out of its range or text where an arena or a port goes would end up in the commands and on the page.
+  */
+
+  function sanitizeState(raw) {
+    const out = Object.assign({}, defaults);
+    const ranges = { port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
+    const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'] };
+    const arenaName = v => typeof v === 'string' && /^[A-Za-z0-9_.-]{1,64}$/.test(v);
+
+    Object.keys(defaults).forEach(k => {
+      const v = raw[k];
+      const d = defaults[k];
+
+      if (v === undefined || v === null) {
+        return;
+      }
+
+      if (ranges[k]) {
+        const [min, max] = ranges[k];
+
+        if (typeof v === 'number' && Number.isFinite(v)) {
+          out[k] = Math.max(min, Math.min(max, k === 'updateHour' ? Math.round(v * 2) / 2 : Math.round(v)));
+        }
+      }
+      else if (enums[k]) {
+        if (enums[k].includes(v)) {
+          out[k] = v;
+        }
+      }
+      else if (Array.isArray(d)) {
+        if (Array.isArray(v)) {
+          out[k] = v.filter(arenaName);
+        }
+      }
+      else if (k === 'tAccountIds') {
+        if (typeof v === 'object' && !Array.isArray(v)) {
+          const ids = {};
+          Object.keys(v).forEach(n => {
+            if (typeof v[n] === 'string' && /^[A-Za-z0-9_]{0,80}$/.test(v[n])) {
+              ids[n] = v[n];
+            }
+          });
+          out[k] = ids;
+        }
+      }
+      else if (k === 'timeZone') {
+        if (typeof v === 'string' && /^[A-Za-z0-9_+\/-]{0,64}$/.test(v)) {
+          out[k] = v;
+        }
+      }
+      else if (typeof v === typeof d) {
+        out[k] = v;
+      }
+    });
+
+    return out;
+  }
+
+  state = sanitizeState(state);
+
+  /*
     Each input re-reads its value when the tab changes - a saved profile or the defaults may differ.
   */
   const refreshers = [];
@@ -999,7 +1061,7 @@
     tablePagePort
   ]));
 
-  const adminRow = revealRow('Admin', 'adminOn', admins, 'In the game: Settings → Account. Lets you manage the server in-game: maps, bans...');
+  const adminRow = revealRow('Admin', 'adminOn', admins, 'In the game: Settings → Account. Lets you manage the server in-game: maps, bans... In a tournament: watch any match, and close round 1 when not everyone came.');
   adminRow.appendChild(el('div', { class: 'gen-row-editor gen-row-note' }, [adminWarning]));
 
   const hourSelect = el('select', { class: 'gen-hour' });
@@ -1108,7 +1170,7 @@
     settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io</a>')]),
     portsRow,
     passwordRow,
-    only(serverRows, adminRow)
+    adminRow
   ]);
 
   // rarely needed - behind one button, open if anything in it is set
@@ -1288,7 +1350,10 @@
   [steps.config, steps.secret, steps.before, steps.service, steps.firewall, steps.start, steps.check].forEach(st => mount.appendChild(st.el));
 
 
-  const ACCOUNT_ID = /^(steam_\d{17}|0x[0-9a-f]{64}|key_[0-9a-f]{64}|crazygames_\S+)$/i;
+  const ACCOUNT_ID = /^(steam_\d{17}|0x[0-9a-f]{64}|key_[0-9a-f]{64}|[0-9a-f]{64}|crazygames_\S+)$/i;
+
+  // 0x<key>, key_<key> and the bare key are one account - as the game's normalize_account_id
+  const sameAccount = id => /^(0x|key_)?[0-9a-f]{64}$/i.test(id) ? 'key_' + id.toLowerCase().replace(/^(0x|key_)/, '') : id;
 
   function adminIds() {
     if (!state.adminOn) {
@@ -1334,9 +1399,16 @@
     return isTournament() ? tournamentMatches() : Math.max(1, state.casual);
   }
 
+  /*
+    An argument as the shell takes it as it is: in single quotes, nothing in them expanded ($, `, !, \).
+    systemd's ExecStart has its own rules: double quotes with \ and " escaped, $ and % doubled.
+  */
+
+  const shellQuote = v => /^[A-Za-z0-9_.,:\/=+-]+$/.test(v) ? v : "'" + v.replace(/'/g, "'\\''") + "'";
+  const systemdQuote = v => /^[A-Za-z0-9_.,:\/=+-]+$/.test(v) ? v : '"' + v.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '$$$$').replace(/%/g, '%%') + '"';
+
   // the tournament as command line flags (the AppImage) or environment variables (Docker)
-  function tournamentFlags() {
-    const quoted = v => /[\s;"']/.test(v) ? `"${v.replace(/"/g, '\\"')}"` : v;
+  function tournamentFlags(quoted = shellQuote) {
     const out = [];
 
     if (pairedBeforehand()) {
@@ -1353,7 +1425,7 @@
 
     if (isTournament()) {
       const list = roundMaps().map(withMode).join(',');
-      out.push(`--tournament-arenas ${list.includes(' ') ? `"${list}"` : list}`);
+      out.push(`--tournament-arenas ${quoted(list)}`);
     }
 
     if (isTournament() && !state.tPage) {
@@ -1407,7 +1479,7 @@
     // server_private goes into its own file - the config can be shown to anyone
     const secrets = {};
 
-    if (ids.length && !isTournament()) {
+    if (ids.length) {
       secrets.admin_profiles = ids.map(account => ({ account, rcon: 'MASTER_RCON' }));
     }
 
@@ -1487,9 +1559,12 @@
 
   const SECRET_VARS = ['HYPERSOMNIA_PASSWORD', 'HYPERSOMNIA_DISCORD_WEBHOOK'];
 
-  // a .env line: single quotes keep the value as it is
+  /*
+    A .env line: single quotes keep the value as it is. A value with ' in double quotes:
+    \, " and $ escaped by \ (compose would expand $NAME there).
+  */
   function envLine(k, v) {
-    const quoted = v.includes("'") ? JSON.stringify(v) : `'${v}'`;
+    const quoted = v.includes("'") ? '"' + v.replace(/[\\"$]/g, c => '\\' + c) + '"' : `'${v}'`;
     return `${k}=${quoted}`;
   }
 
@@ -1516,7 +1591,7 @@
       }
     }
 
-    if (ids.length && !isTournament()) {
+    if (ids.length) {
       put('HYPERSOMNIA_ADMINS', ids.join(','));
     }
 
@@ -1621,12 +1696,13 @@
       if (SECRET_VARS.includes(k)) {
         lines.push(`      ${k}: \${${k}}`);
       }
+      // compose expands $NAME in compose.yaml: $$ is a $
       else if (v.includes('\n')) {
         lines.push(`      ${k}: |`);
-        v.split('\n').forEach(l => lines.push('        ' + l));
+        v.split('\n').forEach(l => lines.push('        ' + l.replace(/\$/g, '$$$$')));
       }
       else {
-        lines.push(`      ${k}: ${JSON.stringify(v)}`);
+        lines.push(`      ${k}: ${JSON.stringify(v.replace(/\$/g, '$$$$'))}`);
       }
     });
 
@@ -1679,7 +1755,7 @@
       '--as-service',
       updatesOn() ? '--daily-autoupdate' : '',
       ownUser() ? '' : '--appdata-dir /opt/hypersomnia',
-      isTournament() ? tournamentFlags() : ''
+      isTournament() ? tournamentFlags(systemdQuote) : ''
     ].filter(Boolean).join(' ');
 
     const dir = ownUser() ? '%h' : '/opt/hypersomnia';
@@ -1743,7 +1819,7 @@
     const errors = [];
     const list = names => [...new Set(names)].join(', ');
 
-    if (!isTournament() && state.adminOn) {
+    if (state.adminOn) {
       const ids = adminIds();
       const bad = ids.filter(id => !ACCOUNT_ID.test(id));
 
@@ -1767,6 +1843,20 @@
 
     if (!isTournament() && state.timeZone && zones.length && !zones.includes(state.timeZone)) {
       errors.push(`Time zone: "${state.timeZone}" isn't one - e.g. Europe/Berlin.`);
+    }
+
+    if (isTournament() && !pairedBeforehand() && state.tPlayers < 2 * state.tTeamSize) {
+      errors.push(`Players: at least ${2 * state.tTeamSize} for ${state.tTeamSize}v${state.tTeamSize} - two teams.`);
+    }
+
+    const n = instanceCount();
+
+    if (state.browser && state.port < state.webPort + n && state.webPort < state.port + n) {
+      errors.push(`Ports: the game's ${portSpan(state.port)} and the browser players' ${portSpan(state.webPort)} overlap - move one of them.`);
+    }
+
+    if (pageOn() && pagePort() < 1024) {
+      errors.push(`Results page: port ${pagePort()} needs root - pick 1024 or more.`);
     }
 
     if (pairedBeforehand()) {
@@ -1796,8 +1886,9 @@
         const idOf = n => (state.tAccountIds[n] || '').trim();
         const missing = names.filter(n => !idOf(n));
         const bad = names.filter(n => idOf(n) && !ACCOUNT_ID.test(idOf(n)));
-        const ids = names.map(idOf).filter(Boolean).map(id => id.toLowerCase());
-        const shared = names.filter(n => idOf(n) && ids.indexOf(idOf(n).toLowerCase()) !== ids.lastIndexOf(idOf(n).toLowerCase()));
+        const account = n => sameAccount(idOf(n)).toLowerCase();
+        const ids = names.filter(idOf).map(account);
+        const shared = names.filter(n => idOf(n) && ids.indexOf(account(n)) !== ids.lastIndexOf(account(n)));
 
         if (missing.length) {
           errors.push(`Who gets in: no account id for: ${list(missing)}`);
@@ -2034,6 +2125,18 @@
     The tournament's fields only for a tournament.
   */
 
+  function listedAccountIds() {
+    const out = {};
+
+    [].concat(...listedTeams()).forEach(n => {
+      if (state.tAccountIds[n]) {
+        out[n] = state.tAccountIds[n];
+      }
+    });
+
+    return out;
+  }
+
   function changedFromDefaults() {
     const out = {};
 
@@ -2047,8 +2150,11 @@
       // the maps of the rounds by default go by turns - de_cyberaqua, de_silo...
       const fallback = k === 'tArenas' ? state.tArenas.map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo') : defaults[k];
 
-      if (JSON.stringify(state[k]) !== JSON.stringify(fallback)) {
-        out[k] = state[k];
+      // the account ids of the players listed now - not of those taken off the list since
+      const value = k === 'tAccountIds' ? listedAccountIds() : state[k];
+
+      if (JSON.stringify(value) !== JSON.stringify(fallback)) {
+        out[k] = value;
       }
     });
 
@@ -2100,7 +2206,8 @@
     if (startText()) {
       parts.push(block('Your startup command', 'sh', startText()));
     }
-    parts.push(`<!-- ${PROFILE_MARK} ${JSON.stringify({ setup: currentSetup, state: changedFromDefaults() })} -->\n`);
+    // > only as \u003e - a "-->" in a value would end the comment
+    parts.push(`<!-- ${PROFILE_MARK} ${JSON.stringify({ setup: currentSetup, state: changedFromDefaults() }).replace(/>/g, '\\u003e')} -->\n`);
 
     return parts.join('\n');
   }
