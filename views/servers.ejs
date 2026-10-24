@@ -22,7 +22,7 @@
       <% Object.values(list).forEach(v => { %>
       <tr>
         <td class="sv-flag"><%= v.flag %></td>
-        <td data-sort="<%= v.name %>"><% if (showTag) { %><% if (v.is_ranked) { %><span class="sv-tag ranked-tag">RANKED</span><% } else { %><span class="sv-tag">CASUAL</span><% } %> <% } %><% if (v.require_password) { %><span class="sv-tag" title="Password"><i class="fa-solid fa-lock"></i></span> <% } %><a class="sv-name" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a></td>
+        <td data-sort="<%= v.name %>"><% if (showTag) { %><% if (v.is_ranked) { %><span class="sv-tag ranked-tag">RANKED</span><% } else { %><span class="sv-tag">CASUAL</span><% } %> <% } %><% if (v.require_password) { %><span class="sv-tag" title="Password"><i class="fa-solid fa-lock"></i></span> <% } %><a class="sv-name" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a><% if (/^https?:\/\//.test(v.tournament_page || "")) { %> <a class="sv-tag" href="<%= v.tournament_page %>" target="_blank" rel="noopener" title="The tournament's live results"><i class="fa-solid fa-trophy"></i> Results</a><% } %></td>
         <% const humans = Number(v.num_online_humans) || 0; %>
         <td data-sort="<%= humans %>" class="<%= humans > 0 ? 'online' : 'dimmed' %>"><%= humans %>/<%= v.max_online %></td>
         <td class="sv-hide-mobile"><% if (hasArena(v.arena)) { %><a class="arena-link" href="/arenas/<%= v.arena %>"><%= v.arena %></a><% } else { %><%= v.arena %><% } %></td>

@@ -268,6 +268,7 @@
     tTeamSize: 1,
     tArenas: [],
     tPairing: 'first',
+    tPage: true,
     tTeamsText: '',
     webhook: ''
   };
@@ -428,14 +429,14 @@
     };
 
     function chip(name, i) {
-      const remove = el('button', { type: 'button', class: 'gen-chip-remove', title: 'Remove', html: '&times;' });
-      remove.addEventListener('click', () => set(state.cycle.filter((_, j) => j !== i)));
-
-      const c = el('span', { class: 'gen-chip', draggable: 'true' }, [
+      // the whole chip is the button - a click anywhere on it removes the arena, a drag moves it
+      const c = el('span', { class: 'gen-chip', draggable: 'true', title: 'Click to remove, drag to reorder' }, [
         el('span', { class: 'gen-chip-no', text: String(i + 1) }),
         el('span', { text: name }),
-        remove
+        el('span', { class: 'gen-chip-remove', html: '&times;' })
       ]);
+
+      c.addEventListener('click', () => set(state.cycle.filter((_, j) => j !== i)));
 
       c.addEventListener('dragstart', () => { dragged = i; c.classList.add('dragging'); });
       c.addEventListener('dragend', () => c.classList.remove('dragging'));
@@ -737,14 +738,23 @@
 
   const checkBlock = el('div', { class: 'gen-check-box' }, [checkText, checkImage]);
 
+  // the results page first: up at its address - and linked next to the matches on hypersomnia.io/servers
+  function pageCheck() {
+    if (!pageOn()) {
+      return '';
+    }
+
+    return `First, open your tournament's results page: <code>http://&lt;your server&gt;:${state.port}/</code> - it is also linked next to your matches on <a href="/servers" target="_blank">hypersomnia.io/servers</a>.<br><br>`;
+  }
+
   function updateCheck() {
     if (isTournament() && state.tPairing === 'beforehand') {
-      checkText.innerHTML = 'Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Players must join the server that mentions their team/nickname:';
+      checkText.innerHTML = pageCheck() + 'Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Players must join the server that mentions their team/nickname:';
       checkImage.src = '/assets/images/generator/server_browser_tournament.png';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else if (isTournament()) {
-      checkText.innerHTML = 'Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Until it is full, a match says <code>(any pair)</code> - anyone may join it.<br>Then it is named by its players:';
+      checkText.innerHTML = pageCheck() + 'Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Until it is full, a match says <code>(any pair)</code> - anyone may join it.<br>Then it is named by its players:';
       checkImage.src = '/assets/images/generator/server_browser_tournament_open.png';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
@@ -924,13 +934,19 @@
 
   const tablePort = numberInput('port', 1024, 65000, false);
   const tableWebPort = numberInput('webPort', 1024, 65000, false);
-  const tableWebHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-globe"></i>Browser' });
+  const tableWebHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-globe"></i>Browser players' });
+
+  // a tournament's results page: the game port's number over TCP - shown, not typed
+  const tablePagePort = el('input', { type: 'text', disabled: 'disabled' });
+  const tablePageHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-trophy"></i>Results page' });
 
   const portsRow = foldRow('Ports', 'Change them only if 8412 or 9000 is taken on this machine.', el('div', { class: 'gen-ports' }, [
     el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-gamepad"></i>Game' }),
     tableWebHead,
+    tablePageHead,
     tablePort,
-    tableWebPort
+    tableWebPort,
+    tablePagePort
   ]));
 
   const adminRow = revealRow('Admin', 'adminOn', admins, 'In the game: Settings → Account. Lets you manage the server in-game: maps, bans...');
@@ -984,6 +1000,7 @@
     only(tournamentRows, pairingRow),
     only(tournamentRows, playersRow),
     only(tournamentRows, mapsRow),
+    only(tournamentRows, settingRow('Live results page', [switchInput('tPage', () => {}, '<code>http://&lt;your server&gt;:<span class="gen-page-port"></span>/</code>')], 'The bracket with live scores. Served by the game server itself over TCP.')),
     settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io</a>')]),
     portsRow,
     revealRow('Join password', 'passwordOn', textInput('password', 'the password'), 'Without it, anyone can join.'),
@@ -1028,11 +1045,15 @@
     );
 
     portsRow.show(
-      `${portSpan(state.port)} UDP` + (state.browser ? `, ${portSpan(state.webPort)} UDP` : ''),
+      `${portSpan(state.port)} UDP` + (state.browser ? `, ${portSpan(state.webPort)} UDP` : '') + (pageOn() ? `, ${state.port} TCP` : ''),
       state.port === 8412 && state.webPort === 9000
     );
 
     tableWebPort.hidden = !state.browser;
+    tablePagePort.value = `${state.port} TCP`;
+    tablePagePort.hidden = !pageOn();
+    tablePageHead.style.display = pageOn() ? '' : 'none';
+    document.querySelectorAll('.gen-page-port').forEach(e => { e.textContent = String(state.port); });
     tableWebHead.style.visibility = state.browser ? '' : 'hidden';
 
     adminRow.classList.toggle('open', adminWarning.style.display !== 'none' && adminWarning.textContent !== '');
@@ -1190,6 +1211,10 @@
     if (isTournament()) {
       const list = roundMaps().map(withMode).join(',');
       out.push(`--tournament-arenas ${list.includes(' ') ? `"${list}"` : list}`);
+    }
+
+    if (isTournament() && !state.tPage) {
+      out.push('--tournament-page off');
     }
 
     return out.join(' ');
@@ -1402,6 +1427,10 @@
       put('HYPERSOMNIA_TOURNAMENT_ARENAS', roundMaps().map(withMode).join(','));
     }
 
+    if (isTournament() && !state.tPage) {
+      put('HYPERSOMNIA_TOURNAMENT_PAGE', 'off');
+    }
+
     return env;
   }
 
@@ -1434,6 +1463,7 @@
       '      - /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user',
       '    ports:',
       `      - '${game}:${game}/udp'`,
+      pageOn() ? `      - '${state.port}:${state.port}/tcp'` : null,
       state.browser ? `      - '${web}:${web}/udp'` : null,
       '    environment:'
     ].filter(line => line !== null);
@@ -1464,6 +1494,7 @@
       'docker run -d --name hypersomnia-server',
       '  --restart unless-stopped',
       `  --publish ${game}:${game}/udp`,
+      pageOn() ? `  --publish ${state.port}:${state.port}/tcp` : null,
       state.browser ? `  --publish ${web}:${web}/udp` : null,
       '  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user'
     ].filter(line => line !== null);
@@ -1524,6 +1555,9 @@
   }
 
 
+  // a tournament's live page: the first game port's number, over TCP
+  const pageOn = () => isTournament() && state.tPage;
+
   function firewall() {
     const ufw = s => s.replace('-', ':');
 
@@ -1533,10 +1567,12 @@
       '# ufw (Ubuntu, Debian)',
       `sudo ufw allow ${ufw(portSpan(state.port))}/udp`,
       web ? `sudo ufw allow ${ufw(portSpan(state.webPort))}/udp` : null,
+      pageOn() ? `sudo ufw allow ${state.port}/tcp` : null,
       '',
       '# firewalld (Fedora, RHEL)',
       `sudo firewall-cmd --permanent --add-port=${portSpan(state.port)}/udp`,
       web ? `sudo firewall-cmd --permanent --add-port=${portSpan(state.webPort)}/udp` : null,
+      pageOn() ? `sudo firewall-cmd --permanent --add-port=${state.port}/tcp` : null,
       'sudo firewall-cmd --reload'
     ].filter(line => line !== null).join('\n');
   }
@@ -1582,6 +1618,7 @@
 
     // what the ports are for - told in Setup the firewall
     const forWhat = isTournament() ? ' (one each per match server)' : n > 1 ? ' (one each per server)' : '';
+    const page = pageOn() ? `, and TCP ${state.port} for the live results page` : '';
 
     // the config: every file of this setup, open at once
     configResults.innerHTML = '';
@@ -1643,7 +1680,7 @@
     firewallResults.appendChild(resultBox({
       lang: 'bash',
       text: firewall(),
-      hint: `Open ${ports}${forWhat} in the system firewall - and in your cloud provider's panel, if it has one.`
+      hint: `Open ${ports}${forWhat}${page} in the system firewall - and in your cloud provider's panel, if it has one.`
     }));
 
     // the tournament's round 1, under its own options

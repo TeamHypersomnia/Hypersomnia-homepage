@@ -1689,3 +1689,25 @@ body.gen-page {
   color: var(--online);
   border-color: var(--online);
 }
+
+/* the game, the browser players and a tournament's results page - one column each */
+.gen-ports {
+  grid-template-columns: repeat(3, max-content);
+}
+
+.gen-ports input {
+  width: 9em !important;
+}
+
+/* a click anywhere on a chip removes its arena */
+.gen-chip {
+  cursor: pointer;
+}
+
+.gen-chip:hover {
+  border-color: var(--white);
+}
+
+.gen-chip:hover .gen-chip-remove {
+  color: var(--white);
+}
