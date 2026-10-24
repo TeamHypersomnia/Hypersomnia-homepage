@@ -1871,3 +1871,660 @@ body.gen-page {
   width: 169px;
   height: 30px;
 }
+
+/* Bots: the switch, then its difficulty and number under it */
+.gen-bots {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+}
+
+.gen-bots-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding-left: 0.2em;
+}
+
+.gen-bots-details[hidden] {
+  display: none;
+}
+
+.gen-bots-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6em 1em;
+}
+
+.gen-bots-label {
+  min-width: 6em;
+  color: var(--dim);
+}
+
+.gen-bots-line .gen-slider-row[hidden] {
+  display: none;
+}
+
+/* Listed players as chips: in the teams' boxes, or one box - the map cycle's chips, a click edits */
+.gen-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.gen-roster[hidden],
+.gen-roster-editor[hidden] {
+  display: none;
+}
+
+.gen-roster-teams {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.gen-roster-teams.single {
+  grid-template-columns: 1fr;
+}
+
+.gen-roster-team {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 2.6em;
+  padding: 6px;
+  border: 1px solid var(--line);
+  background: #000;
+}
+
+/* a team of another size than the teams: as the error says */
+.gen-roster-team.gen-roster-wrong {
+  border-color: var(--red);
+}
+
+.gen-roster-team-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--dim);
+  font-size: 0.85em;
+}
+
+.gen-roster-team-tools {
+  display: inline-flex;
+  gap: 2px;
+}
+
+#config-generator .gen-roster-icon {
+  padding: 0 5px;
+  border: none;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+}
+
+#config-generator .gen-roster-icon:hover:not(:disabled) {
+  color: var(--white);
+}
+
+#config-generator .gen-roster-icon:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.gen-roster-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+#config-generator button.gen-chip {
+  padding: 3px 8px;
+  line-height: 1.4;
+}
+
+#config-generator button.gen-chip.selected {
+  border-color: var(--white);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.gen-chip.gen-bad .gen-chip-name {
+  color: var(--red);
+}
+
+.gen-chip-ok {
+  color: rgb(34, 197, 76);
+  font-size: 0.8em;
+}
+
+.gen-chip-missing {
+  color: var(--red);
+  font-size: 0.8em;
+}
+
+/* the chosen chip's nickname and account id */
+.gen-roster-editor {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 8px;
+  border: 1px dashed var(--line);
+}
+
+.gen-roster-label {
+  color: var(--dim);
+}
+
+.gen-roster-label[hidden],
+.gen-roster-editor input[hidden] {
+  display: none;
+}
+
+.gen-roster-editor-buttons {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.gen-roster-add-row {
+  display: flex;
+  gap: 8px;
+}
+
+.gen-roster-add-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+#config-generator .gen-roster-add,
+#config-generator .gen-roster-remove,
+#config-generator .gen-roster-done {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  background: #000;
+  color: var(--white);
+  cursor: pointer;
+}
+
+#config-generator .gen-roster-add:hover,
+#config-generator .gen-roster-done:hover {
+  border-color: var(--accent);
+}
+
+#config-generator .gen-roster-remove:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+#config-generator .gen-roster-add[hidden] {
+  display: none;
+}
+
+.gen-roster-hint {
+  color: var(--faint);
+  font-size: 0.9em;
+}
+
+/* the chips as wide as their nicknames, not as the generator's buttons */
+#config-generator .gen-roster-chips button.gen-chip {
+  flex: none;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* the bots' difficulty: as wide as its longest name, next to its label */
+#config-generator .gen-bots-line select {
+  flex: none;
+  width: auto;
+  min-width: 12em;
+}
+
+.gen-bots-line .gen-slider-row {
+  flex: 1;
+  min-width: 12em;
+}
+
+/* "+ Add" in a team short of players and "+ Team": dashed tiles, the size of what they add */
+#config-generator .gen-roster-tile,
+#config-generator .gen-roster-new-team {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px dashed var(--line);
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+}
+
+#config-generator .gen-roster-tile {
+  flex: none;
+  width: auto;
+  margin: 0;
+  padding: 3px 10px;
+  font-family: var(--mono);
+  line-height: 1.4;
+}
+
+#config-generator .gen-roster-new-team {
+  min-height: 4.6em;
+  font-size: 1em;
+}
+
+#config-generator .gen-roster-tile:hover,
+#config-generator .gen-roster-new-team:hover {
+  border-color: var(--accent);
+  color: var(--white);
+}
+
+#config-generator .gen-roster-tile-input {
+  flex: 0 1 16em;
+  width: 16em;
+  padding: 3px 8px;
+  border: 1px dashed var(--accent);
+  font-family: var(--mono);
+}
+
+/* a team is moved by its head */
+.gen-roster-team-head[draggable="true"] {
+  cursor: grab;
+}
+
+.gen-roster-team-head .fa-grip-vertical {
+  margin-right: 6px;
+  color: var(--faint);
+}
+
+.gen-roster-team-head {
+  width: 100%;
+}
+
+/* the teams one under another, each as wide as before - the order reads top-down, as the pairs */
+.gen-roster-teams {
+  grid-template-columns: minmax(0, 280px);
+}
+
+#config-generator .gen-roster-icon {
+  flex: none;
+  width: auto;
+  margin: 0;
+}
+
+/* round 1's pairs: "Team 1 vs Team 2" in a line, the byes alone first */
+.gen-roster-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gen-roster-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.gen-roster-vs {
+  color: var(--dim);
+  font-family: var(--mono);
+}
+
+.gen-roster-vs.gen-roster-bye {
+  color: var(--faint);
+  justify-self: start;
+}
+
+#config-generator .gen-roster-new-team {
+  width: calc(50% - 22px);
+}
+
+.gen-roster-teams.single .gen-roster-team {
+  width: 100%;
+}
+
+/* the tiles in a darker block of their own, the text box over it */
+.gen-roster-board {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line-dim);
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* the players' chips quiet - lit as the map cycle's only when pointed at or chosen */
+#config-generator .gen-roster-chips button.gen-chip {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--bright, rgb(220, 220, 220));
+}
+
+#config-generator .gen-roster-chips button.gen-chip:hover {
+  border-color: var(--accent);
+  background: rgba(255, 176, 64, 0.08);
+  color: var(--white);
+}
+
+#config-generator .gen-roster-chips button.gen-chip.selected {
+  border-color: var(--white);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+}
+
+/* a line is a team: long lines scroll instead of wrapping into what looks like another team */
+.gen-roster-text {
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* 1v1: no team tiles - only the chips, "alice vs bob" */
+.gen-roster-team.solo {
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.gen-roster-pair:has(.solo) {
+  grid-template-columns: max-content auto max-content;
+  justify-content: start;
+}
+
+#config-generator .gen-roster-new-team.solo {
+  width: auto;
+  min-height: 0;
+  align-self: flex-start;
+  padding: 3px 10px;
+  font-family: var(--mono);
+}
+
+#config-generator .gen-roster-new-team.solo {
+  flex-direction: row;
+}
+
+/* where a dragged player or team lands */
+.gen-roster-team.gen-drop {
+  outline: 1px dashed var(--accent);
+  outline-offset: 3px;
+}
+
+/* opposite a bye: an empty place, seen only when something is dragged over it */
+.gen-roster-bye-slot {
+  align-self: stretch;
+  min-height: 2em;
+  border: 1px dashed transparent;
+}
+
+.gen-roster-bye-slot.solo {
+  min-width: 6em;
+}
+
+.gen-roster-bye-slot.gen-drop {
+  border-color: var(--accent);
+  background: rgba(255, 176, 64, 0.06);
+}
+
+.gen-roster-pair:has(.solo) .gen-roster-vs.gen-roster-bye {
+  justify-self: center;
+}
+
+/* the player a dragged one would be traded for */
+#config-generator .gen-roster-chips button.gen-chip.gen-drop {
+  border-color: var(--accent);
+  background: rgba(255, 176, 64, 0.15);
+  color: var(--white);
+}
+
+#config-generator .gen-roster-tile.gen-drop {
+  border-color: var(--accent);
+  background: rgba(255, 176, 64, 0.15);
+  color: var(--white);
+}
+
+/* the chosen chip's editor floats under it, over the tiles - opening it moves nothing */
+.gen-roster-board {
+  position: relative;
+}
+
+.gen-roster-board .gen-roster-editor {
+  position: absolute;
+  z-index: 5;
+  background: #0b0b0b;
+  border: 1px solid var(--accent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+}
+
+/* "+ Add" and its text box: the same size, so opening it moves nothing */
+#config-generator .gen-roster-tile,
+#config-generator .gen-roster-tile-input {
+  flex: none;
+  box-sizing: border-box;
+  width: 13em;
+  height: 2em;
+}
+
+/* "+ Add" and its text box - exactly the same box, whatever the generator's inputs are like */
+#config-generator .gen-roster-chips .gen-roster-tile,
+#config-generator .gen-roster-chips input.gen-roster-tile-input {
+  flex: none;
+  box-sizing: border-box;
+  width: 170px;
+  height: 28px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 8px;
+  font-size: 0.9em;
+  line-height: 26px;
+}
+
+/* ---------- Match cards: a row per match of round 1, a team's places stacked ---------- */
+.gen-roster-board {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gen-roster-match {
+  display: grid;
+  grid-template-columns: 4.5em minmax(0, 1fr) 2em minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-dim);
+  background: #000;
+}
+
+.gen-roster-match-name {
+  color: var(--faint);
+  font-size: 0.85em;
+}
+
+.gen-roster-match .gen-roster-vs {
+  text-align: center;
+  color: var(--dim);
+  font-family: var(--mono);
+}
+
+.gen-roster-team2 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid transparent;
+}
+
+.gen-roster-team2.gen-drop {
+  border-color: var(--accent);
+}
+
+.gen-roster-handle {
+  color: var(--faint);
+  cursor: grab;
+  opacity: 0.35;
+  padding: 0 2px;
+}
+
+.gen-roster-team2:hover .gen-roster-handle {
+  opacity: 1;
+}
+
+.gen-roster-places {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gen-roster-board.single .gen-roster-places {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+/* a place: a player's chip, an empty place, or the text box typing into one - all the same box */
+#config-generator .gen-roster-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  flex: none;
+  width: 190px;
+  max-width: 100%;
+  height: 28px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgb(220, 220, 220);
+  font-family: var(--mono);
+  font-size: 0.9em;
+  line-height: 26px;
+  text-align: left;
+  cursor: pointer;
+}
+
+#config-generator .gen-roster-place .gen-chip-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#config-generator .gen-roster-place.filled:hover {
+  border-color: var(--accent);
+  background: rgba(255, 176, 64, 0.08);
+  color: var(--white);
+}
+
+#config-generator .gen-roster-place.empty {
+  justify-content: center;
+  border-style: dashed;
+  background: none;
+  color: var(--faint);
+}
+
+#config-generator .gen-roster-place.empty:hover {
+  border-color: var(--accent);
+  color: var(--white);
+}
+
+#config-generator .gen-roster-place.editing {
+  border-color: var(--accent);
+  background: #000;
+  color: var(--white);
+  cursor: text;
+}
+
+#config-generator .gen-roster-place.gen-drop {
+  border-color: var(--accent);
+  background: rgba(255, 176, 64, 0.15);
+  color: var(--white);
+}
+
+#config-generator .gen-roster-place.gen-bad .gen-chip-name {
+  color: var(--red);
+}
+
+.gen-roster-x {
+  color: var(--faint);
+  opacity: 0;
+}
+
+.gen-roster-place.filled:hover .gen-roster-x {
+  opacity: 1;
+}
+
+.gen-roster-x:hover {
+  color: var(--red);
+}
+
+/* a bye: the other half empty - a team dropped there plays this one */
+.gen-roster-bye-slot {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed transparent;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 0.85em;
+}
+
+.gen-roster-bye-slot.gen-drop {
+  border-color: var(--accent);
+  background: rgba(255, 176, 64, 0.06);
+}
+
+#config-generator .gen-roster-new-match {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  width: auto;
+  margin: 0;
+  padding: 4px 12px;
+  border: 1px dashed var(--line);
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+}
+
+#config-generator .gen-roster-new-match:hover {
+  border-color: var(--accent);
+  color: var(--white);
+}
+
+.gen-roster-label-text {
+  margin-bottom: 4px;
+}
+
+/* the text box typing into a place: exactly the place's box, over the generator's own input style */
+#config-generator input.gen-roster-place[type="text"] {
+  box-sizing: border-box;
+  width: 190px;
+  height: 28px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 8px;
+  font-size: 0.9em;
+  line-height: 26px;
+}
+
+.gen-roster-bye-slot.gen-drop::after {
+  content: "play this one";
+}
+
+.gen-roster-match.pending {
+  border-style: dashed;
+}

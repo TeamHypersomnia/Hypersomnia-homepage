@@ -245,6 +245,15 @@
   const arenas = window.HOST_ARENAS || { official: ['de_cyberaqua'], community: [] };
   const STORAGE_KEY = 'host_generator_v1';
 
+  // server.bot_difficulty - Progressive: the bots get harder as the players do better, only with the arena's own number of bots
+  const BOT_DIFFICULTIES = [
+    ['PROGRESSIVE', 'Progressive'],
+    ['VERY_EASY', 'Very easy'],
+    ['EASY', 'Easy'],
+    ['MEDIUM', 'Medium'],
+    ['HARD', 'Hard']
+  ];
+
   const defaults = {
     name: '',
     cycle: ['de_cyberaqua', 'de_silo', 'fy_minilab'],
@@ -263,6 +272,10 @@
     serviceUser: false,
     asService: false,
     adminOn: false,
+    bots: true,
+    botDifficulty: 'PROGRESSIVE',
+    botQuotaOn: false,
+    botQuota: 6,
     browser: true,
     tPlayers: 16,
     tTeamSize: 1,
@@ -270,9 +283,13 @@
     tPairing: 'first',
     tPage: true,
     tPagePort: 0,
-    tTeamsText: '',
+    tTeams: [],
+    tIdsText: '',
     tVerify: 'nicknames',
-    tAccountIds: {},
+    tJoinTimeoutOn: true,
+    tJoinTimeout: 10,
+    serverWho: 'anyone',
+    allowedPlayers: [],
     webhook: ''
   };
 
@@ -304,9 +321,27 @@
 
   function sanitizeState(raw) {
     const out = Object.assign({}, defaults);
-    const ranges = { port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
-    const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'] };
+    const ranges = { tJoinTimeout: [1, 30], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
+    const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'], serverWho: ['anyone', 'accounts'], botDifficulty: BOT_DIFFICULTIES.map(d => d[0]) };
     const arenaName = v => typeof v === 'string' && /^[A-Za-z0-9_.-]{1,64}$/.test(v);
+
+    // a listed player: a nickname, and an account id that can only be one - nothing else gets in
+    const player = p => p && typeof p === 'object' && typeof p.n === 'string' && p.n.trim() !== '' && p.n.length <= 40
+      ? [{ n: p.n.trim(), id: typeof p.id === 'string' && /^[A-Za-z0-9_]{0,80}$/.test(p.id) ? p.id : '' }]
+      : [];
+
+    const players = list => Array.isArray(list) ? [].concat(...list.map(player)) : [];
+
+    // saved before the teams were chips: a line per team, the ids by nickname
+    if ((!Array.isArray(raw.tTeams) || raw.tTeams.length === 0) && typeof raw.tTeamsText === 'string' && raw.tTeamsText.trim() !== '') {
+      const ids = raw.tAccountIds && typeof raw.tAccountIds === 'object' ? raw.tAccountIds : {};
+
+      raw = Object.assign({}, raw, {
+        tTeams: raw.tTeamsText.split('\n')
+          .map(line => line.split(',').map(n => n.trim()).filter(Boolean).map(n => ({ n, id: typeof ids[n] === 'string' ? ids[n] : '' })))
+          .filter(team => team.length > 0)
+      });
+    }
 
     Object.keys(defaults).forEach(k => {
       const v = raw[k];
@@ -328,20 +363,23 @@
           out[k] = v;
         }
       }
+      else if (k === 'tTeams') {
+        if (Array.isArray(v)) {
+          // a team without players isn't kept - a New match left unfinished is gone after a reload
+          out[k] = v.filter(Array.isArray).map(players).filter(team => team.length > 0).slice(0, 64);
+        }
+      }
+      else if (k === 'allowedPlayers') {
+        out[k] = players(v).slice(0, 256);
+      }
       else if (Array.isArray(d)) {
         if (Array.isArray(v)) {
           out[k] = v.filter(arenaName);
         }
       }
-      else if (k === 'tAccountIds') {
-        if (typeof v === 'object' && !Array.isArray(v)) {
-          const ids = {};
-          Object.keys(v).forEach(n => {
-            if (typeof v[n] === 'string' && /^[A-Za-z0-9_]{0,80}$/.test(v[n])) {
-              ids[n] = v[n];
-            }
-          });
-          out[k] = ids;
+      else if (k === 'tIdsText') {
+        if (typeof v === 'string') {
+          out[k] = v.slice(0, 20000);
         }
       }
       else if (k === 'timeZone') {
@@ -354,6 +392,13 @@
       }
     });
 
+    // the ids that were in the teams' chips: into the ids box, the teams nicknames only
+    if (!out.tIdsText) {
+      const lines = [].concat(...out.tTeams).filter(p => p.id).map(p => `${p.n} ${p.id}`);
+      out.tIdsText = lines.join('\n');
+    }
+
+    out.tTeams.forEach(team => team.forEach(p => { p.id = ''; }));
     return out;
   }
 
@@ -366,12 +411,16 @@
   const refreshInputs = () => refreshers.forEach(f => f());
 
   // the password is behind its switch
-  const password = () => state.passwordOn && !verifiedByAccounts() ? state.password : '';
+  const password = () => state.passwordOn && !byAccounts() ? state.password : '';
 
   // the teams set up beforehand, every player let in by their account - a join password adds nothing
   function verifiedByAccounts() {
     return isTournament() && state.tPairing === 'beforehand' && state.tVerify === 'accounts';
   }
+
+  // a persistent server for its listed players only - the password adds nothing there either
+  const serverByAccounts = () => !isTournament() && state.serverWho === 'accounts';
+  const byAccounts = () => verifiedByAccounts() || serverByAccounts();
 
   function textInput(key, placeholder) {
     const i = el('input', { type: 'text', placeholder: placeholder || '' });
@@ -585,24 +634,17 @@
     de_cyberaqua and de_silo by turns.
   */
 
-  // "Set up beforehand": one team per line, its players separated by commas
-  function listedTeams() {
-    return state.tTeamsText.split('\n')
-      .map(line => line.split(',').map(n => n.trim()).filter(Boolean))
-      .filter(team => team.length > 0);
-  }
+  // "Set up beforehand": the teams' chips, the empty boxes left out - nicknames only
+  const filledTeams = () => state.tTeams.filter(team => team.length > 0);
+  const listedTeams = () => filledTeams().map(team => team.map(p => p.n));
 
   const pairedBeforehand = () => isTournament() && state.tPairing === 'beforehand';
 
-  // "=" joins a nickname to its account id, ";" separates the teams - neither can be in a nickname
-  const unusableNickname = n => /[=;]/.test(n);
+  // "=" joins a nickname to its account id, "," and ";" separate the players and the teams - none can be in a nickname
+  const unusableNickname = n => /[=;,]/.test(n);
 
-  function playerEntry(nickname) {
-    const id = (state.tAccountIds[nickname] || '').trim();
-    return verifiedByAccounts() && id ? `${nickname}=${id}` : nickname;
-  }
-
-  const teamsArgument = separator => listedTeams().map(t => t.map(playerEntry).join(', ')).join(separator);
+  const playerEntry = p => verifiedByAccounts() && tournamentIdOf(p.n) ? `${p.n}=${tournamentIdOf(p.n)}` : p.n;
+  const teamsArgument = separator => filledTeams().map(t => t.map(playerEntry).join(', ')).join(separator);
 
   function teamCount() {
     return pairedBeforehand() ? listedTeams().length : Math.ceil(state.tPlayers / state.tTeamSize);
@@ -660,7 +702,20 @@
   function teamSizeSelect() {
     const s = el('select', {}, [1, 2, 3, 4, 5].map(n => el('option', { value: String(n), text: `${n}v${n}` })));
     s.value = String(state.tTeamSize);
-    s.addEventListener('change', () => { state.tTeamSize = parseInt(s.value, 10); update(); });
+    s.addEventListener('change', () => {
+      state.tTeamSize = parseInt(s.value, 10);
+
+      // the listed players, in their order, into teams of the new size - 2v2 to 1v1 makes each one a team
+      const players = [].concat(...state.tTeams);
+      const teams = [];
+
+      for (let i = 0; i < players.length; i += state.tTeamSize) {
+        teams.push(players.slice(i, i + state.tTeamSize));
+      }
+
+      state.tTeams = teams;
+      update();
+    });
     return s;
   }
 
@@ -668,60 +723,617 @@
     Player pairings: by who joins first (nothing to prepare), or the teams and who plays whom written beforehand.
   */
 
-  // four example teams of the chosen size: alice / bob / ... or "alice, bob, carol" per line
-  function examplePlayers() {
-    const names = ['alice', 'bob', 'carol', 'dave', 'erin', 'frank', 'gus', 'hal', 'ivy', 'jo', 'kim', 'leo', 'mia', 'ned', 'oli', 'pat', 'quin', 'rex', 'sam', 'tom'];
-    const lines = [];
+  /*
+    The listed players: the whole list as text, or the same as match cards under it - either one changes the other.
+    A card is a match of round 1 as it will be played: the byes first, then the pairs. A team has exactly as many places
+    as the team size - a player's chip or an empty place; a click on either types into it (the nickname - on a persistent server, then its account id).
+    Dragging: a player onto a player swaps them, onto an empty place moves them there; a team by its handle swaps
+    with the team it's dropped on; a team dropped on a bye's empty half plays that team.
+  */
 
-    for (let t = 0; t < 4; ++t) {
-      lines.push(names.slice(t * state.tTeamSize, (t + 1) * state.tTeamSize).join(', '));
+  function rosterEditor(opts) {
+    const root = el('div', { class: 'gen-roster' });
+    const board = el('div', { class: 'gen-roster-board' });
+    const noFill = { autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' };
+
+    const label = el('p', { class: 'gen-field-text gen-roster-label-text' });
+    const text = el('textarea', Object.assign({ rows: '4', spellcheck: 'false', wrap: 'off', class: 'gen-roster-text' }, noFill));
+    const hint = el('p', { class: 'gen-field-text gen-roster-hint' });
+
+    root.appendChild(label);
+    root.appendChild(text);
+    root.appendChild(board);
+    root.appendChild(hint);
+
+    // the place being typed into: a team's index and the place in it; and what's being dragged
+    let editing = null;
+    let dragging = null;
+
+    // the first team of a match added by "+ Match" - under the bracket until both its teams have someone
+    let pendingMatch = null;
+
+    // the teams as last drawn - replaced from outside (e.g. re-split for another team size), what pointed into them is gone
+    let drawnTeams = null;
+
+    const size = () => opts.withTeams() ? opts.teamSize() : Infinity;
+
+    // "alice" or, with the ids, "alice 0x8aed..." (the id the last word) - entries separated by commas, semicolons or lines
+    function parse(value) {
+      return value.split(/[\n,;]+/).map(e => e.trim()).filter(Boolean).map(e => {
+        const m = opts.showIds() ? /^(.*\S)\s+(\S+)$/.exec(e) : null;
+        return m ? { n: m[1].slice(0, 40), id: m[2] } : { n: e.slice(0, 40), id: '' };
+      }).filter(p => p.n !== '');
     }
 
-    return lines.join('\n');
-  }
+    const entry = p => opts.showIds() && p.id ? `${p.n} ${p.id}` : p.n;
 
-  // how the list was understood: the pairs of round 1, the byes first - a mistyped team shows at once
-  const pairingPreview = el('p', { class: 'gen-field-text gen-pairing-preview' });
+    const serialize = () => opts.teams()
+      .filter(team => team.length > 0)
+      .map(team => team.map(entry).join(opts.withTeams() ? ', ' : '\n'))
+      .join('\n');
 
-  function updatePairingPreview() {
-    const teams = listedTeams();
+    // what to paste, as the teams are: three example teams of the team's size - with account ids if they're needed
+    function examplePlayers() {
+      const names = ['alice', 'bob', 'carol', 'dave', 'erin', 'frank', 'gus', 'hal', 'ivy', 'jo', 'kim', 'leo', 'mia', 'ned', 'oli'];
+      const ids = ['0x8aed...', 'steam_7656...', '0x3f9a...'];
+      const player = (n, i) => opts.showIds() ? `${n} ${ids[i % ids.length]}` : n;
 
-    // "=" joins a nickname to its account id in the flags - a nickname can't have one: red, quietly
-    const unusable = unusableNickname;
-    const escaped = n => n.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    // the nicknames as typed, in monospace - no brackets anyone could take for part of the list's format
-    const name = t => t.map(n => `<code class="gen-nick${unusable(n) ? ' gen-bad' : ''}">${escaped(n)}</code>`).join(', ');
+      if (!opts.withTeams()) {
+        return names.slice(0, 3).map(player).join('\n');
+      }
 
-    teamsText.classList.toggle('gen-invalid', teams.some(t => t.some(unusable)));
-    const wrong = teams.filter(t => t.length !== state.tTeamSize);
+      const lines = [];
 
-    if (teams.length < 2) {
-      pairingPreview.innerHTML = '';
-      return;
+      for (let t = 0; t < 3; ++t) {
+        lines.push(names.slice(t * opts.teamSize(), (t + 1) * opts.teamSize()).map((n, i) => player(n, t * opts.teamSize() + i)).join(', '));
+      }
+
+      return lines.join('\n');
     }
 
-    let size = 1;
+    // players into the given team while it has room, the rest into the first teams that aren't full - or new ones
+    function addPlayers(players, intoTeam) {
+      const teams = opts.teams();
 
-    while (size < teams.length) {
-      size *= 2;
+      players.forEach(p => {
+        if (!opts.withTeams()) {
+          teams[0].push(p);
+          return;
+        }
+
+        if (intoTeam !== null && teams[intoTeam] && teams[intoTeam].length < size()) {
+          teams[intoTeam].push(p);
+          return;
+        }
+
+        const open = teams.find(t => t.length < size());
+
+        if (open) {
+          open.push(p);
+        }
+        else {
+          teams.push([p]);
+        }
+      });
     }
 
-    const byes = size - teams.length;
-    const lines = [];
+    // a team left without players is gone - only the New match's two wait for theirs
+    function tidy() {
+      const teams = opts.teams();
 
-    for (let i = byes; i + 1 < teams.length; i += 2) {
-      lines.push(`${name(teams[i])} vs ${name(teams[i + 1])}`);
+      if (!opts.withTeams()) {
+        return;
+      }
+
+      for (let t = teams.length - 1; t >= 0; --t) {
+        const pending = pendingMatch !== null && (t === pendingMatch || t === pendingMatch + 1);
+
+        if (teams[t].length === 0 && !pending) {
+          teams.splice(t, 1);
+
+          // the New match after it moves up with the rest
+          if (pendingMatch !== null && t < pendingMatch) {
+            --pendingMatch;
+          }
+        }
+      }
     }
 
-    const advance = teams.slice(0, byes).map(name);
+    function changed() {
+      tidy();
+      update();
+    }
 
-    // a pair per line, the byes too
-    const bullets = items => `<ul class="gen-preview-list">${items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+    /*
+      Typed into the text: the teams as it says - a nickname written without its id keeps the one it had,
+      a line with more players than a team takes splits into teams of the right size.
+    */
 
-    pairingPreview.innerHTML =
-      `<strong>Round 1:</strong>${bullets(lines)}` +
-      (advance.length ? `<strong>Byes:</strong>${bullets(advance)}` : '') +
-      (wrong.length ? `<span class="gen-bad">Not ${state.tTeamSize} ${state.tTeamSize > 1 ? 'players' : 'player'}: ${wrong.map(name).join(', ')}</span>` : '');
+    text.addEventListener('input', () => {
+      const had = {};
+      [].concat(...opts.teams()).forEach(p => { had[p.n] = p.id; });
+
+      const withId = p => p.id || !had[p.n] ? p : { n: p.n, id: had[p.n] };
+
+      const chunks = players => {
+        if (players.length <= size()) {
+          return [players];
+        }
+
+        const out = [];
+
+        for (let i = 0; i < players.length; i += size()) {
+          out.push(players.slice(i, i + size()));
+        }
+
+        return out;
+      };
+
+      const lines = text.value.split('\n');
+
+      const teams = opts.withTeams()
+        ? [].concat(...lines.map(line => chunks(parse(line).map(withId)))).filter(team => team.length > 0)
+        : [parse(lines.join(',')).map(withId)];
+
+      opts.setTeams(teams);
+      editing = null;
+      pendingMatch = null;
+      update();
+    });
+
+    text.addEventListener('blur', () => {
+      text.value = serialize();
+    });
+
+    // typed into a place: Enter or leaving keeps it, Escape doesn't; emptied, the player's gone
+    function commit(t, i, value, next) {
+      const teams = opts.teams();
+      const team = teams[t];
+
+      if (!team) {
+        editing = null;
+        render();
+        return;
+      }
+
+      const players = parse(value);
+
+      if (i < team.length) {
+        if (players.length === 0) {
+          team.splice(i, 1);
+        }
+        else {
+          team[i] = players[0];
+          addPlayers(players.slice(1), t);
+        }
+      }
+      else {
+        addPlayers(players, t);
+      }
+
+      // Enter in an empty place goes on to the team's next empty one - or, the team full, the next team's
+      const nextPlace = () => {
+        if (!next || !players.length) {
+          return null;
+        }
+
+        for (const candidate of [t, t + 1]) {
+          if (teams[candidate] && teams[candidate].length < size()) {
+            return { team: candidate, index: teams[candidate].length };
+          }
+        }
+
+        return null;
+      };
+
+      editing = nextPlace();
+      changed();
+    }
+
+    function placeInput(t, i) {
+      const p = opts.teams()[t][i];
+      const input = el('input', Object.assign({ type: 'text', class: 'gen-roster-place editing', placeholder: opts.showIds() ? 'nickname account-id' : 'nickname' }, noFill));
+      input.value = p ? entry(p) : '';
+
+      let done = false;
+
+      const finish = keep => {
+        if (done) {
+          return;
+        }
+
+        done = true;
+
+        if (keep) {
+          commit(t, i, input.value, !p);
+        }
+        else {
+          editing = null;
+          render();
+        }
+      };
+
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          finish(true);
+        }
+        else if (e.key === 'Escape') {
+          e.preventDefault();
+          finish(false);
+        }
+      });
+
+      input.addEventListener('blur', () => finish(true));
+      input.addEventListener('click', e => e.stopPropagation());
+      setTimeout(() => {
+        input.focus({ preventScroll: true });
+        input.select();
+      }, 0);
+
+      return input;
+    }
+
+    function place(t, i) {
+      const teams = opts.teams();
+      const p = teams[t][i];
+
+      if (editing && editing.team === t && editing.index === i) {
+        return placeInput(t, i);
+      }
+
+      if (!p) {
+        const empty = el('button', { type: 'button', class: 'gen-roster-place empty', 'data-team': String(t), 'data-index': String(i), html: '<i class="fa-solid fa-plus"></i>' });
+
+        empty.addEventListener('click', e => {
+          e.stopPropagation();
+          editing = { team: t, index: i };
+          render();
+        });
+
+        return empty;
+      }
+
+      const id = opts.idOf ? opts.idOf(p) : p.id;
+      const ok = ACCOUNT_ID.test(id);
+      const chip = el('button', {
+        type: 'button',
+        draggable: 'true',
+        class: 'gen-roster-place filled' + (opts.withTeams() && unusableNickname(p.n) ? ' gen-bad' : ''),
+        'data-team': String(t),
+        'data-index': String(i)
+      }, [el('span', { class: 'gen-chip-name', text: p.n })]);
+
+      if (opts.showStatus ? opts.showStatus() : opts.showIds()) {
+        const status = el('i', { class: ok ? 'fa-solid fa-check gen-chip-ok' : 'fa-solid fa-exclamation gen-chip-missing', 'data-tip': ok ? id : (id ? 'Not an account id' : (opts.onMissingId ? 'No account id yet - click to add it' : 'No account id yet - click to add it after the nickname')) });
+
+        // the "!" of a player without an id: their line in the ids box, ready for the id
+        if (!ok && opts.onMissingId) {
+          status.addEventListener('click', e => {
+            e.stopPropagation();
+            opts.onMissingId(p.n);
+          });
+        }
+
+        chip.appendChild(status);
+      }
+
+      const remove = el('span', { class: 'gen-roster-x', html: '<i class="fa-solid fa-xmark"></i>', 'data-tip': 'Remove' });
+
+      remove.addEventListener('click', e => {
+        e.stopPropagation();
+        teams[t].splice(i, 1);
+        editing = null;
+        changed();
+      });
+
+      chip.appendChild(remove);
+
+      chip.addEventListener('click', e => {
+        e.stopPropagation();
+        editing = { team: t, index: i };
+        render();
+      });
+
+      chip.addEventListener('dragstart', e => {
+        e.stopPropagation();
+
+        // 1v1: the player is the team - dragged as a team too (onto a bye's empty half)
+        dragging = size() === 1 ? { chip: [t, i], team: t } : { chip: [t, i] };
+        e.dataTransfer.setData('text/plain', JSON.stringify(dragging));
+      });
+
+      chip.addEventListener('dragend', () => { dragging = null; });
+      return chip;
+    }
+
+    function teamBox(t) {
+      const team = opts.teams()[t];
+      const places = opts.withTeams() ? Math.max(size(), team.length) : team.length + 1;
+      const slots = el('div', { class: 'gen-roster-places' });
+
+      for (let i = 0; i < places; ++i) {
+        slots.appendChild(place(t, i));
+      }
+
+      const box = el('div', { class: 'gen-roster-team2', 'data-team-box': String(t) });
+
+      if (opts.withTeams() && size() > 1) {
+        const handle = el('span', { class: 'gen-roster-handle', draggable: 'true', html: '<i class="fa-solid fa-grip-vertical"></i>', 'data-tip': 'Drag the team' });
+
+        handle.addEventListener('dragstart', e => {
+          dragging = { team: t };
+          e.dataTransfer.setData('text/plain', JSON.stringify(dragging));
+        });
+
+        handle.addEventListener('dragend', () => { dragging = null; });
+        box.appendChild(handle);
+      }
+
+      box.appendChild(slots);
+      return box;
+    }
+
+    // a team dropped next to one with a bye: both moved to the first pair, the teams there taking their places
+    function pairWithBye(byeTeam, team, firstPair) {
+      const teams = opts.teams();
+      const swap = (a, b) => { [teams[a], teams[b]] = [teams[b], teams[a]]; };
+
+      swap(byeTeam, firstPair);
+      const from = team === firstPair ? byeTeam : team;
+
+      if (from !== firstPair + 1) {
+        swap(from, firstPair + 1);
+      }
+
+      changed();
+    }
+
+    function drop(e) {
+      const teams = opts.teams();
+      const what = dragging;
+      const byeSlot = e.target.closest('[data-bye-slot]');
+      const onPlace = e.target.closest('[data-index]');
+      const onTeam = e.target.closest('[data-team-box]');
+
+      if (!what) {
+        return;
+      }
+
+      if (byeSlot && typeof what.team === 'number') {
+        pairWithBye(parseInt(byeSlot.dataset.byeSlot, 10), what.team, parseInt(byeSlot.dataset.firstPair, 10));
+        return;
+      }
+
+      if (what.chip && onPlace) {
+        const [ft, fi] = what.chip;
+        const tt = parseInt(onPlace.dataset.team, 10);
+        const ti = parseInt(onPlace.dataset.index, 10);
+
+        if (!teams[ft] || !teams[ft][fi] || !teams[tt] || (ft === tt && fi === ti)) {
+          return;
+        }
+
+        if (teams[tt][ti]) {
+          [teams[ft][fi], teams[tt][ti]] = [teams[tt][ti], teams[ft][fi]];
+        }
+        else if (ft !== tt) {
+          teams[tt].push(teams[ft].splice(fi, 1)[0]);
+        }
+
+        changed();
+        return;
+      }
+
+      if (typeof what.team === 'number' && onTeam) {
+        const tt = parseInt(onTeam.dataset.teamBox, 10);
+
+        // a team traded only for another one with players - an empty one (a New match) takes players, not teams
+        if (tt !== what.team && teams[tt] && teams[what.team] && teams[tt].length > 0 && teams[what.team].length > 0) {
+          [teams[what.team], teams[tt]] = [teams[tt], teams[what.team]];
+          changed();
+        }
+      }
+    }
+
+    // where it lands: the place (a swap or a move), the team, or a bye's empty half
+    function dropTargetOf(e) {
+      if (!dragging) {
+        return null;
+      }
+
+      const byeSlot = e.target.closest('[data-bye-slot]');
+
+      if (byeSlot) {
+        return typeof dragging.team === 'number' ? byeSlot : null;
+      }
+
+      if (dragging.chip) {
+        return e.target.closest('[data-index]');
+      }
+
+      return e.target.closest('[data-team-box]');
+    }
+
+    board.addEventListener('dragover', e => {
+      const target = dropTargetOf(e);
+      board.querySelectorAll('.gen-drop').forEach(x => x.classList.remove('gen-drop'));
+
+      if (target) {
+        e.preventDefault();
+        target.classList.add('gen-drop');
+      }
+    });
+
+    board.addEventListener('dragleave', e => {
+      if (!board.contains(e.relatedTarget)) {
+        board.querySelectorAll('.gen-drop').forEach(x => x.classList.remove('gen-drop'));
+      }
+    });
+
+    board.addEventListener('drop', e => {
+      e.preventDefault();
+      board.querySelectorAll('.gen-drop').forEach(x => x.classList.remove('gen-drop'));
+      drop(e);
+      dragging = null;
+    });
+
+    function render() {
+      const teams = opts.teams();
+      const withTeams = opts.withTeams();
+
+      if (withTeams && drawnTeams !== null && drawnTeams !== teams) {
+        pendingMatch = null;
+        editing = null;
+      }
+
+      drawnTeams = withTeams ? teams : null;
+      board.innerHTML = '';
+      board.classList.toggle('single', !withTeams);
+
+      if (!withTeams) {
+        board.appendChild(teamBox(0));
+      }
+      else {
+        /*
+          The bracket of the teams with players - the empty ones (only at the end, from "+ Match") wait under it
+          as a new match, changing nothing above until someone's in them.
+        */
+
+        const pairFilled = pendingMatch !== null && teams[pendingMatch] && teams[pendingMatch + 1] && teams[pendingMatch].length > 0 && teams[pendingMatch + 1].length > 0;
+
+        if (pendingMatch !== null && (pairFilled || !teams[pendingMatch] || pendingMatch + 1 >= teams.length)) {
+          pendingMatch = null;
+        }
+
+        // the teams with players from the start - the bracket; an empty one right after them is a lone team's opponent
+        const limit = pendingMatch !== null ? pendingMatch : teams.length;
+        let filled = 0;
+
+        while (filled < limit && teams[filled].length > 0) {
+          ++filled;
+        }
+        let bracket = 1;
+
+        while (bracket < filled) {
+          bracket *= 2;
+        }
+
+        const byes = filled >= 2 ? bracket - filled : 0;
+        let match = 0;
+
+        for (let t = 0; t < filled; ++t) {
+          if (t < byes) {
+            const slot = el('div', { class: 'gen-roster-bye-slot', 'data-bye-slot': String(t), 'data-first-pair': String(byes), 'data-tip': 'Drop a team here to make them play each other' });
+            board.appendChild(el('div', { class: 'gen-roster-match bye' }, [el('span', { class: 'gen-roster-match-name', text: 'Bye' }), teamBox(t), el('span', { class: 'gen-roster-vs' }), slot]));
+            continue;
+          }
+
+          if ((t - byes) % 2 === 1) {
+            continue;
+          }
+
+          ++match;
+          const row = el('div', { class: 'gen-roster-match' }, [el('span', { class: 'gen-roster-match-name', text: `Match ${match}` }), teamBox(t)]);
+
+          if (t + 1 < filled) {
+            row.appendChild(el('span', { class: 'gen-roster-vs', text: 'vs' }));
+            row.appendChild(teamBox(t + 1));
+          }
+          else if (filled < limit && teams[filled] && teams[filled].length === 0) {
+            // a team without an opponent: the empty team after it is that opponent, in the same row - not a New match's
+            row.appendChild(el('span', { class: 'gen-roster-vs', text: 'vs' }));
+            row.appendChild(teamBox(filled));
+          }
+          else {
+            // a team without an opponent yet: an empty place for one
+            const opponent = el('button', { type: 'button', class: 'gen-roster-place empty', html: '<i class="fa-solid fa-plus"></i>' });
+
+            opponent.addEventListener('click', e => {
+              e.stopPropagation();
+
+              // right after the lone team - before a New match, which moves down
+              teams.splice(filled, 0, []);
+
+              if (pendingMatch !== null) {
+                ++pendingMatch;
+              }
+
+              editing = { team: filled, index: 0 };
+              update();
+            });
+
+            row.appendChild(el('span', { class: 'gen-roster-vs', text: 'vs' }));
+            row.appendChild(el('div', { class: 'gen-roster-team2' }, [el('div', { class: 'gen-roster-places' }, [opponent])]));
+          }
+
+          board.appendChild(row);
+        }
+
+        // an odd team's empty opponent is in its row already
+        const loneOpponent = filled < limit && filled % 2 === 1 && byes === 0 && teams[filled] && teams[filled].length === 0 ? 1 : 0;
+
+        for (let t = pendingMatch !== null ? pendingMatch : filled + loneOpponent; t < teams.length; t += 2) {
+          const row = el('div', { class: 'gen-roster-match pending' }, [el('span', { class: 'gen-roster-match-name', text: 'New match' }), teamBox(t)]);
+
+          if (t + 1 < teams.length) {
+            row.appendChild(el('span', { class: 'gen-roster-vs', text: 'vs' }));
+            row.appendChild(teamBox(t + 1));
+          }
+
+          board.appendChild(row);
+        }
+
+        // a new match: two empty teams at the end, the first place ready for a nickname
+        const newMatch = el('button', { type: 'button', class: 'gen-roster-new-match', html: '<i class="fa-solid fa-plus"></i>Match' });
+
+        newMatch.addEventListener('click', () => {
+          // a New match there already: its first free place
+          if (pendingMatch !== null && teams[pendingMatch] && teams[pendingMatch + 1]) {
+            const t = teams[pendingMatch].length < size() ? pendingMatch : pendingMatch + 1;
+            editing = { team: t, index: teams[t].length };
+            update();
+            return;
+          }
+
+          // a team still without an opponent: that place first
+          if (filled % 2 === 1 && byes === 0) {
+            if (!teams[filled]) {
+              teams.push([]);
+            }
+
+            editing = { team: filled, index: teams[filled].length };
+            update();
+            return;
+          }
+
+          // two empty teams at the end - any empty ones left there make room for them
+          while (teams.length && teams[teams.length - 1].length === 0) {
+            teams.pop();
+          }
+
+          teams.push([], []);
+          pendingMatch = teams.length - 2;
+          editing = { team: pendingMatch, index: 0 };
+          update();
+        });
+
+        board.appendChild(newMatch);
+      }
+
+      if (document.activeElement !== text) {
+        text.value = serialize();
+      }
+
+      text.placeholder = examplePlayers();
+      label.textContent = withTeams ? 'Paste all the teams at once, or use the widgets below:' : 'Paste all the players at once, or use the widgets below:';
+      // the persistent server's list only: what to type into a place - the rest is plain to see
+      hint.innerHTML = withTeams ? '' : 'A player per line: the nickname, then the account id.';
+      hint.hidden = withTeams;
+    }
+
+    root.render = render;
+    return root;
   }
 
   /*
@@ -736,10 +1348,69 @@
     el('option', { value: 'accounts', text: 'Listed accounts (secure)' })
   ]);
 
-  const teamsText = el('textarea', { rows: '4', placeholder: 'alice\nbob\ncarol\ndave' });
+  /*
+    The listed accounts' ids: a player per line - "alice 0x8aed...", the id the last word.
+    More lines than players don't matter; the order neither.
+  */
+
+  function idLines() {
+    const out = {};
+
+    state.tIdsText.split('\n').forEach(line => {
+      const l = line.trim();
+
+      if (!l) {
+        return;
+      }
+
+      // the id is the last word, the nickname what's before it - spaces in it too
+      const m = /^(.*\S)\s+(\S+)$/.exec(l);
+
+      if (m) {
+        out[m[1]] = m[2];
+      }
+    });
+
+    return out;
+  }
+
+  const tournamentIdOf = n => idLines()[n] || '';
+
+  const idsText = el('textarea', { rows: '4', spellcheck: 'false', wrap: 'off', class: 'gen-roster-text', placeholder: 'alice 0x8aed41f2...\nbob steam_76561198...', autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' });
+
+  idsText.addEventListener('input', () => {
+    state.tIdsText = idsText.value;
+    update();
+  });
+
+  // a player's "!": their nickname on a new line of the ids box, the cursor after it
+  function focusIdLine(n) {
+    if (!(n in idLines())) {
+      state.tIdsText = (state.tIdsText.trim() ? state.tIdsText.replace(/\s*$/, '\n') : '') + `${n} `;
+    }
+
+    idsText.value = state.tIdsText;
+    idsText.focus();
+    idsText.setSelectionRange(idsText.value.length, idsText.value.length);
+    update();
+  }
+
+  const idsLabel = el('p', { class: 'gen-field-text', text: 'Their account ids - a player per line, the nickname and the id:' });
+
+  const teamsRoster = rosterEditor({
+    teams: () => state.tTeams,
+    setTeams: teams => { state.tTeams = teams; },
+    withTeams: () => true,
+    teamSize: () => state.tTeamSize,
+
+    // the teams are nicknames only - the account ids are in their own box
+    showIds: () => false,
+    showStatus: () => verifiedByAccounts(),
+    idOf: p => tournamentIdOf(p.n),
+    onMissingId: n => focusIdLine(n)
+  });
 
   pairingSelect.value = whoGetsIn();
-  teamsText.value = state.tTeamsText;
 
   pairingSelect.addEventListener('change', () => {
     const v = pairingSelect.value;
@@ -749,7 +1420,6 @@
   });
 
   refreshers.push(() => { pairingSelect.value = whoGetsIn(); });
-  teamsText.addEventListener('input', () => { state.tTeamsText = teamsText.value; update(); });
 
   const playersInput = sliderInput('tPlayers', 2, 64);
   const teamSize = teamSizeSelect();
@@ -757,12 +1427,10 @@
   function updatePairing() {
     const beforehand = state.tPairing === 'beforehand';
 
-    teamsText.hidden = !beforehand;
-    pairingPreview.hidden = !beforehand;
-    teamsText.placeholder = examplePlayers();
+    teamsRoster.hidden = !beforehand;
 
     if (beforehand) {
-      updatePairingPreview();
+      teamsRoster.render();
     }
 
   }
@@ -1036,6 +1704,51 @@
 
   const cycleRow = foldRow('Map cycle', 'The first one starts.', cycleBox);
 
+  /*
+    Bots: on by default - their difficulty, and how many: the arena's own number unless set here.
+    Progressive goes only with the arena's own number - with a number set, the game plays them at a fixed difficulty.
+  */
+
+  const botDifficultySelect = el('select', {}, BOT_DIFFICULTIES.map(([value, text]) => el('option', { value, text })));
+
+  botDifficultySelect.addEventListener('change', () => {
+    state.botDifficulty = botDifficultySelect.value;
+    update();
+  });
+
+  const syncBotQuota = () => {
+    if (state.botQuotaOn && state.botDifficulty === 'PROGRESSIVE') {
+      state.botDifficulty = 'MEDIUM';
+    }
+  };
+
+  const botQuotaSlider = sliderInput('botQuota', 1, 16);
+
+  // how many: the map's own number, or a fixed one
+  const botCountSelect = el('select', {}, [
+    el('option', { value: 'map', text: 'Map default' }),
+    el('option', { value: 'fixed', text: 'Fixed number' })
+  ]);
+
+  botCountSelect.addEventListener('change', () => {
+    state.botQuotaOn = botCountSelect.value === 'fixed';
+    syncBotQuota();
+    update();
+  });
+
+  const botDetails = el('div', { class: 'gen-bots-details' }, [
+    el('div', { class: 'gen-bots-line' }, [el('span', { class: 'gen-bots-label', text: 'Difficulty' }), botDifficultySelect]),
+    el('div', { class: 'gen-bots-line' }, [el('span', { class: 'gen-bots-label', text: 'How many' }), botCountSelect, botQuotaSlider])
+  ]);
+
+  const botsRow = foldRow('Bots', 'Bots fill the teams when players are missing. Map default: as many as the arena says. Progressive: they get harder as the players do better - only with the map default.', el('div', { class: 'gen-bots' }, [
+    switchInput('bots', () => {}, 'fill the teams with bots'),
+    botDetails
+  ]));
+
+  const botDifficultyText = () => (BOT_DIFFICULTIES.find(d => d[0] === state.botDifficulty) || BOT_DIFFICULTIES[0])[1];
+  const botsAtDefault = () => state.bots && state.botDifficulty === 'PROGRESSIVE' && !state.botQuotaOn;
+
   const tablePort = numberInput('port', 1024, 65000, false);
   const tableWebPort = numberInput('webPort', 1024, 65000, false);
   const tableWebHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-globe"></i>Browser players' });
@@ -1092,12 +1805,59 @@
   // right under the list it's about
   // the first line under the choice, whichever lets anyone take a nickname
   const insecureText = el('p', { class: 'gen-field-text gen-security' });
-  // over the list, with teams of more than one: how to write it
-  const teamFormatText = el('p', { class: 'gen-field-text' });
-  const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, firstText, teamFormatText, teamsText, nicknamesText, pairingPreview]);
+  const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, firstText, teamsRoster, nicknamesText]);
   pairingRow.appendChild(pairingEditor);
 
   const playersRow = settingRow('Players', [playersInput, roundSummary]);
+
+  /*
+    Join timeout: a match of any round that hasn't started by then is decided without it - the team that came wins,
+    nobody: both out. With Anyone, round 1's servers close as if Close round 1 were clicked. The matches being played go on.
+  */
+
+  // with Anyone, round 1 has no teams to wait for - one sentence on what happens there instead
+  const joinTimeoutHelp = anyone => 'Server waits this long for all players to join the match. After that, the team with more players present wins - with equal numbers the match starts as they are,\nand if nobody came, both teams are out.' +
+    (anyone ? '\nRound 1: a player left alone on a server advances to the next round without playing.' : '') +
+    '\nDoesn\'t affect running matches.';
+
+  const joinTimeoutSelect = el('select', {}, Array.from({ length: 30 }, (_, i) => el('option', { value: String(i + 1), text: `${i + 1} min` })));
+
+  joinTimeoutSelect.addEventListener('change', () => {
+    state.tJoinTimeout = parseInt(joinTimeoutSelect.value, 10);
+    update();
+  });
+
+  const joinTimeoutRow = settingRow('Join timeout', [switchInput('tJoinTimeoutOn', () => {}), joinTimeoutSelect], joinTimeoutHelp(false));
+
+  /*
+    A persistent server's Who gets in: anyone, or only its listed players - each by their account id.
+  */
+
+  const serverWhoSelect = el('select', {}, [
+    el('option', { value: 'anyone', text: 'Anyone' }),
+    el('option', { value: 'accounts', text: 'Listed accounts (clan server)' })
+  ]);
+
+  serverWhoSelect.addEventListener('change', () => {
+    state.serverWho = serverWhoSelect.value;
+    update();
+  });
+
+  const serverRoster = rosterEditor({
+    teams: () => [state.allowedPlayers],
+    setTeams: teams => { state.allowedPlayers = teams[0] || []; },
+    withTeams: () => false,
+    teamSize: () => 0,
+    showIds: () => true
+  });
+
+  const serverSecurityText = el('p', { class: 'gen-field-text gen-security' });
+  const serverVerifyText = el('p', { class: 'gen-field-text', html: 'Every player must send you their account id.<br>Account ids are public - safe to share.<br>In the game: <code>Settings → Account → Copy account id</code>:' });
+  const serverIdImage = accountIdImage();
+  const serverNamesText = el('p', { class: 'gen-field-text', html: 'Nicknames are only for your convenience:<br>players may play under any other name. Admins always get in.' });
+  const serverWhoEditor = el('div', { class: 'gen-row-editor' }, [serverSecurityText, serverVerifyText, serverIdImage, serverRoster, serverNamesText]);
+  const serverWhoRow = settingRow('Who gets in', [serverWhoSelect], 'Listed accounts: only the players you list get in - each proves their account, so nobody can join in their place. Anyone else: "This server lets in only its listed players".');
+  serverWhoRow.appendChild(serverWhoEditor);
 
   /*
     Verify players by: their nicknames (anyone may take one - enough among friends on a LAN), or their accounts -
@@ -1105,42 +1865,14 @@
   */
 
   const verifyText = el('p', { class: 'gen-field-text' });
-  const accountIdsBox = el('div', { class: 'gen-account-ids' });
-  let shownIdsFor = '';
-
-  // a box per player of the list - rebuilt only when the list changes, so typing in one keeps its focus
-  function updateAccountIds() {
-    const names = [].concat(...listedTeams());
-    const key = JSON.stringify(names);
-
-    if (key !== shownIdsFor) {
-      shownIdsFor = key;
-      accountIdsBox.innerHTML = '';
-
-      names.forEach(name => {
-        const input = el('input', { type: 'text', placeholder: '0x8aed41f2... or steam_7656119...', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true', autocomplete: 'off' });
-        input.value = state.tAccountIds[name] || '';
-
-        input.addEventListener('input', () => {
-          state.tAccountIds = Object.assign({}, state.tAccountIds, { [name]: input.value.trim() });
-          input.classList.toggle('gen-invalid', input.value.trim() !== '' && !ACCOUNT_ID.test(input.value.trim()));
-          update();
-        });
-
-        input.classList.toggle('gen-invalid', input.value !== '' && !ACCOUNT_ID.test(input.value));
-        accountIdsBox.appendChild(el('span', { class: 'gen-account-name', text: name }));
-        accountIdsBox.appendChild(input);
-      });
-    }
-
-    accountIdsBox.hidden = !verifiedByAccounts() || names.length === 0;
-  }
-
-
   // where each participant copies theirs - dimmed as the other pictures, lit when pointed at
-  const accountIdImage = el('img', { class: 'guide-image gen-account-id-image', src: '/assets/images/generator/copy_account_id.png?t=3', alt: 'Settings → Account → Copy account id, in the game', loading: 'lazy' });
-  // listed accounts: where to get them and a box for each, right under the list, before the rounds
-  [verifyText, accountIdImage, accountIdsBox].forEach(e => pairingEditor.insertBefore(e, pairingPreview));
+  function accountIdImage() {
+    return el('img', { class: 'guide-image gen-account-id-image', src: '/assets/images/generator/copy_account_id.png?t=3', alt: 'Settings → Account → Copy account id, in the game', loading: 'lazy' });
+  }
+  const tournamentIdImage = accountIdImage();
+  // listed accounts: where to get them, right over the players
+  // the teams first, then where the ids come from and their box
+  [verifyText, tournamentIdImage, idsLabel, idsText].forEach(e => pairingEditor.insertBefore(e, nicknamesText));
   verifyText.classList.add('gen-after-gap');
 
   const defaultRoundMaps = () => roundMaps().map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo');
@@ -1162,13 +1894,16 @@
     only(serverRows, cycleRow),
     only(serverRows, settingRow('Slots', [sliderInput('slots', 4, 26)])),
     only(serverRows, settingRow('Server instances', [casualInput], 'If hosting multiple instances, they will take subsequent ports.')),
+    only(serverRows, botsRow),
     only(tournamentRows, settingRow('Teams', [teamSize])),
     only(tournamentRows, pairingRow),
     only(tournamentRows, playersRow),
+    only(tournamentRows, joinTimeoutRow),
     only(tournamentRows, mapsRow),
     only(tournamentRows, settingRow('Live results page', [switchInput('tPage', () => {}, '<code>http://&lt;your server&gt;:<span class="gen-page-port"></span>/</code>')], 'The bracket with live scores. Served by the game server itself over TCP.')),
     settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io</a>')]),
     portsRow,
+    only(serverRows, serverWhoRow),
     passwordRow,
     adminRow
   ]);
@@ -1196,10 +1931,25 @@
     serverRows.forEach(r => { r.hidden = isTournament(); });
     tournamentRows.forEach(r => { r.hidden = !isTournament(); });
     playersRow.hidden = !isTournament() || pairedBeforehand();
+
+    joinTimeoutRow.hidden = !isTournament();
+    joinTimeoutRow.querySelector('.gen-row-help').dataset.tip = joinTimeoutHelp(!pairedBeforehand());
+    joinTimeoutSelect.value = String(state.tJoinTimeout);
+    joinTimeoutSelect.hidden = !state.tJoinTimeoutOn;
+
+    const serverListed = state.serverWho === 'accounts';
+    serverWhoSelect.value = state.serverWho;
+    serverWhoRow.classList.add('open');
+    serverSecurityText.innerHTML = serverListed
+      ? '<i class="fa-solid fa-check gen-secure"></i>Only your listed players - and your admins. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are with an `Ed25519` signature, so nobody can join in their place."></i>'
+      : 'Anyone who finds the server. A join password keeps strangers out.';
+    [serverVerifyText, serverIdImage, serverRoster, serverNamesText].forEach(e => { e.hidden = !serverListed; });
+
+    if (serverListed) {
+      serverRoster.render();
+    }
     pairingRow.classList.add('open');
     firstText.hidden = pairedBeforehand();
-    teamFormatText.hidden = !pairedBeforehand() || state.tTeamSize < 2;
-    teamFormatText.innerHTML = `One team per line - its ${state.tTeamSize} players separated by commas:`;
 
     // right under the list: what its nicknames are for
     nicknamesText.hidden = !pairedBeforehand();
@@ -1216,10 +1966,15 @@
 
     verifyText.innerHTML = 'Every participant must send you their account id.<br>Account ids are public - safe to share.<br>In the game: <code>Settings → Account → Copy account id</code>:';
     verifyText.hidden = !verifiedByAccounts();
-    accountIdImage.hidden = !verifiedByAccounts();
-    updateAccountIds();
+    tournamentIdImage.hidden = !verifiedByAccounts();
+    idsLabel.hidden = !verifiedByAccounts();
+    idsText.hidden = !verifiedByAccounts();
 
-    const verified = verifiedByAccounts();
+    if (document.activeElement !== idsText) {
+      idsText.value = state.tIdsText;
+    }
+
+    const verified = byAccounts();
     passwordRow.classList.toggle('gen-row-disabled', verified);
     passwordRow.querySelectorAll('input').forEach(i => { i.disabled = verified; });
     passwordNote.hidden = !verified;
@@ -1234,6 +1989,19 @@
         : 'de_cyberaqua only',
       cycleIsDefault()
     );
+
+    syncBotQuota();
+
+    botsRow.show(
+      state.bots ? `${state.botQuotaOn ? `${state.botQuota} ${state.botQuota > 1 ? 'bots' : 'bot'}` : 'On'} · ${botDifficultyText()}` : 'Off',
+      botsAtDefault()
+    );
+
+    botDetails.hidden = !state.bots;
+    botQuotaSlider.hidden = !state.botQuotaOn;
+    botDifficultySelect.value = state.botDifficulty;
+    botCountSelect.value = state.botQuotaOn ? 'fixed' : 'map';
+    botDifficultySelect.querySelector('option[value=PROGRESSIVE]').disabled = state.botQuotaOn;
 
     portsRow.show(
       `${portSpan(state.port)} UDP` + (state.browser ? `, ${portSpan(state.webPort)} UDP` : '') + (pageOn() ? `, ${pagePort()} TCP` : ''),
@@ -1407,6 +2175,19 @@
   const shellQuote = v => /^[A-Za-z0-9_.,:\/=+-]+$/.test(v) ? v : "'" + v.replace(/'/g, "'\\''") + "'";
   const systemdQuote = v => /^[A-Za-z0-9_.,:\/=+-]+$/.test(v) ? v : '"' + v.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '$$$$').replace(/%/g, '%%') + '"';
 
+  // the open round's join timeout as written: nothing for the default 10 minutes
+  const joinTimeoutValue = () => {
+    if (!isTournament()) {
+      return '';
+    }
+
+    if (!state.tJoinTimeoutOn) {
+      return 'off';
+    }
+
+    return state.tJoinTimeout === 10 ? '' : String(state.tJoinTimeout);
+  };
+
   // the tournament as command line flags (the AppImage) or environment variables (Docker)
   function tournamentFlags(quoted = shellQuote) {
     const out = [];
@@ -1433,6 +2214,12 @@
     }
     else if (isTournament() && state.tPagePort) {
       out.push(`--tournament-page ${state.tPagePort}`);
+    }
+
+    const timeout = joinTimeoutValue();
+
+    if (timeout) {
+      out.push(`--tournament-join-timeout ${timeout}`);
     }
 
     return out.join(' ');
@@ -1476,6 +2263,20 @@
       server.game_mode = mode;
     }
 
+    // no bots: a quota of 0; a number set: that number; otherwise the arena's own
+    if (!isTournament() && !state.bots) {
+      server.bot_quota = [0];
+    }
+    else if (!isTournament()) {
+      if (state.botQuotaOn) {
+        server.bot_quota = [state.botQuota];
+      }
+
+      if (state.botDifficulty !== 'PROGRESSIVE') {
+        server.bot_difficulty = state.botDifficulty;
+      }
+    }
+
     // server_private goes into its own file - the config can be shown to anyone
     const secrets = {};
 
@@ -1485,6 +2286,10 @@
 
     if (password()) {
       secrets.server_password = password();
+    }
+
+    if (serverByAccounts()) {
+      secrets.allowed_accounts = state.allowedPlayers.map(p => p.id);
     }
 
     if (!isTournament() && state.casual !== 1) {
@@ -1599,8 +2404,25 @@
       put('HYPERSOMNIA_PASSWORD', password());
     }
 
+    if (serverByAccounts()) {
+      put('HYPERSOMNIA_ALLOWED_ACCOUNTS', state.allowedPlayers.map(p => p.id).join(','));
+    }
+
     if (!isTournament() && state.slots !== 16) {
       put('HYPERSOMNIA_SLOTS', String(state.slots));
+    }
+
+    if (!isTournament() && !state.bots) {
+      put('HYPERSOMNIA_BOT_QUOTA', '0');
+    }
+    else if (!isTournament()) {
+      if (state.botQuotaOn) {
+        put('HYPERSOMNIA_BOT_QUOTA', String(state.botQuota));
+      }
+
+      if (state.botDifficulty !== 'PROGRESSIVE') {
+        put('HYPERSOMNIA_BOT_DIFFICULTY', state.botDifficulty);
+      }
     }
 
     if (!isTournament() && state.casual !== 1) {
@@ -1653,6 +2475,10 @@
     }
     else if (isTournament() && state.tPagePort) {
       put('HYPERSOMNIA_TOURNAMENT_PAGE', String(state.tPagePort));
+    }
+
+    if (joinTimeoutValue()) {
+      put('HYPERSOMNIA_TOURNAMENT_JOIN_TIMEOUT', joinTimeoutValue());
     }
 
     return env;
@@ -1819,6 +2645,27 @@
     const errors = [];
     const list = names => [...new Set(names)].join(', ');
 
+    // every listed player with an account id of their own
+    const accountErrors = players => {
+      const account = p => sameAccount(p.id).toLowerCase();
+      const ids = players.filter(p => p.id).map(account);
+      const missing = players.filter(p => !p.id).map(p => p.n);
+      const bad = players.filter(p => p.id && !ACCOUNT_ID.test(p.id)).map(p => p.n);
+      const shared = players.filter(p => p.id && ids.indexOf(account(p)) !== ids.lastIndexOf(account(p))).map(p => p.n);
+
+      if (missing.length) {
+        errors.push(`Who gets in: no account id for: ${list(missing)}`);
+      }
+
+      if (bad.length) {
+        errors.push(`Who gets in: not an account id for: ${list(bad)}`);
+      }
+
+      if (shared.length) {
+        errors.push(`Who gets in: the same account id for: ${list(shared)}`);
+      }
+    };
+
     if (state.adminOn) {
       const ids = adminIds();
       const bad = ids.filter(id => !ACCOUNT_ID.test(id));
@@ -1867,7 +2714,7 @@
       const size = `${state.tTeamSize} ${state.tTeamSize > 1 ? 'players' : 'player'}`;
 
       if (teams.length < 2) {
-        errors.push('Who gets in: list at least 2 teams, one per line.');
+        errors.push('Who gets in: add players for at least 2 teams.');
       }
 
       if (wrong.length) {
@@ -1883,25 +2730,16 @@
       }
 
       if (verifiedByAccounts()) {
-        const idOf = n => (state.tAccountIds[n] || '').trim();
-        const missing = names.filter(n => !idOf(n));
-        const bad = names.filter(n => idOf(n) && !ACCOUNT_ID.test(idOf(n)));
-        const account = n => sameAccount(idOf(n)).toLowerCase();
-        const ids = names.filter(idOf).map(account);
-        const shared = names.filter(n => idOf(n) && ids.indexOf(account(n)) !== ids.lastIndexOf(account(n)));
-
-        if (missing.length) {
-          errors.push(`Who gets in: no account id for: ${list(missing)}`);
-        }
-
-        if (bad.length) {
-          errors.push(`Who gets in: not an account id for: ${list(bad)}`);
-        }
-
-        if (shared.length) {
-          errors.push(`Who gets in: the same account id for: ${list(shared)}`);
-        }
+        accountErrors([].concat(...filledTeams()).map(p => ({ n: p.n, id: tournamentIdOf(p.n) })));
       }
+    }
+
+    if (serverByAccounts()) {
+      if (!state.allowedPlayers.length) {
+        errors.push('Who gets in: add the players who may join - or let anyone in.');
+      }
+
+      accountErrors(state.allowedPlayers);
     }
 
     return errors;
@@ -2125,18 +2963,6 @@
     The tournament's fields only for a tournament.
   */
 
-  function listedAccountIds() {
-    const out = {};
-
-    [].concat(...listedTeams()).forEach(n => {
-      if (state.tAccountIds[n]) {
-        out[n] = state.tAccountIds[n];
-      }
-    });
-
-    return out;
-  }
-
   function changedFromDefaults() {
     const out = {};
 
@@ -2150,8 +2976,7 @@
       // the maps of the rounds by default go by turns - de_cyberaqua, de_silo...
       const fallback = k === 'tArenas' ? state.tArenas.map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo') : defaults[k];
 
-      // the account ids of the players listed now - not of those taken off the list since
-      const value = k === 'tAccountIds' ? listedAccountIds() : state[k];
+      const value = state[k];
 
       if (JSON.stringify(value) !== JSON.stringify(fallback)) {
         out[k] = value;
@@ -2313,7 +3138,8 @@
 
     // `code` in a tip shows in monospace
     const escaped = target.dataset.tip.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    tooltip.innerHTML = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // `code` in monospace, a new line where the text has one
+    tooltip.innerHTML = escaped.replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\n/g, '<br>');
     tooltip.hidden = false;
 
     const r = target.getBoundingClientRect();

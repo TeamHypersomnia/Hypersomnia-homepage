@@ -8,7 +8,7 @@ const OFFICIAL_ARENAS = ['de_cyberaqua', 'de_silo', 'fy_minilab'];
 // the arenas offered by the config generator: the official servers' bomb defusal cycle
 const COMMUNITY_ARENAS = [
   'de_hotline', 'de_metro', 'de_duel_practice', 'de_jedrula', 'de_billan', 'de_kremlin', 'hyperactive_space_station',
-  'fy_iceworld', 'de_rambo', 'de_amongus', 'de_bogosbinted', 'de_facing_worlds', 'de_suspects'
+  'fy_iceworld', 'de_rambo', 'de_amongus', 'de_bogosbinted', 'de_facing_worlds', 'de_suspect'
 ];
 
 /*
