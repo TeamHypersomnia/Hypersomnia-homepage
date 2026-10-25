@@ -1473,13 +1473,13 @@
   }
 
   /*
-    Who gets in: anyone (paired as they join), or the listed teams - by their nicknames, or by their accounts.
+    Who participates: anyone (paired as they join), or the listed teams - by their nicknames, or by their accounts.
   */
 
   const whoGetsIn = () => state.tPairing !== 'beforehand' ? 'anyone' : state.tVerify === 'accounts' ? 'accounts' : 'nicknames';
 
   const pairingSelect = el('select', {}, [
-    el('option', { value: 'anyone', text: 'Anyone' }),
+    el('option', { value: 'anyone', text: 'Anyone (no list needed)' }),
     el('option', { value: 'nicknames', text: 'Listed nicknames' }),
     el('option', { value: 'accounts', text: 'Listed accounts (secure)' })
   ]);
@@ -2350,10 +2350,10 @@
     The tournament's rows: the size of the teams first - it says how to write the list of them.
   */
 
-  const pairingRow = settingRow('Who gets in', [pairingSelect], 'On a LAN, Anyone or Listed nicknames\nis enough: nobody from outside can join.\n\nFrom round 2 nobody has to trust anyone:\nthe server knows every player\'s account.');
+  const pairingRow = settingRow('Who participates', [pairingSelect], 'On a LAN, Anyone or Listed nicknames\nis enough: nobody from outside can join.\n\nFrom round 2 nobody has to trust anyone:\nthe server knows every player\'s account.');
 
   // however they join first: what it means for the players
-  const firstText = el('p', { class: 'gen-field-text', html: 'Anyone joins <strong>whichever server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure:<br>the tournament remembers everyone\'s real account ids,<br>and pairs them accordingly.' });
+  const firstText = el('p', { class: 'gen-field-text', html: 'Anyone who finds your tournament joins <strong>whichever server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure:<br>the tournament remembers everyone\'s real account ids,<br>and pairs them accordingly.' });
 
   // set up beforehand: the list and how it was understood - the rounds say it better than any explanation
   const nicknamesText = el('p', { class: 'gen-field-text' });
@@ -2579,7 +2579,7 @@
       : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Set a password to keep strangers out.';
 
     const size = `${state.tTeamSize}v${state.tTeamSize}`;
-    firstText.innerHTML = `Anyone joins <strong>whichever ${size} server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure:<br>the tournament remembers everyone's real account ids,<br>and pairs them accordingly.`;
+    firstText.innerHTML = `Anyone who finds your tournament joins <strong>whichever ${size} server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure:<br>the tournament remembers everyone's real account ids,<br>and pairs them accordingly.`;
 
     verifyText.innerHTML = 'Every participant must send you their account id.<br>Paste them below:';
     verifyText.hidden = !verifiedByAccounts();
@@ -3967,7 +3967,9 @@
     }
     const list = names => [...new Set(names)].join(', ');
 
-    // every listed player with an account id of their own
+    // every listed player with an account id of their own - named as the row they're in
+    const whoRow = () => isTournament() ? 'Who participates' : 'Who gets in';
+
     const accountErrors = players => {
       const account = p => sameAccount(p.id).toLowerCase();
       const ids = players.filter(p => p.id).map(account);
@@ -3976,15 +3978,15 @@
       const shared = players.filter(p => p.id && ids.indexOf(account(p)) !== ids.lastIndexOf(account(p))).map(p => p.n);
 
       if (missing.length) {
-        errors.push(`Who gets in: no account id for: ${list(missing)}`);
+        errors.push(`${whoRow()}: no account id for: ${list(missing)}`);
       }
 
       if (bad.length) {
-        errors.push(`Who gets in: not an account id for: ${list(bad)}`);
+        errors.push(`${whoRow()}: not an account id for: ${list(bad)}`);
       }
 
       if (shared.length) {
-        errors.push(`Who gets in: the same account id for: ${list(shared)}`);
+        errors.push(`${whoRow()}: the same account id for: ${list(shared)}`);
       }
     };
 
@@ -4065,19 +4067,19 @@
       const size = `${state.tTeamSize} ${state.tTeamSize > 1 ? 'players' : 'player'}`;
 
       if (teams.length < 2) {
-        errors.push('Who gets in: add players for at least 2 teams.');
+        errors.push('Who participates: add players for at least 2 teams.');
       }
 
       if (wrong.length) {
-        errors.push(`Who gets in: not ${size}: ${wrong.map(t => t.join(', ')).join(' / ')}`);
+        errors.push(`Who participates: not ${size}: ${wrong.map(t => t.join(', ')).join(' / ')}`);
       }
 
       if (names.some(unusableNickname)) {
-        errors.push(`Who gets in: can't be a nickname: ${list(names.filter(unusableNickname))}`);
+        errors.push(`Who participates: can't be a nickname: ${list(names.filter(unusableNickname))}`);
       }
 
       if (twice.length) {
-        errors.push(`Who gets in: listed more than once: ${list([...new Set(twice)])}`);
+        errors.push(`Who participates: listed more than once: ${list([...new Set(twice)])}`);
       }
 
       if (verifiedByAccounts()) {
