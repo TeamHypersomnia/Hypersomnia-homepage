@@ -2295,6 +2295,10 @@ body.gen-page {
 }
 
 .gen-fold-chevron {
+  /* a box of its own: › and ⌄ are glyphs of other sizes - the title never moves when they swap */
+  display: inline-block;
+  text-align: center;
+  line-height: 1;
   width: 1em;
   margin-right: 0.5em;
   font-size: 0.75em;

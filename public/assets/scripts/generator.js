@@ -1559,7 +1559,8 @@
 
   // step by step, or all of it in one script - and the script's own choices: the firewall left alone by default,
   // most servers have the ports open
-  let oneShot = false;
+  // the single script first: one paste for most - the steps a click away
+  let oneShot = true;
 
   // the profile's box is made last - update() runs before it's there
   let profileBoxReady = false;
@@ -2574,7 +2575,7 @@
 
   const stepsTab = modeButton('Step by step', 'fa-solid fa-list-ol', false);
   const scriptTab = modeButton('Single script', 'fa-solid fa-scroll', true);
-  const modeTabs = el('div', { class: 'btn-group gen-mode-tabs' }, [stepsTab, scriptTab]);
+  const modeTabs = el('div', { class: 'btn-group gen-mode-tabs' }, [scriptTab, stepsTab]);
 
   const scriptCode = el('code');
   const firewallSelect = el('select', {}, [
@@ -3363,6 +3364,30 @@
     return `${m === 'service' ? '~' : '.'}/Hypersomnia-Headless.AppImage${extract} --print-server-key`;
   }
 
+  /*
+    The line for the players (--print-join-string): the address the server list sees, the name and the port of the
+    config, the key. With Docker in the running container - its own environment, so its name and port.
+  */
+
+  function printJoinCommand() {
+    const m = method();
+    const extract = state.fuse ? '' : ' --appimage-extract-and-run';
+
+    if (m === 'compose') {
+      return 'docker compose exec hypersomnia-server \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-join-string';
+    }
+
+    if (m === 'run') {
+      return 'docker exec hypersomnia-server \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-join-string';
+    }
+
+    if (separateUser()) {
+      return `sudo -u hypersomnia /opt/hypersomnia/Hypersomnia-Headless.AppImage${extract} \\\n  --appdata-dir /opt/hypersomnia --print-join-string`;
+    }
+
+    return `${m === 'service' ? '~' : '.'}/Hypersomnia-Headless.AppImage${extract} --print-join-string`;
+  }
+
   function oneShotScript() {
     const m = method();
     const docker = m === 'compose' || m === 'run';
@@ -3470,9 +3495,24 @@
       cmd(firewallLines(scriptOptions.firewall).slice(1).join('\n'));
     }
 
-    if (!state.serverListOn) {
-      section('Not on the server list: give your players its address and this key');
-      cmd(printKeyCommand());
+    /*
+      Not on the list: the players' line - before a terminal's start (it runs on in the foreground); a container's
+      only once it runs (printed from inside it, with its own environment).
+    */
+
+    const playersLine = () => {
+      if (isTournament()) {
+        section('Not on the server list: give your players its address and this key');
+        cmd(printKeyCommand());
+      }
+      else {
+        section('Not on the server list: the line to publish for your players');
+        cmd(printJoinCommand());
+      }
+    };
+
+    if (!state.serverListOn && !docker) {
+      playersLine();
     }
 
     if (starts) {
@@ -3496,6 +3536,17 @@
       section('The startup command - uncomment to start it:');
       const later = (m === 'run' ? 'docker rm -f hypersomnia-server > /dev/null 2>&1 || true\n\n' : '') + startText();
       later.split('\n').forEach(l => wrapCommand(l).forEach(w => lines.push(`# ${w}`)));
+    }
+
+    // a container's line once it runs - not started now, the command for later
+    if (!state.serverListOn && docker) {
+      if (starts) {
+        playersLine();
+      }
+      else {
+        section('Not on the server list - once it runs, the line for your players:');
+        printJoinCommand().split('\n').forEach(l => lines.push(`# ${l}`));
+      }
     }
 
     return lines.join('\n');
@@ -3725,7 +3776,7 @@
         lang: 'bash',
         text: wrapped(keyBackupCommand()),
         hint: (keyPath().startsWith('~/') ? '' : 'Needs root, or sudo without a password, on the server.<br>')
-          + 'Players know your server by its key: <code>Ed25519</code>.<br>Without it, you appear as a different server.<br>Keep it secret - with it, anyone can pose as your server.'
+          + 'Players bookmark your server by its key: <code>Ed25519</code>.<br>Without it, you appear as a different server.<br>Keep it secret - with it, anyone can pose as your server.'
       })
     );
 
@@ -3762,14 +3813,12 @@
       }));
     }
     else {
-      const address = '<your server\'s address>' + (state.port === 8412 ? '' : ':' + state.port);
-      const name = escapedForQuotes(state.name.trim() || 'My server');
-      const more = instanceCount() > 1 ? `<br>The other servers: the same line with ports ${state.port + 1} and on, and their names.` : '';
+      const more = instanceCount() > 1 ? '<br>It\'s the first server\'s - the others are on the next ports, with their names.' : '';
 
       playersKeyResults.appendChild(resultBox({
         lang: 'bash',
-        text: wrapped(`KEY=$(${printKeyCommand()})`) + `\necho "${address},${name},0x$KEY"`,
-        hint: 'Fill in your address, then publish the line it prints.<br>Players who copy it get your server added to their favorites by the game.' + more
+        text: printJoinCommand(),
+        hint: 'This prints a line like <code>203.0.113.7,My server,0x8aed41f2...</code> - publish it.<br>Players who copy it get your server added to their favorites by the game.' + more
       }));
     }
     steps.playersKey.el.hidden = state.serverListOn;
