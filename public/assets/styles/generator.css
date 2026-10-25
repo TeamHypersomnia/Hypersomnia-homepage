@@ -2591,3 +2591,50 @@ body.gen-page {
 #config-generator .gen-cycle-options .gen-random-option {
   margin: 0;
 }
+
+/* "+ Add" among the cycle's chips - a text field in its place while a map is typed */
+#config-generator .gen-chip.gen-chip-add {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  height: auto;
+  background: transparent;
+  border: 1px dashed var(--line);
+  color: var(--text);
+  cursor: pointer;
+}
+
+#config-generator .gen-chip.gen-chip-add:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#config-generator .gen-chip.gen-chip-add i {
+  margin-right: 0.4em;
+}
+
+#config-generator .gen-chip.gen-chip-adding {
+  padding: 0;
+  border: 1px solid var(--accent);
+}
+
+#config-generator .gen-chip.gen-chip-adding.gen-bad {
+  border-color: var(--red);
+}
+
+#config-generator .gen-chip-input {
+  width: 12em;
+  height: auto;
+  padding: 0.25em 0.6em;
+  background: transparent;
+  border: none;
+  color: var(--bright);
+  font: inherit;
+  outline: none;
+}
+
+/* "+ Add" as wide as its text - not stretched like the table's buttons */
+#config-generator .gen-table .gen-cycle-chips .gen-chip.gen-chip-add,
+#config-generator .gen-table .gen-cycle-chips .gen-chip.gen-chip-adding {
+  flex: none;
+}

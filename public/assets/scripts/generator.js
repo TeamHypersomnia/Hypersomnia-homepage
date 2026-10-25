@@ -562,41 +562,71 @@
       document.createTextNode('All arenas on the server\'s disk')
     ]);
 
-    // a map not on the list: typed in - the server downloads it from hypersomnia.io
-    const customInput = el('input', { type: 'text', class: 'gen-custom-map', placeholder: 'de_mymap', maxLength: 64, spellcheck: 'false' });
-    const customError = el('span', { class: 'gen-custom-map-error', text: 'Letters, digits, _ . - only, not starting with .' });
-    customError.hidden = true;
+    /*
+      "+ Add" among the cycle's chips: a click makes it a text field there, Enter adds the map as a chip of the cycle -
+      one from the list below leaves the list, any other is a map of your own (Advanced: Add your own maps).
+      Escape or leaving it empty: back to "+ Add".
+    */
 
-    const addCustom = () => {
-      const name = customInput.value.trim();
+    let adding = false;
+    const knownMaps = el('datalist', { id: 'gen-known-maps' });
+    all.forEach(name => knownMaps.appendChild(el('option', { value: name })));
 
-      if (!name) {
-        return;
+    function addChip() {
+      if (!adding) {
+        const c = el('button', { type: 'button', class: 'gen-chip gen-chip-add', html: '<i class="fa-solid fa-plus"></i>Add' });
+        // focused at once - what's typed right after the click isn't lost
+        c.addEventListener('click', () => {
+          adding = true;
+          render();
+          chips.querySelector('.gen-chip-input').focus();
+        });
+        return c;
       }
 
-      if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,63}$/.test(name)) {
-        customError.hidden = false;
-        return;
-      }
+      const input = el('input', { type: 'text', class: 'gen-chip-input', placeholder: 'map name, Enter', maxLength: 64, spellcheck: 'false', list: 'gen-known-maps' });
+      const wrap = el('span', { class: 'gen-chip gen-chip-adding' }, [input]);
 
-      customInput.value = '';
-      customError.hidden = true;
+      const done = () => { adding = false; render(); };
 
-      if (!state.cycle.includes(name)) {
-        set(state.cycle.concat([name]));
-      }
-    };
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          done();
+          return;
+        }
 
-    customInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
+        if (e.key !== 'Enter') {
+          return;
+        }
+
         e.preventDefault();
-        addCustom();
-      }
-    });
+        const name = input.value.trim();
 
-    const customAdd = el('button', { type: 'button', class: 'gen-pool-chip gen-custom-add', html: '<i class="fa-solid fa-plus"></i>Add' });
-    customAdd.addEventListener('click', addCustom);
-    const customRow = el('div', { class: 'gen-custom-row' }, [customInput, customAdd, customError]);
+        if (!name) {
+          done();
+          return;
+        }
+
+        // never "." or ".." - a name goes into paths of the commands
+        if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,63}$/.test(name)) {
+          wrap.classList.add('gen-bad');
+          wrap.title = 'Letters, digits, _ . - only, not starting with .';
+          return;
+        }
+
+        adding = false;
+        set(state.cycle.includes(name) ? state.cycle : state.cycle.concat([name]));
+      });
+
+      input.addEventListener('blur', () => {
+        if (!input.value.trim()) {
+          done();
+        }
+      });
+
+      return wrap;
+    }
+
     const customHint = el('p', { class: 'gen-field-text gen-custom-hint', html: 'Not on hypersomnia.io? See <a href="#" class="gen-goto-maps">Advanced: Add your own maps</a>' });
 
     // what "all on disk" is at first - shown with it (the folder by the setup: syncAllNote)
@@ -657,6 +687,8 @@
         chips.appendChild(el('span', { class: 'gen-cycle-empty', text: 'None - de_cyberaqua only' }));
       }
 
+      chips.appendChild(addChip());
+
       allCheck.checked = state.cycleAll;
       randomOption.hidden = !state.cycleAll && state.cycle.length < 2;
       randomCheck.checked = state.cycleRandom;
@@ -682,7 +714,7 @@
       hypersomnia.io, or a map of your own; then back to the default.
     */
 
-    selection.replaceChildren(pool, customRow, customHint, el('div', { class: 'gen-cycle-links' }, [browse]));
+    selection.replaceChildren(pool, customHint, el('div', { class: 'gen-cycle-links' }, [browse]), knownMaps);
     const box = el('div', {}, [el('div', { class: 'gen-cycle-options' }, [allOption, randomOption]), allNote, cycleList, selection, el('div', { class: 'gen-cycle-links' }, [resetButton])]);
     box.allNote = allNote;
     box.refresh = render;
