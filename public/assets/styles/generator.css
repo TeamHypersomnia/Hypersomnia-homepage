@@ -2687,3 +2687,8 @@ body.gen-page {
 #config-generator .gen-t-no-password[hidden] {
   display: none;
 }
+
+/* a phrase to see first - white, not bold */
+.gen-bright {
+  color: var(--bright);
+}
