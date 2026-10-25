@@ -4207,6 +4207,9 @@
     // a tournament's only: a persistent server's players don't need it
     steps.keyPublic.el.hidden = !isTournament();
 
+    // a tournament plays only the official and community maps - none of your own
+    steps.mapsAdd.el.hidden = isTournament();
+
     mapsAddResults.innerHTML = '';
     mapsAddResults.append(
       el('p', { class: 'gen-field-text', html: `By default, only the official maps are on the disk - the others you provide yourself.<br>The server's maps folder: ${inline(arenasDir() + '/')}<br><br>Run this from your computer, in the folder that holds the map's folder:` }),
