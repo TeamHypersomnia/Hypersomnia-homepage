@@ -714,7 +714,7 @@
       hypersomnia.io, or a map of your own; then back to the default.
     */
 
-    selection.replaceChildren(pool, customHint, el('div', { class: 'gen-cycle-links' }, [browse]), knownMaps);
+    selection.replaceChildren(pool, el('div', { class: 'gen-cycle-links' }, [browse]), customHint, knownMaps);
     const box = el('div', {}, [el('div', { class: 'gen-cycle-options' }, [allOption, randomOption]), allNote, cycleList, selection, el('div', { class: 'gen-cycle-links' }, [resetButton])]);
     box.allNote = allNote;
     box.refresh = render;
@@ -1849,7 +1849,7 @@
   }
 
   function browseArenasLink() {
-    return el('a', { class: 'gen-browse', href: '/arenas', target: '_blank', html: '<i class="fa-solid fa-arrow-up-right-from-square"></i>Browse the arenas' });
+    return el('a', { class: 'gen-browse', href: '/arenas', target: '_blank', html: '<i class="fa-solid fa-arrow-up-right-from-square"></i>Browse all arenas' });
   }
 
   function settingRow(label, controls, help) {

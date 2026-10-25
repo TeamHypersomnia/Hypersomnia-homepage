@@ -2609,8 +2609,17 @@ body.gen-page {
   color: var(--accent);
 }
 
+/* the same look as the chips to pick from below (gen-pool-chip) */
+#config-generator .gen-chip.gen-chip-add {
+  gap: 0;
+  padding: 3px 8px;
+  font-family: var(--mono);
+  font-size: 1em;
+}
+
 #config-generator .gen-chip.gen-chip-add i {
-  margin-right: 0.4em;
+  margin-right: 4px;
+  font-size: 0.75em;
 }
 
 #config-generator .gen-chip.gen-chip-adding {
