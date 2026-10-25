@@ -229,7 +229,8 @@
     ownBulletSpeed: false,
     bulletSpeed: 0.75,
     ownZoom: false,
-    zoom: 0.85,
+    // the game's own zoom out (BALANCE_ZOOM_OUT) - where the slider starts
+    zoom: 0.7,
     friendlyFire: false,
     freezeTime: true,
     // map_cycle: [ "*" ] - every arena on the server's disk
