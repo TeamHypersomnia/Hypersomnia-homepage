@@ -102,51 +102,13 @@
   tabButtons.concat(subtabButtons).forEach(b => b.addEventListener('click', () => selectSetup(b.dataset.setup)));
 
   /*
-    A profile in the link: /generator#p=<the settings that differ from the defaults, as base64url JSON> -
-    without the secrets (passwords, webhooks, admins), which stay in the browser. Made only by Copy link - the address bar
-    isn't kept up to date: browsers limit how often a page may change it (Safari throws after 100 times in 30 s).
-    The settings come back from the browser's storage anyway.
+    The secrets: in the browser's storage, in the complete instructions - in a profile only when asked (Your profile).
   */
 
-  const PROFILE_HASH = '#p=';
   const SECRET_KEYS = ['password', 'passwordOn', 'webhook', 'admins', 'adminOn', 'spectator', 'spectatorOn', 'tResultsWebhook'];
-
-  // how this machine runs it is for whoever gets the link to decide - kept in their browser, as the secrets
-  const MACHINE_KEYS = ['service', 'fuse'];
-  const NOT_IN_LINK = SECRET_KEYS.concat(MACHINE_KEYS);
-
-  function encodeProfile(profile) {
-    const bytes = new TextEncoder().encode(JSON.stringify(profile));
-    let binary = '';
-    bytes.forEach(b => { binary += String.fromCharCode(b); });
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
-
-  function decodeProfile(text) {
-    const binary = atob(text.replace(/-/g, '+').replace(/_/g, '/'));
-    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-    return JSON.parse(new TextDecoder().decode(bytes));
-  }
-
-  const linkedProfile = (() => {
-    if (!location.hash.startsWith(PROFILE_HASH)) {
-      return null;
-    }
-
-    try {
-      return decodeProfile(location.hash.slice(PROFILE_HASH.length));
-    }
-    catch (e) {
-      return null;
-    }
-  })();
 
   // a link to a setup or its group (e.g. /generator#tournament) opens it; otherwise the last one chosen
   const linkedSetup = (() => {
-    if (linkedProfile && setupIds.includes(linkedProfile.setup)) {
-      return linkedProfile.setup;
-    }
-
     const hash = decodeURIComponent(location.hash.slice(1));
 
     if (setupIds.includes(hash)) {
@@ -296,20 +258,6 @@
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     Object.assign(state, saved);
-
-    // a profile from the link replaces the settings - this browser's secrets stay
-    if (linkedProfile) {
-      const secrets = {};
-      NOT_IN_LINK.forEach(k => { secrets[k] = state[k]; });
-
-      state = Object.assign({}, defaults, linkedProfile.state || {}, secrets);
-
-      // applied once - a reload keeps what's changed since (the browser's storage), not the link again
-      try {
-        history.replaceState(null, '', location.pathname + '#' + linkedProfile.setup);
-      }
-      catch (e) {}
-    }
 
     // saved before the password had its switch
     if (saved.password && saved.passwordOn === undefined) {
@@ -2123,6 +2071,7 @@
     // inside the generator: its code snippets' look (font, colors) applies there
     mount.appendChild(overlay);
     close.focus();
+    return dismiss;
   }
 
   const payloadButton = (label, title, intro, ongoing, file) => {
@@ -2133,7 +2082,7 @@
 
   const resultsWebhookRow = settingRow('Results webhook', [
     textInput('tResultsWebhook', 'https://... - gets the results when it\'s over'),
-    payloadButton('Show example payload', 'Results webhook', 'One <code>POST</code> when the tournament is over - and again whenever the server is started after that. Take only <code>"state": "FINISHED"</code>, and drop a copy you have already got (the same <code>name</code> and <code>winner_team</code>):', false, () => 'Content-Type: application/json')
+    payloadButton('Show example payload', 'Results webhook', 'One <code>POST</code> when the tournament is over. Take only <code>"state": "FINISHED"</code> and <strong>deduplicate by tournament name</strong>:', false, () => 'Content-Type: application/json')
   ], 'The final results, POSTed once to this URL\n- e.g. to put them on your site.\n\nThe same JSON as the live results page\nserves at `/tournament.json`.');
 
   const pageExampleButton = payloadButton('Also has a JSON endpoint!', 'Live results page', 'What the page draws - for your own site or bot. At most 5 requests a second from one address.', true, () => `http://<your server>:${pagePort()}/tournament.json`);
@@ -2520,27 +2469,6 @@
   mount.appendChild(errorBox);
   steps.check.el.classList.add('gen-check-step');
 
-  // the whole profile in one link
-  const linkButton = el('button', { type: 'button', class: 'gen-link-button', title: 'Every setting above in one link\n- bookmark it or send it.\n\nLeft out:\n- passwords, webhooks, admins,\n- how your machine runs it (service, FUSE).' });
-  const linkLabel = '<i class="fa-solid fa-link"></i>Copy a link to this profile';
-  linkButton.innerHTML = linkLabel;
-
-  linkButton.addEventListener('click', () => {
-    const shown = () => {
-      linkButton.innerHTML = '<i class="fa-solid fa-check"></i>Link copied';
-      linkButton.classList.add('copied');
-
-      setTimeout(() => {
-        linkButton.innerHTML = linkLabel;
-        linkButton.classList.remove('copied');
-      }, 1500);
-    };
-
-    navigator.clipboard.writeText(profileLink()).then(shown, () => prompt('The link to this profile:', profileLink()));
-  });
-
-  // over YOUR CONFIGS: it's the settings above, not what they make
-  // under the profile's bar, with the instructions (profileLinks)
   // the setup first - the rest needs what it makes (the user, the folders)
   [steps.before, steps.config, steps.secret, steps.service, steps.firewall, steps.start, steps.playersKey, steps.check].forEach(st => mount.appendChild(st.el));
 
@@ -2785,7 +2713,10 @@
   // the AppImage's conf.d/server.json
   // the server starts with the first arena of its cycle; a cycle of one is just that arena
   const startArena = () => state.cycle[0] || 'de_cyberaqua';
-  const cycleOn = () => state.cycle.length > 1 && !isTournament();
+  // the game's own default: the three arenas, shuffled - no line for it; one arena is a cycle of one
+  const cycleOn = () => !isTournament() && !(JSON.stringify(state.cycle) === JSON.stringify(defaults.cycle) && state.cycleRandom);
+  const cycleArenas = () => (state.cycle.length ? state.cycle : ['de_cyberaqua']).map(withMode);
+  const cycleShuffleOff = () => !state.cycleRandom && state.cycle.length > 1;
 
   function buildSettings() {
     const mode = NOT_BOMB_BY_DEFAULT.includes(startArena()) ? 'bomb_defusal' : '';
@@ -2853,10 +2784,9 @@
 
     // a tournament plays its own arenas, round by round
     if (cycleOn()) {
-      server.cycle = 'LIST';
-      server.cycle_list = state.cycle.map(withMode);
+      server.cycle_list = cycleArenas();
 
-      if (!state.cycleRandom) {
+      if (cycleShuffleOff()) {
         server.cycle_randomize_order = false;
       }
     }
@@ -2949,9 +2879,9 @@
     }
 
     if (cycleOn()) {
-      put('HYPERSOMNIA_MAP_CYCLE', state.cycle.map(withMode).join(','));
+      put('HYPERSOMNIA_MAP_CYCLE', cycleArenas().join(','));
 
-      if (!state.cycleRandom) {
+      if (cycleShuffleOff()) {
         put('HYPERSOMNIA_MAP_CYCLE_RANDOM', 'off');
       }
     }
@@ -4044,16 +3974,9 @@
     return out;
   }
 
-  function profileLink() {
-    const changed = changedFromDefaults();
-    NOT_IN_LINK.forEach(k => { delete changed[k]; });
-
-    return location.origin + location.pathname + PROFILE_HASH + encodeProfile({ setup: currentSetup, state: changed });
-  }
-
-  function profileMarkdown() {
+  function profileMarkdown(withSecrets) {
     const block = (title, lang, text) => `## ${title}\n\n\`\`\`${lang}\n${text}\n\`\`\`\n`;
-    const parts = [`# ${isTournament() ? 'Hypersomnia tournament' : (state.name || 'My server')} - ${setupName()}\n`, 'Made with https://hypersomnia.io/generator\n', `Open these settings again (without the passwords, webhooks and admins): ${profileLink()}\n`];
+    const parts = [`# ${isTournament() ? 'Hypersomnia tournament' : (state.name || 'My server')} - ${setupName()}\n`, 'Made with https://hypersomnia.io/generator\n'];
 
     if (beforeText()) {
       parts.push(block(beforeTitle(), 'sh', beforeText()));
@@ -4086,7 +4009,7 @@
       parts.push(block('Your startup command', 'sh', startText()));
     }
     // the profile itself, to read - the generator loads it from a .json file
-    parts.push(`## Profile\n\nSaved as a \`.json\` file, it loads back into https://hypersomnia.io/generator.\n\n\`\`\`json\n${profileJson()}\n\`\`\`\n`);
+    parts.push(`## Profile\n\nSaved as a \`.json\` file, it loads back into https://hypersomnia.io/generator.\n\n\`\`\`json\n${profileJson(withSecrets)}\n\`\`\`\n`);
 
     // all of the above in one script - with the script's own choices as they're set now
     const choices = [
@@ -4100,11 +4023,20 @@
   }
 
   /*
-    The profile: the setup and only what differs from the defaults (secrets too - it's your file; the link has none).
-    The same JSON in the box above the bar, in a .json to save and load, and at the end of the instructions.
+    The profile: the setup and only what differs from the defaults - never the secrets, so it's safe to share.
+    The same JSON in the box above the bar, in a .json to save and load, and at the end of the instructions
+    (there with the secrets when asked for).
   */
 
-  const profileJson = () => JSON.stringify({ setup: currentSetup, state: changedFromDefaults() }, null, 2);
+  const profileJson = (withSecrets = false) => {
+    const changed = changedFromDefaults();
+
+    if (!withSecrets) {
+      SECRET_KEYS.forEach(k => { delete changed[k]; });
+    }
+
+    return JSON.stringify({ setup: currentSetup, state: changed }, null, 2);
+  };
 
   function download(text, type, file) {
     const blob = new Blob([text], { type });
@@ -4117,13 +4049,87 @@
 
   const profileName = () => 'hypersomnia-' + ((isTournament() ? 'tournament' : (state.name || 'server')).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'server');
 
-  const saveInstructions = () => download(profileMarkdown(), 'text/markdown', profileName() + '.md');
-  const saveProfile = () => download(profileJson() + '\n', 'application/json', profileName() + '.json');
+  // the secrets set - their names for the note after a paste
+  const SECRET_NAMES = {
+    password: 'password',
+    webhook: 'Discord webhook',
+    tResultsWebhook: 'results webhook',
+    admins: 'admins',
+    spectator: 'spectator account'
+  };
+
+  const secretsIn = st => Object.keys(SECRET_NAMES).filter(k => {
+    const value = st[k];
+    return Array.isArray(value) ? value.length : (typeof value === 'string' && value.trim());
+  });
+
+  /*
+    The instructions as the profile: without the secrets, their places say what goes there.
+  */
+
+  const SECRET_PLACEHOLDERS = {
+    password: 'YOUR_PASSWORD',
+    webhook: 'https://YOUR_DISCORD_WEBHOOK',
+    tResultsWebhook: 'https://YOUR_RESULTS_WEBHOOK',
+    admins: 'YOUR_ADMIN_ACCOUNT',
+    spectator: 'YOUR_SPECTATOR_ACCOUNT'
+  };
+
+  function instructionsMarkdown(withSecrets) {
+    if (withSecrets) {
+      return profileMarkdown(true);
+    }
+
+    const real = state;
+    state = Object.assign({}, real);
+
+    Object.keys(SECRET_PLACEHOLDERS).forEach(k => {
+      if (String(real[k]).trim()) {
+        state[k] = SECRET_PLACEHOLDERS[k];
+      }
+    });
+
+    try {
+      return profileMarkdown(false);
+    }
+    finally {
+      state = real;
+    }
+  }
+
+  /*
+    Saved with secrets set (the instructions, the profile): asked first whether they go into the file.
+  */
+
+  function askSecrets(where, save) {
+    if (!secretsIn(state).length) {
+      save(false);
+      return;
+    }
+
+    const withButton = el('button', { type: 'button', class: 'gen-link-button gen-with-secrets', text: 'With secrets' });
+    const withoutButton = el('button', { type: 'button', class: 'gen-link-button', text: 'Without secrets' });
+    const cancelButton = el('button', { type: 'button', class: 'gen-link-button', text: 'Cancel' });
+
+    const dismiss = showModal('Include your secrets?', [
+      el('p', { class: 'gen-field-text', html: `Your ${secretsIn(state).map(k => SECRET_NAMES[k]).join(', ')} - ${where},<br>or ${where === 'in the profile' ? 'left out' : 'placeholders like <code>YOUR_PASSWORD</code> in their places'}.` }),
+      el('div', { class: 'gen-link-row gen-secrets-buttons' }, [withButton, withoutButton, cancelButton])
+    ], true);
+
+    withButton.addEventListener('click', () => { save(true); dismiss(); });
+    withoutButton.addEventListener('click', () => { save(false); dismiss(); });
+    cancelButton.addEventListener('click', dismiss);
+  }
+
+  const saveInstructions = () => askSecrets('in the commands and the profile', withSecrets => download(instructionsMarkdown(withSecrets), 'text/markdown', profileName() + '.md'));
+  const saveProfile = () => askSecrets('in the profile', withSecrets => download(profileJson(withSecrets) + '\n', 'application/json', profileName() + '.json'));
 
   /*
     A profile into the form: checked as a link's (sanitizeState) - nothing in it reaches the commands unchecked.
     What it doesn't name is the default. Null: it's not a profile (the reason in the error).
   */
+
+  let lastAppliedSecrets = [];
 
   function applyProfile(text) {
     let parsed;
@@ -4139,7 +4145,12 @@
       return 'Not a profile: expected { "setup": ..., "state": { ... } } - nothing changed.';
     }
 
-    state = sanitizeState(Object.assign({}, defaults, parsed.state || {}));
+    // the secrets it doesn't name stay as they are - a profile without them doesn't wipe this browser's
+    // the ones it has go into the form - and the box shows itself without them, so a note says where they went
+    lastAppliedSecrets = secretsIn(parsed.state || {});
+    const secrets = {};
+    SECRET_KEYS.forEach(k => { secrets[k] = state[k]; });
+    state = sanitizeState(Object.assign({}, defaults, secrets, parsed.state || {}));
 
     if (setupIds.includes(parsed.setup) && parsed.setup !== currentSetup) {
       // the tab's listeners refresh the inputs and the outputs
@@ -4162,6 +4173,7 @@
     else {
       profileText.value = profileJson();
       showProfile(profileText.value);
+      showAppliedSecrets();
     }
   }
 
@@ -4203,8 +4215,10 @@
     return el('div', { class: 'btn' }, [b]);
   };
 
+  const saveProfileButton = profileButton('fa-solid fa-download', 'Save (.json)', saveProfile, 'The JSON above, as a file.');
+
   const profileBar = el('div', { class: 'btn-group gen-profile-bar' }, [
-    profileButton('fa-solid fa-download', 'Save (.json)', saveProfile, 'The JSON above, as a file.\n\nUnlike the link, it has\nthe passwords, webhooks and admins.'),
+    saveProfileButton,
     profileButton('fa-solid fa-upload', 'Load (.json)', () => profileFile.click(), 'From a .json saved here.'),
     profileButton('fa-solid fa-rotate-left', 'Reset to defaults', resetToDefaults),
     profileFile
@@ -4227,10 +4241,21 @@
     el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' })
   ]);
   // a tile as Check that it works: only the box in it is highlighted
+  const profileSub = el('p', { class: 'gen-field-text gen-profile-sub', html: 'Only what differs from the defaults - edit or paste it here.<br>Safe to share - no passwords, webhooks or admins.' });
+  const profileApplied = el('p', { class: 'gen-field-text gen-profile-applied' });
+  profileApplied.hidden = true;
+
+  // a pasted or loaded profile's secrets: in the form now, not in the box
+  function showAppliedSecrets() {
+    profileApplied.innerHTML = `<i class="fa-solid fa-check gen-secure"></i>Secrets applied to the form: ${lastAppliedSecrets.map(k => SECRET_NAMES[k]).join(', ')}.`;
+    profileApplied.hidden = !lastAppliedSecrets.length;
+  }
+
   const profileBody = el('div', { class: 'gen-step-body' }, [
-    el('p', { class: 'gen-field-text gen-profile-sub', text: 'Only what differs from the defaults - edit or paste it here.' }),
+    profileSub,
     profileEditor,
-    profileError
+    profileError,
+    profileApplied
   ]);
   const profileBox = el('div', { class: 'gen-step gen-profile-box' }, [
     el('div', { class: 'gen-step-head' }, [el('span', { class: 'gen-step-title', text: 'Your profile' })]),
@@ -4252,6 +4277,11 @@
 
     profileTimer = setTimeout(() => {
       const error = applyProfile(profileText.value);
+
+      if (!error) {
+        showAppliedSecrets();
+      }
+
       profileError.textContent = error || '';
       profileError.hidden = !error;
       profileEditor.classList.toggle('gen-bad', !!error);
@@ -4277,6 +4307,9 @@
       return;
     }
 
+    // the form changed since - the note was about the paste
+    profileApplied.hidden = true;
+
     profileText.value = profileJson();
     showProfile(profileText.value);
     profileError.hidden = true;
@@ -4285,9 +4318,9 @@
 
   // under everything: the profile, then its buttons
   // the instructions and the link apart from the bar: they don't change the profile
-  const instructionsButton = el('button', { type: 'button', class: 'gen-link-button', html: '<i class="fa-solid fa-file-lines"></i>Save complete instructions (.md)', title: 'Every step in one Markdown file\n- for a human or an LLM.\n\nUnlike the link, it has\nthe passwords, webhooks and admins.' });
+  const instructionsButton = el('button', { type: 'button', class: 'gen-link-button', html: '<i class="fa-solid fa-file-lines"></i>Save complete instructions (.md)', title: 'Every step in one Markdown file\n- for a human or an LLM.' });
   instructionsButton.addEventListener('click', saveInstructions);
-  const profileLinks = el('div', { class: 'gen-link-row gen-profile-links' }, [linkButton, instructionsButton]);
+  const profileLinks = el('div', { class: 'gen-link-row gen-profile-links' }, [instructionsButton]);
 
   // its buttons in its tile, under the box - then the link and the instructions
   profileBody.append(profileBar, profileLinks);

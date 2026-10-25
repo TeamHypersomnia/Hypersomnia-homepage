@@ -1100,6 +1100,12 @@ footer.site-footer > a {
   display: none;
 }
 
+/* after a paste with secrets: where they went */
+.gen-profile-applied .gen-secure {
+  margin-right: 0.35em;
+  color: var(--online);
+}
+
 .gen-switch-track {
   position: relative;
   flex: none;
@@ -2453,4 +2459,30 @@ body.gen-page {
 /* in the profile's tile, under its bar */
 .gen-profile-box .gen-profile-links {
   margin: 0.4em 0 0;
+}
+
+/* with secrets or without (the instructions): as tall as what's in it, its two buttons side by side */
+.gen-modal.gen-modal-fit:has(.gen-secrets-buttons) {
+  border-color: var(--accent);
+}
+
+.gen-secrets-buttons {
+  gap: 1em;
+  margin-top: 1em;
+}
+
+#config-generator .gen-secrets-buttons .gen-link-button {
+  flex: 1;
+  min-width: 0;
+}
+
+/* the one that lets the secrets out: red, more so when pointed at */
+#config-generator .gen-secrets-buttons .gen-with-secrets {
+  color: var(--red);
+  border-color: rgba(244, 71, 71, 0.5);
+}
+
+#config-generator .gen-secrets-buttons .gen-with-secrets:hover {
+  color: var(--red);
+  border-color: var(--red);
 }
