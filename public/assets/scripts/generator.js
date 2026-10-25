@@ -604,7 +604,7 @@
     const selection = el('div', {}, []);
     const cycleList = el('div', {}, [chips]);
 
-    const resetButton = el('button', { type: 'button', class: 'gen-reset', text: 'Back to the default' });
+    const resetButton = el('button', { type: 'button', class: 'gen-reset', text: 'Reset to defaults' });
     resetButton.addEventListener('click', () => {
       state.cycleRandom = true;
       state.cycleAll = false;
