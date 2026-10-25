@@ -1106,6 +1106,11 @@ footer.site-footer > a {
   color: var(--online);
 }
 
+.gen-profile-applied .gen-kept {
+  margin-right: 0.35em;
+  color: var(--accent);
+}
+
 .gen-switch-track {
   position: relative;
   flex: none;
@@ -2471,6 +2476,11 @@ body.gen-page {
   margin-top: 1em;
 }
 
+#config-generator .gen-secrets-list {
+  margin: 0 0 0.4em;
+  padding-left: 1.4em;
+}
+
 #config-generator .gen-secrets-buttons .gen-link-button {
   flex: 1;
   min-width: 0;
@@ -2485,4 +2495,16 @@ body.gen-page {
 #config-generator .gen-secrets-buttons .gen-with-secrets:hover {
   color: var(--red);
   border-color: var(--red);
+}
+
+/* not now: the settings have errors */
+#config-generator .gen-link-button:disabled,
+.gen-profile-links .gen-link-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Telegram: the bot's token and, short beside it, its channel - one line */
+.gen-telegram-channel input {
+  width: 13em;
 }

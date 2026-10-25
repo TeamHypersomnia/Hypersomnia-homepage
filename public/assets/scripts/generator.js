@@ -102,10 +102,11 @@
   tabButtons.concat(subtabButtons).forEach(b => b.addEventListener('click', () => selectSetup(b.dataset.setup)));
 
   /*
-    The secrets: in the browser's storage, in the complete instructions - in a profile only when asked (Your profile).
+    The secrets: in the browser's storage - in a saved profile or the instructions only when asked (askSecrets).
   */
 
-  const SECRET_KEYS = ['password', 'passwordOn', 'webhook', 'admins', 'adminOn', 'spectator', 'spectatorOn', 'tResultsWebhook'];
+  // account ids aren't secrets - the admins and the spectator stay in a shared profile
+  const SECRET_KEYS = ['password', 'passwordOn', 'webhook', 'tResultsWebhook', 'telegramToken'];
 
   // a link to a setup or its group (e.g. /generator#tournament) opens it; otherwise the last one chosen
   const linkedSetup = (() => {
@@ -222,6 +223,8 @@
     fuse: false,
     // in a terminal, a systemd service as you, or as its own user
     service: 'off',
+    // the machine's firewall - in the profile, as how the server runs
+    firewall: 'none',
     adminOn: false,
     spectatorOn: false,
     spectator: '',
@@ -250,6 +253,8 @@
     serverWho: 'anyone',
     allowedPlayers: [],
     webhook: '',
+    telegramToken: '',
+    telegramChannel: '',
     tResultsWebhook: ''
   };
 
@@ -267,14 +272,14 @@
   catch (e) {}
 
   /*
-    Whatever the link or the browser's storage brought in is checked against the defaults - a link is anyone's:
+    Whatever a pasted profile or the browser's storage brought in is checked against the defaults - a profile is anyone's:
     a number out of its range or text where an arena or a port goes would end up in the commands and on the page.
   */
 
   function sanitizeState(raw) {
     const out = Object.assign({}, defaults);
     const ranges = { tJoinTimeout: [1, 30], tSpectatorPlaces: [0, 50], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
-    const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'], serverWho: ['anyone', 'accounts'], botDifficulty: BOT_DIFFICULTIES.map(d => d[0]), service: ['off', 'systemd', 'user'] };
+    const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'], serverWho: ['anyone', 'accounts'], botDifficulty: BOT_DIFFICULTIES.map(d => d[0]), service: ['off', 'systemd', 'user'], firewall: ['none', 'ufw', 'firewalld'] };
     const arenaName = v => typeof v === 'string' && /^[A-Za-z0-9_.-]{1,64}$/.test(v);
 
     // a listed player: a nickname, and an account id that can only be one - nothing else gets in
@@ -318,15 +323,15 @@
       else if (k === 'tTeams') {
         if (Array.isArray(v)) {
           // a team without players isn't kept - a New match left unfinished is gone after a reload
-          out[k] = v.filter(Array.isArray).map(players).filter(team => team.length > 0).slice(0, 64);
+          out[k] = v.slice(0, 64).filter(Array.isArray).map(team => players(team.slice(0, 64))).filter(team => team.length > 0);
         }
       }
       else if (k === 'allowedPlayers') {
-        out[k] = players(v).slice(0, 256);
+        out[k] = Array.isArray(v) ? players(v.slice(0, 256)) : [];
       }
       else if (Array.isArray(d)) {
         if (Array.isArray(v)) {
-          out[k] = v.filter(arenaName);
+          out[k] = v.slice(0, 64).filter(arenaName);
         }
       }
       else if (k === 'tIdsText') {
@@ -341,6 +346,14 @@
       }
       else if (k === 'timeZone') {
         if (typeof v === 'string' && /^[A-Za-z0-9_+\/-]{0,64}$/.test(v)) {
+          out[k] = v;
+        }
+      }
+      else if (typeof d === 'string') {
+        // one line each - a newline would end a heredoc of the script (EOF, then a command); the admins one per line
+        const allowed = k === 'admins' ? /^[^\u0000-\u0009\u000b-\u001f\u007f]*$/ : /^[^\u0000-\u001f\u007f]*$/;
+
+        if (typeof v === 'string' && v.length <= 2000 && allowed.test(v)) {
           out[k] = v;
         }
       }
@@ -579,7 +592,7 @@
   const adminWarning = el('div', { class: 'gen-hint' });
 
   const advancedSet = () =>
-    state.timeZone !== '' || state.webhook !== '' || state.adminOn || state.spectatorOn || state.tResultsWebhook !== '' ||
+    state.timeZone !== '' || state.webhook !== '' || state.telegramToken !== '' || state.telegramChannel !== '' || state.adminOn || state.spectatorOn || state.tResultsWebhook !== '' ||
     !state.autoupdate || state.updateHour !== 3
   ;
 
@@ -605,7 +618,8 @@
     No commas to type; the same text in a variable above the startup command, in compose.yaml and in docker run.
   */
 
-  const escapedForQuotes = v => v.replace(/[\\"$`]/g, c => '\\' + c);
+  // in single quotes: nothing in them is expanded - not even a "!" pasted into an interactive shell
+  const singleQuoted = v => "'" + v.replace(/'/g, "'\\''") + "'";
 
   function teamsText() {
     const teams = filledTeams().map(t => t.map(playerEntry));
@@ -613,11 +627,11 @@
     return teams.map(t => t.join('\n')).join(apart ? '\n\n' : '\n');
   }
 
-  const teamsVariable = () => `TEAMS="${escapedForQuotes(teamsText())}"`;
+  const teamsVariable = () => `TEAMS=${singleQuoted(teamsText())}`;
 
   // the rounds' arenas the same way, one per line
   const arenasText = () => roundMaps().map(withMode).join('\n');
-  const arenasVariable = () => `ARENAS="${escapedForQuotes(arenasText())}"`;
+  const arenasVariable = () => `ARENAS=${singleQuoted(arenasText())}`;
 
   // what the startup command's variables are made of - above it
   // each apart by an empty line, and from the command
@@ -1333,7 +1347,8 @@
   */
 
   function idLines() {
-    const out = {};
+    // no prototype: a nickname "constructor" or "toString" is just a nickname
+    const out = Object.create(null);
 
     state.tIdsText.split('\n').forEach(line => {
       const l = line.trim();
@@ -1514,7 +1529,7 @@
   let profileBoxReady = false;
   // the contents on the left - made last too
   let tocReady = false;
-  const scriptOptions = { firewall: 'none', start: true, dataFolder: true };
+  const scriptOptions = { start: true, dataFolder: true };
 
   // the config's files, and the firewall - remade on every change
   const configResults = el('div');
@@ -1541,6 +1556,11 @@
       return '';
     }
 
+    // off the list: only at its own address
+    if (!state.serverListOn) {
+      return `Your tournament's results page:<br><code>http://&lt;your server&gt;:${pagePort()}/</code><br><br>`;
+    }
+
     return `Within a minute your matches are on:<br><a href="/servers" target="_blank">hypersomnia.io/servers<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a><br>with <span class="gen-results-tag"><i class="fa-solid fa-trophy"></i> Results</span> next to them - your tournament's results page:<br><code>http://&lt;your server&gt;:${pagePort()}/</code><br><br>`;
   }
 
@@ -1555,6 +1575,11 @@
       checkImage.src = '/assets/images/generator/server_browser_tournament_open.png';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
+    else if (!state.serverListOn) {
+      checkText.innerHTML = 'Players who copy your line (above) find your server under <code>Favorites</code> in <code>Browse servers</code>.<br><br>Nobody can join?<br>Open the ports - see ' + (oneShot ? '<code>Firewall</code> in the script\'s options above.' : '<code>Your firewall commands</code> above.');
+      checkImage.src = '/assets/images/generator/server_browser.png?t=2';
+      checkImage.alt = 'Your server in Browse servers';
+    }
     else {
       checkText.innerHTML = 'Within a minute your server is on:<br><a href="/servers" target="_blank">hypersomnia.io/servers<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a><br>and in <code>Browse servers</code> in the game.<br><br>On the list but nobody can join?<br>Open the ports - see ' + (oneShot ? '<code>Firewall</code> in the script\'s options above.' : '<code>Your firewall commands</code> above.');
       checkImage.src = '/assets/images/generator/server_browser.png?t=2';
@@ -1567,11 +1592,12 @@
   */
 
   const BEFORE = {
-    terminal: 'wget -O Hypersomnia-Headless.AppImage \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage',
-    service: 'cd ~\nwget -O Hypersomnia-Headless.AppImage \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage\nmkdir -p ~/.config/systemd/user',
+    // downloaded next to it, then renamed over it - a running server keeps its file (a download into it: "Text file busy")
+    terminal: 'wget -O Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage.new\nmv -f Hypersomnia-Headless.AppImage.new Hypersomnia-Headless.AppImage',
+    service: 'cd ~\nwget -O Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage.new\nmv -f Hypersomnia-Headless.AppImage.new Hypersomnia-Headless.AppImage\nmkdir -p ~/.config/systemd/user',
     // the same, the server running as its own user
     // its home is only its own (700) - no cd into it, the paths in full
-    serviceUser: 'sudo useradd --system --create-home --home-dir /opt/hypersomnia hypersomnia\nsudo -u hypersomnia wget -O /opt/hypersomnia/Hypersomnia-Headless.AppImage \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nsudo chmod +x /opt/hypersomnia/Hypersomnia-Headless.AppImage',
+    serviceUser: 'sudo useradd --system --create-home --home-dir /opt/hypersomnia hypersomnia\nsudo chmod 700 /opt/hypersomnia\nsudo -u hypersomnia wget -O /opt/hypersomnia/Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nsudo chmod +x /opt/hypersomnia/Hypersomnia-Headless.AppImage.new\nsudo -u hypersomnia mv -f /opt/hypersomnia/Hypersomnia-Headless.AppImage.new /opt/hypersomnia/Hypersomnia-Headless.AppImage',
     compose: 'sudo mkdir -p /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia',
     run: 'sudo mkdir -p /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia'
   };
@@ -1843,6 +1869,10 @@
     serverListInput.value = DEFAULT_SERVER_LIST;
     update();
   });
+
+  // browser players join only through the server list
+  const browserOn = () => state.browser && state.serverListOn;
+  const browserRow = settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a>')]);
 
   const serverListWarning = el('p', { class: 'gen-port-warning', html: '<i class="fa-solid fa-triangle-exclamation"></i>Browser players can\'t join - and only those who know its address find the server.' });
 
@@ -2126,7 +2156,7 @@
   */
 
   // with Anyone, round 1 has no teams to wait for - one sentence on what happens there instead
-  const joinTimeoutHelp = anyone => 'How long a match waits for all its players.\n\nThen:\n- more players present: that team wins,\n- equal numbers: it starts as they are,\n- nobody came: both teams are out.' +
+  const joinTimeoutHelp = anyone => 'How long a match waits for all its players,\ncounted from the round\'s first player.\n\nThen:\n- more players present: that team wins,\n- equal numbers: it starts as they are,\n- nobody came: both teams are out.' +
     (anyone ? '\n\nRound 1: a player left alone on a server goes on without playing.' : '') +
     '\n\nMatches being played are never touched.';
 
@@ -2150,7 +2180,7 @@
 
   const spectatorPlacesWarning = el('p', { class: 'gen-port-warning' });
   const spectatorPlacesRow = settingRow(
-    'Places to watch',
+    'Extra spectator slots',
     [sliderInput('tSpectatorPlaces', 0, 50)],
     'How many others may watch each match:\nthe teams out or waiting.\n\nIts players always get in,\nthe admins and the spectator account too.'
   );
@@ -2258,7 +2288,7 @@
     only(tournamentRows, joinTimeoutRow),
     only(tournamentRows, mapsRow),
     only(tournamentRows, settingRow('Live results page', [switchInput('tPage', () => {}, '<code>http://&lt;your server&gt;:<span class="gen-page-port"></span>/</code>'), pageExampleButton], 'The bracket with live scores.\n\nServed by the game server itself, over TCP.\n\nAs JSON: `/tournament.json`.')),
-    settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a>')]),
+    browserRow,
     portsRow,
     only(serverRows, serverWhoRow),
     passwordRow
@@ -2273,7 +2303,12 @@
     spectatorRow,
     only(tournamentRows, spectatorPlacesRow),
     only(tournamentRows, resultsWebhookRow),
-    settingRow('Discord webhook', [textInput('webhook', 'to post joins and match results to your Discord')])
+    settingRow('Discord webhook', [textInput('webhook', 'to post joins and match results to your Discord')]),
+    // its bot and its channel, both - a bot alone would post to the game's own channel (the default)
+    settingRow('Telegram bot', [
+      textInput('telegramToken', 'bot token, from @BotFather'),
+      el('span', { class: 'gen-telegram-channel' }, [textInput('telegramChannel', 'e.g. @hypersomnia_monitor', 64)])
+    ], 'Short notices only: who joins the server.\nMatch results go to Discord.\n\nRequires both: the bot\'s token and the channel\n(the bot an admin of it).')
   ]);
 
   const serverAdvancedButton = el('button', { type: 'button', class: 'gen-table-toggle' });
@@ -2342,6 +2377,10 @@
       idsText.value = state.tIdsText;
     }
 
+    // off the list, browser players can't join - their port isn't opened either
+    browserRow.classList.toggle('gen-row-disabled', !state.serverListOn);
+    browserRow.querySelectorAll('input').forEach(i => { i.disabled = !state.serverListOn; });
+
     const verified = byAccounts();
     passwordRow.classList.toggle('gen-row-disabled', verified);
     passwordRow.querySelectorAll('input').forEach(i => { i.disabled = verified; });
@@ -2372,11 +2411,11 @@
     botDifficultySelect.querySelector('option[value=PROGRESSIVE]').disabled = state.botQuotaOn;
 
     portsRow.show(
-      `${portSpan(state.port)} UDP` + (state.browser ? `, ${portSpan(state.webPort)} UDP` : '') + (pageOn() ? `, ${pagePort()} TCP` : ''),
+      `${portSpan(state.port)} UDP` + (browserOn() ? `, ${portSpan(state.webPort)} UDP` : '') + (pageOn() ? `, ${pagePort()} TCP` : ''),
       state.port === 8412 && state.webPort === 9000 && !state.tPagePort
     );
 
-    tableWebPort.hidden = !state.browser;
+    tableWebPort.hidden = !browserOn();
     portWarning.hidden = state.port >= 8412 && state.port <= 8415;
     if (document.activeElement !== tablePagePort) {
       tablePagePort.value = String(pagePort());
@@ -2387,7 +2426,7 @@
     // three columns with a tournament's results page, two without - each port under its own name
     tablePagePort.parentElement.classList.toggle('with-page', pageOn());
     document.querySelectorAll('.gen-page-port').forEach(e => { e.textContent = String(pagePort()); });
-    tableWebHead.style.visibility = state.browser ? '' : 'hidden';
+    tableWebHead.style.visibility = browserOn() ? '' : 'hidden';
 
     adminRow.classList.toggle('open', adminWarning.style.display !== 'none' && adminWarning.textContent !== '');
   }
@@ -2512,7 +2551,9 @@
     el('option', { value: 'firewalld', text: 'firewalld (Fedora, RHEL)' })
   ]);
 
-  firewallSelect.addEventListener('change', () => { scriptOptions.firewall = firewallSelect.value; update(); });
+  firewallSelect.value = state.firewall;
+  firewallSelect.addEventListener('change', () => { state.firewall = firewallSelect.value; update(); });
+  refreshers.push(() => { firewallSelect.value = state.firewall; });
 
   const scriptStartCheck = el('input', { type: 'checkbox' });
   scriptStartCheck.checked = scriptOptions.start;
@@ -2711,15 +2752,13 @@
   const withMode = n => NOT_BOMB_BY_DEFAULT.includes(n) ? `${n} bomb_defusal` : n;
 
   // the AppImage's conf.d/server.json
-  // the server starts with the first arena of its cycle; a cycle of one is just that arena
-  const startArena = () => state.cycle[0] || 'de_cyberaqua';
-  // the game's own default: the three arenas, shuffled - no line for it; one arena is a cycle of one
+  // only map_cycle: the server starts on its first (or a random one of it); one map alone stays
+  // the game's own default: the three arenas, shuffled - no line for it
   const cycleOn = () => !isTournament() && !(JSON.stringify(state.cycle) === JSON.stringify(defaults.cycle) && state.cycleRandom);
   const cycleArenas = () => (state.cycle.length ? state.cycle : ['de_cyberaqua']).map(withMode);
   const cycleShuffleOff = () => !state.cycleRandom && state.cycle.length > 1;
 
   function buildSettings() {
-    const mode = NOT_BOMB_BY_DEFAULT.includes(startArena()) ? 'bomb_defusal' : '';
     const ids = adminIds();
 
     const server = {};
@@ -2730,15 +2769,6 @@
       if (state.name.trim() && state.name.trim() !== 'My server') {
         server.server_name = state.name.trim();
       }
-    }
-
-    // the default arena needs no line
-    if (!isTournament() && startArena() !== 'de_cyberaqua') {
-      server.arena = startArena();
-    }
-
-    if (mode && !isTournament()) {
-      server.game_mode = mode;
     }
 
     // no bots: a quota of 0; a number set: that number; otherwise the arena's own
@@ -2784,10 +2814,10 @@
 
     // a tournament plays its own arenas, round by round
     if (cycleOn()) {
-      server.cycle_list = cycleArenas();
+      server.map_cycle = cycleArenas();
 
       if (cycleShuffleOff()) {
-        server.cycle_randomize_order = false;
+        server.map_cycle_random = false;
       }
     }
 
@@ -2795,7 +2825,7 @@
       server.notified_server_list = serverListAddress();
     }
 
-    if (!state.browser) {
+    if (!browserOn()) {
       server.allow_webrtc_clients = false;
     }
     else if (state.webPort !== 9000) {
@@ -2812,6 +2842,11 @@
 
     if (updatesOn() && state.updateHour !== 3) {
       server.daily_autoupdate_hour = hourText(state.updateHour);
+    }
+
+    if (telegramOn()) {
+      secrets.telegram_webhook_url = `https://api.telegram.org/bot${state.telegramToken.trim()}`;
+      secrets.telegram_channel_id = state.telegramChannel.trim();
     }
 
     if (state.webhook) {
@@ -2851,7 +2886,10 @@
     Only what differs from the defaults is written.
   */
 
-  const SECRET_VARS = ['HYPERSOMNIA_PASSWORD', 'HYPERSOMNIA_DISCORD_WEBHOOK', 'HYPERSOMNIA_TOURNAMENT_RESULTS_WEBHOOK'];
+  const SECRET_VARS = ['HYPERSOMNIA_PASSWORD', 'HYPERSOMNIA_DISCORD_WEBHOOK', 'HYPERSOMNIA_TOURNAMENT_RESULTS_WEBHOOK', 'HYPERSOMNIA_TELEGRAM_BOT_TOKEN'];
+
+  // the bot and its channel, both filled - one alone is an error (configErrors)
+  const telegramOn = () => state.telegramToken.trim() !== '' && state.telegramChannel.trim() !== '';
 
   /*
     A .env line: single quotes keep the value as it is. A value with ' in double quotes:
@@ -2868,15 +2906,28 @@
     return secret.length ? secret.map(([k, v]) => envLine(k, v)).join('\n') : '';
   }
 
+  /*
+    Every docker command with sudo: the docker socket is root's - only root and the docker group may use it,
+    and the scripts use sudo already (the data folder).
+  */
+
+  /*
+    docker run's secrets: in a file next to it (--env-file), not on its command line - where ps shows them.
+    Docker reads its values as they are, no quotes - a secret is one line (sanitizeState).
+  */
+
+  const RUN_ENV_FILE = 'hypersomnia.env';
+
+  function runEnvFile() {
+    const secret = dockerEnv().filter(([k]) => SECRET_VARS.includes(k));
+    return secret.map(([k, v]) => `${k}=${v}`).join('\n');
+  }
+
   function dockerEnv() {
     const named = !isTournament() && state.name.trim() && state.name.trim() !== 'My server';
     const env = named ? [['HYPERSOMNIA_SERVER_NAME', state.name.trim()]] : [];
     const ids = adminIds();
     const put = (k, v) => env.push([k, v]);
-
-    if (!isTournament() && startArena() !== 'de_cyberaqua') {
-      put('HYPERSOMNIA_ARENA', withMode(startArena()));
-    }
 
     if (cycleOn()) {
       put('HYPERSOMNIA_MAP_CYCLE', cycleArenas().join(','));
@@ -2931,7 +2982,7 @@
       put('HYPERSOMNIA_SERVER_LIST', serverListAddress() || 'off');
     }
 
-    if (!state.browser) {
+    if (!browserOn()) {
       put('HYPERSOMNIA_BROWSER_PLAYERS', 'off');
     }
     else if (state.webPort !== 9000) {
@@ -2949,12 +3000,17 @@
       put('HYPERSOMNIA_TIME_ZONE', state.timeZone);
     }
 
+    if (telegramOn()) {
+      put('HYPERSOMNIA_TELEGRAM_BOT_TOKEN', state.telegramToken.trim());
+      put('HYPERSOMNIA_TELEGRAM_CHANNEL', state.telegramChannel.trim());
+    }
+
     if (state.webhook) {
       put('HYPERSOMNIA_DISCORD_WEBHOOK', state.webhook);
     }
 
     if (pairedBeforehand()) {
-      // a team per line, its players separated by commas
+      // a player per line, the teams apart by an empty line
       put('HYPERSOMNIA_TOURNAMENT_TEAMS', teamsText());
       put('HYPERSOMNIA_TOURNAMENT_ARENAS', arenasText());
     }
@@ -3024,7 +3080,7 @@
       '    ports:',
       `      - '${game}:${game}/udp'`,
       pageOn() ? `      - '${pagePort()}:${pagePort()}/tcp'` : null,
-      state.browser ? `      - '${web}:${web}/udp'` : null,
+      browserOn() ? `      - '${web}:${web}/udp'` : null,
       '    environment:'
     ].filter(line => line !== null);
 
@@ -3053,17 +3109,21 @@
     const web = portSpan(state.webPort);
 
     const lines = [
-      'docker run -d --name hypersomnia-server',
+      'sudo docker run -d --name hypersomnia-server',
       '  --restart unless-stopped',
       `  --publish ${game}:${game}/udp`,
       pageOn() ? `  --publish ${pagePort()}:${pagePort()}/tcp` : null,
-      state.browser ? `  --publish ${web}:${web}/udp` : null,
+      browserOn() ? `  --publish ${web}:${web}/udp` : null,
       '  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user'
     ].filter(line => line !== null);
 
     // the teams from the variable above the command (teamsVariable)
     const fromVariable = { HYPERSOMNIA_TOURNAMENT_TEAMS: '"$TEAMS"', HYPERSOMNIA_TOURNAMENT_ARENAS: '"$ARENAS"' };
-    env.forEach(([k, v]) => lines.push(`  --env ${k}=${fromVariable[k] || quote(v)}`));
+    env.filter(([k]) => !SECRET_VARS.includes(k)).forEach(([k, v]) => lines.push(`  --env ${k}=${fromVariable[k] || quote(v)}`));
+
+    if (runEnvFile()) {
+      lines.push(`  --env-file ${RUN_ENV_FILE}`);
+    }
 
     lines.push('  ghcr.io/teamhypersomnia/hypersomnia-server:latest');
     return startVariables() + lines.map((l, i) => i < lines.length - 1 ? l + ' \\' : l).join('\n');
@@ -3132,7 +3192,7 @@
 
   function firewallLines(kind) {
     const ufw = s => s.replace('-', ':');
-    const web = state.browser;
+    const web = browserOn();
 
     const lines = kind === 'ufw' ? [
       '# ufw (Ubuntu, Debian)',
@@ -3154,7 +3214,7 @@
   function openedPorts() {
     return [
       `UDP ${portSpan(state.port)}`,
-      state.browser ? `UDP ${portSpan(state.webPort)}` : null,
+      browserOn() ? `UDP ${portSpan(state.webPort)}` : null,
       pageOn() ? `TCP ${pagePort()}` : null
     ].filter(Boolean).join(', ');
   }
@@ -3174,6 +3234,58 @@
   // every line of a command wrapped so (wrapCommand)
   const wrapped = text => text.split('\n').map(wrapCommand).flat().join('\n');
 
+  /*
+    A command's arguments as the shell splits them: at spaces outside quotes, a backslash keeping the next character.
+    Null when a quote isn't closed.
+  */
+
+  function shellWords(text) {
+    const words = [];
+    let current = '';
+    let quote = '';
+
+    for (let i = 0; i < text.length; ++i) {
+      const c = text[i];
+
+      if (quote) {
+        current += c;
+
+        if (c === '\\' && quote === '"' && i + 1 < text.length) {
+          current += text[++i];
+        }
+        else if (c === quote) {
+          quote = '';
+        }
+      }
+      else if (c === '\\' && i + 1 < text.length) {
+        current += c + text[++i];
+      }
+      else if (c === "'" || c === '"') {
+        quote = c;
+        current += c;
+      }
+      else if (c === ' ' || c === '\t') {
+        if (current) {
+          words.push(current);
+          current = '';
+        }
+      }
+      else {
+        current += c;
+      }
+    }
+
+    if (quote) {
+      return null;
+    }
+
+    if (current) {
+      words.push(current);
+    }
+
+    return words;
+  }
+
   function wrapCommand(line) {
     const continued = / \\$/.test(line);
     const body = continued ? line.slice(0, -2) : line;
@@ -3183,8 +3295,13 @@
       return [line];
     }
 
-    // the arguments, a quoted one whole
-    const words = body.trim().match(/(?:'[^']*'|"(?:\\.|[^"])*"|[^\s'"])+/g) || [];
+    // the arguments, a quoted one whole (an apostrophe written as '\'' too) - not sure where they end: not wrapped
+    const words = shellWords(body.trim());
+
+    if (words === null) {
+      return [line];
+    }
+
     const out = [];
     let current = indent;
 
@@ -3246,10 +3363,10 @@
 
     if (m === 'compose' || m === 'run') {
       const [stop, start] = m === 'compose'
-        ? ['docker compose stop', 'docker compose start']
-        : ['docker stop hypersomnia-server', 'docker start hypersomnia-server'];
+        ? ['sudo docker compose stop', 'sudo docker compose start']
+        : ['sudo docker stop hypersomnia-server', 'sudo docker start hypersomnia-server'];
 
-      return `${stop}\nsudo mkdir -p ${folder}\nsudo install -m 600 -o 999 -g 999 ${file} ${path}\nsudo chown 999:999 ${folder}\nsudo chmod 700 ${folder}\n${start}`;
+      return `${stop}\nsudo mkdir -p ${folder}\n# 999: the server's user inside the container\nsudo install -m 600 -o 999 -g 999 ${file} ${path}\nsudo chown 999:999 ${folder}\nsudo chmod 700 ${folder}\n${start}`;
     }
 
     if (separateUser()) {
@@ -3276,7 +3393,8 @@
       return `scp <your server>:${path.slice(2)} hypersomnia-server.key`;
     }
 
-    return `(umask 077 && ssh <your server> 'sudo cat ${path}' > hypersomnia-server.key)`;
+    // into a .new first: a failed copy never leaves an empty file that looks like the backup
+    return `(umask 077 && ssh <your server> 'sudo cat ${path}' > hypersomnia-server.key.new && mv hypersomnia-server.key.new hypersomnia-server.key)`;
   }
 
   function printKeyCommand() {
@@ -3284,7 +3402,7 @@
     const extract = state.fuse ? '' : ' --appimage-extract-and-run';
 
     if (m === 'compose' || m === 'run') {
-      return 'docker run --rm \\\n  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user \\\n  ghcr.io/teamhypersomnia/hypersomnia-server:latest \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-server-key';
+      return 'sudo docker run --rm \\\n  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user \\\n  ghcr.io/teamhypersomnia/hypersomnia-server:latest \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-server-key';
     }
 
     if (separateUser()) {
@@ -3304,11 +3422,11 @@
     const extract = state.fuse ? '' : ' --appimage-extract-and-run';
 
     if (m === 'compose') {
-      return 'docker compose exec hypersomnia-server \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-join-string';
+      return 'sudo docker compose exec hypersomnia-server \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-join-string';
     }
 
     if (m === 'run') {
-      return 'docker exec hypersomnia-server \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-join-string';
+      return 'sudo docker exec hypersomnia-server \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-join-string';
     }
 
     if (separateUser()) {
@@ -3327,23 +3445,23 @@
     const cmd = text => text.split('\n').forEach(l => wrapCommand(l).forEach(w => lines.push(w)));
     const section = title => lines.push('', `# ${title}`);
 
-    // a file: as the server's own user, as root, or as whoever runs the script
-    const write = (path, text, owner) => {
+    // a file: as the server's own user, as root, or as whoever runs the script - a secret one made readable by its owner only
+    const write = (path, text, owner, secret = false) => {
       const into =
         owner === 'user' ? `sudo -u hypersomnia tee ${path} > /dev/null` :
         owner === 'root' ? `sudo tee ${path} > /dev/null` :
         `cat > ${path}`
       ;
 
-      cmd(`${into} <<'EOF'`);
+      cmd(secret ? `(umask 077 && ${into}) <<'EOF'` : `${into} <<'EOF'`);
       raw(text);
       lines.push('EOF');
     };
 
     const starts = scriptOptions.start;
-    const firewallText = scriptOptions.firewall === 'none'
+    const firewallText = state.firewall === 'none'
       ? 'left as it is'
-      : `${scriptOptions.firewall} - opens ${openedPorts()}`;
+      : `${state.firewall} - opens ${openedPorts()}`;
     const setupLine = m === 'service' ? (ownUser() ? 'a systemd service, as you' : 'a systemd service, as the user hypersomnia') : setupName();
     const again = {
       terminal: 'the files written anew',
@@ -3368,6 +3486,9 @@
       `# Firewall:  ${firewallText}`,
       `# Start now: ${starts ? 'yes' : m === 'service' ? 'no - it starts at the next reboot' : 'no - the startup command stays commented out'}`,
       '#',
+      '# Pasted into a terminal: all in ( ) - a failed step ends the script, not your session,',
+      '# and the space before ( keeps it, passwords too, out of the history where the shell skips such lines (Debian, Ubuntu).',
+      ' (',
       'set -euo pipefail'
     );
 
@@ -3391,25 +3512,46 @@
       section('compose.yaml and its .env - in this folder');
       write('compose.yaml', compose());
 
+      // run again without secrets: the old ones would stay in force
       if (dotEnv()) {
-        write('.env', dotEnv());
+        write('.env', dotEnv(), '', true);
         cmd('chmod 600 .env');
+      }
+      else {
+        cmd('rm -f .env');
+      }
+    }
+    else if (m === 'run') {
+      section(`The secrets - ${RUN_ENV_FILE}, in this folder`);
+
+      if (runEnvFile()) {
+        write(RUN_ENV_FILE, runEnvFile(), '', true);
+        cmd(`chmod 600 ${RUN_ENV_FILE}`);
+      }
+      else {
+        cmd(`rm -f ${RUN_ENV_FILE}`);
       }
     }
     else if (m === 'terminal' || m === 'service') {
       const { json, secrets } = buildSettings();
 
-      if (json || secrets) {
-        section('The config');
+      // run again with fewer settings: a file not needed now is removed - the old one would stay in force
+      section('The config');
+      const remove = path => cmd(asUser ? `sudo -u hypersomnia rm -f ${path}` : `rm -f ${path}`);
 
-        if (json) {
-          write(configPath(), prettyJson(json), asUser ? 'user' : '');
-        }
+      if (json) {
+        write(configPath(), prettyJson(json), asUser ? 'user' : '');
+      }
+      else {
+        remove(configPath());
+      }
 
-        if (secrets) {
-          write(privatePath(), prettyJson(secrets), asUser ? 'user' : '');
-          cmd(privateChmod());
-        }
+      if (secrets) {
+        write(privatePath(), prettyJson(secrets), asUser ? 'user' : '', true);
+        cmd(privateChmod());
+      }
+      else {
+        remove(privatePath());
       }
 
       if (m === 'service') {
@@ -3418,11 +3560,12 @@
       }
     }
 
-    if (scriptOptions.firewall !== 'none') {
+    if (state.firewall !== 'none') {
       section('The firewall');
-      const tool = scriptOptions.firewall === 'ufw' ? 'ufw' : 'firewall-cmd';
-      cmd(`if ! command -v ${tool} > /dev/null; then\n  echo "No ${tool} here - pick your firewall in the generator."\n  exit 1\nfi`);
-      cmd(firewallLines(scriptOptions.firewall).slice(1).join('\n'));
+      const tool = state.firewall === 'ufw' ? 'ufw' : 'firewall-cmd';
+      // looked for as root: /usr/sbin isn't in a user's PATH on Debian
+      cmd(`if ! sudo sh -c 'command -v ${tool}' > /dev/null; then\n  echo "No ${tool} here - pick your firewall in the generator."\n  exit 1\nfi`);
+      cmd(firewallLines(state.firewall).slice(1).join('\n'));
     }
 
     /*
@@ -3449,7 +3592,7 @@
       section('Start it');
 
       if (m === 'run') {
-        cmd('docker rm -f hypersomnia-server > /dev/null 2>&1 || true');
+        cmd('sudo docker rm -f hypersomnia-server > /dev/null 2>&1 || true');
         lines.push('');
       }
 
@@ -3464,7 +3607,7 @@
     else {
       // everything's set up - the start left for later, commented out
       section('The startup command - uncomment to start it:');
-      const later = (m === 'run' ? 'docker rm -f hypersomnia-server > /dev/null 2>&1 || true\n\n' : '') + startText();
+      const later = (m === 'run' ? 'sudo docker rm -f hypersomnia-server > /dev/null 2>&1 || true\n\n' : '') + startText();
       later.split('\n').forEach(l => wrapCommand(l).forEach(w => lines.push(`# ${w}`)));
     }
 
@@ -3479,6 +3622,7 @@
       }
     }
 
+    lines.push(')');
     return lines.join('\n');
   }
 
@@ -3553,6 +3697,19 @@
       errors.push('Tournament name: at most 100 characters (fewer with letters like ą or ł).');
     }
 
+    const token = state.telegramToken.trim();
+    const channel = state.telegramChannel.trim();
+
+    if ((token === '') !== (channel === '')) {
+      errors.push('Telegram: both the bot token and the channel');
+    }
+    else if (token && !/^\d+:[A-Za-z0-9_-]+$/.test(token)) {
+      errors.push('Telegram: a bot token looks like 123456789:AAH...');
+    }
+    else if (channel && !/^(@[A-Za-z0-9_]{5,32}|-?\d+)$/.test(channel)) {
+      errors.push('Telegram: the channel as @name or its number');
+    }
+
     if (state.webhook.trim() && !/^https:\/\/\S+$/.test(state.webhook.trim())) {
       errors.push('Discord webhook: a link starting with https://');
     }
@@ -3569,7 +3726,7 @@
 
     const n = instanceCount();
 
-    if (state.browser && state.port < state.webPort + n && state.webPort < state.port + n) {
+    if (browserOn() && state.port < state.webPort + n && state.webPort < state.port + n) {
       errors.push(`Ports: the game's ${portSpan(state.port)} and the browser players' ${portSpan(state.webPort)} overlap - move one of them.`);
     }
 
@@ -3637,7 +3794,7 @@
     updateTable();
 
     const n = instanceCount();
-    const ports = state.browser ? `UDP ${portSpan(state.port)} and ${portSpan(state.webPort)}` : `UDP ${portSpan(state.port)}`;
+    const ports = browserOn() ? `UDP ${portSpan(state.port)} and ${portSpan(state.webPort)}` : `UDP ${portSpan(state.port)}`;
 
     // what the ports are for - told in Setup the firewall
     const forWhat = isTournament() ? ' (one each per match server)' : n > 1 ? ' (one each per server)' : '';
@@ -3663,7 +3820,15 @@
         }
       }
       else if (k === 'run') {
-        // nothing to copy: the command is the start - in Your startup command
+        // the command is the start - in Your startup command; its secrets in a file next to it
+        if (runEnvFile()) {
+          secretResults.appendChild(resultBox({
+            file: RUN_ENV_FILE,
+            lang: 'bash',
+            text: runEnvFile(),
+            hint: `In the folder you run docker run from. Restrict who can read the file: ${inline(`chmod 600 ${RUN_ENV_FILE}`)}`
+          }));
+        }
       }
       else if (k === 'service') {
         serviceBox = resultBox({
@@ -3714,7 +3879,7 @@
     keyPublicResults.appendChild(resultBox({
       lang: 'bash',
       text: wrapped(printKeyCommand()),
-      hint: 'On the server. Public - safe to share.<br>Send it to us on <a href="https://discord.gg/YC49E4G" target="_blank">Discord<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a> to make your tournament\'s server official -<br>its matches then count for MMR.'
+      hint: 'On the server.<br>Public - safe to share.<br>Send it to us on <a href="https://discord.gg/YC49E4G" target="_blank">Discord<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a> to make your tournament official -<br>its matches then count towards MMR.'
     }));
     // a tournament's only: a persistent server's players don't need it
     steps.keyPublic.el.hidden = !isTournament();
@@ -3772,7 +3937,7 @@
 
     // docker run has no config to copy - everything is in its command, under Your startup command
     steps.config.el.hidden = method() === 'run';
-    startHint.innerHTML = method() === 'run' ? `If it's running already, ${inline('docker rm -f hypersomnia-server')} first.` : '';
+    startHint.innerHTML = method() === 'run' ? `If it's running already, ${inline('sudo docker rm -f hypersomnia-server')} first.` : '';
     startHint.hidden = !startHint.innerHTML;
     fillStart(start);
     steps.service.el.hidden = !serviceBox;
@@ -3794,15 +3959,21 @@
     errorBox.hidden = errors.length === 0;
     errorBox.innerHTML = `<div class="gen-errors-title"><i class="fa-solid fa-triangle-exclamation"></i>Fix the errors in the settings first</div><ul>${errors.map(e => `<li>${escaped(e)}</li>`).join('')}</ul>`;
     mount.classList.toggle('gen-has-errors', errors.length > 0);
+
+    // nor as instructions - the button is in the profile's tile, outside what the errors hide
+    if (profileBoxReady) {
+      instructionsButton.disabled = errors.length > 0;
+      instructionsButton.title = errors.length > 0 ? 'Fix the errors in the settings first.' : 'Every step in one Markdown file\n- for a human or an LLM.';
+    }
   }
 
   function startText() {
     return {
       run: dockerRun(),
-      compose: 'docker compose up -d',
+      compose: 'sudo docker compose up -d',
       terminal: startCommand(),
       service: ownUser()
-        ? 'loginctl enable-linger\nsystemctl --user daemon-reload\nsystemctl --user enable hypersomnia\nsystemctl --user restart hypersomnia'
+        ? 'sudo loginctl enable-linger "$(id -un)"\nsystemctl --user daemon-reload\nsystemctl --user enable hypersomnia\nsystemctl --user restart hypersomnia'
         : 'sudo systemctl daemon-reload\nsudo systemctl enable hypersomnia\nsudo systemctl restart hypersomnia'
     }[method()];
   }
@@ -3894,7 +4065,7 @@
 
   /*
     Profiles: the whole setup as a Markdown file - every step in order, ready to follow or to keep.
-    Its last line is the generator's state in a comment (invisible when the file is shown), so it loads back exactly.
+    Its Profile section is the JSON that loads back into the generator.
   */
 
 
@@ -3992,11 +4163,15 @@
     });
 
     // the secrets apart, as on the page
-    const secrets = method() === 'compose' ? dotEnv() : (method() !== 'run' && buildSettings().secrets);
+    const secrets = method() === 'compose' ? dotEnv() : method() === 'run' ? runEnvFile() : buildSettings().secrets;
 
     if (method() === 'compose' && secrets) {
       parts.push(block('.env', 'bash', secrets));
       parts.push(block('Restrict who can read the file', 'sh', 'chmod 600 .env'));
+    }
+    else if (method() === 'run' && secrets) {
+      parts.push(block(RUN_ENV_FILE, 'bash', secrets));
+      parts.push(block('Restrict who can read the file', 'sh', `chmod 600 ${RUN_ENV_FILE}`));
     }
     else if (secrets) {
       parts.push(block(privatePath(), 'json', prettyJson(secrets)));
@@ -4013,7 +4188,7 @@
 
     // all of the above in one script - with the script's own choices as they're set now
     const choices = [
-      `firewall: ${scriptOptions.firewall === 'none' ? 'left as it is' : scriptOptions.firewall}`,
+      `firewall: ${state.firewall === 'none' ? 'left as it is' : state.firewall}`,
       `start now: ${scriptOptions.start ? 'yes' : 'no'}`
     ].concat(method() === 'compose' || method() === 'run' ? [`data folder: ${scriptOptions.dataFolder ? 'made' : 'there already'}`] : []);
 
@@ -4035,7 +4210,7 @@
       SECRET_KEYS.forEach(k => { delete changed[k]; });
     }
 
-    return JSON.stringify({ setup: currentSetup, state: changed }, null, 2);
+    return JSON.stringify({ setup: currentSetup, settings: changed }, null, 2);
   };
 
   function download(text, type, file) {
@@ -4049,13 +4224,12 @@
 
   const profileName = () => 'hypersomnia-' + ((isTournament() ? 'tournament' : (state.name || 'server')).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'server');
 
-  // the secrets set - their names for the note after a paste
+  // the secrets set - named as their fields in the form
   const SECRET_NAMES = {
-    password: 'password',
+    password: 'Join password',
     webhook: 'Discord webhook',
-    tResultsWebhook: 'results webhook',
-    admins: 'admins',
-    spectator: 'spectator account'
+    telegramToken: 'Telegram bot token',
+    tResultsWebhook: 'Results webhook'
   };
 
   const secretsIn = st => Object.keys(SECRET_NAMES).filter(k => {
@@ -4071,8 +4245,7 @@
     password: 'YOUR_PASSWORD',
     webhook: 'https://YOUR_DISCORD_WEBHOOK',
     tResultsWebhook: 'https://YOUR_RESULTS_WEBHOOK',
-    admins: 'YOUR_ADMIN_ACCOUNT',
-    spectator: 'YOUR_SPECTATOR_ACCOUNT'
+    telegramToken: 'YOUR_TELEGRAM_BOT_TOKEN'
   };
 
   function instructionsMarkdown(withSecrets) {
@@ -4101,7 +4274,7 @@
     Saved with secrets set (the instructions, the profile): asked first whether they go into the file.
   */
 
-  function askSecrets(where, save) {
+  function askSecrets(save) {
     if (!secretsIn(state).length) {
       save(false);
       return;
@@ -4112,7 +4285,8 @@
     const cancelButton = el('button', { type: 'button', class: 'gen-link-button', text: 'Cancel' });
 
     const dismiss = showModal('Include your secrets?', [
-      el('p', { class: 'gen-field-text', html: `Your ${secretsIn(state).map(k => SECRET_NAMES[k]).join(', ')} - ${where},<br>or ${where === 'in the profile' ? 'left out' : 'placeholders like <code>YOUR_PASSWORD</code> in their places'}.` }),
+      el('p', { class: 'gen-field-text', text: 'Contains:' }),
+      el('ul', { class: 'gen-field-text gen-secrets-list' }, secretsIn(state).map(k => el('li', { text: SECRET_NAMES[k] }))),
       el('div', { class: 'gen-link-row gen-secrets-buttons' }, [withButton, withoutButton, cancelButton])
     ], true);
 
@@ -4121,18 +4295,26 @@
     cancelButton.addEventListener('click', dismiss);
   }
 
-  const saveInstructions = () => askSecrets('in the commands and the profile', withSecrets => download(instructionsMarkdown(withSecrets), 'text/markdown', profileName() + '.md'));
-  const saveProfile = () => askSecrets('in the profile', withSecrets => download(profileJson(withSecrets) + '\n', 'application/json', profileName() + '.json'));
+  const saveInstructions = () => askSecrets(withSecrets => download(instructionsMarkdown(withSecrets), 'text/markdown', profileName() + '.md'));
+  const saveProfile = () => askSecrets(withSecrets => download(profileJson(withSecrets) + '\n', 'application/json', profileName() + '.json'));
 
   /*
-    A profile into the form: checked as a link's (sanitizeState) - nothing in it reaches the commands unchecked.
+    A profile into the form: checked (sanitizeState) - nothing in it reaches the commands unchecked.
     What it doesn't name is the default. Null: it's not a profile (the reason in the error).
   */
 
   let lastAppliedSecrets = [];
+  let lastKeptSecrets = [];
+
+  // far more than any profile - a paste beyond it isn't read (nor highlighted): it would freeze the tab
+  const MAX_PROFILE_LENGTH = 100000;
 
   function applyProfile(text) {
     let parsed;
+
+    if (text.length > MAX_PROFILE_LENGTH) {
+      return 'Too long for a profile - nothing changed.';
+    }
 
     try {
       parsed = JSON.parse(text);
@@ -4141,16 +4323,26 @@
       return 'Not valid JSON - nothing changed.';
     }
 
-    if (!parsed || typeof parsed !== 'object' || (parsed.state !== undefined && (typeof parsed.state !== 'object' || Array.isArray(parsed.state)))) {
-      return 'Not a profile: expected { "setup": ..., "state": { ... } } - nothing changed.';
+    const notProfile =
+      !parsed || typeof parsed !== 'object' || Array.isArray(parsed)
+      || !parsed.settings || typeof parsed.settings !== 'object' || Array.isArray(parsed.settings)
+    ;
+
+    if (notProfile) {
+      return 'Not a profile: expected { "setup": ..., "settings": { ... } } - nothing changed.';
     }
 
     // the secrets it doesn't name stay as they are - a profile without them doesn't wipe this browser's
     // the ones it has go into the form - and the box shows itself without them, so a note says where they went
-    lastAppliedSecrets = secretsIn(parsed.state || {});
+    lastAppliedSecrets = secretsIn(parsed.settings);
+    // and the ones it doesn't have, kept from this browser - said too: another server's webhook would go along unseen
+    lastKeptSecrets = secretsIn(state).filter(k => !lastAppliedSecrets.includes(k));
     const secrets = {};
     SECRET_KEYS.forEach(k => { secrets[k] = state[k]; });
-    state = sanitizeState(Object.assign({}, defaults, secrets, parsed.state || {}));
+    state = sanitizeState(Object.assign({}, defaults, secrets, parsed.settings));
+
+    // applied: what got through the checks (a password with a newline in it didn't)
+    lastAppliedSecrets = lastAppliedSecrets.filter(k => state[k] === parsed.settings[k]);
 
     if (setupIds.includes(parsed.setup) && parsed.setup !== currentSetup) {
       // the tab's listeners refresh the inputs and the outputs
@@ -4188,7 +4380,7 @@
     }
     catch (e) {}
 
-    // the page with no profile in the link - the defaults, by definition
+    // the page anew - the defaults, by definition
     location.replace(location.pathname);
   }
 
@@ -4241,14 +4433,23 @@
     el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' })
   ]);
   // a tile as Check that it works: only the box in it is highlighted
-  const profileSub = el('p', { class: 'gen-field-text gen-profile-sub', html: 'Only what differs from the defaults - edit or paste it here.<br>Safe to share - no passwords, webhooks or admins.' });
+  // what it is, for someone who sees it the first time
+  const PROFILE_HELP = 'Only this generator reads it, never the server.';
+
+  const profileSub = el('p', { class: 'gen-field-text gen-profile-sub', html: 'No need to edit the configs by hand later:<br>save this and come back to tweak the settings.<br><br>Safe to share - no passwords or webhooks.' });
   const profileApplied = el('p', { class: 'gen-field-text gen-profile-applied' });
   profileApplied.hidden = true;
 
   // a pasted or loaded profile's secrets: in the form now, not in the box
   function showAppliedSecrets() {
-    profileApplied.innerHTML = `<i class="fa-solid fa-check gen-secure"></i>Secrets applied to the form: ${lastAppliedSecrets.map(k => SECRET_NAMES[k]).join(', ')}.`;
-    profileApplied.hidden = !lastAppliedSecrets.length;
+    const names = keys => keys.map(k => SECRET_NAMES[k]).join(', ');
+
+    profileApplied.innerHTML = [
+      lastAppliedSecrets.length ? `<i class="fa-solid fa-check gen-secure"></i>Secrets applied to the form: ${names(lastAppliedSecrets)}.` : '',
+      lastKeptSecrets.length ? `<i class="fa-solid fa-circle-info gen-kept"></i>Kept from this browser: ${names(lastKeptSecrets)}.` : ''
+    ].filter(Boolean).join('<br>');
+
+    profileApplied.hidden = !lastAppliedSecrets.length && !lastKeptSecrets.length;
   }
 
   const profileBody = el('div', { class: 'gen-step-body' }, [
@@ -4258,14 +4459,21 @@
     profileApplied
   ]);
   const profileBox = el('div', { class: 'gen-step gen-profile-box' }, [
-    el('div', { class: 'gen-step-head' }, [el('span', { class: 'gen-step-title', text: 'Your profile' })]),
+    el('div', { class: 'gen-step-head' }, [el('span', { class: 'gen-step-title' }, [
+      document.createTextNode('Your generator profile '),
+      el('i', { class: 'fa-regular fa-circle-question gen-row-help', 'data-tip': PROFILE_HELP, 'aria-label': PROFILE_HELP, tabindex: '0' })
+    ])]),
     profileBody
   ]);
 
   function showProfile(text) {
     // a last empty line would show no line - a space after it does
     profileCode.textContent = text + '\n ';
-    highlight(profileCode, 'json');
+
+    if (text.length <= MAX_PROFILE_LENGTH) {
+      highlight(profileCode, 'json');
+    }
+
     profileCode.dataset.copy = text;
   }
 
@@ -4317,12 +4525,12 @@
   }
 
   // under everything: the profile, then its buttons
-  // the instructions and the link apart from the bar: they don't change the profile
+  // the instructions apart from the bar: they don't change the profile
   const instructionsButton = el('button', { type: 'button', class: 'gen-link-button', html: '<i class="fa-solid fa-file-lines"></i>Save complete instructions (.md)', title: 'Every step in one Markdown file\n- for a human or an LLM.' });
   instructionsButton.addEventListener('click', saveInstructions);
   const profileLinks = el('div', { class: 'gen-link-row gen-profile-links' }, [instructionsButton]);
 
-  // its buttons in its tile, under the box - then the link and the instructions
+  // its buttons in its tile, under the box - then the instructions
   profileBody.append(profileBar, profileLinks);
   mount.after(profileBox);
   profileBoxReady = true;
@@ -4344,7 +4552,7 @@
       { label: 'Settings', target: steps.configure.el },
       { label: 'Your configs', target: generatedLine },
       { label: 'Check that it works', target: steps.check.el },
-      { label: 'Your profile', target: profileBox }
+      { label: 'Your generator profile', target: profileBox }
     ];
 
     tocTargets = entries.map(e => e.target);
