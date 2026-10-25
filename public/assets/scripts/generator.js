@@ -2094,7 +2094,7 @@
   const serverListRow = settingRow(
     'Server list',
     [switchInput('serverListOn', () => {}), serverListInput],
-    'Off: only for privacy -\nyour server isn\'t shown to anyone.\n\nOn (recommended):\n- anyone finds it on hypersomnia.io/servers\n  and in Browse servers in the game,\n- players can join right from their web browser,\n  no download,\n- you can send a link that takes\n  your friends straight into your server,\n- a tournament\'s live results page\n  is shown next to its matches,\n- a new server is announced on\n  Hypersomnia\'s Discord and Telegram.\n\nAnother address: only if you run\nyour own server list.'
+    'Off: only for privacy -\nyour server isn\'t shown to anyone.\n\nOn (recommended):\n- anyone finds it on hypersomnia.io/servers\n  and in Browse servers in the game,\n- players can join right from their web browser,\n  no download - also by a link you send them,\n- a tournament\'s live results page\n  is shown next to its matches,\n- a new server is announced on\n  Hypersomnia\'s Discord and Telegram.\n\nAnother address: only if you run\nyour own server list.'
   );
 
   serverListRow.appendChild(el('div', { class: 'gen-row-editor' }, [serverListWarning, serverListDefault]));
