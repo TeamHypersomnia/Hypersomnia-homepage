@@ -2353,7 +2353,7 @@
   const pairingRow = settingRow('Who gets in', [pairingSelect], 'On a LAN, Anyone or Listed nicknames\nis enough: people there trust each other.');
 
   // however they join first: what it means for the players
-  const firstText = el('p', { class: 'gen-field-text', html: 'Players join <strong>any server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>In later rounds, they will be paired automatically.' });
+  const firstText = el('p', { class: 'gen-field-text', html: 'Players join <strong>any server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>Subsequent rounds are secure: the server saves their account ids.' });
 
   // set up beforehand: the list and how it was understood - the rounds say it better than any explanation
   const nicknamesText = el('p', { class: 'gen-field-text' });
@@ -2572,14 +2572,14 @@
     nicknamesText.hidden = !pairedBeforehand();
     nicknamesText.innerHTML = verifiedByAccounts()
       ? 'Nicknames are only for your convenience:<br>participants may play under any other name.'
-      : 'Players set these <strong>exact nicknames</strong> to be let in to the correct match.';
+      : 'Players set these <strong>exact nicknames</strong> to be let in to the correct match.<br>Subsequent rounds are secure: the server saves their account ids.';
     // the same first line for all three - insecure with a warning, or secure with a check - so nothing below jumps
     insecureText.innerHTML = verifiedByAccounts()
       ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
       : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Insecure, but enough for a LAN.';
 
     const size = `${state.tTeamSize}v${state.tTeamSize}`;
-    firstText.innerHTML = `Players join <strong>any ${size} server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>In later rounds, they will be paired automatically.`;
+    firstText.innerHTML = `Players join <strong>any ${size} server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>Subsequent rounds are secure: the server saves their account ids.`;
 
     verifyText.innerHTML = 'Every participant must send you their account id.<br>Paste them below:';
     verifyText.hidden = !verifiedByAccounts();
