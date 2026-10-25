@@ -161,13 +161,6 @@
   background: var(--panel);
 }
 
-.gen-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.2em 1.4em;
-  padding: 1.1em 1.2em 0.6em;
-}
-
 .gen-field {
   display: flex;
   flex-direction: column;
@@ -220,18 +213,6 @@
   box-shadow: 0 0 8px rgba(255, 176, 64, 0.4);
 }
 
-.gen-help {
-  color: var(--accent);
-  cursor: help;
-  margin-left: 0.3em;
-}
-
-.gen-help:hover,
-.gen-help:focus {
-  color: var(--white);
-  outline: none;
-}
-
 .gen-cycle {
   display: flex;
   flex-wrap: wrap;
@@ -248,26 +229,6 @@
   color: var(--text);
   cursor: pointer;
   white-space: nowrap;
-}
-
-/* "Update every day at [03:00]" */
-.gen-autoupdate {
-  align-items: center;
-  max-height: none;
-}
-
-.gen-autoupdate select.gen-hour {
-  width: auto;
-  margin: 0 0.4em;
-  padding: 2px 6px;
-}
-
-.gen-autoupdate select:disabled {
-  opacity: 0.4;
-}
-
-.gen-tz-note {
-  color: var(--faint);
 }
 
 .gen-cycle label.official {
@@ -318,54 +279,12 @@
   color: var(--white);
 }
 
-/* one tab-like button between the simple and the advanced options */
-.gen-advanced-toggle {
-  width: auto;
-  margin: 0 1.2em 0.9em;
-}
-
-.gen-advanced-toggle .btn {
-  flex: 1 1 0;
-}
-
-/* main.css makes an active tab unclickable - this one closes again */
-.gen-advanced-toggle button.active {
-  pointer-events: auto;
-}
-
-.gen-advanced[hidden] {
-  display: none;
-}
-
-.gen-advanced {
-  padding-top: 0;
-}
-
-.gen-output {
-  border-top: 1px solid var(--line);
-  padding: 0.8em 1.2em 0.2em;
-}
-
-.gen-output .btn-group {
-  margin-bottom: 0.6em;
-}
-
-.gen-output .guide-code {
-  margin-top: 0;
-}
-
 .gen-hint {
   color: var(--dim);
   margin: 0 0 0.9em;
 }
 
 /* ---------- small screens ---------- */
-
-@media (max-width: 900px) {
-  .gen-form {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 
 /* ---------- syntax colors: the site's VS-style palette ---------- */
 
@@ -474,34 +393,9 @@
   border-color: var(--red);
 }
 
-.gen-stage-no {
-  margin-left: 0.3em;
-  color: var(--accent);
-  font-weight: bold;
-}
-
-/* Ports: a row per server - the first typed, the rest shown with what takes them */
-.gen-port-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 13.5em;
-  gap: 0.8em;
-  align-items: start;
-}
-
-.gen-port-row input {
-  margin-bottom: 4px;
-}
-
-.gen-field input:disabled,
-.gen-port-row input:disabled {
+.gen-field input:disabled {
   color: var(--dim);
   border-color: var(--line-dim);
-}
-
-.gen-port-note {
-  padding-top: 6px;
-  color: var(--dim);
-  white-space: nowrap;
 }
 
 /* the file a block goes into, as its first line: copyable on its own, above a dashed line */
@@ -532,28 +426,6 @@
   top: calc(0.55em * 2 + 1.6em);
 }
 
-.gen-output .gen-hint {
-  margin: -0.4em 0 0.6em;
-}
-
-/* Your startup command - long commands wrap */
-.gen-start-box {
-  margin: -0.4em 0 1.4em;
-  padding: 0.9em 1.2em 0.1em;
-  border: 1px solid var(--line);
-  background: var(--panel);
-}
-
-.gen-start-box[hidden] {
-  display: none;
-}
-
-.gen-start-label {
-  color: var(--bright);
-  font-size: 1.25em;
-  margin: 0 0 0.5em;
-}
-
 .gen-start-code pre code {
   white-space: pre-wrap;
 }
@@ -569,11 +441,6 @@
 
 .gen-start-code pre {
   padding-right: 3em;
-}
-
-/* the fields continue right under a toggle - no second top padding */
-.gen-servers {
-  padding-top: 0.2em;
 }
 
 /* ---------- /generator: only the generator, centered ---------- */
@@ -692,22 +559,6 @@ body.gen-page {
   margin-right: 0.5em;
 }
 
-/* Ports: the column names over the rows */
-.gen-port-head span {
-  color: var(--dim);
-  padding-bottom: 3px;
-}
-
-.gen-port-head i {
-  margin-right: 0.45em;
-  color: var(--faint);
-}
-
-.gen-port-head small {
-  color: var(--faint);
-  margin-left: 0.3em;
-}
-
 /* a file the setup doesn't need: its path struck through and grey, nothing to copy */
 .guide-code.unneeded .guide-code-file code {
   color: var(--faint);
@@ -721,37 +572,6 @@ body.gen-page {
 
 .guide-code.unneeded pre code {
   color: var(--online);
-}
-
-/* Admin account id: the checkbox, the ids and what it is for - all in one box */
-.gen-admin-box {
-  flex-direction: column;
-  flex-wrap: nowrap;
-  gap: 0.5em;
-  max-height: none;
-  padding: 8px 10px 2px;
-}
-
-.gen-admin-head {
-  display: flex;
-  align-items: center;
-  gap: 0.8em;
-}
-
-.gen-admin-box textarea {
-  margin-bottom: 0;
-}
-
-.gen-admin-box .gen-field-text {
-  margin-bottom: 6px;
-}
-
-.gen-pairing-preview {
-  margin-top: 0.4em;
-}
-
-.gen-pairing-preview[hidden] {
-  display: none;
 }
 
 .gen-bad {
@@ -770,19 +590,6 @@ body.gen-page {
 .guide .btn button,
 .gen-page .btn button {
   border-color: rgb(28, 28, 28);
-}
-
-.gen-browser-option {
-  margin: 2px 0 8px;
-}
-
-/* Allow browser players off: the Browser column goes away */
-.no-browser .gen-port-row {
-  grid-template-columns: minmax(0, 1fr) 13.5em;
-}
-
-.no-browser .gen-port-row > :nth-child(2) {
-  display: none;
 }
 
 .gen-fuse-option {
@@ -932,20 +739,6 @@ body.gen-page {
   margin-bottom: 0.4em;
 }
 
-/* The form: one field under another, read from the top down */
-.gen-page .gen-form {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-/* As a service / As a separate user - the AppImage's own settings, first in Configure */
-.gen-run-options {
-  padding-bottom: 0;
-}
-
-.gen-run-options[hidden] {
-  display: none;
-}
-
 /* the method's tabs under the "Generated" line - on their own, not under the purpose's tabs */
 #config-generator .guide-setup-subtabs {
   margin: 0 0 1.2em;
@@ -956,7 +749,6 @@ body.gen-page {
 .gen-step.untitled .gen-step-body {
   padding-top: 0.6em;
 }
-
 
 /* ---------- sliders: Slots, Server instances ---------- */
 
@@ -1719,6 +1511,21 @@ body.gen-page {
   width: 9em !important;
 }
 
+/* the game's port other than the default, under the ports */
+.gen-port-warning {
+  grid-column: 1 / -1;
+  /* wraps within the ports' columns - never widens them */
+  contain: inline-size;
+  margin: 0;
+  color: var(--faint);
+  font-size: 0.85em;
+}
+
+.gen-port-warning i {
+  margin-right: 0.35em;
+  color: var(--accent);
+}
+
 /* a click anywhere on a chip removes its arena */
 .gen-chip {
   cursor: pointer;
@@ -1730,24 +1537,6 @@ body.gen-page {
 
 .gen-chip:hover .gen-chip-remove {
   color: var(--white);
-}
-
-/* Verify players by account ids: a box per player of the list */
-.gen-account-ids {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 6px 12px;
-  align-items: center;
-  margin-top: 8px;
-}
-
-.gen-account-ids[hidden] {
-  display: none;
-}
-
-.gen-account-name {
-  color: var(--bright);
-  font-family: var(--mono);
 }
 
 /* a setting that changes nothing as the others are set - Join password with the players verified by their accounts */
@@ -1781,28 +1570,9 @@ body.gen-page {
   display: none;
 }
 
-/* a nickname in the rounds' preview */
-.gen-field-text code.gen-nick {
-  color: var(--bright);
-}
-
-.gen-field-text code.gen-nick.gen-bad {
-  color: var(--red);
-}
-
 /* "Insecure, but enough for a LAN." over the rest of the explanation, no gap */
 .gen-row-editor .gen-field-text + .gen-field-text {
   margin-top: 0;
-}
-
-/* the rounds' preview: a pair per line */
-#config-generator .gen-preview-list {
-  margin: 0.2em 0 0.5em;
-  padding-left: 1.4em;
-}
-
-#config-generator .gen-preview-list li {
-  margin: 0.1em 0;
 }
 
 /* who gets in: secure or not, an icon on the left */
@@ -1932,19 +1702,8 @@ body.gen-page {
   margin-top: 8px;
 }
 
-.gen-roster[hidden],
-.gen-roster-editor[hidden] {
+.gen-roster[hidden] {
   display: none;
-}
-
-.gen-roster-teams {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 8px;
-}
-
-.gen-roster-teams.single {
-  grid-template-columns: 1fr;
 }
 
 .gen-roster-team {
@@ -1955,47 +1714,6 @@ body.gen-page {
   padding: 6px;
   border: 1px solid var(--line);
   background: #000;
-}
-
-/* a team of another size than the teams: as the error says */
-.gen-roster-team.gen-roster-wrong {
-  border-color: var(--red);
-}
-
-.gen-roster-team-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--dim);
-  font-size: 0.85em;
-}
-
-.gen-roster-team-tools {
-  display: inline-flex;
-  gap: 2px;
-}
-
-#config-generator .gen-roster-icon {
-  padding: 0 5px;
-  border: none;
-  background: none;
-  color: var(--faint);
-  cursor: pointer;
-}
-
-#config-generator .gen-roster-icon:hover:not(:disabled) {
-  color: var(--white);
-}
-
-#config-generator .gen-roster-icon:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-.gen-roster-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
 }
 
 #config-generator button.gen-chip {
@@ -2022,81 +1740,17 @@ body.gen-page {
   font-size: 0.8em;
 }
 
-/* the chosen chip's nickname and account id */
-.gen-roster-editor {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 6px 12px;
-  align-items: center;
-  padding: 8px;
-  border: 1px dashed var(--line);
-}
-
 .gen-roster-label {
   color: var(--dim);
 }
 
-.gen-roster-label[hidden],
-.gen-roster-editor input[hidden] {
-  display: none;
-}
-
-.gen-roster-editor-buttons {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.gen-roster-add-row {
-  display: flex;
-  gap: 8px;
-}
-
-.gen-roster-add-row input {
-  flex: 1;
-  min-width: 0;
-}
-
-#config-generator .gen-roster-add,
-#config-generator .gen-roster-remove,
-#config-generator .gen-roster-done {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border: 1px solid var(--line);
-  background: #000;
-  color: var(--white);
-  cursor: pointer;
-}
-
-#config-generator .gen-roster-add:hover,
-#config-generator .gen-roster-done:hover {
-  border-color: var(--accent);
-}
-
-#config-generator .gen-roster-remove:hover {
-  border-color: var(--red);
-  color: var(--red);
-}
-
-#config-generator .gen-roster-add[hidden] {
+.gen-roster-label[hidden] {
   display: none;
 }
 
 .gen-roster-hint {
   color: var(--faint);
   font-size: 0.9em;
-}
-
-/* the chips as wide as their nicknames, not as the generator's buttons */
-#config-generator .gen-roster-chips button.gen-chip {
-  flex: none;
-  width: auto;
-  max-width: 100%;
-  margin: 0;
 }
 
 /* the bots' difficulty: as wide as its longest name, next to its label */
@@ -2111,86 +1765,6 @@ body.gen-page {
   min-width: 12em;
 }
 
-/* "+ Add" in a team short of players and "+ Team": dashed tiles, the size of what they add */
-#config-generator .gen-roster-tile,
-#config-generator .gen-roster-new-team {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: 1px dashed var(--line);
-  background: none;
-  color: var(--faint);
-  cursor: pointer;
-}
-
-#config-generator .gen-roster-tile {
-  flex: none;
-  width: auto;
-  margin: 0;
-  padding: 3px 10px;
-  font-family: var(--mono);
-  line-height: 1.4;
-}
-
-#config-generator .gen-roster-new-team {
-  min-height: 4.6em;
-  font-size: 1em;
-}
-
-#config-generator .gen-roster-tile:hover,
-#config-generator .gen-roster-new-team:hover {
-  border-color: var(--accent);
-  color: var(--white);
-}
-
-#config-generator .gen-roster-tile-input {
-  flex: 0 1 16em;
-  width: 16em;
-  padding: 3px 8px;
-  border: 1px dashed var(--accent);
-  font-family: var(--mono);
-}
-
-/* a team is moved by its head */
-.gen-roster-team-head[draggable="true"] {
-  cursor: grab;
-}
-
-.gen-roster-team-head .fa-grip-vertical {
-  margin-right: 6px;
-  color: var(--faint);
-}
-
-.gen-roster-team-head {
-  width: 100%;
-}
-
-/* the teams one under another, each as wide as before - the order reads top-down, as the pairs */
-.gen-roster-teams {
-  grid-template-columns: minmax(0, 280px);
-}
-
-#config-generator .gen-roster-icon {
-  flex: none;
-  width: auto;
-  margin: 0;
-}
-
-/* round 1's pairs: "Team 1 vs Team 2" in a line, the byes alone first */
-.gen-roster-teams {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.gen-roster-pair {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-}
-
 .gen-roster-vs {
   color: var(--dim);
   font-family: var(--mono);
@@ -2201,14 +1775,6 @@ body.gen-page {
   justify-self: start;
 }
 
-#config-generator .gen-roster-new-team {
-  width: calc(50% - 22px);
-}
-
-.gen-roster-teams.single .gen-roster-team {
-  width: 100%;
-}
-
 /* the tiles in a darker block of their own, the text box over it */
 .gen-roster-board {
   display: flex;
@@ -2217,25 +1783,6 @@ body.gen-page {
   padding: 10px;
   border: 1px solid var(--line-dim);
   background: rgba(0, 0, 0, 0.55);
-}
-
-/* the players' chips quiet - lit as the map cycle's only when pointed at or chosen */
-#config-generator .gen-roster-chips button.gen-chip {
-  border-color: var(--line);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--bright, rgb(220, 220, 220));
-}
-
-#config-generator .gen-roster-chips button.gen-chip:hover {
-  border-color: var(--accent);
-  background: rgba(255, 176, 64, 0.08);
-  color: var(--white);
-}
-
-#config-generator .gen-roster-chips button.gen-chip.selected {
-  border-color: var(--white);
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--white);
 }
 
 /* a line is a team: long lines scroll instead of wrapping into what looks like another team */
@@ -2250,23 +1797,6 @@ body.gen-page {
   padding: 0;
   border: none;
   background: none;
-}
-
-.gen-roster-pair:has(.solo) {
-  grid-template-columns: max-content auto max-content;
-  justify-content: start;
-}
-
-#config-generator .gen-roster-new-team.solo {
-  width: auto;
-  min-height: 0;
-  align-self: flex-start;
-  padding: 3px 10px;
-  font-family: var(--mono);
-}
-
-#config-generator .gen-roster-new-team.solo {
-  flex-direction: row;
 }
 
 /* where a dragged player or team lands */
@@ -2291,57 +1821,9 @@ body.gen-page {
   background: rgba(255, 176, 64, 0.06);
 }
 
-.gen-roster-pair:has(.solo) .gen-roster-vs.gen-roster-bye {
-  justify-self: center;
-}
-
-/* the player a dragged one would be traded for */
-#config-generator .gen-roster-chips button.gen-chip.gen-drop {
-  border-color: var(--accent);
-  background: rgba(255, 176, 64, 0.15);
-  color: var(--white);
-}
-
-#config-generator .gen-roster-tile.gen-drop {
-  border-color: var(--accent);
-  background: rgba(255, 176, 64, 0.15);
-  color: var(--white);
-}
-
 /* the chosen chip's editor floats under it, over the tiles - opening it moves nothing */
 .gen-roster-board {
   position: relative;
-}
-
-.gen-roster-board .gen-roster-editor {
-  position: absolute;
-  z-index: 5;
-  background: #0b0b0b;
-  border: 1px solid var(--accent);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
-}
-
-/* "+ Add" and its text box: the same size, so opening it moves nothing */
-#config-generator .gen-roster-tile,
-#config-generator .gen-roster-tile-input {
-  flex: none;
-  box-sizing: border-box;
-  width: 13em;
-  height: 2em;
-}
-
-/* "+ Add" and its text box - exactly the same box, whatever the generator's inputs are like */
-#config-generator .gen-roster-chips .gen-roster-tile,
-#config-generator .gen-roster-chips input.gen-roster-tile-input {
-  flex: none;
-  box-sizing: border-box;
-  width: 170px;
-  height: 28px;
-  min-height: 0;
-  margin: 0;
-  padding: 0 8px;
-  font-size: 0.9em;
-  line-height: 26px;
 }
 
 /* ---------- Match cards: a row per match of round 1, a team's places stacked ---------- */

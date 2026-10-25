@@ -27,22 +27,6 @@
     return e;
   }
 
-  function buttonGroup(names, onSelect) {
-    const buttons = names.map((name, i) => {
-      const b = el('button', { type: 'button', text: name });
-      b.addEventListener('click', () => {
-        buttons.forEach(x => x.classList.toggle('active', x === b));
-        onSelect(i);
-      });
-      return b;
-    });
-
-    buttons[0].classList.add('active');
-    const group = el('div', { class: 'btn-group guide-tab-buttons' }, buttons.map(b => el('div', { class: 'btn' }, [b])));
-    group.select = i => buttons[i].click();
-    return group;
-  }
-
   /* ---------- setups: what the server is for (the tabs), then how it runs (each one's own tabs) ---------- */
 
   const SETUP_KEY = 'host_setup_v4';
@@ -337,7 +321,7 @@
     const arenaName = v => typeof v === 'string' && /^[A-Za-z0-9_.-]{1,64}$/.test(v);
 
     // a listed player: a nickname, and an account id that can only be one - nothing else gets in
-    const player = p => p && typeof p === 'object' && typeof p.n === 'string' && p.n.trim() !== '' && p.n.length <= 40
+    const player = p => p && typeof p === 'object' && typeof p.n === 'string' && p.n.trim() !== '' && p.n.length <= 40 && !/[\x00-\x1f\x7f]/.test(p.n)
       ? [{ n: p.n.trim(), id: typeof p.id === 'string' && /^[A-Za-z0-9_]{0,80}$/.test(p.id) ? p.id : '' }]
       : [];
 
@@ -433,8 +417,13 @@
   const serverByAccounts = () => !isTournament() && state.serverWho === 'accounts';
   const byAccounts = () => verifiedByAccounts() || serverByAccounts();
 
-  function textInput(key, placeholder) {
+  function textInput(key, placeholder, maxLength) {
     const i = el('input', { type: 'text', placeholder: placeholder || '' });
+
+    if (maxLength) {
+      i.maxLength = maxLength;
+    }
+
     i.value = state[key];
     i.addEventListener('input', () => { state[key] = i.value; update(); });
     refreshers.push(() => { i.value = state[key]; });
@@ -482,7 +471,6 @@
     return el('div', { class: 'gen-slider-row' }, [value, i]);
   }
 
-  // a text box that suggests the matching time zones as you type (a datalist - the browser filters it)
   /*
     The AppImage only: with FUSE it mounts itself, without it --appimage-extract-and-run unpacks it to /tmp at every start.
   */
@@ -505,6 +493,7 @@
   // under the start command - it decides the command
   const fuseField = fuseInput();
 
+  // a text box that suggests the matching time zones as you type (a datalist - the browser filters it)
   function timeZoneSelect() {
     const zones = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [];
     const list = el('datalist', { id: 'gen-time-zones' }, zones.map(z => el('option', { value: z })));
@@ -618,14 +607,6 @@
 
   // a tournament opens a server per match and lets in only its players instead
   const casualInput = sliderInput('casual', 1, 8);
-  const slotsInput = sliderInput('slots', 4, 26);
-
-
-
-  function updatePortRows() {
-    rebuildRounds();
-  }
-
 
   const cycleBox = cyclePicker();
 
@@ -651,8 +632,9 @@
 
   const pairedBeforehand = () => isTournament() && state.tPairing === 'beforehand';
 
-  // "=" joins a nickname to its account id, "," and ";" separate the players and the teams - none can be in a nickname
-  const unusableNickname = n => /[=;,]/.test(n);
+  // "=" joins a nickname to its account id, "," and ";" separate the players and the teams, a control character
+  // breaks a line - none can be in a nickname
+  const unusableNickname = n => /[=;,\x00-\x1f\x7f]/.test(n);
 
   const playerEntry = p => verifiedByAccounts() && tournamentIdOf(p.n) ? `${p.n}=${tournamentIdOf(p.n)}` : p.n;
   const teamsArgument = separator => filledTeams().map(t => t.map(playerEntry).join(', ')).join(separator);
@@ -1478,7 +1460,6 @@
 
   const roundSummary = el('p', { class: 'gen-field-text' });
 
-  // what the generator gives for each setup, then the firewall
   // the generator's results for each setup - the firewall's always last
   const OUTPUTS = {
     compose: ['compose', 'firewall'],
@@ -1810,13 +1791,17 @@
   });
   const tablePageHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-trophy"></i>Results page' });
 
+  // the game's port outside 8412-8415: the game finds the servers on its network by itself - only on these
+  const portWarning = el('p', { class: 'gen-port-warning', html: '<i class="fa-solid fa-triangle-exclamation"></i>Keep it within 8412-8415: the game finds servers on your network by itself - on these ports only.' });
+
   const portsRow = foldRow('Ports', 'Change them only if 8412 or 9000\nis taken on this machine.', el('div', { class: 'gen-ports' }, [
     el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-gamepad"></i>Game' }),
     tableWebHead,
     tablePageHead,
     tablePort,
     tableWebPort,
-    tablePagePort
+    tablePagePort,
+    portWarning
   ]));
 
   const adminRow = revealRow('Admin', 'adminOn', admins, 'Your account id - in the game: `Settings → Account`.\n\nManage the server in-game: maps, bans...\n\nIn a tournament:\n- watch any match,\n- close round 1 when not everyone came,\n- decide a match someone doesn\'t come to.');
@@ -2034,7 +2019,7 @@
 
   const resultsWebhookRow = settingRow('Results webhook', [
     textInput('tResultsWebhook', 'https://... - gets the results when it\'s over'),
-    payloadButton('Show example payload', 'Results webhook', 'One <code>POST</code> when the tournament is over:', false, () => 'Content-Type: application/json')
+    payloadButton('Show example payload', 'Results webhook', 'One <code>POST</code> when the tournament is over - and again whenever the server is started after that. Take only <code>"state": "FINISHED"</code>, and drop a copy you have already got (the same <code>name</code> and <code>winner_team</code>):', false, () => 'Content-Type: application/json')
   ], 'The final results, POSTed once to this URL\n- e.g. to put them on your site.\n\nThe same JSON as the live results page\nserves at `/tournament.json`.');
 
   const pageExampleButton = payloadButton('Also has a JSON endpoint!', 'Live results page', 'What the page draws - for your own site or bot. At most 5 requests a second from one address.', true, () => `http://<your server>:${pagePort()}/tournament.json`);
@@ -2064,7 +2049,6 @@
 
   // set up beforehand: the list and how it was understood - the rounds say it better than any explanation
   const nicknamesText = el('p', { class: 'gen-field-text' });
-  // right under the list it's about
   // the first line under the choice, whichever lets anyone take a nickname
   const insecureText = el('p', { class: 'gen-field-text gen-security' });
   const spectateText = el('p', { class: 'gen-field-text', text: 'Players can spectate other matches after they finish.' });
@@ -2140,8 +2124,7 @@
     return el('img', { class: 'guide-image gen-account-id-image', src: '/assets/images/generator/copy_account_id.png?t=3', alt: 'Settings → Account → Copy account id, in the game', loading: 'lazy' });
   }
   const tournamentIdImage = accountIdImage();
-  // listed accounts: where to get them, right over the players
-  // the teams first, then where the ids come from and their box
+  // listed accounts: the teams first, then where the ids come from and their box
   [verifyText, tournamentIdImage, idsLabel, idsText].forEach(e => pairingEditor.insertBefore(e, nicknamesText));
   verifyText.classList.add('gen-after-gap');
 
@@ -2170,7 +2153,7 @@
     only(serverRows, settingRow('Slots', [sliderInput('slots', 4, 26)])),
     only(serverRows, settingRow('Server instances', [casualInput], 'Several servers, one after another.\n\nEach takes the next ports.')),
     only(serverRows, botsRow),
-    only(tournamentRows, settingRow('Tournament name', [textInput('tName', 'e.g. onFOSS November Cup 2026')], 'Shown on the live results page.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again.\nNext time, give it a new name.')),
+    only(tournamentRows, settingRow('Tournament name', [textInput('tName', 'e.g. onFOSS November Cup 2026', 100)], 'Shown on the live results page.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again.\nNext time, give it a new name.')),
     only(tournamentRows, settingRow('Teams', [teamSize])),
     only(tournamentRows, pairingRow),
     only(tournamentRows, playersRow),
@@ -2295,6 +2278,7 @@
     );
 
     tableWebPort.hidden = !state.browser;
+    portWarning.hidden = state.port >= 8412 && state.port <= 8415;
     if (document.activeElement !== tablePagePort) {
       tablePagePort.value = String(pagePort());
     }
@@ -2404,7 +2388,8 @@
   [steps.config, steps.secret, steps.before, steps.service, steps.firewall, steps.start, steps.check].forEach(st => mount.appendChild(st.el));
 
 
-  const ACCOUNT_ID = /^(steam_\d{17}|0x[0-9a-f]{64}|key_[0-9a-f]{64}|[0-9a-f]{64}|crazygames_\S+)$/i;
+  // as the game's is_valid_account_id: the prefixes in lowercase, the hex in either case, no = , ; in a crazygames id
+  const ACCOUNT_ID = /^(steam_\d{17}|0x[0-9a-fA-F]{64}|key_[0-9a-fA-F]{64}|[0-9a-fA-F]{64}|crazygames_[^\s=,;]+)$/;
 
   // 0x<key>, key_<key> and the bare key are one account - as the game's normalize_account_id
   const sameAccount = id => /^(0x|key_)?[0-9a-f]{64}$/i.test(id) ? 'key_' + id.toLowerCase().replace(/^(0x|key_)/, '') : id;
@@ -2458,11 +2443,9 @@
 
   /*
     An argument as the shell takes it as it is: in single quotes, nothing in them expanded ($, `, !, \).
-    systemd's ExecStart has its own rules: double quotes with \ and " escaped, $ and % doubled.
   */
 
   const shellQuote = v => /^[A-Za-z0-9_.,:\/=+-]+$/.test(v) ? v : "'" + v.replace(/'/g, "'\\''") + "'";
-  const systemdQuote = v => /^[A-Za-z0-9_.,:\/=+-]+$/.test(v) ? v : '"' + v.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '$$$$').replace(/%/g, '%%') + '"';
 
   // the open round's join timeout as written: nothing for the default 10 minutes
   const joinTimeoutValue = () => {
@@ -2893,8 +2876,7 @@
     const flags = [
       '--as-service',
       updatesOn() ? '--daily-autoupdate' : '',
-      ownUser() ? '' : '--appdata-dir /opt/hypersomnia',
-      isTournament() ? tournamentFlags(systemdQuote) : ''
+      ownUser() ? '' : '--appdata-dir /opt/hypersomnia'
     ].filter(Boolean).join(' ');
 
     const dir = ownUser() ? '%h' : '/opt/hypersomnia';
@@ -3006,6 +2988,11 @@
       errors.push('Join password: type it - or switch it off.');
     }
 
+    // the game counts the name's bytes - at most 100
+    if (isTournament() && new TextEncoder().encode(state.tName.trim()).length > 100) {
+      errors.push('Tournament name: at most 100 characters (fewer with letters like ą or ł).');
+    }
+
     if (state.webhook.trim() && !/^https:\/\/\S+$/.test(state.webhook.trim())) {
       errors.push('Discord webhook: a link starting with https://');
     }
@@ -3084,7 +3071,7 @@
 
     updatePairing();
     updateCheck();
-    updatePortRows();
+    rebuildRounds();
     updateTable();
 
     const n = instanceCount();
