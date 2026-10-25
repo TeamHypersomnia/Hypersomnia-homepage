@@ -2367,7 +2367,7 @@
     The persistent server's own row (Join password) isn't shown for a tournament.
   */
 
-  const tPassword = el('input', { type: 'text', class: 'gen-t-password', placeholder: 'ok to leave empty if on a LAN', autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' });
+  const tPassword = el('input', { type: 'text', class: 'gen-t-password', placeholder: 'password: ok to leave empty if on a LAN', autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' });
   tPassword.value = state.passwordOn ? state.password : '';
   tPassword.addEventListener('input', () => {
     state.password = tPassword.value;
@@ -2377,7 +2377,7 @@
   refreshers.push(() => { tPassword.value = state.passwordOn ? state.password : ''; });
 
   // listed accounts: in the field's place, as tall as it - nothing below moves between the three
-  const tNoPassword = el('div', { class: 'gen-t-password gen-t-no-password', text: 'No password required' });
+  const tNoPassword = el('div', { class: 'gen-t-password gen-t-no-password gen-security', html: '<i class="fa-solid fa-check gen-secure"></i>No password required. Cryptographically secure.' });
   const spectateText = el('p', { class: 'gen-field-text gen-after-gap', text: 'Participants can spectate other matches after they finish.' });
   const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, tPassword, tNoPassword, firstText, teamsRoster, nicknamesText, spectateText]);
   pairingRow.appendChild(pairingEditor);
@@ -2595,7 +2595,7 @@
     // the same first line for all three - insecure with a warning, or secure with a check - so nothing below jumps
     insecureText.innerHTML = verifiedByAccounts()
       ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
-      : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Set a password to keep strangers out.';
+      : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Set a password to keep strangers out:';
 
     const size = `${state.tTeamSize}v${state.tTeamSize}`;
     firstText.innerHTML = `Anyone who finds your tournament joins <strong>whichever ${size} server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure: the tournament remembers everyone's real account ids.`;

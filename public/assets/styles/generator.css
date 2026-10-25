@@ -2678,10 +2678,10 @@ body.gen-page {
   box-sizing: border-box;
   height: var(--h);
   margin-bottom: 18px;
-  padding: 0 8px;
+  padding: 0;
   border: 1px solid transparent;
-  color: var(--faint);
-  font-size: 0.9em;
+  color: var(--bright);
+  font-size: 1em;
 }
 
 #config-generator .gen-t-no-password[hidden] {
