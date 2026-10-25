@@ -4046,7 +4046,7 @@
     }
 
     if (isTournament() && !pairedBeforehand() && state.tPlayers < 2 * state.tTeamSize) {
-      errors.push(`Players: at least ${2 * state.tTeamSize} for ${state.tTeamSize}v${state.tTeamSize} - two teams.`);
+      errors.push(`Maximum players: at least ${2 * state.tTeamSize} for ${state.tTeamSize}v${state.tTeamSize} - two teams.`);
     }
 
     const n = instanceCount();
