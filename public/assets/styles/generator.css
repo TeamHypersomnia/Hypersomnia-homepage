@@ -1627,10 +1627,6 @@ body.gen-page {
   margin-right: 0.35em;
 }
 
-.gen-security .gen-insecure {
-  color: var(--accent);
-}
-
 .gen-security .gen-secure {
   color: var(--online);
 }
@@ -2660,35 +2656,68 @@ body.gen-page {
   color: var(--bright);
 }
 
-/* "Set a password..." - its field right under it, then the gap */
-.gen-row-editor .gen-field-text.gen-security:has(~ .gen-t-password:not([hidden])) {
-  margin-bottom: 0.4em;
-}
-
-#config-generator .gen-table input[type='text'].gen-t-password {
+/* the Join password field first under the choice, then the gap */
+#config-generator .gen-row-editor .gen-t-password-row {
+  flex-wrap: nowrap;
+  margin-top: 6px;
   margin-bottom: 18px;
 }
 
-/* "No password required" in the field's place - its height, its padding, its gap under it */
-#config-generator .gen-t-no-password {
-  /* inline as the field: its gap under it never collapses into the next line's */
-  display: inline-flex;
-  width: 100%;
+#config-generator .gen-table .gen-t-password-row input[type='text'].gen-t-password {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+/* "No password required" in the field's place, as tall as it - nothing below jumps */
+#config-generator .gen-row-editor .gen-t-no-password {
+  display: flex;
   align-items: center;
-  box-sizing: border-box;
   height: var(--h);
+  margin-top: 6px;
   margin-bottom: 18px;
-  padding: 0;
-  border: 1px solid transparent;
   color: var(--bright);
-  font-size: 1em;
 }
 
 #config-generator .gen-t-no-password[hidden] {
   display: none;
 }
 
-/* a phrase to see first - white, not bold */
-.gen-bright {
+/* a flex line drops the space before its (?) */
+#config-generator .gen-t-no-password .gen-row-help {
+  margin-left: 0.35em;
+}
+
+/* "empty: any stranger may participate" over the field - a placeholder can't color only a part; gone once a password is typed */
+.gen-t-password-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+#config-generator .gen-table .gen-t-password-field input[type='text'].gen-t-password {
+  width: 100%;
+}
+
+.gen-t-password-hint {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--faint);
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: calc(100% - 18px);
+}
+
+.gen-t-password-hint .gen-warn {
+  /* white as the page's other key phrases - red reads as an error, orange as what's active */
   color: var(--bright);
+}
+
+.gen-t-password:not(:placeholder-shown) + .gen-t-password-hint {
+  display: none;
 }
