@@ -596,16 +596,13 @@
 
     const customAdd = el('button', { type: 'button', class: 'gen-pool-chip gen-custom-add', html: '<i class="fa-solid fa-plus"></i>Add' });
     customAdd.addEventListener('click', addCustom);
-    const customRow = el('div', { class: 'gen-custom-row' }, [
-      customInput,
-      customAdd,
-      customError,
-      el('span', { class: 'gen-field-text gen-custom-hint', html: 'Not on hypersomnia.io? See <strong>Advanced: Add your own maps</strong> below.' })
-    ]);
+    const customRow = el('div', { class: 'gen-custom-row' }, [customInput, customAdd, customError]);
+    const customHint = el('p', { class: 'gen-field-text gen-custom-hint', html: 'Not on hypersomnia.io? See <strong>Advanced: Add your own maps</strong> below.' });
 
     // what "all on disk" is at first - shown with it (the folder by the setup: syncAllNote)
     const allNote = el('p', { class: 'gen-field-text gen-all-note' });
-    const selection = el('div', {}, [el('div', {}, []), customRow]);
+    const selection = el('div', {}, []);
+    const cycleList = el('div', {}, [chips]);
 
     const resetButton = el('button', { type: 'button', class: 'gen-reset', text: 'Back to the default' });
     resetButton.addEventListener('click', () => {
@@ -667,6 +664,7 @@
 
       // all on disk: the whole selection goes
       selection.hidden = state.cycleAll;
+      cycleList.hidden = state.cycleAll;
       allNote.hidden = !state.cycleAll;
 
       pool.innerHTML = '';
@@ -679,8 +677,13 @@
 
     render();
     const browse = browseArenasLink();
-    selection.replaceChildren(chips, pool, customRow);
-    const box = el('div', {}, [allOption, allNote, selection, randomOption, el('div', { class: 'gen-cycle-links' }, [browse, resetButton])]);
+    /*
+      From the general to the specific: all on disk or a list; the list and its order; what to add to it - from
+      hypersomnia.io, or a map of your own; then back to the default.
+    */
+
+    selection.replaceChildren(pool, el('div', { class: 'gen-cycle-links' }, [browse]), customHint, customRow);
+    const box = el('div', {}, [allOption, allNote, cycleList, randomOption, selection, el('div', { class: 'gen-cycle-links' }, [resetButton])]);
     box.allNote = allNote;
     box.refresh = render;
     return box;
@@ -3599,14 +3602,17 @@
     const dir = arenasDir();
     const map = ownMapName();
 
+    // the map's name once, at the top - in double quotes below, filled in on your computer
+    const name = `MAP=${map}\n\n`;
+
     if (dir.startsWith('~/')) {
       const remote = dir.slice(2);
-      return `ssh <your server> 'mkdir -p ${remote}'\nscp -r ${map} <your server>:${remote}/`;
+      return `${name}ssh <your server> 'mkdir -p ${remote}'\nscp -r "$MAP" <your server>:${remote}/`;
     }
 
     const owner = m === 'compose' || m === 'run' ? '999:999' : 'hypersomnia:';
     // copied over an older copy of it (cp merges), the one in /tmp removed after
-    return `scp -r ${map} <your server>:/tmp/\nssh <your server> '\n  sudo mkdir -p ${dir} &&\n  sudo cp -r /tmp/${map} ${dir}/ &&\n  sudo chown -R ${owner} ${dir} &&\n  rm -r /tmp/${map}'`;
+    return `${name}scp -r "$MAP" <your server>:/tmp/\nssh <your server> "\n  sudo mkdir -p ${dir} &&\n  sudo cp -r /tmp/$MAP ${dir}/ &&\n  sudo chown -R ${owner} ${dir} &&\n  rm -r /tmp/$MAP"`;
   }
 
   function keyPath() {
@@ -4155,7 +4161,7 @@
 
     mapsAddResults.innerHTML = '';
     mapsAddResults.append(
-      el('p', { class: 'gen-field-text', html: 'By default, only the official maps are on the disk - the others you provide yourself.<br>Run this from your computer, in the folder that holds the map\'s folder:' }),
+      el('p', { class: 'gen-field-text', html: `By default, only the official maps are on the disk - the others you provide yourself.<br>The server's maps folder: ${inline(arenasDir() + '/')}<br><br>Run this from your computer, in the folder that holds the map's folder:` }),
       resultBox({
         lang: 'bash',
         text: wrapped(addMapsCommand()),

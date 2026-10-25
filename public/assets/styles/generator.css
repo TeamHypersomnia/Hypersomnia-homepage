@@ -2574,8 +2574,8 @@ body.gen-page {
   margin-right: 0.35em;
 }
 
-/* the custom map field: its hint on its own line */
+/* the custom map field's hint: over it, under Browse the arenas */
 .gen-custom-hint {
-  flex-basis: 100%;
+  margin: 0.6em 0 0;
   font-size: 0.9em;
 }
