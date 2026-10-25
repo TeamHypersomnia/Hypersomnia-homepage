@@ -682,7 +682,7 @@
       hypersomnia.io, or a map of your own; then back to the default.
     */
 
-    selection.replaceChildren(pool, el('div', { class: 'gen-cycle-links' }, [browse]), customHint, customRow);
+    selection.replaceChildren(pool, customRow, customHint, el('div', { class: 'gen-cycle-links' }, [browse]));
     const box = el('div', {}, [el('div', { class: 'gen-cycle-options' }, [allOption, randomOption]), allNote, cycleList, selection, el('div', { class: 'gen-cycle-links' }, [resetButton])]);
     box.allNote = allNote;
     box.refresh = render;
