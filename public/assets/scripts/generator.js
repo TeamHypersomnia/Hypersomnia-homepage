@@ -223,6 +223,17 @@
     fuse: false,
     // in a terminal, a systemd service as you, or as its own user
     service: 'off',
+    // the game itself: speeds and zoom as in the game's server settings (logic_speed.h, zoom_override.h)
+    ownGameSpeed: false,
+    gameSpeed: 0.75,
+    ownBulletSpeed: false,
+    bulletSpeed: 0.75,
+    ownZoom: false,
+    zoom: 0.85,
+    friendlyFire: false,
+    freezeTime: true,
+    // map_cycle: [ "*" ] - every arena on the server's disk
+    cycleAll: false,
     // the machine's firewall - in the profile, as how the server runs
     firewall: 'none',
     adminOn: false,
@@ -279,8 +290,10 @@
   function sanitizeState(raw) {
     const out = Object.assign({}, defaults);
     const ranges = { tJoinTimeout: [1, 30], tSpectatorPlaces: [0, 50], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
+    const decimals = { gameSpeed: [0.5, 1], bulletSpeed: [0.5, 1], zoom: [0.5, 1.5] };
     const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'], serverWho: ['anyone', 'accounts'], botDifficulty: BOT_DIFFICULTIES.map(d => d[0]), service: ['off', 'systemd', 'user'], firewall: ['none', 'ufw', 'firewalld'] };
-    const arenaName = v => typeof v === 'string' && /^[A-Za-z0-9_.-]{1,64}$/.test(v);
+    // no leading dot: never "." or ".." - a name goes into paths of the commands
+    const arenaName = v => typeof v === 'string' && /^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,63}$/.test(v);
 
     // a listed player: a nickname, and an account id that can only be one - nothing else gets in
     const player = p => p && typeof p === 'object' && typeof p.n === 'string' && p.n.trim() !== '' && p.n.length <= 40 && !/[\x00-\x1f\x7f]/.test(p.n)
@@ -308,7 +321,14 @@
         return;
       }
 
-      if (ranges[k]) {
+      if (decimals[k]) {
+        const [min, max] = decimals[k];
+
+        if (typeof v === 'number' && Number.isFinite(v)) {
+          out[k] = Math.max(min, Math.min(max, Math.round(v * 20) / 20));
+        }
+      }
+      else if (ranges[k]) {
         const [min, max] = ranges[k];
 
         if (typeof v === 'number' && Number.isFinite(v)) {
@@ -446,6 +466,28 @@
     return el('div', { class: 'gen-slider-row' }, [value, i]);
   }
 
+  // a speed or a zoom: by 0.05, shown as 0.75x
+  function decimalSlider(key, min, max) {
+    const i = el('input', { type: 'range', min: String(min), max: String(max), step: '0.05', class: 'gen-slider' });
+    const value = el('span', { class: 'gen-slider-value' });
+
+    const sync = () => {
+      i.value = state[key];
+      value.textContent = `${Number(state[key]).toFixed(2)}x`;
+      i.style.setProperty('--fill', `${(state[key] - min) / (max - min) * 100}%`);
+    };
+
+    i.addEventListener('input', () => {
+      state[key] = Math.round(parseFloat(i.value) * 20) / 20;
+      sync();
+      update();
+    });
+
+    sync();
+    refreshers.push(sync);
+    return el('div', { class: 'gen-slider-row' }, [value, i]);
+  }
+
   /*
     The AppImage only: with FUSE it mounts itself, without it --appimage-extract-and-run unpacks it to /tmp at every start.
   */
@@ -509,10 +551,68 @@
       document.createTextNode('In random order')
     ]);
 
+    // every arena on the server's disk ("*"): no list to pick from
+    const allCheck = el('input', { type: 'checkbox' });
+    allCheck.checked = state.cycleAll;
+    allCheck.addEventListener('change', () => { state.cycleAll = allCheck.checked; render(); update(); });
+
+    const allOption = el('label', { class: 'gen-switch gen-random-option' }, [
+      allCheck,
+      el('span', { class: 'gen-switch-track' }),
+      document.createTextNode('All arenas on the server\'s disk')
+    ]);
+
+    // a map not on the list: typed in - the server downloads it from hypersomnia.io
+    const customInput = el('input', { type: 'text', class: 'gen-custom-map', placeholder: 'de_mymap', maxLength: 64, spellcheck: 'false' });
+    const customError = el('span', { class: 'gen-custom-map-error', text: 'Letters, digits, _ . - only, not starting with .' });
+    customError.hidden = true;
+
+    const addCustom = () => {
+      const name = customInput.value.trim();
+
+      if (!name) {
+        return;
+      }
+
+      if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,63}$/.test(name)) {
+        customError.hidden = false;
+        return;
+      }
+
+      customInput.value = '';
+      customError.hidden = true;
+
+      if (!state.cycle.includes(name)) {
+        set(state.cycle.concat([name]));
+      }
+    };
+
+    customInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addCustom();
+      }
+    });
+
+    const customAdd = el('button', { type: 'button', class: 'gen-pool-chip gen-custom-add', html: '<i class="fa-solid fa-plus"></i>Add' });
+    customAdd.addEventListener('click', addCustom);
+    const customRow = el('div', { class: 'gen-custom-row' }, [
+      customInput,
+      customAdd,
+      customError,
+      el('span', { class: 'gen-field-text gen-custom-hint', html: 'Not on hypersomnia.io? See <strong>Advanced: Add your own maps</strong> below.' })
+    ]);
+
+    // what "all on disk" is at first - shown with it (the folder by the setup: syncAllNote)
+    const allNote = el('p', { class: 'gen-field-text gen-all-note' });
+    const selection = el('div', {}, [el('div', {}, []), customRow]);
+
     const resetButton = el('button', { type: 'button', class: 'gen-reset', text: 'Back to the default' });
     resetButton.addEventListener('click', () => {
       state.cycleRandom = true;
+      state.cycleAll = false;
       randomCheck.checked = true;
+      allCheck.checked = false;
       set(defaults.cycle.slice());
     });
 
@@ -560,9 +660,14 @@
         chips.appendChild(el('span', { class: 'gen-cycle-empty', text: 'None - de_cyberaqua only' }));
       }
 
-      randomOption.hidden = state.cycle.length < 2;
+      allCheck.checked = state.cycleAll;
+      randomOption.hidden = !state.cycleAll && state.cycle.length < 2;
       randomCheck.checked = state.cycleRandom;
       resetButton.hidden = cycleIsDefault();
+
+      // all on disk: the whole selection goes
+      selection.hidden = state.cycleAll;
+      allNote.hidden = !state.cycleAll;
 
       pool.innerHTML = '';
       all.filter(name => !state.cycle.includes(name)).forEach(name => {
@@ -574,7 +679,9 @@
 
     render();
     const browse = browseArenasLink();
-    const box = el('div', {}, [chips, randomOption, pool, el('div', { class: 'gen-cycle-links' }, [browse, resetButton])]);
+    selection.replaceChildren(chips, pool, customRow);
+    const box = el('div', {}, [allOption, allNote, selection, randomOption, el('div', { class: 'gen-cycle-links' }, [browse, resetButton])]);
+    box.allNote = allNote;
     box.refresh = render;
     return box;
   }
@@ -1536,6 +1643,7 @@
   const serviceResults = el('div');
   const secretResults = el('div');
   const firewallResults = el('div');
+  const mapsAddResults = el('div');
   const keyBackupResults = el('div');
   const keySwapResults = el('div');
   const keyPublicResults = el('div');
@@ -1702,7 +1810,7 @@
   }
 
   function cycleIsDefault() {
-    return JSON.stringify(state.cycle) === JSON.stringify(defaults.cycle) && state.cycleRandom;
+    return !state.cycleAll && JSON.stringify(state.cycle) === JSON.stringify(defaults.cycle) && state.cycleRandom;
   }
 
   function browseArenasLink() {
@@ -1817,6 +1925,77 @@
     switchInput('bots', () => {}, 'fill the teams with bots'),
     botDetails
   ]));
+
+  /*
+    Game vars: the game speed, the bullets' (following the game's unless set apart), the zoom (the map's unless set),
+    friendly fire, freeze time. Folded: only what differs from the defaults.
+  */
+
+  const gameVarsAtDefault = () =>
+    !state.ownGameSpeed && !state.ownBulletSpeed && !state.ownZoom && !state.friendlyFire && state.freezeTime
+  ;
+
+  // off: the game's own default (0.75x)
+  const effectiveGameSpeed = () => state.ownGameSpeed ? state.gameSpeed : defaults.gameSpeed;
+  const effectiveBulletSpeed = () => state.ownBulletSpeed ? state.bulletSpeed : effectiveGameSpeed();
+  const speedText = v => `${Number(v).toFixed(2)}x`;
+
+  function gameVarsSummary() {
+    if (gameVarsAtDefault()) {
+      return 'All defaults';
+    }
+
+    return [
+      state.ownGameSpeed ? `Game speed ${speedText(state.gameSpeed)}` : null,
+      state.ownBulletSpeed ? `Bullet speed ${speedText(state.bulletSpeed)}` : null,
+      state.ownZoom ? `Zoom ${speedText(state.zoom)}` : null,
+      state.friendlyFire ? 'Friendly fire' : null,
+      !state.freezeTime ? 'No freeze time' : null
+    ].filter(Boolean).join(' · ');
+  }
+
+  const gameVarsRows = [];
+
+  function gameVarsRow() {
+    const original = el('span', { class: 'gen-original', html: '<i class="fa-solid fa-star"></i>Original Hypersomnia' });
+    const gameDefault = el('span', { class: 'gen-switch-note', text: `the game's default: ${speedText(defaults.gameSpeed)}` });
+    const gameSlider = decimalSlider('gameSpeed', 0.5, 1);
+    const bulletFollows = el('span', { class: 'gen-switch-note' });
+    const bulletSlider = decimalSlider('bulletSpeed', 0.5, 1);
+    const zoomSlider = decimalSlider('zoom', 0.5, 1.5);
+
+    const line = (label, controls, help) => el('div', { class: 'gen-sub-row' }, [
+      el('span', { class: 'gen-sub-label' }, [document.createTextNode(label)].concat(help ? [el('i', { class: 'fa-regular fa-circle-question gen-row-help', 'data-tip': help, 'aria-label': help, tabindex: '0' })] : [])),
+      el('span', { class: 'gen-sub-ctl' }, controls)
+    ]);
+
+    const row = foldRow('Game vars', 'The game itself: its speed,\nthe bullets\', the zoom, friendly fire\nand freeze time.', el('div', { class: 'gen-game-vars' }, [
+      line('Game speed', [switchInput('ownGameSpeed', () => {}, ''), gameDefault, gameSlider, original], 'Slows down the entire game:\nmovement, physics, bullets, reloads, bots.\nFire rates and recoil stay the same.\n\nPlayers may change it with /speed.'),
+      line('Bullet speed', [switchInput('ownBulletSpeed', () => {}, ''), bulletFollows, bulletSlider], 'Off: the same as the game speed.'),
+      line('Zoom', [switchInput('ownZoom', () => {}, ''), el('span', { class: 'gen-switch-note gen-zoom-default', text: 'the map\'s own' }), zoomSlider], 'Less shows more of the map.\nOff: the map\'s own.'),
+      line('Friendly fire', [switchInput('friendlyFire', () => {}, '')]),
+      line('Freeze time', [switchInput('freezeTime', () => {}, '')], 'Off: rounds start right away.')
+    ]));
+
+    row.sync = () => {
+      row.show(gameVarsSummary(), gameVarsAtDefault());
+      // its place kept when not shown - the slider never moves
+      original.style.visibility = effectiveGameSpeed() === 1 && effectiveBulletSpeed() === 1 ? '' : 'hidden';
+      gameDefault.hidden = state.ownGameSpeed;
+      gameSlider.hidden = !state.ownGameSpeed;
+      bulletFollows.textContent = `same as the game: ${speedText(effectiveGameSpeed())}`;
+      bulletFollows.hidden = state.ownBulletSpeed;
+      bulletSlider.hidden = !state.ownBulletSpeed;
+      row.querySelector('.gen-zoom-default').hidden = state.ownZoom;
+      zoomSlider.hidden = !state.ownZoom;
+    };
+
+    gameVarsRows.push(row);
+    return row;
+  }
+
+  const serverGameVarsRow = gameVarsRow();
+  const tournamentGameVarsRow = gameVarsRow();
 
   const botDifficultyText = () => (BOT_DIFFICULTIES.find(d => d[0] === state.botDifficulty) || BOT_DIFFICULTIES[0])[1];
   const botsAtDefault = () => state.bots && state.botDifficulty === 'PROGRESSIVE' && !state.botQuotaOn;
@@ -2280,6 +2459,7 @@
     only(serverRows, cycleRow),
     only(serverRows, settingRow('Slots', [sliderInput('slots', 4, 26)])),
     only(serverRows, settingRow('Server instances', [casualInput], 'Several servers, one after another.\n\nEach takes the next ports.')),
+    only(serverRows, serverGameVarsRow),
     only(serverRows, botsRow),
     only(tournamentRows, settingRow('Tournament name', [textInput('tName', 'e.g. onFOSS November Cup 2026', 100)], 'Shown on the live results page.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again.\nNext time, give it a new name.')),
     only(tournamentRows, settingRow('Teams', [teamSize])),
@@ -2287,6 +2467,7 @@
     only(tournamentRows, playersRow),
     only(tournamentRows, joinTimeoutRow),
     only(tournamentRows, mapsRow),
+    only(tournamentRows, tournamentGameVarsRow),
     only(tournamentRows, settingRow('Live results page', [switchInput('tPage', () => {}, '<code>http://&lt;your server&gt;:<span class="gen-page-port"></span>/</code>'), pageExampleButton], 'The bracket with live scores.\n\nServed by the game server itself, over TCP.\n\nAs JSON: `/tournament.json`.')),
     browserRow,
     portsRow,
@@ -2390,7 +2571,13 @@
     const maps = roundMaps();
     mapsRow.show(maps.join(' <span class="gen-arrow">→</span> '), JSON.stringify(maps) === JSON.stringify(defaultRoundMaps()));
 
+    // where the server's arenas are - its own maps go there
+    cycleBox.allNote.innerHTML = 'By default, only the official maps are on the disk - the others you provide yourself:<br>see <strong>Advanced: Add your own maps</strong> below.';
+
+    const orderTag = `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>`;
+
     cycleRow.show(
+      state.cycleAll ? 'All arenas on disk' + orderTag :
       state.cycle.length
         ? state.cycle.join(' <span class="gen-arrow">→</span> ') + (state.cycle.length > 1 ? `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>` : '')
         : 'de_cyberaqua only',
@@ -2398,6 +2585,8 @@
     );
 
     syncBotQuota();
+
+    gameVarsRows.forEach(r => r.sync());
 
     botsRow.show(
       state.bots ? `${state.botQuotaOn ? `${state.botQuota} ${state.botQuota > 1 ? 'bots' : 'bot'}` : 'On'} · ${botDifficultyText()}` : 'Off',
@@ -2486,6 +2675,7 @@
     playersKey: makeStep('For your players: the line to add your server', playersKeyResults, true),
     check: makeStep('Check that it works', checkBlock),
     // behind their own button, after the check: done later, if ever - the server key's backup and its move elsewhere
+    mapsAdd: makeStep('Advanced: Add your own maps', mapsAddResults, true),
     keyBackup: makeStep('Advanced: Back up your server key', keyBackupResults, true),
     keySwap: makeStep('Advanced: Restore your server key', keySwapResults, true),
     keyPublic: makeStep('Advanced: Your server\'s public key', keyPublicResults, true)
@@ -2515,7 +2705,7 @@
     After the launch, if ever: steps always in sight, folded - their title opens them.
   */
 
-  [steps.keyBackup, steps.keySwap, steps.keyPublic].forEach(st => {
+  [steps.mapsAdd, steps.keyBackup, steps.keySwap, steps.keyPublic].forEach(st => {
     // left of the title: pointing at it while folded, down once opened
     const chevron = el('i', { class: 'fa-solid fa-chevron-right gen-fold-chevron' });
     st.el.classList.add('gen-foldable');
@@ -2754,9 +2944,9 @@
   // the AppImage's conf.d/server.json
   // only map_cycle: the server starts on its first (or a random one of it); one map alone stays
   // the game's own default: the three arenas, shuffled - no line for it
-  const cycleOn = () => !isTournament() && !(JSON.stringify(state.cycle) === JSON.stringify(defaults.cycle) && state.cycleRandom);
-  const cycleArenas = () => (state.cycle.length ? state.cycle : ['de_cyberaqua']).map(withMode);
-  const cycleShuffleOff = () => !state.cycleRandom && state.cycle.length > 1;
+  const cycleOn = () => !isTournament() && !cycleIsDefault();
+  const cycleArenas = () => state.cycleAll ? ['*'] : (state.cycle.length ? state.cycle : ['de_cyberaqua']).map(withMode);
+  const cycleShuffleOff = () => !state.cycleRandom && (state.cycleAll || state.cycle.length > 1);
 
   function buildSettings() {
     const ids = adminIds();
@@ -2783,6 +2973,27 @@
       if (state.botDifficulty !== 'PROGRESSIVE') {
         server.bot_difficulty = state.botDifficulty;
       }
+    }
+
+    // the game vars - only what differs from the game's own defaults
+    if (state.ownGameSpeed) {
+      server.game_speed = state.gameSpeed;
+    }
+
+    if (state.ownBulletSpeed) {
+      server.bullet_speed = state.bulletSpeed;
+    }
+
+    if (state.ownZoom) {
+      server.zoom_override = state.zoom;
+    }
+
+    if (state.friendlyFire) {
+      server.friendly_fire = true;
+    }
+
+    if (!state.freezeTime) {
+      server.freeze_time = false;
     }
 
     // server_private goes into its own file - the config can be shown to anyone
@@ -2968,6 +3179,27 @@
       if (state.botDifficulty !== 'PROGRESSIVE') {
         put('HYPERSOMNIA_BOT_DIFFICULTY', state.botDifficulty);
       }
+    }
+
+    // the game vars (environment_variables.cpp) - only what differs from the defaults
+    if (state.ownGameSpeed) {
+      put('HYPERSOMNIA_GAME_SPEED', String(state.gameSpeed));
+    }
+
+    if (state.ownBulletSpeed) {
+      put('HYPERSOMNIA_BULLET_SPEED', String(state.bulletSpeed));
+    }
+
+    if (state.ownZoom) {
+      put('HYPERSOMNIA_ZOOM', String(state.zoom));
+    }
+
+    if (state.friendlyFire) {
+      put('HYPERSOMNIA_FRIENDLY_FIRE', 'on');
+    }
+
+    if (!state.freezeTime) {
+      put('HYPERSOMNIA_FREEZE_TIME', 'off');
     }
 
     if (!isTournament() && state.casual !== 1) {
@@ -3339,6 +3571,43 @@
     The server key of this setup: where the server keeps it (KEYS_DIR: the user folder's .keys), how a file is put there
     (only the server's user may read it), how it's backed up from your computer, and how its public half is printed.
   */
+
+  // the arenas the server has on its disk - the official ones are in the AppImage, these next to them
+  function arenasDir() {
+    const m = method();
+
+    if (m === 'compose' || m === 'run') {
+      return '/opt/hypersomnia/downloads/arenas';
+    }
+
+    return separateUser() ? '/opt/hypersomnia/user/downloads/arenas' : '~/.config/Hypersomnia/user/downloads/arenas';
+  }
+
+  /*
+    A map of your own onto the server, from your computer: its folder (<map>/<map>.json and the rest) into arenasDir().
+    The server's own user or the container's owns the folder - copied through /tmp, then moved in with sudo.
+    Named by the cycle's first map not on hypersomnia.io, if there is one.
+  */
+
+  function ownMapName() {
+    const known = new Set(arenas.official.concat(arenas.community));
+    return state.cycle.find(name => !known.has(name)) || 'de_mymap';
+  }
+
+  function addMapsCommand() {
+    const m = method();
+    const dir = arenasDir();
+    const map = ownMapName();
+
+    if (dir.startsWith('~/')) {
+      const remote = dir.slice(2);
+      return `ssh <your server> 'mkdir -p ${remote}'\nscp -r ${map} <your server>:${remote}/`;
+    }
+
+    const owner = m === 'compose' || m === 'run' ? '999:999' : 'hypersomnia:';
+    // copied over an older copy of it (cp merges), the one in /tmp removed after
+    return `scp -r ${map} <your server>:/tmp/\nssh <your server> '\n  sudo mkdir -p ${dir} &&\n  sudo cp -r /tmp/${map} ${dir}/ &&\n  sudo chown -R ${owner} ${dir} &&\n  rm -r /tmp/${map}'`;
+  }
 
   function keyPath() {
     const m = method();
@@ -3883,6 +4152,16 @@
     }));
     // a tournament's only: a persistent server's players don't need it
     steps.keyPublic.el.hidden = !isTournament();
+
+    mapsAddResults.innerHTML = '';
+    mapsAddResults.append(
+      el('p', { class: 'gen-field-text', text: 'Run this from your computer, in the folder that holds the map\'s folder:' }),
+      resultBox({
+        lang: 'bash',
+        text: wrapped(addMapsCommand()),
+        hint: 'The server reads its maps when it starts - restart it.<br>Maps on <a href="/arenas" target="_blank">hypersomnia.io<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a> need none of this: the server downloads them itself.'
+      })
+    );
 
     keySwapResults.innerHTML = '';
     keySwapResults.appendChild(resultBox({

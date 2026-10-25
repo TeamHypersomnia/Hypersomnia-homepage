@@ -2508,3 +2508,74 @@ body.gen-page {
 .gen-telegram-channel input {
   width: 13em;
 }
+
+/* the map cycle: a map typed in, not on the list */
+.gen-custom-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 0.6em;
+}
+
+#config-generator .gen-table input[type='text'].gen-custom-map {
+  flex: none;
+  width: 14em;
+}
+
+.gen-custom-map-error {
+  color: var(--red);
+  font-size: 0.9em;
+}
+
+/* the game vars: a line each - its name, then its controls */
+.gen-game-vars {
+  display: grid;
+  gap: 0.6em;
+}
+
+.gen-sub-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 1em;
+}
+
+.gen-sub-label {
+  min-width: 7.5em;
+  color: var(--text);
+}
+
+.gen-sub-label .gen-row-help {
+  margin-left: 0.35em;
+}
+
+.gen-sub-ctl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 0.8em;
+  flex: 1;
+}
+
+.gen-sub-ctl .gen-slider-row {
+  flex: none;
+  width: 15em;
+  max-width: 100%;
+}
+
+.gen-original {
+  color: var(--online);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.gen-original i {
+  margin-right: 0.35em;
+}
+
+/* the custom map field: its hint on its own line */
+.gen-custom-hint {
+  flex-basis: 100%;
+  font-size: 0.9em;
+}
