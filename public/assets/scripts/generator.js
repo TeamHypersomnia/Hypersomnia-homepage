@@ -2576,7 +2576,7 @@
     // the same first line for all three - insecure with a warning, or secure with a check - so nothing below jumps
     insecureText.innerHTML = verifiedByAccounts()
       ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
-      : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Insecure during round 1. Set a password to keep strangers out.';
+      : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Set a password to keep strangers out.';
 
     const size = `${state.tTeamSize}v${state.tTeamSize}`;
     firstText.innerHTML = `Anyone joins <strong>whichever ${size} server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure:<br>the tournament remembers everyone's real account ids,<br>and pairs them accordingly.`;
