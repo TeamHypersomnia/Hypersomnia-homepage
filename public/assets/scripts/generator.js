@@ -2350,7 +2350,7 @@
     The tournament's rows: the size of the teams first - it says how to write the list of them.
   */
 
-  const pairingRow = settingRow('Who gets in', [pairingSelect], 'On a LAN, Anyone or Listed nicknames\nis enough: people there trust each other.');
+  const pairingRow = settingRow('Who gets in', [pairingSelect], 'On a LAN, Anyone or Listed nicknames\nis enough: nobody from outside can join.\n\nFrom round 2 nobody has to trust anyone:\nthe server knows every player\'s account.');
 
   // however they join first: what it means for the players
   const firstText = el('p', { class: 'gen-field-text', html: 'Anyone joins <strong>whichever server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure:<br>the tournament remembers everyone\'s real account ids,<br>and pairs them accordingly.' });
@@ -2576,7 +2576,7 @@
     // the same first line for all three - insecure with a warning, or secure with a check - so nothing below jumps
     insecureText.innerHTML = verifiedByAccounts()
       ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
-      : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Insecure during round 1. Enough for a LAN.';
+      : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Insecure during round 1. Set a password to keep strangers out.';
 
     const size = `${state.tTeamSize}v${state.tTeamSize}`;
     firstText.innerHTML = `Anyone joins <strong>whichever ${size} server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure:<br>the tournament remembers everyone's real account ids,<br>and pairs them accordingly.`;
