@@ -2375,8 +2375,11 @@
     update();
   });
   refreshers.push(() => { tPassword.value = state.passwordOn ? state.password : ''; });
+
+  // listed accounts: in the field's place, as tall as it - nothing below moves between the three
+  const tNoPassword = el('div', { class: 'gen-t-password gen-t-no-password', text: 'No password required' });
   const spectateText = el('p', { class: 'gen-field-text gen-after-gap', text: 'Participants can spectate other matches after they finish.' });
-  const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, tPassword, firstText, teamsRoster, nicknamesText, spectateText]);
+  const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, tPassword, tNoPassword, firstText, teamsRoster, nicknamesText, spectateText]);
   pairingRow.appendChild(pairingEditor);
 
   const playersRow = settingRow('Maximum players', [playersInput, roundSummary], 'Not everybody has to show up.\nThe tournament continues regardless.');
@@ -2619,6 +2622,7 @@
     // a tournament's password is in Who participates - none at all with listed accounts
     passwordRow.hidden = isTournament();
     tPassword.hidden = verifiedByAccounts();
+    tNoPassword.hidden = !verifiedByAccounts();
 
     passwordRow.classList.toggle('gen-row-disabled', verified);
     passwordRow.querySelectorAll('input').forEach(i => { i.disabled = verified; });
