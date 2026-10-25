@@ -2572,7 +2572,7 @@
     mapsRow.show(maps.join(' <span class="gen-arrow">→</span> '), JSON.stringify(maps) === JSON.stringify(defaultRoundMaps()));
 
     // where the server's arenas are - its own maps go there
-    cycleBox.allNote.innerHTML = 'By default, only the official maps are on the disk - the others you provide yourself:<br>see <strong>Advanced: Add your own maps</strong> below.';
+    cycleBox.allNote.innerHTML = 'See <strong>Advanced: Add your own maps</strong> below.';
 
     const orderTag = `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>`;
 
@@ -4155,7 +4155,7 @@
 
     mapsAddResults.innerHTML = '';
     mapsAddResults.append(
-      el('p', { class: 'gen-field-text', text: 'Run this from your computer, in the folder that holds the map\'s folder:' }),
+      el('p', { class: 'gen-field-text', html: 'By default, only the official maps are on the disk - the others you provide yourself.<br>Run this from your computer, in the folder that holds the map\'s folder:' }),
       resultBox({
         lang: 'bash',
         text: wrapped(addMapsCommand()),
