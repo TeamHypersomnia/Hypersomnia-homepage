@@ -678,12 +678,12 @@
     render();
     const browse = browseArenasLink();
     /*
-      From the general to the specific: all on disk or a list; the list and its order; what to add to it - from
+      From the general to the specific: all on disk or a list, in random order or not; the list; what to add to it - from
       hypersomnia.io, or a map of your own; then back to the default.
     */
 
     selection.replaceChildren(pool, el('div', { class: 'gen-cycle-links' }, [browse]), customHint, customRow);
-    const box = el('div', {}, [allOption, allNote, cycleList, randomOption, selection, el('div', { class: 'gen-cycle-links' }, [resetButton])]);
+    const box = el('div', {}, [el('div', { class: 'gen-cycle-options' }, [allOption, randomOption]), allNote, cycleList, selection, el('div', { class: 'gen-cycle-links' }, [resetButton])]);
     box.allNote = allNote;
     box.refresh = render;
     return box;
