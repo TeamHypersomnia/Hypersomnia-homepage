@@ -1484,7 +1484,7 @@
   const whoGetsIn = () => state.tPairing !== 'beforehand' ? 'anyone' : state.tVerify === 'accounts' ? 'accounts' : 'nicknames';
 
   const pairingSelect = el('select', {}, [
-    el('option', { value: 'anyone', text: 'Anyone (no list needed)' }),
+    el('option', { value: 'anyone', text: 'Anyone (no roster setup)' }),
     el('option', { value: 'nicknames', text: 'Listed nicknames' }),
     el('option', { value: 'accounts', text: 'Listed accounts (secure)' })
   ]);
