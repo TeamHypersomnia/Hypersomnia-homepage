@@ -119,12 +119,13 @@
 
   /*
     A profile in the link: /generator#p=<the settings that differ from the defaults, as base64url JSON> -
-    without the secrets (passwords, webhooks, admins), which stay in the browser. Kept in the address bar as
-    the settings change, so a bookmark is a profile.
+    without the secrets (passwords, webhooks, admins), which stay in the browser. Made only by Copy link - the address bar
+    isn't kept up to date: browsers limit how often a page may change it (Safari throws after 100 times in 30 s).
+    The settings come back from the browser's storage anyway.
   */
 
   const PROFILE_HASH = '#p=';
-  const SECRET_KEYS = ['password', 'passwordOn', 'webhook', 'admins', 'adminOn'];
+  const SECRET_KEYS = ['password', 'passwordOn', 'webhook', 'admins', 'adminOn', 'spectator', 'spectatorOn', 'tResultsWebhook'];
 
   // how this machine runs it is for whoever gets the link to decide - kept in their browser, as the secrets
   const MACHINE_KEYS = ['asService', 'serviceUser', 'fuse'];
@@ -215,7 +216,7 @@
 
     if (button) {
       const source = button.classList.contains('guide-copy') ? button.parentElement.querySelector('pre code') : button.parentElement.querySelector('code');
-      copyText(source.textContent, button);
+      copyText(source.dataset.copy || source.textContent, button);
     }
   });
 
@@ -272,6 +273,8 @@
     serviceUser: false,
     asService: false,
     adminOn: false,
+    spectatorOn: false,
+    spectator: '',
     bots: true,
     botDifficulty: 'PROGRESSIVE',
     botQuotaOn: false,
@@ -283,6 +286,7 @@
     tPairing: 'first',
     tPage: true,
     tPagePort: 0,
+    tName: '',
     tTeams: [],
     tIdsText: '',
     tVerify: 'nicknames',
@@ -290,7 +294,8 @@
     tJoinTimeout: 10,
     serverWho: 'anyone',
     allowedPlayers: [],
-    webhook: ''
+    webhook: '',
+    tResultsWebhook: ''
   };
 
   let state = Object.assign({}, defaults);
@@ -305,6 +310,12 @@
       NOT_IN_LINK.forEach(k => { secrets[k] = state[k]; });
 
       state = Object.assign({}, defaults, linkedProfile.state || {}, secrets);
+
+      // applied once - a reload keeps what's changed since (the browser's storage), not the link again
+      try {
+        history.replaceState(null, '', location.pathname + '#' + linkedProfile.setup);
+      }
+      catch (e) {}
     }
 
     // saved before the password had its switch
@@ -598,7 +609,7 @@
     }
 
     render();
-    const browse = el('a', { class: 'gen-browse', href: '/arenas', target: '_blank', html: '<i class="fa-solid fa-arrow-up-right-from-square"></i>Browse the arenas' });
+    const browse = browseArenasLink();
     const box = el('div', {}, [chips, randomOption, pool, el('div', { class: 'gen-cycle-links' }, [browse, resetButton])]);
     box.refresh = render;
     return box;
@@ -625,7 +636,7 @@
   const adminWarning = el('div', { class: 'gen-hint' });
 
   const advancedSet = () =>
-    state.timeZone !== '' || state.webhook !== '' ||
+    state.timeZone !== '' || state.webhook !== '' || state.adminOn || state.spectatorOn || state.tResultsWebhook !== '' ||
     !state.autoupdate || state.updateHour !== 3
   ;
 
@@ -1224,7 +1235,7 @@
 
         for (let t = 0; t < filled; ++t) {
           if (t < byes) {
-            const slot = el('div', { class: 'gen-roster-bye-slot', 'data-bye-slot': String(t), 'data-first-pair': String(byes), 'data-tip': 'Drop a team here to make them play each other' });
+            const slot = el('div', { class: 'gen-roster-bye-slot', 'data-bye-slot': String(t), 'data-first-pair': String(byes), 'data-tip': 'Drop a team here\nto make them play each other' });
             board.appendChild(el('div', { class: 'gen-roster-match bye' }, [el('span', { class: 'gen-roster-match-name', text: 'Bye' }), teamBox(t), el('span', { class: 'gen-roster-vs' }), slot]));
             continue;
           }
@@ -1383,9 +1394,39 @@
     update();
   });
 
+  // a listed nickname without its line in the ids box gets one - "nick ", the id to paste after it
+  const hasIdLine = n => n in idLines() || state.tIdsText.split('\n').some(l => l.trim() === n);
+
+  /*
+    The ids box follows the listed nicknames: a line with an id always stays (the id is what matters - its nickname
+    may be an old one), a line without one only while its nickname is listed; the listed nicknames missing get a line.
+    Typing "kurwa" in the teams leaves one "kurwa " line, not one for every letter.
+  */
+
+  function syncIdLines() {
+    const listed = [].concat(...listedTeams()).filter(Boolean);
+    const lines = state.tIdsText.split('\n').filter(line => {
+      const l = line.trim();
+
+      if (!l) {
+        return false;
+      }
+
+      return listed.includes(l) || /^(.*\S)\s+(\S+)$/.test(l);
+    });
+
+    const missing = listed.filter(n => !lines.some(line => line.trim() === n || (/^(.*\S)\s+(\S+)$/.exec(line.trim()) || [])[1] === n));
+    const rebuilt = lines.concat(missing.map(n => `${n} `)).join('\n');
+
+    // nothing changed: the text stays as typed, its trailing spaces too
+    if (rebuilt.replace(/\s+$/, '') !== state.tIdsText.replace(/\s+$/, '')) {
+      state.tIdsText = rebuilt;
+    }
+  }
+
   // a player's "!": their nickname on a new line of the ids box, the cursor after it
   function focusIdLine(n) {
-    if (!(n in idLines())) {
+    if (!hasIdLine(n)) {
       state.tIdsText = (state.tIdsText.trim() ? state.tIdsText.replace(/\s*$/, '\n') : '') + `${n} `;
     }
 
@@ -1453,12 +1494,12 @@
     Unneeded: the file's path struck through and grey, nothing to copy.
   */
 
-  function resultBox({ file = '', lang = '', text = '', hint = '', unneeded = false }) {
+  function resultBox({ file = '', fileTip = 'Copy the path', lang = '', text = '', hint = '', unneeded = false }) {
     const code = el('code', { text });
     const box = el('div', { class: 'guide-code' + (file ? ' with-file' : '') + (unneeded ? ' unneeded' : '') }, [
       el('div', { class: 'guide-code-file' }, [
         el('code', { text: file }),
-        el('button', { type: 'button', class: 'gen-inline-copy', title: 'Copy the path', html: '<i class="fa-regular fa-copy"></i>' })
+        el('button', { type: 'button', class: 'gen-inline-copy', title: fileTip, html: '<i class="fa-regular fa-copy"></i>' })
       ]),
       el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' }),
       el('pre', {}, [code])
@@ -1516,7 +1557,7 @@
       return '';
     }
 
-    return `Within a minute your matches are on:<br><a href="/servers" target="_blank">hypersomnia.io/servers</a><br>with <span class="gen-results-tag"><i class="fa-solid fa-trophy"></i> Results</span> next to them - your tournament's results page:<br><code>http://&lt;your server&gt;:${pagePort()}/</code><br><br>`;
+    return `Within a minute your matches are on:<br><a href="/servers" target="_blank">hypersomnia.io/servers<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a><br>with <span class="gen-results-tag"><i class="fa-solid fa-trophy"></i> Results</span> next to them - your tournament's results page:<br><code>http://&lt;your server&gt;:${pagePort()}/</code><br><br>`;
   }
 
   function updateCheck() {
@@ -1531,7 +1572,7 @@
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else {
-      checkText.innerHTML = 'Within a minute your server is on:<br><a href="/servers" target="_blank">hypersomnia.io/servers</a><br>and in <code>Browse servers</code> in the game.<br><br>On the list but nobody can join?<br>Open the ports - see <code>Your firewall commands</code> above.';
+      checkText.innerHTML = 'Within a minute your server is on:<br><a href="/servers" target="_blank">hypersomnia.io/servers<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a><br>and in <code>Browse servers</code> in the game.<br><br>On the list but nobody can join?<br>Open the ports - see <code>Your firewall commands</code> above.';
       checkImage.src = '/assets/images/generator/server_browser.png';
       checkImage.alt = 'Your server in Browse servers';
     }
@@ -1635,6 +1676,10 @@
 
   function cycleIsDefault() {
     return JSON.stringify(state.cycle) === JSON.stringify(defaults.cycle) && state.cycleRandom;
+  }
+
+  function browseArenasLink() {
+    return el('a', { class: 'gen-browse', href: '/arenas', target: '_blank', html: '<i class="fa-solid fa-arrow-up-right-from-square"></i>Browse the arenas' });
   }
 
   function settingRow(label, controls, help) {
@@ -1741,7 +1786,7 @@
     el('div', { class: 'gen-bots-line' }, [el('span', { class: 'gen-bots-label', text: 'How many' }), botCountSelect, botQuotaSlider])
   ]);
 
-  const botsRow = foldRow('Bots', 'Bots fill the teams when players are missing. Map default: as many as the arena says. Progressive: they get harder as the players do better - only with the map default.', el('div', { class: 'gen-bots' }, [
+  const botsRow = foldRow('Bots', 'Bots fill the teams\nwhen players are missing.\n\nMap default: as many as the arena says.\n\nProgressive: they get harder\nas the players do better.\nOnly with the map default.', el('div', { class: 'gen-bots' }, [
     switchInput('bots', () => {}, 'fill the teams with bots'),
     botDetails
   ]));
@@ -1765,7 +1810,7 @@
   });
   const tablePageHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-trophy"></i>Results page' });
 
-  const portsRow = foldRow('Ports', 'Change them only if 8412 or 9000 is taken on this machine.', el('div', { class: 'gen-ports' }, [
+  const portsRow = foldRow('Ports', 'Change them only if 8412 or 9000\nis taken on this machine.', el('div', { class: 'gen-ports' }, [
     el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-gamepad"></i>Game' }),
     tableWebHead,
     tablePageHead,
@@ -1774,8 +1819,225 @@
     tablePagePort
   ]));
 
-  const adminRow = revealRow('Admin', 'adminOn', admins, 'In the game: Settings → Account. Lets you manage the server in-game: maps, bans... In a tournament: watch any match, and close round 1 when not everyone came.');
+  const adminRow = revealRow('Admin', 'adminOn', admins, 'Your account id - in the game: `Settings → Account`.\n\nManage the server in-game: maps, bans...\n\nIn a tournament:\n- watch any match,\n- close round 1 when not everyone came,\n- decide a match someone doesn\'t come to.');
   adminRow.appendChild(el('div', { class: 'gen-row-editor gen-row-note' }, [adminWarning]));
+
+  const spectatorInput = textInput('spectator', 'its account id - 0x8aed41f2... or steam_7656119...');
+  const spectatorRow = revealRow('Spectator', 'spectatorOn', spectatorInput, 'An account that only watches:\na caster, a bot streaming the matches.\n\nAlways gets in:\n- a place kept for it on a full server,\n- no password,\n- into ranked and tournament matches\n  being played.\n\nNever on a team.');
+
+  /*
+    What /tournament.json and the results webhook carry - the game's tournament_page.h as JSON, field for field.
+  */
+
+  function examplePayload(ongoing) {
+    const p = (nickname, account) => ({ nickname, account });
+    const alice = p('alice', 'steam_76561198012345678');
+    const bob = p('bob', 'key_8aed41f2c0a3b6f1e9d7c5b3a1f0e2d4c6b8a0f1e3d5c7b9a1f2e4d6c8b0a2f4');
+    const carol = p('carol', 'steam_76561198055556666');
+    const dave = p('dave', 'key_c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5');
+    const erin = p('erin', 'steam_76561198087654321');
+    const frank = p('frank', 'key_3f9a2c7d1e5b8a4c6d0e9f2a1b7c3d5e8f0a2b4c6d8e1f3a5b7c9d0e2f4a6b8c');
+    const gus = p('gus', 'steam_76561198011112222');
+    const hal = p('hal', 'steam_76561198033334444');
+    const ivy = p('ivy', 'steam_76561198077778888');
+    const jo = p('jo', 'steam_76561198099990000');
+
+    const done = (team_a, team_b, score_a, score_b) => ({ status: 'done', winner: 'a', team_a, team_b, score_a, score_b });
+
+    // being played: the final, live on its server
+    const final = ongoing
+      ? { name: 'Final', state: 'PLAYING', arena: 'fy_minilab', matches: [{ status: 'live', winner: '', team_a: [alice, bob], team_b: [erin, frank], score_a: 9, score_b: 7, server_name: '[alice, bob] vs [erin, frank]', port: 8412 }], byes: [] }
+      : { name: 'Final', state: 'PLAYED', arena: 'fy_minilab', matches: [done([alice, bob], [erin, frank], 16, 7)], byes: [] };
+
+    return {
+      name: state.tName.trim() || 'onFOSS November Cup 2026',
+      state: ongoing ? 'ONGOING' : 'FINISHED',
+      winner_team: ongoing ? [] : [alice, bob],
+      rounds: [
+        final,
+        { name: 'Semifinals', state: 'PLAYED', arena: 'de_cyberaqua', matches: [
+          done([alice, bob], [carol, dave], 16, 14),
+          { status: 'walkover', winner: 'a', team_a: [erin, frank], team_b: [gus, hal] }
+        ], byes: [] },
+        { name: 'Quarterfinals', state: 'PLAYED', arena: 'de_silo', matches: [done([carol, dave], [ivy, jo], 16, 11)], byes: [[alice, bob], [erin, frank], [gus, hal]] }
+      ],
+      config: {
+        who_gets_in: 'listed accounts',
+        team_size: 2,
+        teams: 5,
+        arenas: ['de_silo', 'de_cyberaqua', 'fy_minilab'],
+        join_timeout_minutes: 10
+      }
+    };
+  }
+
+  // where the finished tournament's results are left on the machine - the same JSON the webhook gets
+  function resultsFilePath() {
+    if (method() === 'compose' || method() === 'run') {
+      return '/opt/hypersomnia/tournament_results.json';
+    }
+
+    return separateUser() ? '/opt/hypersomnia/user/tournament_results.json' : '~/.config/Hypersomnia/user/tournament_results.json';
+  }
+
+  // checking the signature in Node.js - the webhook's request, or the endpoint fetched
+  const VERIFY_KEY_LINES = [
+    '',
+    '// an Ed25519 public key in the form Node reads',
+    'const publicKey = crypto.createPublicKey({',
+    "  key: Buffer.from('302a300506032b6570032100' + serverKey, 'hex'),",
+    "  format: 'der',",
+    "  type: 'spki'",
+    '});',
+    '',
+    'const genuine =',
+    '  serverKey === YOUR_SERVER_KEY &&',
+    "  crypto.verify(null, rawBody, publicKey, Buffer.from(signature, 'hex'));"
+  ];
+
+  const verifySnippet = endpoint => [
+    "const crypto = require('crypto');",
+    ''
+  ].concat(endpoint ? [
+    `const res = await fetch('${endpoint}');`,
+    'const rawBody = Buffer.from(await res.arrayBuffer());',
+    "const serverKey = res.headers.get('x-hypersomnia-server-key');",
+    "const signature = res.headers.get('x-hypersomnia-signature');"
+  ] : [
+    '// rawBody: the request body exactly as it came, as a Buffer',
+    "const serverKey = req.headers['x-hypersomnia-server-key'];",
+    "const signature = req.headers['x-hypersomnia-signature'];"
+  ]).concat(VERIFY_KEY_LINES).join('\n');
+
+  /*
+    The example JSON folded: config and every round - a click shows one, its "−" folds it back.
+    Folded parts are "round<i>" and "config".
+  */
+
+  function payloadJson(ongoing, folded) {
+    const payload = examplePayload(ongoing);
+
+    folded.forEach(id => {
+      if (id === 'config') {
+        payload.config = '__FOLD_config__';
+      }
+      else {
+        payload.rounds[parseInt(id.slice(5), 10)] = `__FOLD_${id}__`;
+      }
+    });
+
+    const json = JSON.stringify(payload, null, 2);
+    return ongoing ? json.replace('"state": "ONGOING",', '"state": "ONGOING", // FINISHED once it\'s over').replace('"winner_team": [],', '"winner_team": [], // its players once it\'s over') : json;
+  }
+
+  function foldPayload(box, ongoing) {
+    const code = box.querySelector('pre code');
+    const payload = examplePayload(ongoing);
+    const ids = ['config'].concat(payload.rounds.map((r, i) => `round${i}`));
+    const label = id => id === 'config' ? '{ … }' : `{ … ${payload.rounds[parseInt(id.slice(5), 10)].name} }`;
+    const q = '(&quot;|")';
+
+    // all folded at first - a click shows each
+    const folded = new Set(ids);
+
+    // the copy button copies the whole JSON, folded or not
+    code.dataset.copy = payloadJson(ongoing, []);
+
+    const button = (id, text, tip, cls) => `<button type="button" class="gen-json-fold${cls}" data-key="${id}" title="${tip}">${text}</button>`;
+
+    const render = () => {
+      code.textContent = payloadJson(ongoing, [...folded]);
+      highlight(code, 'json');
+
+      ids.forEach(id => {
+        if (folded.has(id)) {
+          const marker = new RegExp(`(<span[^>]*>)?${q}__FOLD_${id}__${q}(</span>)?`);
+          code.innerHTML = code.innerHTML.replace(marker, button(id, label(id), 'Show it', ''));
+        }
+        else {
+          // shown: a small button after its key (config) or its name (a round) folds it back
+          const anchor = id === 'config'
+            ? new RegExp(`((<span[^>]*>)?${q}config${q}(</span>)?(<span[^>]*>)?:(</span>)?)`)
+            : new RegExp(`((<span[^>]*>)?${q}${payload.rounds[parseInt(id.slice(5), 10)].name}${q}(</span>)?)`);
+
+          code.innerHTML = code.innerHTML.replace(anchor, `$1 ${button(id, '−', 'Hide it', ' gen-json-unfold')}`);
+        }
+      });
+
+      code.querySelectorAll('.gen-json-fold').forEach(b => b.addEventListener('click', () => {
+        const id = b.dataset.key;
+
+        if (folded.has(id)) {
+          folded.delete(id);
+        }
+        else {
+          folded.add(id);
+        }
+
+        render();
+      }));
+    };
+
+    render();
+  }
+
+  function showPayloadModal(title, intro, ongoing, file) {
+    const json = payloadJson(ongoing, []);
+
+    const payloadBox = resultBox({ file: file || '', fileTip: 'Copy', lang: 'json', text: json });
+    foldPayload(payloadBox, ongoing);
+
+    const close = el('button', { type: 'button', class: 'gen-modal-close', 'aria-label': 'Close', html: '<i class="fa-solid fa-xmark"></i>' });
+    const panel = el('div', { class: 'gen-modal' }, [
+      close,
+      el('h3', { text: title }),
+      el('p', { class: 'gen-field-text', html: intro }),
+      el('div', { class: 'gen-modal-code' }, [
+        payloadBox,
+        el('p', { class: 'gen-field-text', html: `Signed by your server, so nobody else can ${ongoing ? 'pass off fake results as yours' : 'post fake results'}:<br><code>X-Hypersomnia-Server-Key</code> - its public key - what <code>--print-server-key</code> prints,<br><code>X-Hypersomnia-Signature</code> - Ed25519 of the body. To check it in Node.js:` }),
+        resultBox({ lang: 'javascript', text: verifySnippet(ongoing ? file : '') })
+      ].concat(ongoing ? [] : [
+        el('h4', { class: 'gen-modal-subtitle', text: 'Alternatively' }),
+        el('p', { class: 'gen-field-text', html: `The very same JSON, saved on the server once it's over:<br>${inline(resultsFilePath())}` })
+      ]))
+    ]);
+    const overlay = el('div', { class: 'gen-modal-overlay' }, [panel]);
+
+    const dismiss = () => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+    };
+
+    const onKey = e => {
+      if (e.key === 'Escape') {
+        dismiss();
+      }
+    };
+
+    close.addEventListener('click', dismiss);
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) {
+        dismiss();
+      }
+    });
+    document.addEventListener('keydown', onKey);
+    // inside the generator: its code snippets' look (font, colors) applies there
+    mount.appendChild(overlay);
+    close.focus();
+  }
+
+  const payloadButton = (label, title, intro, ongoing, file) => {
+    const b = el('button', { type: 'button', class: 'gen-payload-button', text: label });
+    b.addEventListener('click', () => showPayloadModal(title, intro, ongoing, file && file()));
+    return b;
+  };
+
+  const resultsWebhookRow = settingRow('Results webhook', [
+    textInput('tResultsWebhook', 'https://... - gets the results when it\'s over'),
+    payloadButton('Show example payload', 'Results webhook', 'One <code>POST</code> when the tournament is over:', false, () => 'Content-Type: application/json')
+  ], 'The final results, POSTed once to this URL\n- e.g. to put them on your site.\n\nThe same JSON as the live results page\nserves at `/tournament.json`.');
+
+  const pageExampleButton = payloadButton('Also has a JSON endpoint!', 'Live results page', 'What the page draws - for your own site or bot. At most 5 requests a second from one address.', true, () => `http://<your server>:${pagePort()}/tournament.json`);
 
   const hourSelect = el('select', { class: 'gen-hour' });
 
@@ -1795,7 +2057,7 @@
     The tournament's rows: the size of the teams first - it says how to write the list of them.
   */
 
-  const pairingRow = settingRow('Who gets in', [pairingSelect], 'On a LAN, Anyone or Listed nicknames is enough - people there trust each other.');
+  const pairingRow = settingRow('Who gets in', [pairingSelect], 'On a LAN, Anyone or Listed nicknames\nis enough: people there trust each other.');
 
   // however they join first: what it means for the players
   const firstText = el('p', { class: 'gen-field-text', html: 'Players join <strong>any server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>In later rounds, they will be paired automatically.' });
@@ -1805,7 +2067,8 @@
   // right under the list it's about
   // the first line under the choice, whichever lets anyone take a nickname
   const insecureText = el('p', { class: 'gen-field-text gen-security' });
-  const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, firstText, teamsRoster, nicknamesText]);
+  const spectateText = el('p', { class: 'gen-field-text', text: 'Players can spectate other matches after they finish.' });
+  const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, firstText, teamsRoster, nicknamesText, spectateText]);
   pairingRow.appendChild(pairingEditor);
 
   const playersRow = settingRow('Players', [playersInput, roundSummary]);
@@ -1816,9 +2079,9 @@
   */
 
   // with Anyone, round 1 has no teams to wait for - one sentence on what happens there instead
-  const joinTimeoutHelp = anyone => 'Server waits this long for all players to join the match. After that, the team with more players present wins - with equal numbers the match starts as they are,\nand if nobody came, both teams are out.' +
-    (anyone ? '\nRound 1: a player left alone on a server advances to the next round without playing.' : '') +
-    '\nDoesn\'t affect running matches.';
+  const joinTimeoutHelp = anyone => 'How long a match waits for all its players.\n\nThen:\n- more players present: that team wins,\n- equal numbers: it starts as they are,\n- nobody came: both teams are out.' +
+    (anyone ? '\n\nRound 1: a player left alone on a server goes on without playing.' : '') +
+    '\n\nMatches being played are never touched.';
 
   const joinTimeoutSelect = el('select', {}, Array.from({ length: 30 }, (_, i) => el('option', { value: String(i + 1), text: `${i + 1} min` })));
 
@@ -1828,6 +2091,10 @@
   });
 
   const joinTimeoutRow = settingRow('Join timeout', [switchInput('tJoinTimeoutOn', () => {}), joinTimeoutSelect], joinTimeoutHelp(false));
+
+  // without it, a match someone never comes to waits forever - unless an admin decides it
+  const joinTimeoutAdminHint = el('p', { class: 'gen-field-text gen-hint', text: 'Consider setting an Admin (advanced options) - to decide matches someone doesn\'t come to.' });
+  joinTimeoutRow.appendChild(el('div', { class: 'gen-row-editor' }, [joinTimeoutAdminHint]));
 
   /*
     A persistent server's Who gets in: anyone, or only its listed players - each by their account id.
@@ -1852,11 +2119,14 @@
   });
 
   const serverSecurityText = el('p', { class: 'gen-field-text gen-security' });
-  const serverVerifyText = el('p', { class: 'gen-field-text', html: 'Every player must send you their account id.<br>Account ids are public - safe to share.<br>In the game: <code>Settings → Account → Copy account id</code>:' });
+  // under "Account ids are public": the accounts are the game's own keys - Steam is one way, not the only one
+  const NO_STEAM_NEEDED = '<strong>You no longer need Steam to authenticate!</strong> <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Each player\'s game makes its own key\non the first start: `Ed25519`,\nthe cryptography of SSH.\n\nThe account id is its public half.\n\nOn every join, the game signs\nwith the private half -\nnobody can join in their place.\n\nSteam players can use\ntheir Steam account too."></i>';
+
+  const serverVerifyText = el('p', { class: 'gen-field-text', html: 'Every player must send you their account id.<br>Account ids are public - safe to share.<br>' + NO_STEAM_NEEDED + '<br>In the game: <code>Settings → Account → Copy account id</code>:' });
   const serverIdImage = accountIdImage();
   const serverNamesText = el('p', { class: 'gen-field-text', html: 'Nicknames are only for your convenience:<br>players may play under any other name. Admins always get in.' });
   const serverWhoEditor = el('div', { class: 'gen-row-editor' }, [serverSecurityText, serverVerifyText, serverIdImage, serverRoster, serverNamesText]);
-  const serverWhoRow = settingRow('Who gets in', [serverWhoSelect], 'Listed accounts: only the players you list get in - each proves their account, so nobody can join in their place. Anyone else: "This server lets in only its listed players".');
+  const serverWhoRow = settingRow('Who gets in', [serverWhoSelect], 'Listed accounts:\nonly the players you list get in.\n\nEach proves their account,\nso nobody can join in their place.\n\nAnyone else sees:\n"This server lets in only its listed players".');
   serverWhoRow.appendChild(serverWhoEditor);
 
   /*
@@ -1876,7 +2146,7 @@
   verifyText.classList.add('gen-after-gap');
 
   const defaultRoundMaps = () => roundMaps().map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo');
-  const mapsRow = foldRow('Maps for each stage', '', roundsBox);
+  const mapsRow = foldRow('Maps for each stage', '', el('div', {}, [roundsBox, el('div', { class: 'gen-cycle-links' }, [browseArenasLink()])]));
 
   const serverRows = [];
   const tournamentRows = [];
@@ -1889,29 +2159,37 @@
   const passwordRow = revealRow('Join password', 'passwordOn', textInput('password', 'what players type to join'), 'Without it, anyone can join.');
   passwordRow.querySelector('.gen-row-ctl').appendChild(passwordNote);
 
+  // one line across the table: what this tab makes
+  const introRow = (text) => el('div', { class: 'gen-row gen-row-intro', text });
+
   const serverTable = el('div', { class: 'gen-table' }, [
+    only(serverRows, introRow('A server that stays up for weeks and keeps itself updated.')),
+    only(tournamentRows, introRow('Orchestrates the entire tournament from start to finish.')),
     only(serverRows, settingRow('Server name', [textInput('name', 'My server')])),
     only(serverRows, cycleRow),
     only(serverRows, settingRow('Slots', [sliderInput('slots', 4, 26)])),
-    only(serverRows, settingRow('Server instances', [casualInput], 'If hosting multiple instances, they will take subsequent ports.')),
+    only(serverRows, settingRow('Server instances', [casualInput], 'Several servers, one after another.\n\nEach takes the next ports.')),
     only(serverRows, botsRow),
+    only(tournamentRows, settingRow('Tournament name', [textInput('tName', 'e.g. onFOSS November Cup 2026')], 'Shown on the live results page.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again.\nNext time, give it a new name.')),
     only(tournamentRows, settingRow('Teams', [teamSize])),
     only(tournamentRows, pairingRow),
     only(tournamentRows, playersRow),
     only(tournamentRows, joinTimeoutRow),
     only(tournamentRows, mapsRow),
-    only(tournamentRows, settingRow('Live results page', [switchInput('tPage', () => {}, '<code>http://&lt;your server&gt;:<span class="gen-page-port"></span>/</code>')], 'The bracket with live scores. Served by the game server itself over TCP.')),
-    settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io</a>')]),
+    only(tournamentRows, settingRow('Live results page', [switchInput('tPage', () => {}, '<code>http://&lt;your server&gt;:<span class="gen-page-port"></span>/</code>'), pageExampleButton], 'The bracket with live scores.\n\nServed by the game server itself, over TCP.\n\nAs JSON: `/tournament.json`.')),
+    settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a>')]),
     portsRow,
     only(serverRows, serverWhoRow),
-    passwordRow,
-    adminRow
+    passwordRow
   ]);
 
   // rarely needed - behind one button, open if anything in it is set
   const serverAdvanced = el('div', { class: 'gen-table gen-table-advanced' }, [
-    only(serverRows, settingRow('Daily update', [switchInput('autoupdate', syncHour), hourSelect], "Players with a newer version cannot join an older server. Every day at this hour (the machine's time) the server restarts if a new version is out.")),
-    only(serverRows, settingRow('Time zone', [timeZoneSelect()], 'Where the server is. Players in the browser see from it roughly how far the server is; happy hours (2x MMR) follow it. A VPS is often in UTC.')),
+    only(serverRows, settingRow('Daily update', [switchInput('autoupdate', syncHour), hourSelect], "Players with a newer version\ncan't join an older server.\n\nEvery day at this hour (the machine's time),\nthe server restarts if a new version is out.")),
+    only(serverRows, settingRow('Time zone', [timeZoneSelect()], 'Where the server is.\n\nBrowser players see from it\nroughly how far the server is.\n\nHappy hours (2x MMR) follow it.\n\nA VPS is often in UTC.')),
+    adminRow,
+    spectatorRow,
+    only(tournamentRows, resultsWebhookRow),
     settingRow('Discord webhook', [textInput('webhook', 'to post joins and match results to your Discord')])
   ]);
 
@@ -1936,12 +2214,16 @@
     joinTimeoutRow.querySelector('.gen-row-help').dataset.tip = joinTimeoutHelp(!pairedBeforehand());
     joinTimeoutSelect.value = String(state.tJoinTimeout);
     joinTimeoutSelect.hidden = !state.tJoinTimeoutOn;
+    joinTimeoutRow.classList.toggle('open', !state.tJoinTimeoutOn && !state.adminOn);
+
+    // the join password right under Who gets in, on either tab
+    (isTournament() ? pairingRow : serverWhoRow).after(passwordRow);
 
     const serverListed = state.serverWho === 'accounts';
     serverWhoSelect.value = state.serverWho;
     serverWhoRow.classList.add('open');
     serverSecurityText.innerHTML = serverListed
-      ? '<i class="fa-solid fa-check gen-secure"></i>Only your listed players - and your admins. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are with an `Ed25519` signature, so nobody can join in their place."></i>'
+      ? '<i class="fa-solid fa-check gen-secure"></i>Only your listed players - and your admins. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
       : 'Anyone who finds the server. A join password keeps strangers out.';
     [serverVerifyText, serverIdImage, serverRoster, serverNamesText].forEach(e => { e.hidden = !serverListed; });
 
@@ -1955,22 +2237,26 @@
     nicknamesText.hidden = !pairedBeforehand();
     nicknamesText.innerHTML = verifiedByAccounts()
       ? 'Nicknames are only for your convenience:<br>participants may play under any other name.'
-      : 'Players set these exact nicknames to be let in to the correct match.';
+      : 'Players set these <strong>exact nicknames</strong> to be let in to the correct match.';
     // the same first line for all three - insecure with a warning, or secure with a check - so nothing below jumps
     insecureText.innerHTML = verifiedByAccounts()
-      ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are with an `Ed25519` signature, so nobody can join in their place."></i>'
+      ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
       : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Insecure, but enough for a LAN.';
 
     const size = `${state.tTeamSize}v${state.tTeamSize}`;
     firstText.innerHTML = `Players join <strong>any ${size} server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>In later rounds, they will be paired automatically.`;
 
-    verifyText.innerHTML = 'Every participant must send you their account id.<br>Account ids are public - safe to share.<br>In the game: <code>Settings → Account → Copy account id</code>:';
+    verifyText.innerHTML = 'Every participant must send you their account id.<br>Account ids are public - safe to share.<br>' + NO_STEAM_NEEDED + '<br>In the game: <code>Settings → Account → Copy account id</code>:';
     verifyText.hidden = !verifiedByAccounts();
     tournamentIdImage.hidden = !verifiedByAccounts();
     idsLabel.hidden = !verifiedByAccounts();
     idsText.hidden = !verifiedByAccounts();
 
     if (document.activeElement !== idsText) {
+      if (verifiedByAccounts()) {
+        syncIdLines();
+      }
+
       idsText.value = state.tIdsText;
     }
 
@@ -2095,7 +2381,7 @@
   steps.check.el.classList.add('gen-check-step');
 
   // the whole profile in one link
-  const linkButton = el('button', { type: 'button', class: 'gen-link-button', title: 'Every setting above in one link - bookmark it or send it. Left out: passwords, webhooks, admins, and how your machine runs it (service, FUSE).' });
+  const linkButton = el('button', { type: 'button', class: 'gen-link-button', title: 'Every setting above in one link\n- bookmark it or send it.\n\nLeft out:\n- passwords, webhooks, admins,\n- how your machine runs it (service, FUSE).' });
   const linkLabel = '<i class="fa-solid fa-link"></i>Copy a link to this profile';
   linkButton.innerHTML = linkLabel;
 
@@ -2122,6 +2408,9 @@
 
   // 0x<key>, key_<key> and the bare key are one account - as the game's normalize_account_id
   const sameAccount = id => /^(0x|key_)?[0-9a-f]{64}$/i.test(id) ? 'key_' + id.toLowerCase().replace(/^(0x|key_)/, '') : id;
+
+  const spectatorId = () => state.spectatorOn ? state.spectator.trim() : '';
+  const resultsWebhook = () => isTournament() ? state.tResultsWebhook.trim() : '';
 
   function adminIds() {
     if (!state.adminOn) {
@@ -2209,6 +2498,10 @@
       out.push(`--tournament-arenas ${quoted(list)}`);
     }
 
+    if (isTournament() && state.tName.trim()) {
+      out.push(`--tournament-name ${quoted(state.tName.trim())}`);
+    }
+
     if (isTournament() && !state.tPage) {
       out.push('--tournament-page off');
     }
@@ -2282,6 +2575,14 @@
 
     if (ids.length) {
       secrets.admin_profiles = ids.map(account => ({ account, rcon: 'MASTER_RCON' }));
+    }
+
+    if (spectatorId()) {
+      secrets.spectator_account = spectatorId();
+    }
+
+    if (resultsWebhook()) {
+      secrets.tournament_results_webhook_url = resultsWebhook();
     }
 
     if (password()) {
@@ -2362,7 +2663,7 @@
     Only what differs from the defaults is written.
   */
 
-  const SECRET_VARS = ['HYPERSOMNIA_PASSWORD', 'HYPERSOMNIA_DISCORD_WEBHOOK'];
+  const SECRET_VARS = ['HYPERSOMNIA_PASSWORD', 'HYPERSOMNIA_DISCORD_WEBHOOK', 'HYPERSOMNIA_TOURNAMENT_RESULTS_WEBHOOK'];
 
   /*
     A .env line: single quotes keep the value as it is. A value with ' in double quotes:
@@ -2398,6 +2699,10 @@
 
     if (ids.length) {
       put('HYPERSOMNIA_ADMINS', ids.join(','));
+    }
+
+    if (spectatorId()) {
+      put('HYPERSOMNIA_SPECTATOR', spectatorId());
     }
 
     if (password()) {
@@ -2468,6 +2773,14 @@
       }
 
       put('HYPERSOMNIA_TOURNAMENT_ARENAS', roundMaps().map(withMode).join(','));
+    }
+
+    if (isTournament() && state.tName.trim()) {
+      put('HYPERSOMNIA_TOURNAMENT_NAME', state.tName.trim());
+    }
+
+    if (resultsWebhook()) {
+      put('HYPERSOMNIA_TOURNAMENT_RESULTS_WEBHOOK', resultsWebhook());
     }
 
     if (isTournament() && !state.tPage) {
@@ -2678,6 +2991,17 @@
       }
     }
 
+    if (state.spectatorOn && !state.spectator.trim()) {
+      errors.push('Spectator: paste its account id - or switch it off.');
+    }
+    else if (spectatorId() && !ACCOUNT_ID.test(spectatorId())) {
+      errors.push(`Spectator: not an account id: ${spectatorId()}`);
+    }
+
+    if (resultsWebhook() && !/^https?:\/\/\S+$/.test(resultsWebhook())) {
+      errors.push('Results webhook: a link starting with https://');
+    }
+
     if (state.passwordOn && !verifiedByAccounts() && !state.password.trim()) {
       errors.push('Join password: type it - or switch it off.');
     }
@@ -2748,18 +3072,6 @@
   function update() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-    catch (e) {}
-
-    // the address bar holds the profile as it is - a bookmark keeps it; no new history entry for every click
-    // nothing set: the plain address
-    const changed = changedFromDefaults();
-    NOT_IN_LINK.forEach(k => { delete changed[k]; });
-
-    const atDefaults = Object.keys(changed).length === 0 && (!defaultButton || currentSetup === defaultButton.dataset.setup);
-
-    try {
-      history.replaceState(null, '', atDefaults ? location.pathname : profileLink());
     }
     catch (e) {}
 
@@ -3111,7 +3423,7 @@
   };
 
   const profileBar = el('div', { class: 'btn-group gen-profile-bar' }, [
-    profileButton('fa-solid fa-download', 'Save profile to .md', saveProfile, 'Every step in one Markdown file - you can give it to your LLM. Unlike the link, it has the passwords, webhooks and admins.'),
+    profileButton('fa-solid fa-download', 'Save profile to .md', saveProfile, 'Every step in one Markdown file\n- you can give it to your LLM.\n\nUnlike the link, it has\nthe passwords, webhooks and admins.'),
     profileButton('fa-solid fa-upload', 'Load profile', () => profileFile.click(), 'From a .md saved here.'),
     profileButton('fa-solid fa-rotate-left', 'Reset to defaults', resetToDefaults),
     profileFile
