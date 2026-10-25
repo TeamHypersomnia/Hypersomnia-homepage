@@ -1574,6 +1574,7 @@
   const firewallResults = el('div');
   const keyBackupResults = el('div');
   const keySwapResults = el('div');
+  const keyPublicResults = el('div');
   const playersKeyResults = el('div');
 
   /*
@@ -2493,11 +2494,12 @@
     firewall: makeStep('Your firewall commands', firewallResults, true),
     start: makeStep('Your startup command', startBlock, true),
     // printed for the players when not on the list
-    playersKey: makeStep('For your players: its key', playersKeyResults, true),
+    playersKey: makeStep('For your players: the line to add your server', playersKeyResults, true),
     check: makeStep('Check that it works', checkBlock),
     // behind their own button, after the check: done later, if ever - the server key's backup and its move elsewhere
     keyBackup: makeStep('Advanced: Back up your server key', keyBackupResults, true),
-    keySwap: makeStep('Advanced: Restore your server key', keySwapResults, true)
+    keySwap: makeStep('Advanced: Restore your server key', keySwapResults, true),
+    keyPublic: makeStep('Advanced: Your server\'s public key', keyPublicResults, true)
   };
 
   const generatedLine = el('div', { class: 'gen-generated' }, [
@@ -2545,7 +2547,7 @@
     After the launch, if ever: steps always in sight, folded - their title opens them.
   */
 
-  [steps.keyBackup, steps.keySwap].forEach(st => {
+  [steps.keyBackup, steps.keySwap, steps.keyPublic].forEach(st => {
     // left of the title: pointing at it while folded, down once opened
     const chevron = el('i', { class: 'fa-solid fa-chevron-right gen-fold-chevron' });
     st.el.classList.add('gen-foldable');
@@ -3727,6 +3729,15 @@
       })
     );
 
+    keyPublicResults.innerHTML = '';
+    keyPublicResults.appendChild(resultBox({
+      lang: 'bash',
+      text: wrapped(printKeyCommand()),
+      hint: 'On the server. Public - safe to share.<br>Send it to us on <a href="https://discord.gg/YC49E4G" target="_blank">Discord<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a> to make your tournament\'s server official -<br>its matches then count for MMR.'
+    }));
+    // a tournament's only: a persistent server's players don't need it
+    steps.keyPublic.el.hidden = !isTournament();
+
     keySwapResults.innerHTML = '';
     keySwapResults.appendChild(resultBox({
       lang: 'bash',
@@ -3736,12 +3747,31 @@
         : 'On the new machine, in the folder with <code>hypersomnia-server.key</code>.'
     }));
 
+    /*
+      Not on the server list: players add it by hand - "<address>,<name>,0x<key>", the line the game takes from the
+      clipboard. The address is yours to fill in; a tournament's matches are servers of their own, one port each.
+    */
+
     playersKeyResults.innerHTML = '';
-    playersKeyResults.appendChild(resultBox({
-      lang: 'bash',
-      text: printKeyCommand(),
-      hint: 'Not on the server list: your players join by its address - and this key, pasted in Browse servers.'
-    }));
+
+    if (isTournament()) {
+      playersKeyResults.appendChild(resultBox({
+        lang: 'bash',
+        text: wrapped(printKeyCommand()),
+        hint: `Not on the server list: give your players its address and this key.<br>Each match is a server of its own - ports ${portSpan(state.port)}.`
+      }));
+    }
+    else {
+      const address = '<your server\'s address>' + (state.port === 8412 ? '' : ':' + state.port);
+      const name = escapedForQuotes(state.name.trim() || 'My server');
+      const more = instanceCount() > 1 ? `<br>The other servers: the same line with ports ${state.port + 1} and on, and their names.` : '';
+
+      playersKeyResults.appendChild(resultBox({
+        lang: 'bash',
+        text: wrapped(`KEY=$(${printKeyCommand()})`) + `\necho "${address},${name},0x$KEY"`,
+        hint: 'Fill in your address, then publish the line it prints.<br>Players who copy it get your server added to their favorites by the game.' + more
+      }));
+    }
     steps.playersKey.el.hidden = state.serverListOn;
 
     firewallResults.innerHTML = '';
