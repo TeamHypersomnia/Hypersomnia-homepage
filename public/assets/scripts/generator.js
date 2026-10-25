@@ -2363,7 +2363,7 @@
   const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, firstText, teamsRoster, nicknamesText, spectateText]);
   pairingRow.appendChild(pairingEditor);
 
-  const playersRow = settingRow('Players', [playersInput, roundSummary]);
+  const playersRow = settingRow('Maximum players', [playersInput, roundSummary], 'Not everybody has to show up.\nThe tournament continues regardless.');
 
   /*
     Join timeout: a match of any round that hasn't started by then is decided without it - the team that came wins,
