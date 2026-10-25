@@ -1485,8 +1485,8 @@
 
   const pairingSelect = el('select', {}, [
     el('option', { value: 'anyone', text: 'Anyone (no roster setup)' }),
-    el('option', { value: 'nicknames', text: 'Listed nicknames' }),
-    el('option', { value: 'accounts', text: 'Listed accounts (secure)' })
+    el('option', { value: 'nicknames', text: 'Roster by nicknames' }),
+    el('option', { value: 'accounts', text: 'Roster by accounts (secure)' })
   ]);
 
   /*
@@ -2153,7 +2153,7 @@
         { name: 'Quarterfinals', state: 'PLAYED', arena: 'de_silo', matches: [done([carol, dave], [ivy, jo], 16, 11)], byes: [[alice, bob], [erin, frank], [gus, hal]] }
       ],
       config: {
-        who_gets_in: 'listed accounts',
+        who_participates: 'roster by accounts',
         team_size: 2,
         teams: 5,
         arenas: ['de_silo', 'de_cyberaqua', 'fy_minilab'],
@@ -2355,10 +2355,10 @@
     The tournament's rows: the size of the teams first - it says how to write the list of them.
   */
 
-  const pairingRow = settingRow('Who participates', [pairingSelect], 'On a LAN, Anyone or Listed nicknames\nis enough: nobody from outside can join.\n\nFrom round 2 nobody has to trust anyone:\nthe server knows every player\'s account.');
+  const pairingRow = settingRow('Who participates', [pairingSelect], 'On a LAN, Anyone or Roster by nicknames\nis enough: nobody from outside can join.\n\nFrom round 2 nobody has to trust anyone:\nthe server knows every player\'s account.');
 
   // however they join first: what it means for the players
-  const firstText = el('p', { class: 'gen-field-text', html: 'Anyone who finds your tournament joins <strong>whichever server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure: the tournament remembers everyone\'s real account ids.' });
+  const firstText = el('p', { class: 'gen-field-text', html: 'People <strong>form rosters on the spot</strong>, with whoever they join.<br>This means <strong>any stranger is let in</strong> to round 1 servers.<br>Subsequent rounds are secure: the tournament remembers everyone\'s real account ids.' });
 
   // set up beforehand: the list and how it was understood - the rounds say it better than any explanation
   const nicknamesText = el('p', { class: 'gen-field-text' });
@@ -2603,8 +2603,7 @@
       ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
       : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Set a password to keep strangers out:';
 
-    const size = `${state.tTeamSize}v${state.tTeamSize}`;
-    firstText.innerHTML = `Anyone who finds your tournament joins <strong>whichever ${size} server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure: the tournament remembers everyone's real account ids.`;
+    firstText.innerHTML = `People <strong>form rosters on the spot</strong>, with whoever they join.<br>This means <strong>any stranger is let in</strong> to round 1 servers.<br>Subsequent rounds are secure: the tournament remembers everyone's real account ids.`;
 
     verifyText.innerHTML = 'Every participant must send you their account id.<br>Paste them below:';
     verifyText.hidden = !verifiedByAccounts();
