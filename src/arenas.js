@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { timeAgo } = require('./utilities/timeAgo');
+const siteData = require('./site_data');
 
 const dirPath = path.resolve(__dirname, '../hosting/arenas');
 const unplayablePath = path.resolve(__dirname, '../private/unplayable.json');
@@ -49,6 +50,19 @@ function loadUnplayableMaps() {
     }
 }
 
+// What a list row and an arena's page show of it - a community arena or an official one
+function arenaEntry(name, about, versionTimestamp) {
+    return {
+        name,
+        author: about.author,
+        short_description: about.short_description || 'N/A',
+        full_description: about.full_description || 'N/A',
+        version_timestamp: versionTimestamp,
+        updated: timeAgo(versionTimestamp),
+        ts: Math.floor(new Date(versionTimestamp).getTime() / 1000)
+    };
+}
+
 function loadArenas() {
     const startTime = Date.now();
     const unplayableMaps = loadUnplayableMaps();
@@ -67,13 +81,7 @@ function loadArenas() {
                 const obj = JSON.parse(fs.readFileSync(arenaJsonPath, 'utf8'));
                 
                 loadedArenas.push({
-                    name: obj.meta.name,
-                    author: obj.about.author,
-                    short_description: obj.about.short_description || 'N/A',
-                    full_description: obj.about.full_description || 'N/A',
-                    version_timestamp: obj.meta.version_timestamp,
-                    updated: timeAgo(obj.meta.version_timestamp),
-                    ts: Math.floor(new Date(obj.meta.version_timestamp).getTime() / 1000),
+                    ...arenaEntry(obj.meta.name, obj.about, obj.meta.version_timestamp),
                     size: getFolderSize(path.join(dirPath, d.name)),
                     playable: !unplayableMaps.includes(obj.meta.name)
                 });
@@ -122,25 +130,41 @@ setInterval(() => {
     }
 }, 5000).unref();
 
+/*
+  The arenas that ship with the game, from the released version (see site_data.js) - shown, never in ?format=json:
+  the servers sync the community arenas from there and have these already.
+*/
+function officialArenas() {
+    return siteData.officialArenas()
+        .filter(v => !arenas.some(c => c.name === v.name))
+        .map(v => ({ ...arenaEntry(v.name, v, v.version_timestamp), miniature: v.miniature, official: true }));
+}
+
+// The pages only - ?format=json stays as the servers know it
+const shownArenas = () => arenas.map(v => ({ ...v, miniature: `/arenas/${v.name}/miniature.png` }));
+
 router.get('/', (req, res) => {
     if (req.query.format === 'json') return res.json(arenas);
-    res.render('arenas', { page: 'Arenas', user: req.user, arenas });
+    res.render('arenas', { page: 'Arenas', user: req.user, arenas: shownArenas(), official: officialArenas() });
 });
 
 router.get('/:arena', (req, res) => {
-    const index = arenas.findIndex(v => v.name === req.params.arena);
+    // prev and next go through the list the arena is in
+    const list = arenas.some(v => v.name === req.params.arena) ? shownArenas() : officialArenas();
+    const index = list.findIndex(v => v.name === req.params.arena);
     if (index === -1) return res.redirect('/arenas');
 
     res.render('arena', {
-        page: arenas[index].name,
+        page: list[index].name,
         user: req.user,
-        arena: arenas[index],
-        prev: arenas[index - 1]?.name || arenas[arenas.length - 1].name,
-        next: arenas[index + 1]?.name || arenas[0].name
+        arena: list[index],
+        prev: list[index - 1]?.name || list[list.length - 1].name,
+        next: list[index + 1]?.name || list[0].name
     });
 });
 
-router.hasArena = name => arenas.some(v => v.name === name);
-router.listArenas = () => arenas;
+router.hasArena = name => arenas.some(v => v.name === name) || siteData.officialArenas().some(v => v.name === name);
+// For the sitemap: the official arenas' pages too
+router.listArenas = () => [...arenas, ...officialArenas()];
 
 module.exports = router;

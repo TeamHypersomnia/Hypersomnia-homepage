@@ -14,7 +14,7 @@
   </div>
 </div>
 
-<div id="leaderboard" class="responsive">
+<div id="leaderboard" class="responsive" data-rank-img="<%= gfx('necessary/RANK_IMG') %>">
   <table class="sortable maxwidth big">
     <thead>
       <tr>
@@ -31,7 +31,7 @@
       <% leaderboards.forEach((i, index) => { %>
         <tr>
           <td><%= index > 2 ? index + 1 : ['🏆', '🥈', '🥉'][index] %></td>
-          <td><a href="/user/<%= i.account_id %>"><img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= i.rankImg %>" alt="<%= i.rankName %>"><%= i.nickname %></a></td>
+          <td><a href="/user/<%= i.account_id %>"><img class="rank" src="<%= gfx('necessary/' + i.rankImg) %>" alt="<%= i.rankName %>"><%= i.nickname %></a></td>
           <td><%= i.mmr.toFixed(2) %></td>
           <td><%= i.mu.toFixed(3) %></td>
           <td><%= i.sigma.toFixed(3) %></td>

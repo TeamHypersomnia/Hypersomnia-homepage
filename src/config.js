@@ -91,6 +91,11 @@ const config = {
   BUILDS_URL: 'https://hypersomnia.io/builds/latest/',
   BUILD_SIZES_REFRESH_INTERVAL: 60000,
 
+  // What the released game says about itself (see site_data.js): from disk, or from the live site when there is none
+  SITE_DATA_PATH: process.env.SITE_DATA_PATH || path.resolve(__dirname, '../hosting/builds/site_data'),
+  SITE_DATA_URL: 'https://hypersomnia.io/builds/site_data/',
+  SITE_DATA_REFRESH_INTERVAL: 60000,
+
   OFFICIAL_SERVERS_DIR: process.env.OFFICIAL_SERVERS_DIR || './private/official_servers.d',
 
   // The identity broker's key (see broker.js): "hypersomnia-key-v1:<seed hex>", owner-readable only

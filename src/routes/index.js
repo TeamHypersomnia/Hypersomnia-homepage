@@ -16,6 +16,9 @@ module.exports = (app) => {
   // a server's address without the default port - see utils.js
   app.locals.shownAddress = require('../utils').shownAddress;
 
+  // where an image of the game is, e.g. gfx('necessary/rank_1.png') - see site_data.js
+  app.locals.gfx = require('../site_data').gfxUrl;
+
   // canonical URL of the current page: production domain, no query, no trailing slash
   app.use((req, res, next) => {
     const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : '/';

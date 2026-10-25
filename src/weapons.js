@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-
-function getWeapons(file) {
-  const path = `./public/weapons/${file}.json`;
-  return JSON.parse(fs.readFileSync(path, 'utf8'));
-}
+const siteData = require('./site_data');
 
 /*
   A firearm drawn like in the game's shop: its magazine (or a loaded rocket) placed by the offset
@@ -60,15 +55,16 @@ function layoutFirearmSprite(i) {
   };
 }
 
-const firearms = getWeapons('firearms').map(i => ({ ...i, sprite: layoutFirearmSprite(i) }));
-
-/* Every firearm row as tall as the tallest sprite, so the rows line up. */
-const firearmSpriteHeight = Math.max(0, ...firearms.map(i => i.sprite ? i.sprite.height : i.pic_height || 0));
-const melees = getWeapons('melees');
-const explosives = getWeapons('explosives');
-const spells = getWeapons('spells');
-
+// The stats of the released version - see site_data.js
 router.get('/', function (req, res) {
+  const firearms = siteData.weapons('firearms').map(i => ({ ...i, sprite: layoutFirearmSprite(i) }));
+
+  /* Every firearm row as tall as the tallest sprite, so the rows line up. */
+  const firearmSpriteHeight = Math.max(0, ...firearms.map(i => i.sprite ? i.sprite.height : i.pic_height || 0));
+  const melees = siteData.weapons('melees');
+  const explosives = siteData.weapons('explosives');
+  const spells = siteData.weapons('spells');
+
   res.render('weapons', {
     page: 'Weapons',
     user: req.user,

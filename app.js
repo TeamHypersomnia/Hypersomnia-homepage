@@ -14,6 +14,8 @@ if (!config.IS_PROD) {
   app.use(express.static('./public'));
   // in production nginx serves arena files (miniatures etc.) directly
   app.use('/arenas', express.static('./hosting/arenas', { index: false, redirect: false }));
+  // in production nginx serves the builds' folder - site data included
+  app.use('/builds/site_data', express.static(config.SITE_DATA_PATH, { index: false, redirect: false }));
 }
 
 setupMiddleware(app);

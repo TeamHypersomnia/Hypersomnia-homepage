@@ -25,10 +25,17 @@
         <dt><i class="fa-solid fa-user"></i>Author</dt>
         <dd><%= arena.author %></dd>
       </div>
+      <% if (arena.official) { %>
+      <div class="info-pair">
+        <dt><i class="fa-solid fa-box"></i>Official</dt>
+        <dd>Ships with the game</dd>
+      </div>
+      <% } else { %>
       <div class="info-pair">
         <dt><i class="fa-solid fa-weight-hanging"></i>Size</dt>
         <dd><%= arena.size %></dd>
       </div>
+      <% } %>
       <div class="info-pair">
         <dt><i class="fa-solid fa-calendar"></i>Updated</dt>
         <dd><%= arena.updated %></dd>
@@ -50,7 +57,7 @@
   </div>
 
   <div class="responsive">
-    <img src="/arenas/<%= arena.name %>/miniature.png?t=<%= arena.ts %>" alt="<%= arena.name %>">
+    <img src="<%= arena.miniature %>?t=<%= arena.ts %>" alt="<%= arena.name %>">
   </div>
 </div>
 

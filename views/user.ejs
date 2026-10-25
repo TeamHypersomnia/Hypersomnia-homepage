@@ -47,13 +47,13 @@
         <tr>
           <td><abbr title="Match Making Rating">MMR</abbr> (Bomb Defusal)</td>
           <td>
-            <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= teamData.rankImg %>" alt="<%= teamData.rankName %>"><abbr title="μ = <%= teamData.mu.toFixed(3) %> / σ = <%= teamData.sigma.toFixed(3) %>"><%= teamData.mmr.toFixed(2) %></abbr>
+            <img class="rank" src="<%= gfx('necessary/' + teamData.rankImg) %>" alt="<%= teamData.rankName %>"><abbr title="μ = <%= teamData.mu.toFixed(3) %> / σ = <%= teamData.sigma.toFixed(3) %>"><%= teamData.mmr.toFixed(2) %></abbr>
           </td>
         </tr>
         <tr>
           <td><abbr title="Match Making Rating">MMR</abbr> (FFA Gun Game)</td>
           <td>
-            <img class="rank" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/<%= ffaData.rankImg %>" alt="<%= ffaData.rankName %>"><abbr title="μ = <%= ffaData.mu.toFixed(3) %> / σ = <%= ffaData.sigma.toFixed(3) %>"><%= ffaData.mmr.toFixed(2) %></abbr>
+            <img class="rank" src="<%= gfx('necessary/' + ffaData.rankImg) %>" alt="<%= ffaData.rankName %>"><abbr title="μ = <%= ffaData.mu.toFixed(3) %> / σ = <%= ffaData.sigma.toFixed(3) %>"><%= ffaData.mmr.toFixed(2) %></abbr>
           </td>
         </tr>
         <% } %>

@@ -87,7 +87,8 @@ const RANK_MEDALS = ["🏆", "🥈", "🥉"];
 
 function buildLeaderboardRow(player, index) {
   const rank = RANK_MEDALS[index] ?? index + 1;
-  const rankImg = `https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/necessary/${player.rankImg}`;
+  // The page says where the rank icons are (see site_data.js)
+  const rankImg = document.querySelector("#leaderboard").dataset.rankImg.replace("RANK_IMG", player.rankImg);
   const profile = `/user/${player.account_id}`;
   const name = String(player.nickname).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const total = player.matches_won + player.matches_lost;

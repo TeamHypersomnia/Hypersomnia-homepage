@@ -1,11 +1,15 @@
 <%- include('overall_header'); %>
 
+<%# The official arenas first (when the released version's site data is there - see site_data.js), then the community's %>
+<% [['Official Arenas', official], ['Community Arenas', arenas]].filter(([, list]) => list.length > 0).forEach(([title, list], section) => { %>
 <div class="section-head">
-  <h1>Community Arenas</h1>
+  <h1><%= title %></h1>
+  <% if (section === 0) { %>
   <div class="view-switch">
     <button type="button" data-view="list" class="active">List</button>
     <button type="button" data-view="grid">Grid</button>
   </div>
+  <% } %>
 </div>
 
 <div class="responsive arena-view" data-view="list">
@@ -21,14 +25,14 @@
       </tr>
     </thead>
     <tbody>
-      <% arenas.forEach(v => { %>
+      <% list.forEach(v => { %>
       <tr>
-        <td class="arena-thumb"><a href="/arenas/<%= v.name %>"><img src="/arenas/<%= v.name %>/miniature.png?t=<%= v.ts %>" alt="<%= v.name %>" loading="lazy"></a></td>
+        <td class="arena-thumb"><a href="/arenas/<%= v.name %>"><img src="<%= v.miniature %>?t=<%= v.ts %>" alt="<%= v.name %>" loading="lazy"></a></td>
         <td class="arena-title"><a href="/arenas/<%= v.name %>"><%= v.name %></a></td>
         <td><%= v.author %></td>
         <td class="arena-desc"><% if (v.short_description !== 'N/A') { %><%= v.short_description %><% } else { %><span class="dimmed">-</span><% } %></td>
         <td data-sort="<%= v.ts %>"><%= v.updated %></td>
-        <td class="sv-hide-mobile" data-sort="<%= parseFloat(v.size) %>"><%= v.size %></td>
+        <td class="sv-hide-mobile" data-sort="<%= v.official ? 0 : parseFloat(v.size) %>"><%= v.official ? '-' : v.size %></td>
       </tr>
       <% }); %>
     </tbody>
@@ -36,13 +40,14 @@
 </div>
 
 <div class="arenas arena-view" data-view="grid" hidden>
-<% arenas.forEach(v => { %>
+<% list.forEach(v => { %>
   <a href="/arenas/<%= v.name %>">
-    <img src="/arenas/<%= v.name %>/miniature.png?t=<%= v.ts %>" alt="<%= v.name %>" loading="lazy">
+    <img src="<%= v.miniature %>?t=<%= v.ts %>" alt="<%= v.name %>" loading="lazy">
     <div class="arena_name"><%= v.name %></div>
     <div class="arena_author"><%= v.author %></div>
   </a>
 <% }); %>
 </div>
+<% }); %>
 
 <%- include('overall_footer'); %>

@@ -37,11 +37,11 @@
             <% if (i.sprite) { %>
               <span class="weapon-sprite" style="width: <%= i.sprite.width %>px; height: <%= i.sprite.height %>px; margin-top: <%= Math.floor((firearmSpriteHeight - i.sprite.height) / 2) %>px">
                 <% i.sprite.parts.forEach(p => { %>
-                  <img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= p.file %>" alt="<%= i.display_name %>" style="left: <%= p.left %>px; top: <%= p.top %>px; width: <%= p.w %>px; height: <%= p.h %>px<%= p.rot ? `; transform: rotate(${p.rot}deg)` : '' %>">
+                  <img src="<%= gfx(p.file) %>" alt="<%= i.display_name %>" style="left: <%= p.left %>px; top: <%= p.top %>px; width: <%= p.w %>px; height: <%= p.h %>px<%= p.rot ? `; transform: rotate(${p.rot}deg)` : '' %>">
                 <% }); %>
               </span>
             <% } else { %>
-              <img src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>" style="display: block; margin-top: <%= Math.floor((firearmSpriteHeight - (i.pic_height || 0)) / 2) %>px">
+              <img src="<%= gfx(i.pic_filename) %>" alt="<%= i.display_name %>" style="display: block; margin-top: <%= Math.floor((firearmSpriteHeight - (i.pic_height || 0)) / 2) %>px">
             <% } %>
             </div>
           </td>
@@ -88,7 +88,7 @@
       <% melees.forEach(i => { %>
         <tr>
           <td><%= i.display_name %></td>
-          <td class="weapon-pic"><img class="weapon-scaled" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td class="weapon-pic"><img class="weapon-scaled" src="<%= gfx(i.pic_filename) %>" alt="<%= i.display_name %>"></td>
           <td>
             <span class="fast"><%= i.fast_damage %></span>
             <span class="strong"><%= i.strong_damage %></span>
@@ -135,7 +135,7 @@
       <% explosives.forEach(i => { %>
         <tr>
           <td><%= i.display_name %></td>
-          <td class="weapon-pic"><img class="weapon-scaled" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td class="weapon-pic"><img class="weapon-scaled" src="<%= gfx(i.pic_filename) %>" alt="<%= i.display_name %>"></td>
           <td><%= i.notes %></td>
           <td><%= i.fuse_delay.toFixed(2) %></td>
           <td><%= i.base_damage === -1 ? 'N/A' : i.base_damage %></td>
@@ -166,7 +166,7 @@
       <% spells.forEach(i => { %>
         <tr>
           <td><%= i.display_name %></td>
-          <td class="weapon-pic"><img class="weapon-scaled" src="https://cdn.jsdelivr.net/gh/TeamHypersomnia/Hypersomnia/hypersomnia/content/gfx/<%= i.pic_filename %>" alt="<%= i.display_name %>"></td>
+          <td class="weapon-pic"><img class="weapon-scaled" src="<%= gfx(i.pic_filename) %>" alt="<%= i.display_name %>"></td>
           <td><%= i.notes %></td>
           <td><%= i.cooldown %></td>
           <td><%= i.mana_required %></td>
