@@ -10,27 +10,31 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="/assets/styles/main.css?t=20261013e">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="/assets/styles/generator.css?t=20261101b">
+  <link rel="stylesheet" href="/assets/styles/generator.css?t=20261104a">
 </head>
 <body class="gen-page">
   <main class="guide gen-page-main">
     <div class="gen-title-box">
-      <h1 class="guide-title"><img class="gen-title-logo" src="/assets/images/generator_title_logo.png" srcset="/assets/images/generator_title_logo.png 1x, /assets/images/generator_title_logo@2x.png 2x" width="169" height="30" alt="Hypersomnia"><span>server config generator</span></h1>
+      <h1 class="guide-title">Server config generator</h1>
       <p class="gen-tagline">never read the docs again!</p>
     </div>
     <%- tabs %>
     <div id="config-generator"></div>
-    <p class="gen-page-foot">
-      <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/README_SERVER.md" target="_blank"><i class="fa-solid fa-book"></i>Troubleshooting &amp; reference<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a>
-      <a href="/servers"><i class="fa-solid fa-server"></i>Servers</a>
-      <a href="/"><i class="fa-solid fa-house"></i>hypersomnia.io</a>
-    </p>
   </main>
+
+  <!-- as the tournament's results page: the logo on the left (to hypersomnia.io), the links on the right -->
+  <footer class="site-footer">
+    <a class="footer-logo" href="/"><img src="/assets/images/generator_title_logo.png" srcset="/assets/images/generator_title_logo.png 1x, /assets/images/generator_title_logo@2x.png 2x" width="169" height="30" alt="Hypersomnia"></a>
+    <span class="site-footer-links">
+      <a href="/servers"><i class="fa-solid fa-server"></i>Servers</a>
+      <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/README_SERVER.md" target="_blank"><i class="fa-solid fa-book"></i>Troubleshooting &amp; reference<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a>
+    </span>
+  </footer>
 
   <script>
     window.HOST_ARENAS = <%- JSON.stringify(arenas) %>;
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/highlight.min.js"></script>
-  <script src="/assets/scripts/generator.js?t=20261101d"></script>
+  <script src="/assets/scripts/generator.js?t=20261103z"></script>
 </body>
 </html>

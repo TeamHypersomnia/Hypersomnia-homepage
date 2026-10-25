@@ -67,7 +67,7 @@
 
   const method = () => {
     if (currentSetup === 'server-appimage') {
-      return state.asService ? 'service' : 'terminal';
+      return state.service !== 'off' ? 'service' : 'terminal';
     }
 
     return METHOD[currentSetup] || 'terminal';
@@ -112,7 +112,7 @@
   const SECRET_KEYS = ['password', 'passwordOn', 'webhook', 'admins', 'adminOn', 'spectator', 'spectatorOn', 'tResultsWebhook'];
 
   // how this machine runs it is for whoever gets the link to decide - kept in their browser, as the secrets
-  const MACHINE_KEYS = ['asService', 'serviceUser', 'fuse'];
+  const MACHINE_KEYS = ['service', 'fuse'];
   const NOT_IN_LINK = SECRET_KEYS.concat(MACHINE_KEYS);
 
   function encodeProfile(profile) {
@@ -200,7 +200,11 @@
 
     if (button) {
       const source = button.classList.contains('guide-copy') ? button.parentElement.querySelector('pre code') : button.parentElement.querySelector('code');
-      copyText(source.dataset.copy || source.textContent, button);
+
+      // a line kept only for the layout (reservedLine) is never copied
+      const copied = source.cloneNode(true);
+      copied.querySelectorAll('.gen-no-copy').forEach(e => e.remove());
+      copyText(source.dataset.copy || copied.textContent, button);
     }
   });
 
@@ -254,11 +258,14 @@
     autoupdate: true,
     updateHour: 3,
     fuse: false,
-    serviceUser: false,
-    asService: false,
+    // in a terminal, a systemd service as you, or as its own user
+    service: 'off',
     adminOn: false,
     spectatorOn: false,
     spectator: '',
+    // the server list it's on: the official one by default
+    serverListOn: true,
+    serverList: 'masterserver.hypersomnia.io:8430',
     bots: true,
     botDifficulty: 'PROGRESSIVE',
     botQuotaOn: false,
@@ -276,6 +283,8 @@
     tVerify: 'nicknames',
     tJoinTimeoutOn: true,
     tJoinTimeout: 10,
+    // how many others may watch each match - every place takes RAM on its server
+    tSpectatorPlaces: 6,
     serverWho: 'anyone',
     allowedPlayers: [],
     webhook: '',
@@ -316,8 +325,8 @@
 
   function sanitizeState(raw) {
     const out = Object.assign({}, defaults);
-    const ranges = { tJoinTimeout: [1, 30], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
-    const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'], serverWho: ['anyone', 'accounts'], botDifficulty: BOT_DIFFICULTIES.map(d => d[0]) };
+    const ranges = { tJoinTimeout: [1, 30], tSpectatorPlaces: [0, 50], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
+    const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'], serverWho: ['anyone', 'accounts'], botDifficulty: BOT_DIFFICULTIES.map(d => d[0]), service: ['off', 'systemd', 'user'] };
     const arenaName = v => typeof v === 'string' && /^[A-Za-z0-9_.-]{1,64}$/.test(v);
 
     // a listed player: a nickname, and an account id that can only be one - nothing else gets in
@@ -375,6 +384,11 @@
       else if (k === 'tIdsText') {
         if (typeof v === 'string') {
           out[k] = v.slice(0, 20000);
+        }
+      }
+      else if (k === 'serverList') {
+        if (typeof v === 'string' && /^[A-Za-z0-9.:\[\]-]{0,255}$/.test(v)) {
+          out[k] = v;
         }
       }
       else if (k === 'timeZone') {
@@ -637,7 +651,31 @@
   const unusableNickname = n => /[=;,\x00-\x1f\x7f]/.test(n);
 
   const playerEntry = p => verifiedByAccounts() && tournamentIdOf(p.n) ? `${p.n}=${tournamentIdOf(p.n)}` : p.n;
-  const teamsArgument = separator => filledTeams().map(t => t.map(playerEntry).join(', ')).join(separator);
+
+  /*
+    The teams as the game reads them: a player per line, the teams apart by an empty line - in 1v1 a player per line.
+    No commas to type; the same text in a variable above the startup command, in compose.yaml and in docker run.
+  */
+
+  const escapedForQuotes = v => v.replace(/[\\"$`]/g, c => '\\' + c);
+
+  function teamsText() {
+    const teams = filledTeams().map(t => t.map(playerEntry));
+    const apart = teams.some(t => t.length > 1);
+    return teams.map(t => t.join('\n')).join(apart ? '\n\n' : '\n');
+  }
+
+  const teamsVariable = () => `TEAMS="${escapedForQuotes(teamsText())}"`;
+
+  // the rounds' arenas the same way, one per line
+  const arenasText = () => roundMaps().map(withMode).join('\n');
+  const arenasVariable = () => `ARENAS="${escapedForQuotes(arenasText())}"`;
+
+  // what the startup command's variables are made of - above it
+  // each apart by an empty line, and from the command
+  const startVariables = () => isTournament()
+    ? [pairedBeforehand() ? teamsVariable() : null, arenasVariable()].filter(Boolean).map(v => v + '\n\n').join('')
+    : '';
 
   function teamCount() {
     return pairedBeforehand() ? listedTeams().length : Math.ceil(state.tPlayers / state.tTeamSize);
@@ -1418,7 +1456,9 @@
     update();
   }
 
-  const idsLabel = el('p', { class: 'gen-field-text', text: 'Their account ids - a player per line, the nickname and the id:' });
+  // under the ids' box: where they come from (with its screenshot), and why that's enough
+  const idsWhereText = el('p', { class: 'gen-field-text', html: 'In the game: <code>Settings → Account → Copy account id</code>' });
+  const idsPublicText = el('p', { class: 'gen-field-text' });
 
   const teamsRoster = rosterEditor({
     teams: () => state.tTeams,
@@ -1517,11 +1557,24 @@
     fuseField
   ]);
 
+  // step by step, or all of it in one script - and the script's own choices: the firewall left alone by default,
+  // most servers have the ports open
+  let oneShot = false;
+
+  // the profile's box is made last - update() runs before it's there
+  let profileBoxReady = false;
+  // the contents on the left - made last too
+  let tocReady = false;
+  const scriptOptions = { firewall: 'none', start: true, dataFolder: true };
+
   // the config's files, and the firewall - remade on every change
   const configResults = el('div');
   const serviceResults = el('div');
   const secretResults = el('div');
   const firewallResults = el('div');
+  const keyBackupResults = el('div');
+  const keySwapResults = el('div');
+  const playersKeyResults = el('div');
 
   /*
     Check that it works: what the players should see, for a server or a tournament.
@@ -1553,8 +1606,8 @@
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else {
-      checkText.innerHTML = 'Within a minute your server is on:<br><a href="/servers" target="_blank">hypersomnia.io/servers<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a><br>and in <code>Browse servers</code> in the game.<br><br>On the list but nobody can join?<br>Open the ports - see <code>Your firewall commands</code> above.';
-      checkImage.src = '/assets/images/generator/server_browser.png';
+      checkText.innerHTML = 'Within a minute your server is on:<br><a href="/servers" target="_blank">hypersomnia.io/servers<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a><br>and in <code>Browse servers</code> in the game.<br><br>On the list but nobody can join?<br>Open the ports - see ' + (oneShot ? '<code>Firewall</code> in the script\'s options above.' : '<code>Your firewall commands</code> above.');
+      checkImage.src = '/assets/images/generator/server_browser.png?t=2';
       checkImage.alt = 'Your server in Browse servers';
     }
   }
@@ -1564,25 +1617,35 @@
   */
 
   const BEFORE = {
-    terminal: 'wget https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage',
-    service: 'cd ~\nwget https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage\nmkdir -p ~/.config/systemd/user',
+    terminal: 'wget -O Hypersomnia-Headless.AppImage \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage',
+    service: 'cd ~\nwget -O Hypersomnia-Headless.AppImage \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage\nmkdir -p ~/.config/systemd/user',
     // the same, the server running as its own user
-    serviceUser: 'sudo useradd --system --create-home --home-dir /opt/hypersomnia hypersomnia\ncd /opt/hypersomnia\nsudo -u hypersomnia wget https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nsudo chmod +x Hypersomnia-Headless.AppImage',
-    compose: 'sudo mkdir /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia',
-    run: 'sudo mkdir /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia'
+    // its home is only its own (700) - no cd into it, the paths in full
+    serviceUser: 'sudo useradd --system --create-home --home-dir /opt/hypersomnia hypersomnia\nsudo -u hypersomnia wget -O /opt/hypersomnia/Hypersomnia-Headless.AppImage \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nsudo chmod +x /opt/hypersomnia/Hypersomnia-Headless.AppImage',
+    compose: 'sudo mkdir -p /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia',
+    run: 'sudo mkdir -p /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia'
   };
 
   const beforeCode = el('code');
 
-  // the service only: as root (a VPS of its own) or as a separate user
-  const userCheck = el('input', { type: 'checkbox' });
-  userCheck.checked = state.serviceUser;
-  userCheck.addEventListener('change', () => { state.serviceUser = userCheck.checked; updateBefore(); update(); });
+  // in a terminal, or a systemd service - as you, or as its own user (a VPS of its own)
+  const SERVICE_NOTES = {
+    off: 'runs in this terminal',
+    systemd: 'starts with the machine',
+    user: 'everything in /opt/hypersomnia'
+  };
 
-  const serviceCheck = el('input', { type: 'checkbox' });
-  serviceCheck.checked = state.asService;
-  serviceCheck.addEventListener('change', () => {
-    state.asService = serviceCheck.checked;
+  const serviceSelect = el('select', {}, [
+    el('option', { value: 'off', text: 'Off' }),
+    el('option', { value: 'systemd', text: 'systemd' }),
+    el('option', { value: 'user', text: 'systemd, own user' })
+  ]);
+
+  serviceSelect.value = state.service;
+  const serviceNote = el('span', { class: 'gen-switch-note' });
+
+  serviceSelect.addEventListener('change', () => {
+    state.service = serviceSelect.value;
     setupListeners.forEach(f => f(currentSetup));
   });
 
@@ -1596,15 +1659,15 @@
     ])
   ]);
 
-  const serviceOption = optionSwitch(serviceCheck, 'As a service', 'systemd - starts with the machine, runs without a terminal');
-  const userOption = optionSwitch(userCheck, 'As a separate user', 'hypersomnia, everything in /opt/hypersomnia');
+  // a label, its combo box and a note - the script's firewall the same
+  const selectRow = (label, select, note) => el('label', { class: 'gen-select-row' }, [el('span', { text: label }), select, note].filter(Boolean));
+  const serviceOption = selectRow('Service', serviceSelect, serviceNote);
 
   // the AppImage's executable, or Docker's data folder
   const beforeTitle = () => 'Your setup commands';
 
   const beforeBlock = el('div', { class: 'gen-before-box' }, [
     serviceOption,
-    userOption,
     el('div', { class: 'guide-code gen-start-code' }, [
       el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' }),
       el('pre', {}, [beforeCode])
@@ -1630,14 +1693,21 @@
   }
 
   function beforeText() {
-    const key = method() === 'service' && state.serviceUser ? 'serviceUser' : method();
-    return BEFORE[key] || '';
+    const key = method() === 'service' && state.service === 'user' ? 'serviceUser' : method();
+    const m = method();
+
+    // the config's folder too, when there's a config: conf.d is there only after the first start
+    const { json, secrets } = m === 'terminal' || m === 'service' ? buildSettings() : {};
+    const folder = json || secrets ? '\n' + configMkdir() : '';
+
+    return (BEFORE[key] || '') + folder;
   }
 
   function updateBefore() {
     steps.before.title.textContent = beforeTitle();
     serviceOption.hidden = currentSetup !== 'server-appimage';
-    userOption.hidden = method() !== 'service';
+    serviceSelect.value = state.service;
+    serviceNote.textContent = SERVICE_NOTES[state.service];
     beforeCode.textContent = beforeText();
     steps.before.el.hidden = !BEFORE[method()];
     highlight(beforeCode, 'bash');
@@ -1792,7 +1862,7 @@
   const tablePageHead = el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-trophy"></i>Results page' });
 
   // the game's port outside 8412-8415: the game finds the servers on its network by itself - only on these
-  const portWarning = el('p', { class: 'gen-port-warning', html: '<i class="fa-solid fa-triangle-exclamation"></i>Keep it within 8412-8415: the game finds servers on your network by itself - on these ports only.' });
+  const portWarning = el('p', { class: 'gen-port-warning', html: '<i class="fa-solid fa-triangle-exclamation"></i>For a LAN party, consider 8412-8415:<br>the game finds such servers on the local network by itself.' });
 
   const portsRow = foldRow('Ports', 'Change them only if 8412 or 9000\nis taken on this machine.', el('div', { class: 'gen-ports' }, [
     el('span', { class: 'gen-ports-head', html: '<i class="fa-solid fa-gamepad"></i>Game' }),
@@ -1808,6 +1878,42 @@
   adminRow.appendChild(el('div', { class: 'gen-row-editor gen-row-note' }, [adminWarning]));
 
   const spectatorInput = textInput('spectator', 'its account id - 0x8aed41f2... or steam_7656119...');
+  /*
+    The server list: on hypersomnia.io/servers and in Browse servers - and what only it gives: browser players come
+    through it (its WebRTC signalling), their join links, a tournament's page linked from it. Another address: your own.
+  */
+
+  const DEFAULT_SERVER_LIST = 'masterserver.hypersomnia.io:8430';
+
+  const serverListInput = textInput('serverList', DEFAULT_SERVER_LIST);
+  const serverListDefault = el('button', { type: 'button', class: 'gen-small-button', html: '<i class="fa-solid fa-rotate-left"></i>Back to default' });
+
+  serverListDefault.addEventListener('click', () => {
+    state.serverList = DEFAULT_SERVER_LIST;
+    serverListInput.value = DEFAULT_SERVER_LIST;
+    update();
+  });
+
+  const serverListWarning = el('p', { class: 'gen-port-warning', html: '<i class="fa-solid fa-triangle-exclamation"></i>Browser players can\'t join - and only those who know its address find the server.' });
+
+  const serverListRow = settingRow(
+    'Server list',
+    [switchInput('serverListOn', () => {}), serverListInput],
+    'Off: only for privacy -\nyour server isn\'t shown to anyone.\n\nOn (recommended):\n- anyone finds it on hypersomnia.io/servers\n  and in Browse servers in the game,\n- players can join right from their web browser,\n  no download,\n- you can send a link that takes\n  your friends straight into your server,\n- a tournament\'s live results page\n  is shown next to its matches,\n- a new server is announced on\n  Hypersomnia\'s Discord and Telegram.\n\nAnother address: only if you run\nyour own server list.'
+  );
+
+  serverListRow.appendChild(el('div', { class: 'gen-row-editor' }, [serverListWarning, serverListDefault]));
+
+  const serverListAddress = () => state.serverListOn ? state.serverList.trim() : '';
+  const serverListChanged = () => serverListAddress() !== DEFAULT_SERVER_LIST;
+
+  function updateServerList() {
+    serverListInput.hidden = !state.serverListOn;
+    serverListWarning.hidden = state.serverListOn;
+    serverListDefault.hidden = !state.serverListOn || !serverListChanged();
+    serverListRow.classList.toggle('open', !serverListWarning.hidden || !serverListDefault.hidden);
+  }
+
   const spectatorRow = revealRow('Spectator', 'spectatorOn', spectatorInput, 'An account that only watches:\na caster, a bot streaming the matches.\n\nAlways gets in:\n- a place kept for it on a full server,\n- no password,\n- into ranked and tournament matches\n  being played.\n\nNever on a team.');
 
   /*
@@ -1835,7 +1941,7 @@
       : { name: 'Final', state: 'PLAYED', arena: 'fy_minilab', matches: [done([alice, bob], [erin, frank], 16, 7)], byes: [] };
 
     return {
-      name: state.tName.trim() || 'onFOSS November Cup 2026',
+      name: state.tName.trim() || 'My Tournament',
       state: ongoing ? 'ONGOING' : 'FINISHED',
       winner_team: ongoing ? [] : [alice, bob],
       rounds: [
@@ -1972,10 +2078,7 @@
     const payloadBox = resultBox({ file: file || '', fileTip: 'Copy', lang: 'json', text: json });
     foldPayload(payloadBox, ongoing);
 
-    const close = el('button', { type: 'button', class: 'gen-modal-close', 'aria-label': 'Close', html: '<i class="fa-solid fa-xmark"></i>' });
-    const panel = el('div', { class: 'gen-modal' }, [
-      close,
-      el('h3', { text: title }),
+    showModal(title, [
       el('p', { class: 'gen-field-text', html: intro }),
       el('div', { class: 'gen-modal-code' }, [
         payloadBox,
@@ -1986,6 +2089,15 @@
         el('p', { class: 'gen-field-text', html: `The very same JSON, saved on the server once it's over:<br>${inline(resultsFilePath())}` })
       ]))
     ]);
+  }
+
+  /*
+    A modal over the generator: its title, what's in it, closed by its X, Escape or a click beside it.
+  */
+
+  function showModal(title, children, fit = false) {
+    const close = el('button', { type: 'button', class: 'gen-modal-close', 'aria-label': 'Close', html: '<i class="fa-solid fa-xmark"></i>' });
+    const panel = el('div', { class: 'gen-modal' + (fit ? ' gen-modal-fit' : '') }, [close, el('h3', { text: title }), ...children]);
     const overlay = el('div', { class: 'gen-modal-overlay' }, [panel]);
 
     const dismiss = () => {
@@ -2081,6 +2193,27 @@
   joinTimeoutRow.appendChild(el('div', { class: 'gen-row-editor' }, [joinTimeoutAdminHint]));
 
   /*
+    Places to watch each match: the teams out or waiting watch the others. Every place is a connection the server
+    allocates up front (about 4.4 MB of RAM, measured), and each one watching takes upload too.
+  */
+
+  const spectatorPlacesWarning = el('p', { class: 'gen-port-warning' });
+  const spectatorPlacesRow = settingRow(
+    'Places to watch',
+    [sliderInput('tSpectatorPlaces', 0, 50)],
+    'How many others may watch each match:\nthe teams out or waiting.\n\nIts players always get in,\nthe admins and the spectator account too.'
+  );
+
+  // under the row, as the join timeout's hint
+  spectatorPlacesRow.appendChild(el('div', { class: 'gen-row-editor' }, [spectatorPlacesWarning]));
+
+  function updateSpectatorPlaces() {
+    const n = state.tSpectatorPlaces;
+    spectatorPlacesRow.classList.toggle('open', n > 6);
+    spectatorPlacesWarning.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>About ${Math.round(n * 4.4)} MB of RAM on every match's server, taken up front - and upload for each one watching.`;
+  }
+
+  /*
     A persistent server's Who gets in: anyone, or only its listed players - each by their account id.
   */
 
@@ -2104,12 +2237,14 @@
 
   const serverSecurityText = el('p', { class: 'gen-field-text gen-security' });
   // under "Account ids are public": the accounts are the game's own keys - Steam is one way, not the only one
-  const NO_STEAM_NEEDED = '<strong>You no longer need Steam to authenticate!</strong> <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Each player\'s game makes its own key\non the first start: `Ed25519`,\nthe cryptography of SSH.\n\nThe account id is its public half.\n\nOn every join, the game signs\nwith the private half -\nnobody can join in their place.\n\nSteam players can use\ntheir Steam account too."></i>';
+  const NO_STEAM_NEEDED = '<strong>You no longer need Steam to authenticate!</strong> <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Each player\'s game makes its own key\non the first start: `Ed25519`,\nthe cryptography of SSH.\n\nThe account id is its public half.\n\nOn every join, the game signs\nwith the private half -\nnobody can join in their place.\n\nSteam players can use their\nSteam account too."></i>';
 
-  const serverVerifyText = el('p', { class: 'gen-field-text', html: 'Every player must send you their account id.<br>Account ids are public - safe to share.<br>' + NO_STEAM_NEEDED + '<br>In the game: <code>Settings → Account → Copy account id</code>:' });
+  const serverVerifyText = el('p', { class: 'gen-field-text', text: 'Every player must send you their account id.' });
+  const serverWhereText = el('p', { class: 'gen-field-text', html: 'In the game: <code>Settings → Account → Copy account id</code>' });
   const serverIdImage = accountIdImage();
+  const serverPublicText = el('p', { class: 'gen-field-text', html: NO_STEAM_NEEDED + '<br>Account ids are public - safe to share.' });
   const serverNamesText = el('p', { class: 'gen-field-text', html: 'Nicknames are only for your convenience:<br>players may play under any other name. Admins always get in.' });
-  const serverWhoEditor = el('div', { class: 'gen-row-editor' }, [serverSecurityText, serverVerifyText, serverIdImage, serverRoster, serverNamesText]);
+  const serverWhoEditor = el('div', { class: 'gen-row-editor' }, [serverSecurityText, serverVerifyText, serverRoster, serverWhereText, serverIdImage, serverPublicText, serverNamesText]);
   const serverWhoRow = settingRow('Who gets in', [serverWhoSelect], 'Listed accounts:\nonly the players you list get in.\n\nEach proves their account,\nso nobody can join in their place.\n\nAnyone else sees:\n"This server lets in only its listed players".');
   serverWhoRow.appendChild(serverWhoEditor);
 
@@ -2120,12 +2255,24 @@
 
   const verifyText = el('p', { class: 'gen-field-text' });
   // where each participant copies theirs - dimmed as the other pictures, lit when pointed at
+  // where the account id is in the game - a screenshot behind a button, not in the way
   function accountIdImage() {
-    return el('img', { class: 'guide-image gen-account-id-image', src: '/assets/images/generator/copy_account_id.png?t=3', alt: 'Settings → Account → Copy account id, in the game', loading: 'lazy' });
+    const button = el('button', { type: 'button', class: 'gen-small-button gen-shot-button', html: '<i class="fa-regular fa-image"></i>Screenshot' });
+
+    button.addEventListener('click', () => showModal('Copy your account id', [
+      el('p', { class: 'gen-field-text', html: 'In the game: <code>Settings → Account → Copy account id</code>' }),
+      el('img', { class: 'guide-image gen-account-id-image', src: '/assets/images/generator/copy_account_id.png?t=3', alt: 'Settings → Account → Copy account id, in the game' })
+    ], true));
+
+    return el('div', { class: 'gen-shot-row' }, [button]);
   }
   const tournamentIdImage = accountIdImage();
   // listed accounts: the teams first, then where the ids come from and their box
-  [verifyText, tournamentIdImage, idsLabel, idsText].forEach(e => pairingEditor.insertBefore(e, nicknamesText));
+  idsPublicText.innerHTML = NO_STEAM_NEEDED + '<br>Account ids are public - safe to share.';
+  // apart from what's above: the ids' part ends there
+  nicknamesText.classList.add('gen-after-gap');
+  serverNamesText.classList.add('gen-after-gap');
+  [verifyText, idsText, idsWhereText, tournamentIdImage, idsPublicText].forEach(e => pairingEditor.insertBefore(e, nicknamesText));
   verifyText.classList.add('gen-after-gap');
 
   const defaultRoundMaps = () => roundMaps().map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo');
@@ -2169,9 +2316,11 @@
   // rarely needed - behind one button, open if anything in it is set
   const serverAdvanced = el('div', { class: 'gen-table gen-table-advanced' }, [
     only(serverRows, settingRow('Daily update', [switchInput('autoupdate', syncHour), hourSelect], "Players with a newer version\ncan't join an older server.\n\nEvery day at this hour (the machine's time),\nthe server restarts if a new version is out.")),
-    only(serverRows, settingRow('Time zone', [timeZoneSelect()], 'Where the server is.\n\nBrowser players see from it\nroughly how far the server is.\n\nHappy hours (2x MMR) follow it.\n\nA VPS is often in UTC.')),
+    only(serverRows, settingRow('Time zone', [timeZoneSelect()], 'Where the server is.\n\nBrowser players see\nhow far the server is.\n\nHappy hours (2x MMR) follow it.\n\nA VPS is often in UTC.')),
+    serverListRow,
     adminRow,
     spectatorRow,
+    only(tournamentRows, spectatorPlacesRow),
     only(tournamentRows, resultsWebhookRow),
     settingRow('Discord webhook', [textInput('webhook', 'to post joins and match results to your Discord')])
   ]);
@@ -2208,7 +2357,7 @@
     serverSecurityText.innerHTML = serverListed
       ? '<i class="fa-solid fa-check gen-secure"></i>Only your listed players - and your admins. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
       : 'Anyone who finds the server. A join password keeps strangers out.';
-    [serverVerifyText, serverIdImage, serverRoster, serverNamesText].forEach(e => { e.hidden = !serverListed; });
+    [serverVerifyText, serverRoster, serverWhereText, serverIdImage, serverPublicText, serverNamesText].forEach(e => { e.hidden = !serverListed; });
 
     if (serverListed) {
       serverRoster.render();
@@ -2229,10 +2378,9 @@
     const size = `${state.tTeamSize}v${state.tTeamSize}`;
     firstText.innerHTML = `Players join <strong>any ${size} server</strong> they want <em>in the first round</em>.<br>They can use <strong>any nicknames</strong> they like.<br>In later rounds, they will be paired automatically.`;
 
-    verifyText.innerHTML = 'Every participant must send you their account id.<br>Account ids are public - safe to share.<br>' + NO_STEAM_NEEDED + '<br>In the game: <code>Settings → Account → Copy account id</code>:';
+    verifyText.innerHTML = 'Every participant must send you their account id.<br>Paste them below:';
     verifyText.hidden = !verifiedByAccounts();
-    tournamentIdImage.hidden = !verifiedByAccounts();
-    idsLabel.hidden = !verifiedByAccounts();
+    [idsWhereText, tournamentIdImage, idsPublicText].forEach(e => { e.hidden = !verifiedByAccounts(); });
     idsText.hidden = !verifiedByAccounts();
 
     if (document.activeElement !== idsText) {
@@ -2344,7 +2492,12 @@
     service: makeStep('Your service file', serviceResults, true),
     firewall: makeStep('Your firewall commands', firewallResults, true),
     start: makeStep('Your startup command', startBlock, true),
-    check: makeStep('Check that it works', checkBlock)
+    // printed for the players when not on the list
+    playersKey: makeStep('For your players: its key', playersKeyResults, true),
+    check: makeStep('Check that it works', checkBlock),
+    // behind their own button, after the check: done later, if ever - the server key's backup and its move elsewhere
+    keyBackup: makeStep('Advanced: Back up your server key', keyBackupResults, true),
+    keySwap: makeStep('Advanced: Restore your server key', keySwapResults, true)
   };
 
   const generatedLine = el('div', { class: 'gen-generated' }, [
@@ -2384,8 +2537,116 @@
   });
 
   // over YOUR CONFIGS: it's the settings above, not what they make
-  generatedLine.before(el('div', { class: 'gen-link-row' }, [linkButton]));
-  [steps.config, steps.secret, steps.before, steps.service, steps.firewall, steps.start, steps.check].forEach(st => mount.appendChild(st.el));
+  // under the profile's bar, with the instructions (profileLinks)
+  // the setup first - the rest needs what it makes (the user, the folders)
+  [steps.before, steps.config, steps.secret, steps.service, steps.firewall, steps.start, steps.playersKey, steps.check].forEach(st => mount.appendChild(st.el));
+
+  /*
+    After the launch, if ever: steps always in sight, folded - their title opens them.
+  */
+
+  [steps.keyBackup, steps.keySwap].forEach(st => {
+    // left of the title: pointing at it while folded, down once opened
+    const chevron = el('i', { class: 'fa-solid fa-chevron-right gen-fold-chevron' });
+    st.el.classList.add('gen-foldable');
+    st.title.parentElement.prepend(chevron);
+
+    st.title.parentElement.addEventListener('click', () => {
+      const open = st.el.classList.toggle('open');
+      chevron.className = `fa-solid fa-chevron-${open ? 'down' : 'right'} gen-fold-chevron`;
+    });
+
+    mount.appendChild(st.el);
+  });
+
+  /*
+    Step by step, or all of it in one script - the same commands and files either way.
+  */
+
+
+  const modeButton = (label, icon, value) => {
+    const b = el('button', { type: 'button', html: `<i class="${icon}"></i>${label}` });
+    b.addEventListener('click', () => { oneShot = value; update(); });
+    return el('div', { class: 'btn' }, [b]);
+  };
+
+  const stepsTab = modeButton('Step by step', 'fa-solid fa-list-ol', false);
+  const scriptTab = modeButton('Single script', 'fa-solid fa-scroll', true);
+  const modeTabs = el('div', { class: 'btn-group gen-mode-tabs' }, [stepsTab, scriptTab]);
+
+  const scriptCode = el('code');
+  const firewallSelect = el('select', {}, [
+    el('option', { value: 'none', text: 'Leave it as it is' }),
+    el('option', { value: 'ufw', text: 'ufw (Ubuntu, Debian)' }),
+    el('option', { value: 'firewalld', text: 'firewalld (Fedora, RHEL)' })
+  ]);
+
+  firewallSelect.addEventListener('change', () => { scriptOptions.firewall = firewallSelect.value; update(); });
+
+  const scriptStartCheck = el('input', { type: 'checkbox' });
+  scriptStartCheck.checked = scriptOptions.start;
+  scriptStartCheck.addEventListener('change', () => { scriptOptions.start = scriptStartCheck.checked; update(); });
+  const scriptStartOption = optionSwitch(scriptStartCheck, 'Start it now', '');
+  const scriptStartNote = scriptStartOption.querySelector('.gen-switch-note');
+
+  const dataFolderCheck = el('input', { type: 'checkbox' });
+  dataFolderCheck.checked = scriptOptions.dataFolder;
+  dataFolderCheck.addEventListener('change', () => { scriptOptions.dataFolder = dataFolderCheck.checked; update(); });
+  const dataFolderOption = optionSwitch(dataFolderCheck, 'Make the data folder', '/opt/hypersomnia, for the container\'s user');
+
+  const scriptOptionsBox = el('div', { class: 'gen-script-options' }, [
+    selectRow('Firewall', firewallSelect),
+    scriptStartOption
+  ]);
+
+
+  const scriptBlock = el('div', { class: 'gen-before-box' }, [
+    scriptOptionsBox,
+    el('div', { class: 'guide-code gen-start-code' }, [
+      el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' }),
+      el('pre', {}, [scriptCode])
+    ]),
+  ]);
+
+  steps.script = makeStep('Your script', scriptBlock, true);
+  // above the first step - the setup's commands
+  mount.insertBefore(modeTabs, steps.before.el);
+  mount.insertBefore(steps.script.el, steps.check.el);
+
+  /*
+    The setup's switches (as a service, as its own user) and the FUSE field belong to both views - moved into the one shown.
+  */
+
+  function updateScript() {
+    // update() runs once before the views are made
+    if (!steps.script) {
+      return;
+    }
+
+    stepsTab.firstChild.classList.toggle('active', !oneShot);
+    scriptTab.firstChild.classList.toggle('active', oneShot);
+
+    [steps.config, steps.secret, steps.before, steps.service, steps.firewall, steps.start, steps.playersKey].forEach(st => st.el.classList.toggle('gen-mode-off', oneShot));
+    steps.script.el.hidden = !oneShot;
+
+    if (oneShot) {
+      scriptOptionsBox.append(serviceOption, fuseField, dataFolderOption, scriptStartOption);
+      fuseField.hidden = !(method() === 'terminal' || method() === 'service');
+    }
+    else if (serviceOption.parentElement !== beforeBlock) {
+      beforeBlock.prepend(serviceOption);
+    }
+
+    dataFolderOption.hidden = !(method() === 'compose' || method() === 'run');
+    scriptStartNote.textContent = method() === 'service' ? 'otherwise at the next reboot' : 'otherwise the startup command stays commented out';
+    scriptCode.textContent = oneShotScript();
+    highlight(scriptCode, 'bash');
+
+    if (reservesFuseLine()) {
+      scriptCode.appendChild(reservedLine());
+    }
+
+  }
 
 
   // as the game's is_valid_account_id: the prefixes in lowercase, the hex in either case, no = , ; in a crazygames id
@@ -2465,8 +2726,8 @@
     const out = [];
 
     if (pairedBeforehand()) {
-      // the teams in one argument: "alice, bob; carol, dave"
-      out.push(`--tournament-teams ${quoted(teamsArgument('; '))}`);
+      // the teams in one argument - from the variable above the command (teamsVariable)
+      out.push('--tournament-teams "$TEAMS"');
     }
     else {
       out.push(`--tournament ${state.tPlayers}`);
@@ -2477,8 +2738,8 @@
     }
 
     if (isTournament()) {
-      const list = roundMaps().map(withMode).join(',');
-      out.push(`--tournament-arenas ${quoted(list)}`);
+      // from the variable above the command (arenasVariable)
+      out.push('--tournament-arenas "$ARENAS"');
     }
 
     if (isTournament() && state.tName.trim()) {
@@ -2498,7 +2759,11 @@
       out.push(`--tournament-join-timeout ${timeout}`);
     }
 
-    return out.join(' ');
+    if (state.tSpectatorPlaces !== 6) {
+      out.push(`--tournament-spectators ${state.tSpectatorPlaces}`);
+    }
+
+    return out;
   }
 
   function portSpan(first) {
@@ -2527,7 +2792,10 @@
     const config = {};
 
     if (!isTournament()) {
-      server.server_name = state.name || 'My server';
+      // "My server" is the game's own default - no config for it
+      if (state.name.trim() && state.name.trim() !== 'My server') {
+        server.server_name = state.name.trim();
+      }
     }
 
     // the default arena needs no line
@@ -2588,6 +2856,10 @@
       if (!state.cycleRandom) {
         server.cycle_randomize_order = false;
       }
+    }
+
+    if (serverListChanged()) {
+      server.notified_server_list = serverListAddress();
     }
 
     if (!state.browser) {
@@ -2664,7 +2936,8 @@
   }
 
   function dockerEnv() {
-    const env = isTournament() ? [] : [['HYPERSOMNIA_SERVER_NAME', state.name || 'My server']];
+    const named = !isTournament() && state.name.trim() && state.name.trim() !== 'My server';
+    const env = named ? [['HYPERSOMNIA_SERVER_NAME', state.name.trim()]] : [];
     const ids = adminIds();
     const put = (k, v) => env.push([k, v]);
 
@@ -2721,6 +2994,10 @@
       put('HYPERSOMNIA_PORT', String(state.port));
     }
 
+    if (serverListChanged()) {
+      put('HYPERSOMNIA_SERVER_LIST', serverListAddress() || 'off');
+    }
+
     if (!state.browser) {
       put('HYPERSOMNIA_BROWSER_PLAYERS', 'off');
     }
@@ -2745,8 +3022,8 @@
 
     if (pairedBeforehand()) {
       // a team per line, its players separated by commas
-      put('HYPERSOMNIA_TOURNAMENT_TEAMS', teamsArgument('\n'));
-      put('HYPERSOMNIA_TOURNAMENT_ARENAS', roundMaps().map(withMode).join(','));
+      put('HYPERSOMNIA_TOURNAMENT_TEAMS', teamsText());
+      put('HYPERSOMNIA_TOURNAMENT_ARENAS', arenasText());
     }
     else if (isTournament()) {
       put('HYPERSOMNIA_TOURNAMENT', String(state.tPlayers));
@@ -2755,7 +3032,7 @@
         put('HYPERSOMNIA_TOURNAMENT_TEAM_SIZE', String(state.tTeamSize));
       }
 
-      put('HYPERSOMNIA_TOURNAMENT_ARENAS', roundMaps().map(withMode).join(','));
+      put('HYPERSOMNIA_TOURNAMENT_ARENAS', arenasText());
     }
 
     if (isTournament() && state.tName.trim()) {
@@ -2775,6 +3052,10 @@
 
     if (joinTimeoutValue()) {
       put('HYPERSOMNIA_TOURNAMENT_JOIN_TIMEOUT', joinTimeoutValue());
+    }
+
+    if (isTournament() && state.tSpectatorPlaces !== 6) {
+      put('HYPERSOMNIA_TOURNAMENT_SPECTATORS', String(state.tSpectatorPlaces));
     }
 
     return env;
@@ -2821,7 +3102,8 @@
       // compose expands $NAME in compose.yaml: $$ is a $
       else if (v.includes('\n')) {
         lines.push(`      ${k}: |`);
-        v.split('\n').forEach(l => lines.push('        ' + l.replace(/\$/g, '$$$$')));
+        // an empty line (between the teams) without spaces
+        v.split('\n').forEach(l => lines.push(l ? '        ' + l.replace(/\$/g, '$$$$') : ''));
       }
       else {
         lines.push(`      ${k}: ${JSON.stringify(v.replace(/\$/g, '$$$$'))}`);
@@ -2846,11 +3128,12 @@
       '  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user'
     ].filter(line => line !== null);
 
-    // in one command the teams go on one line, separated by semicolons
-    env.forEach(([k, v]) => lines.push(`  --env ${k}=${quote(v.replace(/\n/g, '; '))}`));
+    // the teams from the variable above the command (teamsVariable)
+    const fromVariable = { HYPERSOMNIA_TOURNAMENT_TEAMS: '"$TEAMS"', HYPERSOMNIA_TOURNAMENT_ARENAS: '"$ARENAS"' };
+    env.forEach(([k, v]) => lines.push(`  --env ${k}=${fromVariable[k] || quote(v)}`));
 
     lines.push('  ghcr.io/teamhypersomnia/hypersomnia-server:latest');
-    return lines.map((l, i) => i < lines.length - 1 ? l + ' \\' : l).join('\n');
+    return startVariables() + lines.map((l, i) => i < lines.length - 1 ? l + ' \\' : l).join('\n');
   }
 
   // a tournament never restarts in the middle of it to update
@@ -2860,9 +3143,16 @@
 
   function startCommand() {
     // a persistent server in a terminal updates itself by the flag, as the service does
-    const daily = currentSetup === 'server-appimage' && updatesOn() ? ' --daily-autoupdate' : '';
-    const flags = isTournament() ? ' ' + tournamentFlags() : '';
-    return `./Hypersomnia-Headless.AppImage${extractFlag()}${daily}${flags}`;
+    const flags = [
+      state.fuse ? null : '--appimage-extract-and-run',
+      currentSetup === 'server-appimage' && updatesOn() ? '--daily-autoupdate' : null,
+      ...(isTournament() ? tournamentFlags() : [])
+    ].filter(Boolean);
+
+    // the executable on its own line, then a flag per line - as docker run's
+    const command = ['./Hypersomnia-Headless.AppImage', ...flags.map(f => '  ' + f)].map((l, i, all) => i < all.length - 1 ? l + ' \\' : l).join('\n');
+
+    return startVariables() + command;
   }
 
   /*
@@ -2870,7 +3160,7 @@
     or as a separate user, a system service in /opt/hypersomnia.
   */
 
-  const ownUser = () => !state.serviceUser;
+  const ownUser = () => state.service !== 'user';
 
   function serviceUnit() {
     const flags = [
@@ -2907,23 +3197,306 @@
   // the results page's TCP port: its own if set, else the first game port's number
   const pagePort = () => state.tPagePort || state.port;
 
-  function firewall() {
+  function firewallLines(kind) {
     const ufw = s => s.replace('-', ':');
-
     const web = state.browser;
 
-    return [
+    const lines = kind === 'ufw' ? [
       '# ufw (Ubuntu, Debian)',
       `sudo ufw allow ${ufw(portSpan(state.port))}/udp`,
       web ? `sudo ufw allow ${ufw(portSpan(state.webPort))}/udp` : null,
-      pageOn() ? `sudo ufw allow ${pagePort()}/tcp` : null,
-      '',
+      pageOn() ? `sudo ufw allow ${pagePort()}/tcp` : null
+    ] : [
       '# firewalld (Fedora, RHEL)',
       `sudo firewall-cmd --permanent --add-port=${portSpan(state.port)}/udp`,
       web ? `sudo firewall-cmd --permanent --add-port=${portSpan(state.webPort)}/udp` : null,
       pageOn() ? `sudo firewall-cmd --permanent --add-port=${pagePort()}/tcp` : null,
       'sudo firewall-cmd --reload'
-    ].filter(line => line !== null).join('\n');
+    ];
+
+    return lines.filter(line => line !== null);
+  }
+
+  // what the firewall opens, in words
+  function openedPorts() {
+    return [
+      `UDP ${portSpan(state.port)}`,
+      state.browser ? `UDP ${portSpan(state.webPort)}` : null,
+      pageOn() ? `TCP ${pagePort()}` : null
+    ].filter(Boolean).join(', ');
+  }
+
+  function firewall() {
+    return [...firewallLines('ufw'), '', ...firewallLines('firewalld')].join('\n');
+  }
+
+  /*
+    The one-shot script: the same steps as above in one paste - safe to run again (the files are written anew).
+    The files by heredocs, with a quoted end mark - nothing in them is expanded. Its own lines wrapped for a terminal,
+    between the arguments only (a quoted one stays whole), continued with a backslash.
+  */
+
+  const SCRIPT_WIDTH = 78;
+
+  // every line of a command wrapped so (wrapCommand)
+  const wrapped = text => text.split('\n').map(wrapCommand).flat().join('\n');
+
+  function wrapCommand(line) {
+    const continued = / \\$/.test(line);
+    const body = continued ? line.slice(0, -2) : line;
+    const indent = body.match(/^ */)[0];
+
+    if (body.length <= SCRIPT_WIDTH) {
+      return [line];
+    }
+
+    // the arguments, a quoted one whole
+    const words = body.trim().match(/(?:'[^']*'|"(?:\\.|[^"])*"|[^\s'"])+/g) || [];
+    const out = [];
+    let current = indent;
+
+    words.forEach(w => {
+      const fresh = current.trim() === '';
+
+      if (!fresh && (current + ' ' + w).length > SCRIPT_WIDTH - 2) {
+        out.push(current + ' \\');
+        current = indent + '  ' + w;
+      }
+      else {
+        current = fresh ? indent + w : current + ' ' + w;
+      }
+    });
+
+    out.push(continued ? current + ' \\' : current);
+    return out;
+  }
+
+  function scriptWhere() {
+    return {
+      terminal: [
+        'On the server, in the folder for the game - the AppImage lands here.',
+        'It runs in this terminal. Again? Stop it first (Ctrl+C).'
+      ],
+      service: ownUser()
+        ? ['On the server, as the user to run it (not root) - the AppImage', 'lands in your home folder.']
+        : ['On the server, as a user with sudo - everything goes to', '/opt/hypersomnia, the server runs as the user hypersomnia.'],
+      compose: ['On the server with Docker, in the folder for compose.yaml.'],
+      run: ['On the server with Docker - its data goes to /opt/hypersomnia.']
+    }[method()];
+  }
+
+  /*
+    The server key of this setup: where the server keeps it (KEYS_DIR: the user folder's .keys), how a file is put there
+    (only the server's user may read it), how it's backed up from your computer, and how its public half is printed.
+  */
+
+  function keyPath() {
+    const m = method();
+
+    if (m === 'compose' || m === 'run') {
+      return '/opt/hypersomnia/.keys/server.key';
+    }
+
+    return separateUser() ? '/opt/hypersomnia/user/.keys/server.key' : '~/.config/Hypersomnia/user/.keys/server.key';
+  }
+
+  /*
+    A key from another machine, after the launch: the server reads it only when it starts - stopped, the file put in place
+    (only the server's user may read it), started again. Run where the file is.
+  */
+
+  function keySwap() {
+    const m = method();
+    const path = keyPath();
+    const folder = path.replace(/\/server\.key$/, '');
+    const file = 'hypersomnia-server.key';
+
+    if (m === 'compose' || m === 'run') {
+      const [stop, start] = m === 'compose'
+        ? ['docker compose stop', 'docker compose start']
+        : ['docker stop hypersomnia-server', 'docker start hypersomnia-server'];
+
+      return `${stop}\nsudo mkdir -p ${folder}\nsudo install -m 600 -o 999 -g 999 ${file} ${path}\nsudo chown 999:999 ${folder}\nsudo chmod 700 ${folder}\n${start}`;
+    }
+
+    if (separateUser()) {
+      return `sudo systemctl stop hypersomnia\nsudo -u hypersomnia mkdir -p ${folder}\nsudo chmod 700 ${folder}\nsudo install -m 600 -o hypersomnia -g hypersomnia ${file} ${path}\nsudo systemctl start hypersomnia`;
+    }
+
+    const install = `mkdir -p ${folder}\nchmod 700 ${folder}\ninstall -m 600 ${file} ${path}`;
+
+    if (m === 'service') {
+      return `systemctl --user stop hypersomnia\n${install}\nsystemctl --user start hypersomnia`;
+    }
+
+    return `# stop the server first (Ctrl+C), then:\n${install}\n# and start it again - Your startup command`;
+  }
+
+  /*
+    Only you may read the copy too (600): scp keeps the file's own; read with sudo, the copy is made under umask 077.
+  */
+
+  function keyBackupCommand() {
+    const path = keyPath();
+
+    if (path.startsWith('~/')) {
+      return `scp <your server>:${path.slice(2)} hypersomnia-server.key`;
+    }
+
+    return `(umask 077 && ssh <your server> 'sudo cat ${path}' > hypersomnia-server.key)`;
+  }
+
+  function printKeyCommand() {
+    const m = method();
+    const extract = state.fuse ? '' : ' --appimage-extract-and-run';
+
+    if (m === 'compose' || m === 'run') {
+      return 'docker run --rm \\\n  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user \\\n  ghcr.io/teamhypersomnia/hypersomnia-server:latest \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-server-key';
+    }
+
+    if (separateUser()) {
+      return `sudo -u hypersomnia /opt/hypersomnia/Hypersomnia-Headless.AppImage${extract} \\\n  --appdata-dir /opt/hypersomnia --print-server-key`;
+    }
+
+    return `${m === 'service' ? '~' : '.'}/Hypersomnia-Headless.AppImage${extract} --print-server-key`;
+  }
+
+  function oneShotScript() {
+    const m = method();
+    const docker = m === 'compose' || m === 'run';
+    const asUser = separateUser();
+    const lines = [];
+    const raw = text => text.split('\n').forEach(l => lines.push(l));
+    const cmd = text => text.split('\n').forEach(l => wrapCommand(l).forEach(w => lines.push(w)));
+    const section = title => lines.push('', `# ${title}`);
+
+    // a file: as the server's own user, as root, or as whoever runs the script
+    const write = (path, text, owner) => {
+      const into =
+        owner === 'user' ? `sudo -u hypersomnia tee ${path} > /dev/null` :
+        owner === 'root' ? `sudo tee ${path} > /dev/null` :
+        `cat > ${path}`
+      ;
+
+      cmd(`${into} <<'EOF'`);
+      raw(text);
+      lines.push('EOF');
+    };
+
+    const starts = scriptOptions.start;
+    const firewallText = scriptOptions.firewall === 'none'
+      ? 'left as it is'
+      : `${scriptOptions.firewall} - opens ${openedPorts()}`;
+    const setupLine = m === 'service' ? (ownUser() ? 'a systemd service, as you' : 'a systemd service, as the user hypersomnia') : setupName();
+    const again = {
+      terminal: 'the files written anew',
+      service: 'the files written anew, the service restarted',
+      compose: 'the files written anew, the container recreated if changed',
+      run: 'the container replaced'
+    }[m];
+
+    lines.push(
+      '#!/bin/bash',
+      '#',
+      `# Hypersomnia - ${setupName() || 'server'}`,
+      '# Made at hypersomnia.io/generator',
+      '#',
+      '# Where to run it:',
+      ...scriptWhere().map(l => `#   ${l}`),
+      '#',
+      `# Safe to run again: ${again}.`,
+      '#',
+      `# Setup:     ${setupLine}`,
+      docker ? `# Data:      /opt/hypersomnia${scriptOptions.dataFolder ? ', made here' : ' - there already'}` : null,
+      `# Firewall:  ${firewallText}`,
+      `# Start now: ${starts ? 'yes' : m === 'service' ? 'no - it starts at the next reboot' : 'no - the startup command stays commented out'}`,
+      '#',
+      'set -euo pipefail'
+    );
+
+    // the data folder's line only with Docker
+    for (let i = lines.length - 1; i >= 0; --i) {
+      if (lines[i] === null) {
+        lines.splice(i, 1);
+      }
+    }
+
+    const before = docker && !scriptOptions.dataFolder ? '' : beforeText();
+
+    if (before) {
+      section(m === 'compose' || m === 'run' ? 'The server\'s data folder' : 'The game');
+
+      // the user is made only once
+      before.split('\n').forEach(l => cmd(l.startsWith('sudo useradd') ? `id hypersomnia > /dev/null 2>&1 || ${l}` : l));
+    }
+
+    if (m === 'compose') {
+      section('compose.yaml and its .env - in this folder');
+      write('compose.yaml', compose());
+
+      if (dotEnv()) {
+        write('.env', dotEnv());
+        cmd('chmod 600 .env');
+      }
+    }
+    else if (m === 'terminal' || m === 'service') {
+      const { json, secrets } = buildSettings();
+
+      if (json || secrets) {
+        section('The config');
+
+        if (json) {
+          write(configPath(), prettyJson(json), asUser ? 'user' : '');
+        }
+
+        if (secrets) {
+          write(privatePath(), prettyJson(secrets), asUser ? 'user' : '');
+          cmd(privateChmod());
+        }
+      }
+
+      if (m === 'service') {
+        section('The service');
+        write(ownUser() ? '~/.config/systemd/user/hypersomnia.service' : '/etc/systemd/system/hypersomnia.service', serviceUnit(), ownUser() ? '' : 'root');
+      }
+    }
+
+    if (scriptOptions.firewall !== 'none') {
+      section('The firewall');
+      const tool = scriptOptions.firewall === 'ufw' ? 'ufw' : 'firewall-cmd';
+      cmd(`if ! command -v ${tool} > /dev/null; then\n  echo "No ${tool} here - pick your firewall in the generator."\n  exit 1\nfi`);
+      cmd(firewallLines(scriptOptions.firewall).slice(1).join('\n'));
+    }
+
+    if (!state.serverListOn) {
+      section('Not on the server list: give your players its address and this key');
+      cmd(printKeyCommand());
+    }
+
+    if (starts) {
+      section('Start it');
+
+      if (m === 'run') {
+        cmd('docker rm -f hypersomnia-server > /dev/null 2>&1 || true');
+        lines.push('');
+      }
+
+      cmd(startText());
+    }
+    else if (m === 'service') {
+      section('Start with the machine - not now');
+      cmd(startText().split('\n').filter(l => !/ restart /.test(l)).join('\n'));
+      lines.push('', '# To start it now:');
+      startText().split('\n').filter(l => / restart /.test(l)).forEach(l => lines.push(`# ${l}`));
+    }
+    else {
+      // everything's set up - the start left for later, commented out
+      section('The startup command - uncomment to start it:');
+      const later = (m === 'run' ? 'docker rm -f hypersomnia-server > /dev/null 2>&1 || true\n\n' : '') + startText();
+      later.split('\n').forEach(l => wrapCommand(l).forEach(w => lines.push(`# ${w}`)));
+    }
+
+    return lines.join('\n');
   }
 
   // a path or a command in a hint: monospace with its own copy button
@@ -2938,6 +3511,10 @@
 
   function configErrors() {
     const errors = [];
+
+    if (state.serverListOn && !/^[A-Za-z0-9.-]+:\d{1,5}$/.test(state.serverList.trim())) {
+      errors.push(`Server list: an address with its port, e.g. ${DEFAULT_SERVER_LIST}`);
+    }
     const list = names => [...new Set(names)].join(', ');
 
     // every listed player with an account id of their own
@@ -3071,6 +3648,8 @@
 
     updatePairing();
     updateCheck();
+    updateSpectatorPlaces();
+    updateServerList();
     rebuildRounds();
     updateTable();
 
@@ -3131,11 +3710,39 @@
           file: configPath(),
           lang: json ? 'json' : '',
           text: json ? prettyJson(json) : 'No server config required!',
-          hint: json || secrets ? `Make its folder first: ${inline(configMkdir())}` : '',
+          hint: '',
           unneeded: !json
         }));
       }
     });
+
+    keyBackupResults.innerHTML = '';
+    keyBackupResults.append(
+      el('p', { class: 'gen-field-text', text: 'Run this from your computer:' }),
+      resultBox({
+        lang: 'bash',
+        text: wrapped(keyBackupCommand()),
+        hint: (keyPath().startsWith('~/') ? '' : 'Needs root, or sudo without a password, on the server.<br>')
+          + 'Players know your server by its key: <code>Ed25519</code>.<br>Without it, you appear as a different server.<br>Keep it secret - with it, anyone can pose as your server.'
+      })
+    );
+
+    keySwapResults.innerHTML = '';
+    keySwapResults.appendChild(resultBox({
+      lang: 'bash',
+      text: wrapped(keySwap()),
+      hint: method() === 'compose'
+        ? 'On the new machine, in the folder of <code>compose.yaml</code>, with <code>hypersomnia-server.key</code> put there.'
+        : 'On the new machine, in the folder with <code>hypersomnia-server.key</code>.'
+    }));
+
+    playersKeyResults.innerHTML = '';
+    playersKeyResults.appendChild(resultBox({
+      lang: 'bash',
+      text: printKeyCommand(),
+      hint: 'Not on the server list: your players join by its address - and this key, pasted in Browse servers.'
+    }));
+    steps.playersKey.el.hidden = state.serverListOn;
 
     firewallResults.innerHTML = '';
     firewallResults.appendChild(resultBox({
@@ -3163,6 +3770,14 @@
     steps.secret.el.hidden = !secretResults.childElementCount;
     steps.secret.title.textContent = method() === 'compose' ? 'Your .env' : 'Your private config';
     updateFuseField(serviceBox);
+    // its config's folder follows the settings
+    updateBefore();
+    updateProfileBox();
+    updateScript();
+
+    if (tocReady) {
+      updateToc();
+    }
 
     const errors = configErrors();
     const escaped = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -3183,23 +3798,89 @@
     }[method()];
   }
 
+  /*
+    FUSE installed drops the --appimage-extract-and-run line from the AppImage's start - an empty line in its place
+    keeps everything below where it was. Shown, never copied.
+  */
+
+  const reservesFuseLine = () => state.fuse && method() === 'terminal';
+  // a newline alone at a block's end shows no line - a zero-width space after it does
+  const reservedLine = () => el('span', { class: 'gen-no-copy', text: '\n\u200b' });
+
   function fillStart(start) {
     /*
       Wrapped only between the arguments, never inside one (e.g. at the dash of --tournament-arenas):
-      every argument unbreakable, the spaces between them as they are - copying gives the same text.
+      every argument unbreakable (a quoted one whole), the spaces between them as they are - copying gives the same text.
+      Each argument highlighted as bash on its own.
     */
 
     startCode.innerHTML = '';
+    startCode.className = window.hljs ? 'hljs language-bash' : '';
 
-    (start || '').split('\n').forEach((line, i) => {
+    const highlighted = text => window.hljs ? window.hljs.highlight(text, { language: 'bash', ignoreIllegals: true }).value : null;
+
+    // the variables above the command: short lines, each one string - highlighted as a whole
+    const lines = (start || '').split('\n');
+
+    for (;;) {
+      // the empty lines between them as they are
+      while (lines.length > 1 && lines[0] === '') {
+        startCode.appendChild(document.createTextNode('\n'));
+        lines.shift();
+      }
+
+      // its end: a quote not escaped - on its first line too (one arena)
+      const closes = (l, i) => (i > 0 || l.indexOf('"') < l.length - 1) && /[^\\]"$/.test(l);
+      const variableEnd = /^[A-Z]+="/.test(lines[0] || '') ? lines.findIndex(closes) : -1;
+
+      if (variableEnd < 0) {
+        break;
+      }
+
+      const block = el('span');
+      const text = lines.slice(0, variableEnd + 1).join('\n');
+      const html = highlighted(text);
+
+      if (html !== null) {
+        block.innerHTML = html;
+      }
+      else {
+        block.textContent = text;
+      }
+
+      startCode.appendChild(block);
+      startCode.appendChild(document.createTextNode('\n'));
+      lines.splice(0, variableEnd + 1);
+    }
+
+    lines.forEach((line, i) => {
       if (i > 0) {
         startCode.appendChild(document.createTextNode('\n'));
       }
 
-      line.split(/( +)/).forEach(part => {
-        startCode.appendChild(/^ +$/.test(part) || part === '' ? document.createTextNode(part) : el('span', { class: 'gen-arg', text: part }));
+      (line.match(/(?:'[^']*'|"(?:\\.|[^"])*"|\S)+| +/g) || []).forEach(part => {
+        if (/^ +$/.test(part)) {
+          startCode.appendChild(document.createTextNode(part));
+          return;
+        }
+
+        const arg = el('span', { class: 'gen-arg' });
+        const html = highlighted(part);
+
+        if (html !== null) {
+          arg.innerHTML = html;
+        }
+        else {
+          arg.textContent = part;
+        }
+
+        startCode.appendChild(arg);
       });
     });
+
+    if (reservesFuseLine()) {
+      startCode.appendChild(reservedLine());
+    }
   }
 
   /*
@@ -3207,7 +3888,6 @@
     Its last line is the generator's state in a comment (invisible when the file is shown), so it loads back exactly.
   */
 
-  const PROFILE_MARK = 'hypersomnia-generator';
 
   function separateUser() {
     return method() === 'service' && !ownUser();
@@ -3305,7 +3985,8 @@
     // docker run is in Your startup command
     outputsOf().filter(k => k !== 'firewall' && k !== 'run' && !(k === 'json' && !buildSettings().json)).forEach(k => {
       const o = outputOf(k);
-      parts.push(k === 'json' ? `## ${o.title}\n\n\`\`\`sh\n${configMkdir()}\n\`\`\`\n\n\`\`\`json\n${prettyJson(buildSettings().json)}\n\`\`\`\n` : block(o.title, o.lang, o.text()));
+      // its folder is made with the setup's commands
+      parts.push(k === 'json' ? block(o.title, 'json', prettyJson(buildSettings().json)) : block(o.title, o.lang, o.text()));
     });
 
     // the secrets apart, as on the page
@@ -3316,11 +3997,6 @@
       parts.push(block('Restrict who can read the file', 'sh', 'chmod 600 .env'));
     }
     else if (secrets) {
-      // no server.json before it to make the folder
-      if (!buildSettings().json) {
-        parts.push(block('Make the config folder', 'sh', configMkdir()));
-      }
-
       parts.push(block(privatePath(), 'json', prettyJson(secrets)));
       parts.push(block('Restrict who can read the file', 'sh', privateChmod()));
     }
@@ -3330,44 +4006,83 @@
     if (startText()) {
       parts.push(block('Your startup command', 'sh', startText()));
     }
-    // > only as \u003e - a "-->" in a value would end the comment
-    parts.push(`<!-- ${PROFILE_MARK} ${JSON.stringify({ setup: currentSetup, state: changedFromDefaults() }).replace(/>/g, '\\u003e')} -->\n`);
+    // the profile itself, to read - the generator loads it from a .json file
+    parts.push(`## Profile\n\nSaved as a \`.json\` file, it loads back into https://hypersomnia.io/generator.\n\n\`\`\`json\n${profileJson()}\n\`\`\`\n`);
+
+    // all of the above in one script - with the script's own choices as they're set now
+    const choices = [
+      `firewall: ${scriptOptions.firewall === 'none' ? 'left as it is' : scriptOptions.firewall}`,
+      `start now: ${scriptOptions.start ? 'yes' : 'no'}`
+    ].concat(method() === 'compose' || method() === 'run' ? [`data folder: ${scriptOptions.dataFolder ? 'made' : 'there already'}`] : []);
+
+    parts.push(block(`Single script (${choices.join(', ')})`, 'bash', oneShotScript()));
 
     return parts.join('\n');
   }
 
-  function saveProfile() {
-    const name = (isTournament() ? 'tournament' : (state.name || 'server')).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'server';
-    const blob = new Blob([profileMarkdown()], { type: 'text/markdown' });
-    const a = el('a', { href: URL.createObjectURL(blob), download: `hypersomnia-${name}.md` });
+  /*
+    The profile: the setup and only what differs from the defaults (secrets too - it's your file; the link has none).
+    The same JSON in the box above the bar, in a .json to save and load, and at the end of the instructions.
+  */
+
+  const profileJson = () => JSON.stringify({ setup: currentSetup, state: changedFromDefaults() }, null, 2);
+
+  function download(text, type, file) {
+    const blob = new Blob([text], { type });
+    const a = el('a', { href: URL.createObjectURL(blob), download: file });
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
-  // a saved profile replaces the form - through the browser's storage, then a reload builds everything anew
-  function loadProfile(text) {
-    const m = new RegExp(`<!--\\s*${PROFILE_MARK}\\s*([\\s\\S]*?)-->`).exec(text);
+  const profileName = () => 'hypersomnia-' + ((isTournament() ? 'tournament' : (state.name || 'server')).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'server');
 
-    if (!m) {
-      alert('Not instructions saved by the generator - it has no "' + PROFILE_MARK + '" line at the end.');
-      return;
-    }
+  const saveInstructions = () => download(profileMarkdown(), 'text/markdown', profileName() + '.md');
+  const saveProfile = () => download(profileJson() + '\n', 'application/json', profileName() + '.json');
+
+  /*
+    A profile into the form: checked as a link's (sanitizeState) - nothing in it reaches the commands unchecked.
+    What it doesn't name is the default. Null: it's not a profile (the reason in the error).
+  */
+
+  function applyProfile(text) {
+    let parsed;
 
     try {
-      const saved = JSON.parse(m[1]);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(saved.state || {}));
-
-      if (saved.setup) {
-        localStorage.setItem(SETUP_KEY, saved.setup);
-      }
-
-      // without the profile in the link - it would win over the loaded one
-      location.replace(location.pathname);
+      parsed = JSON.parse(text);
     }
     catch (e) {
-      alert('The instructions could not be read: ' + e.message);
+      return 'Not valid JSON - nothing changed.';
+    }
+
+    if (!parsed || typeof parsed !== 'object' || (parsed.state !== undefined && (typeof parsed.state !== 'object' || Array.isArray(parsed.state)))) {
+      return 'Not a profile: expected { "setup": ..., "state": { ... } } - nothing changed.';
+    }
+
+    state = sanitizeState(Object.assign({}, defaults, parsed.state || {}));
+
+    if (setupIds.includes(parsed.setup) && parsed.setup !== currentSetup) {
+      // the tab's listeners refresh the inputs and the outputs
+      selectSetup(parsed.setup);
+    }
+    else {
+      refreshInputs();
+      update();
+    }
+
+    return null;
+  }
+
+  function loadProfile(text) {
+    const error = applyProfile(text);
+
+    if (error) {
+      alert(error);
+    }
+    else {
+      profileText.value = profileJson();
+      showProfile(profileText.value);
     }
   }
 
@@ -3386,7 +4101,7 @@
     location.replace(location.pathname);
   }
 
-  const profileFile = el('input', { type: 'file', accept: '.md,text/markdown,text/plain', hidden: 'hidden' });
+  const profileFile = el('input', { type: 'file', accept: '.json,application/json', hidden: 'hidden' });
 
   profileFile.addEventListener('change', () => {
     const f = profileFile.files[0];
@@ -3410,14 +4125,169 @@
   };
 
   const profileBar = el('div', { class: 'btn-group gen-profile-bar' }, [
-    profileButton('fa-solid fa-download', 'Save profile to .md', saveProfile, 'Every step in one Markdown file\n- you can give it to your LLM.\n\nUnlike the link, it has\nthe passwords, webhooks and admins.'),
-    profileButton('fa-solid fa-upload', 'Load profile', () => profileFile.click(), 'From a .md saved here.'),
+    profileButton('fa-solid fa-download', 'Save (.json)', saveProfile, 'The JSON above, as a file.\n\nUnlike the link, it has\nthe passwords, webhooks and admins.'),
+    profileButton('fa-solid fa-upload', 'Load (.json)', () => profileFile.click(), 'From a .json saved here.'),
     profileButton('fa-solid fa-rotate-left', 'Reset to defaults', resetToDefaults),
     profileFile
   ]);
 
-  // under everything
-  mount.after(profileBar);
+  /*
+    The profile as JSON, always in sight above the bar: what you changed. Edited or pasted, valid, it goes into the form
+    at once; the form's changes come back into it. Highlighted by a copy of it underneath - the box itself is see-through.
+  */
+
+  const profileCode = el('code');
+  const profilePre = el('pre', { class: 'gen-json-pre', 'aria-hidden': 'true' }, [profileCode]);
+  const profileText = el('textarea', { class: 'gen-json-text', spellcheck: 'false', wrap: 'off', autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true', 'aria-label': 'The profile as JSON' });
+  const profileError = el('p', { class: 'gen-json-error' });
+  // as the other code boxes: their background and colors
+  const profileEditor = el('div', { class: 'guide-code gen-json-editor' }, [
+    profilePre,
+    profileText,
+    // above the box - copies the profile as it's written there
+    el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' })
+  ]);
+  // a tile as Check that it works: only the box in it is highlighted
+  const profileBody = el('div', { class: 'gen-step-body' }, [
+    el('p', { class: 'gen-field-text gen-profile-sub', text: 'Only what differs from the defaults - edit or paste it here.' }),
+    profileEditor,
+    profileError
+  ]);
+  const profileBox = el('div', { class: 'gen-step gen-profile-box' }, [
+    el('div', { class: 'gen-step-head' }, [el('span', { class: 'gen-step-title', text: 'Your profile' })]),
+    profileBody
+  ]);
+
+  function showProfile(text) {
+    // a last empty line would show no line - a space after it does
+    profileCode.textContent = text + '\n ';
+    highlight(profileCode, 'json');
+    profileCode.dataset.copy = text;
+  }
+
+  let profileTimer = null;
+
+  profileText.addEventListener('input', () => {
+    showProfile(profileText.value);
+    clearTimeout(profileTimer);
+
+    profileTimer = setTimeout(() => {
+      const error = applyProfile(profileText.value);
+      profileError.textContent = error || '';
+      profileError.hidden = !error;
+      profileEditor.classList.toggle('gen-bad', !!error);
+    }, 400);
+  });
+
+  // the copy underneath scrolls with the box
+  profileText.addEventListener('scroll', () => {
+    profilePre.scrollTop = profileText.scrollTop;
+    profilePre.scrollLeft = profileText.scrollLeft;
+  });
+
+  // a valid profile typed in comes back formatted once the box is left
+  profileText.addEventListener('blur', () => {
+    if (!profileEditor.classList.contains('gen-bad')) {
+      profileText.value = profileJson();
+      showProfile(profileText.value);
+    }
+  });
+
+  function updateProfileBox() {
+    if (!profileBoxReady || document.activeElement === profileText) {
+      return;
+    }
+
+    profileText.value = profileJson();
+    showProfile(profileText.value);
+    profileError.hidden = true;
+    profileEditor.classList.remove('gen-bad');
+  }
+
+  // under everything: the profile, then its buttons
+  // the instructions and the link apart from the bar: they don't change the profile
+  const instructionsButton = el('button', { type: 'button', class: 'gen-link-button', html: '<i class="fa-solid fa-file-lines"></i>Save complete instructions (.md)', title: 'Every step in one Markdown file\n- for a human or an LLM.\n\nUnlike the link, it has\nthe passwords, webhooks and admins.' });
+  instructionsButton.addEventListener('click', saveInstructions);
+  const profileLinks = el('div', { class: 'gen-link-row gen-profile-links' }, [linkButton, instructionsButton]);
+
+  // its buttons in its tile, under the box - then the link and the instructions
+  profileBody.append(profileBar, profileLinks);
+  mount.after(profileBox);
+  profileBoxReady = true;
+  updateProfileBox();
+
+  /*
+    A table of contents on the left, where the page has room for it: the settings, the configs, the check, the profile.
+    A click scrolls there; the one being read is marked.
+  */
+
+  const toc = el('nav', { class: 'gen-toc', 'aria-label': 'Contents' });
+  document.body.appendChild(toc);
+  let tocTargets = [];
+  let tocPinned = null;
+
+  function updateToc() {
+    // the four parts of the page - the steps themselves change with the setup and the view
+    const entries = [
+      { label: 'Settings', target: steps.configure.el },
+      { label: 'Your configs', target: generatedLine },
+      { label: 'Check that it works', target: steps.check.el },
+      { label: 'Your profile', target: profileBox }
+    ];
+
+    tocTargets = entries.map(e => e.target);
+
+    toc.innerHTML = '';
+    entries.forEach(e => {
+      const a = el('a', { href: '#', text: e.label });
+
+      a.addEventListener('click', ev => {
+        ev.preventDefault();
+        // marked as clicked - near the page's end it can't come up to the top, and would look unreached
+        tocPinned = entries.indexOf(e);
+        e.target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        markToc();
+      });
+
+      toc.appendChild(a);
+    });
+
+    markToc();
+  }
+
+  function markToc() {
+    if (tocPinned !== null) {
+      [...toc.children].forEach((a, i) => a.classList.toggle('active', i === tocPinned));
+      return;
+    }
+
+    // the last section whose top has passed the upper part of the window
+    let current = 0;
+
+    // at the page's end the last ones never reach it - then the last one in sight
+    const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+    const line = atEnd ? window.innerHeight : window.innerHeight * 0.3;
+
+    tocTargets.forEach((t, i) => {
+      if (t.getBoundingClientRect().top < line) {
+        current = i;
+      }
+    });
+
+    [...toc.children].forEach((a, i) => a.classList.toggle('active', i === current));
+  }
+
+  window.addEventListener('scroll', markToc, { passive: true });
+
+  // scrolled by hand: the mark follows the page again
+  ['wheel', 'touchmove', 'keydown', 'mousedown'].forEach(type => window.addEventListener(type, ev => {
+    if (!toc.contains(ev.target)) {
+      tocPinned = null;
+    }
+  }, { passive: true }));
+
+  tocReady = true;
+  updateToc();
 
   updateBefore();
   updateCheck();
