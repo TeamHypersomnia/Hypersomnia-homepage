@@ -597,7 +597,7 @@
     const customAdd = el('button', { type: 'button', class: 'gen-pool-chip gen-custom-add', html: '<i class="fa-solid fa-plus"></i>Add' });
     customAdd.addEventListener('click', addCustom);
     const customRow = el('div', { class: 'gen-custom-row' }, [customInput, customAdd, customError]);
-    const customHint = el('p', { class: 'gen-field-text gen-custom-hint', html: 'Not on hypersomnia.io? See <strong>Advanced: Add your own maps</strong> below.' });
+    const customHint = el('p', { class: 'gen-field-text gen-custom-hint', html: 'Not on hypersomnia.io? See <a href="#" class="gen-goto-maps">Advanced: Add your own maps</a>' });
 
     // what "all on disk" is at first - shown with it (the folder by the setup: syncAllNote)
     const allNote = el('p', { class: 'gen-field-text gen-all-note' });
@@ -2575,7 +2575,7 @@
     mapsRow.show(maps.join(' <span class="gen-arrow">→</span> '), JSON.stringify(maps) === JSON.stringify(defaultRoundMaps()));
 
     // where the server's arenas are - its own maps go there
-    cycleBox.allNote.innerHTML = 'See <strong>Advanced: Add your own maps</strong> below.';
+    cycleBox.allNote.innerHTML = 'See <a href="#" class="gen-goto-maps">Advanced: Add your own maps</a>';
 
     const orderTag = `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>`;
 
@@ -2707,6 +2707,21 @@
   /*
     After the launch, if ever: steps always in sight, folded - their title opens them.
   */
+
+  // "See Advanced: Add your own maps" in the map cycle: opens the step and goes to it
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.gen-goto-maps')) {
+      return;
+    }
+
+    e.preventDefault();
+
+    if (!steps.mapsAdd.el.classList.contains('open')) {
+      steps.mapsAdd.title.parentElement.click();
+    }
+
+    steps.mapsAdd.el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 
   [steps.mapsAdd, steps.keyBackup, steps.keySwap, steps.keyPublic].forEach(st => {
     // left of the title: pointing at it while folded, down once opened
