@@ -2600,7 +2600,7 @@
       : 'Subsequent rounds are secure: the tournament remembers everyone\'s real account ids.';
     // the same first line for all three - insecure with a warning, or secure with a check - so nothing below jumps
     insecureText.innerHTML = verifiedByAccounts()
-      ? '<i class="fa-solid fa-check gen-secure"></i>Secure, from start to finish. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
+      ? '<i class="fa-solid fa-check gen-secure"></i>Secure, from start to finish. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Each participant proves they may enter\nwith an `Ed25519` signature.\n\nNobody can take their place."></i>'
       : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Set a password to keep strangers out:';
 
     firstText.innerHTML = `People <strong>form rosters on the spot</strong>, with whoever they join.<br>This means <strong>any stranger is let in</strong> to round 1 servers.<br>Subsequent rounds are secure: the tournament remembers everyone's real account ids.`;
