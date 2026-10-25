@@ -750,6 +750,9 @@
 
   const pairedBeforehand = () => isTournament() && state.tPairing === 'beforehand';
 
+  // 1v1: a team is a player - said so wherever the teams are named
+  const teamsWord = () => state.tTeamSize === 1 ? 'players' : 'teams';
+
   // "=" joins a nickname to its account id, "," and ";" separate the players and the teams, a control character
   // breaks a line - none can be in a nickname
   const unusableNickname = n => /[=;,\x00-\x1f\x7f]/.test(n);
@@ -1464,10 +1467,10 @@
       text.placeholder = examplePlayers();
       // a tournament's: what the list is for over it, how to fill it under it
       label.innerHTML = !withTeams ? 'Paste all the players at once, or use the widgets below:'
-        : verifiedByAccounts() ? 'The teams:'
+        : verifiedByAccounts() ? `The ${teamsWord()}:`
         : 'Players set these <strong>exact nicknames</strong> to be let in to the correct match:';
 
-      hint.innerHTML = withTeams ? '(Paste all the teams at once, or use the widgets)' : 'A player per line: the nickname, then the account id.';
+      hint.innerHTML = withTeams ? `(Paste all the ${teamsWord()} at once, or use the widgets)` : 'A player per line: the nickname, then the account id.';
     }
 
     root.render = render;
@@ -1712,7 +1715,7 @@
 
   function updateCheck() {
     if (isTournament() && state.tPairing === 'beforehand') {
-      checkText.innerHTML = pageCheck() + 'Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Players must join the server that mentions their team/nickname:';
+      checkText.innerHTML = pageCheck() + `Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Players must join the server that mentions their ${state.tTeamSize === 1 ? 'nickname' : 'team'}:`;
       checkImage.src = '/assets/images/generator/server_browser_tournament.png';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
@@ -2390,7 +2393,10 @@
   */
 
   // with Anyone, round 1 has no teams to wait for - one sentence on what happens there instead
-  const joinTimeoutHelp = anyone => 'How long a match waits for all its players,\ncounted from the round\'s first player.\n\nThen:\n- more players present: that team wins,\n- equal numbers: it starts as they are,\n- nobody came: both teams are out.' +
+  const joinTimeoutHelp = anyone => 'How long a match waits for all its players,\ncounted from the round\'s first player.\n\nThen:\n' +
+    (state.tTeamSize === 1
+      ? '- one came: that player wins,\n- nobody came: both are out.'
+      : '- more players present: that team wins,\n- equal numbers: it starts as they are,\n- nobody came: both teams are out.') +
     (anyone ? '\n\nRound 1: a player left alone on a server goes on without playing.' : '') +
     '\n\nMatches being played are never touched.';
 
@@ -2416,7 +2422,7 @@
   const spectatorPlacesRow = settingRow(
     'Extra spectator slots',
     [sliderInput('tSpectatorPlaces', 0, 50)],
-    'How many others may watch each match:\nthe teams out or waiting.\n\nIts players always get in,\nthe admins and the spectator account too.'
+    'How many others may watch each match:\nthe participants out or waiting.\n\nIts players always get in,\nthe admins and the spectator account too.'
   );
 
   // under the row, as the join timeout's hint
@@ -2517,7 +2523,7 @@
     only(serverRows, serverGameVarsRow),
     only(serverRows, botsRow),
     only(tournamentRows, settingRow('Tournament name', [textInput('tName', 'e.g. onFOSS November Cup 2026', 100)], 'Shown on the live results page.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again.\nNext time, give it a new name.')),
-    only(tournamentRows, settingRow('Teams', [teamSize])),
+    only(tournamentRows, settingRow('Team size', [teamSize])),
     only(tournamentRows, pairingRow),
     only(tournamentRows, playersRow),
     only(tournamentRows, joinTimeoutRow),
@@ -4092,7 +4098,7 @@
       const size = `${state.tTeamSize} ${state.tTeamSize > 1 ? 'players' : 'player'}`;
 
       if (teams.length < 2) {
-        errors.push('Who participates: add players for at least 2 teams.');
+        errors.push(`Who participates: add at least 2 ${teamsWord()}.`);
       }
 
       if (wrong.length) {
