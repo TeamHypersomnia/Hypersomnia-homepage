@@ -2647,3 +2647,9 @@ body.gen-page {
 #config-generator .gen-table .gen-cycle-chips .gen-chip.gen-chip-adding {
   flex: none;
 }
+
+/* a tip's **bold** - the line to see first */
+.gen-tooltip strong {
+  font-weight: 700;
+  color: var(--bright);
+}

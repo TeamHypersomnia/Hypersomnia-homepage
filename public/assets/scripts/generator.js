@@ -2109,7 +2109,7 @@
     serverListRow.classList.toggle('open', !serverListWarning.hidden || !serverListDefault.hidden);
   }
 
-  const spectatorRow = revealRow('Spectator', 'spectatorOn', spectatorInput, 'An account that only watches:\na caster, a bot streaming the matches.\n\nAlways gets in:\n- a place kept for it on a full server,\n- no password,\n- into ranked and tournament matches\n  being played.\n\nNever on a team.');
+  const spectatorRow = revealRow('Spectator', 'spectatorOn', spectatorInput, 'An account that only watches:\na caster, a bot streaming the matches.\n**Participants can already watch.**\n\nAlways gets in:\n- a place kept for it on a full server,\n- no password,\n- into ranked and tournament matches\n  being played.\n\nNever on a team.');
 
   /*
     What /tournament.json and the results webhook carry - the game's tournament_page.h as JSON, field for field.
@@ -4961,7 +4961,8 @@
     // `code` in a tip shows in monospace
     const escaped = target.dataset.tip.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     // `code` in monospace, a new line where the text has one
-    tooltip.innerHTML = escaped.replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\n/g, '<br>');
+    // `code` in monospace, **this** in bold
+    tooltip.innerHTML = escaped.replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     tooltip.hidden = false;
 
     const r = target.getBoundingClientRect();
