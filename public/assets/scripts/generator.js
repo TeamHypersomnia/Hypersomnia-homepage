@@ -1462,10 +1462,12 @@
       }
 
       text.placeholder = examplePlayers();
-      label.textContent = withTeams ? 'Paste all the teams at once, or use the widgets below:' : 'Paste all the players at once, or use the widgets below:';
-      // the persistent server's list only: what to type into a place - the rest is plain to see
-      hint.innerHTML = withTeams ? '' : 'A player per line: the nickname, then the account id.';
-      hint.hidden = withTeams;
+      // a tournament's: what the list is for over it, how to fill it under it
+      label.innerHTML = !withTeams ? 'Paste all the players at once, or use the widgets below:'
+        : verifiedByAccounts() ? 'The teams:'
+        : 'Players set these <strong>exact nicknames</strong> to be let in to the correct match:';
+
+      hint.innerHTML = withTeams ? '(Paste all the teams at once, or use the widgets)' : 'A player per line: the nickname, then the account id.';
     }
 
     root.render = render;
@@ -2353,14 +2355,28 @@
   const pairingRow = settingRow('Who participates', [pairingSelect], 'On a LAN, Anyone or Listed nicknames\nis enough: nobody from outside can join.\n\nFrom round 2 nobody has to trust anyone:\nthe server knows every player\'s account.');
 
   // however they join first: what it means for the players
-  const firstText = el('p', { class: 'gen-field-text', html: 'Anyone who finds your tournament joins <strong>whichever server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure:<br>the tournament remembers everyone\'s real account ids,<br>and pairs them accordingly.' });
+  const firstText = el('p', { class: 'gen-field-text', html: 'Anyone who finds your tournament joins <strong>whichever server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure: the tournament remembers everyone\'s real account ids.' });
 
   // set up beforehand: the list and how it was understood - the rounds say it better than any explanation
   const nicknamesText = el('p', { class: 'gen-field-text' });
   // the first line under the choice, whichever lets anyone take a nickname
   const insecureText = el('p', { class: 'gen-field-text gen-security' });
-  const spectateText = el('p', { class: 'gen-field-text', text: 'Participants can spectate other matches after they finish.' });
-  const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, firstText, teamsRoster, nicknamesText, spectateText]);
+
+  /*
+    A tournament's join password: right under "Set a password to keep strangers out." - empty, none (a LAN).
+    The persistent server's own row (Join password) isn't shown for a tournament.
+  */
+
+  const tPassword = el('input', { type: 'text', class: 'gen-t-password', placeholder: 'ok to leave empty if on a LAN', autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' });
+  tPassword.value = state.passwordOn ? state.password : '';
+  tPassword.addEventListener('input', () => {
+    state.password = tPassword.value;
+    state.passwordOn = tPassword.value !== '';
+    update();
+  });
+  refreshers.push(() => { tPassword.value = state.passwordOn ? state.password : ''; });
+  const spectateText = el('p', { class: 'gen-field-text gen-after-gap', text: 'Participants can spectate other matches after they finish.' });
+  const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, tPassword, firstText, teamsRoster, nicknamesText, spectateText]);
   pairingRow.appendChild(pairingEditor);
 
   const playersRow = settingRow('Maximum players', [playersInput, roundSummary], 'Not everybody has to show up.\nThe tournament continues regardless.');
@@ -2572,14 +2588,14 @@
     nicknamesText.hidden = !pairedBeforehand();
     nicknamesText.innerHTML = verifiedByAccounts()
       ? 'Nicknames are only for your convenience:<br>participants may play under any other name.'
-      : 'Players set these <strong>exact nicknames</strong> to be let in to the correct match.<br>Subsequent rounds are secure:<br>the tournament remembers everyone\'s real account ids,<br>and pairs them accordingly.';
+      : 'Subsequent rounds are secure: the tournament remembers everyone\'s real account ids.';
     // the same first line for all three - insecure with a warning, or secure with a check - so nothing below jumps
     insecureText.innerHTML = verifiedByAccounts()
       ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
       : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Set a password to keep strangers out.';
 
     const size = `${state.tTeamSize}v${state.tTeamSize}`;
-    firstText.innerHTML = `Anyone who finds your tournament joins <strong>whichever ${size} server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure:<br>the tournament remembers everyone's real account ids,<br>and pairs them accordingly.`;
+    firstText.innerHTML = `Anyone who finds your tournament joins <strong>whichever ${size} server</strong> they want <em>in the first round</em>.<br>Subsequent rounds are secure: the tournament remembers everyone's real account ids.`;
 
     verifyText.innerHTML = 'Every participant must send you their account id.<br>Paste them below:';
     verifyText.hidden = !verifiedByAccounts();
@@ -2599,6 +2615,11 @@
     browserRow.querySelectorAll('input').forEach(i => { i.disabled = !state.serverListOn; });
 
     const verified = byAccounts();
+
+    // a tournament's password is in Who participates - none at all with listed accounts
+    passwordRow.hidden = isTournament();
+    tPassword.hidden = verifiedByAccounts();
+
     passwordRow.classList.toggle('gen-row-disabled', verified);
     passwordRow.querySelectorAll('input').forEach(i => { i.disabled = verified; });
     passwordNote.hidden = !verified;

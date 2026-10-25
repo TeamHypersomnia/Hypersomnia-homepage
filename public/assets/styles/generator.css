@@ -2653,3 +2653,18 @@ body.gen-page {
   font-weight: 700;
   color: var(--bright);
 }
+
+/* the security line (a password, or secure) a blank line apart from the explanation under it */
+.gen-row-editor .gen-field-text.gen-security {
+  margin-bottom: 1.4em;
+  color: var(--bright);
+}
+
+/* "Set a password..." - its field right under it, then the gap */
+.gen-row-editor .gen-field-text.gen-security:has(+ .gen-t-password:not([hidden])) {
+  margin-bottom: 0.4em;
+}
+
+#config-generator .gen-table input[type='text'].gen-t-password {
+  margin-bottom: 1.4em;
+}
