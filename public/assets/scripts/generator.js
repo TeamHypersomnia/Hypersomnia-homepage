@@ -2380,7 +2380,7 @@
   refreshers.push(() => { tPassword.value = state.passwordOn ? state.password : ''; });
 
   // listed accounts: in the field's place, as tall as it - nothing below moves between the three
-  const tNoPassword = el('div', { class: 'gen-t-password gen-t-no-password gen-security', html: '<i class="fa-solid fa-check gen-secure"></i>No password required. Cryptographically secure.' });
+  const tNoPassword = el('div', { class: 'gen-t-password gen-t-no-password gen-security', html: '<i class="fa-solid fa-check gen-secure"></i>No password required. Even over the internet.' });
   const spectateText = el('p', { class: 'gen-field-text gen-after-gap', text: 'Participants can spectate other matches after they finish.' });
   const pairingEditor = el('div', { class: 'gen-row-editor' }, [insecureText, tPassword, tNoPassword, firstText, teamsRoster, nicknamesText, spectateText]);
   pairingRow.appendChild(pairingEditor);
@@ -2600,7 +2600,7 @@
       : 'Subsequent rounds are secure: the tournament remembers everyone\'s real account ids.';
     // the same first line for all three - insecure with a warning, or secure with a check - so nothing below jumps
     insecureText.innerHTML = verifiedByAccounts()
-      ? '<i class="fa-solid fa-check gen-secure"></i>Secure, also over the internet. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
+      ? '<i class="fa-solid fa-check gen-secure"></i>Secure, from start to finish. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
       : '<i class="fa-solid fa-triangle-exclamation gen-insecure"></i>Set a password to keep strangers out:';
 
     firstText.innerHTML = `People <strong>form rosters on the spot</strong>, with whoever they join.<br>This means <strong>any stranger is let in</strong> to round 1 servers.<br>Subsequent rounds are secure: the tournament remembers everyone's real account ids.`;
