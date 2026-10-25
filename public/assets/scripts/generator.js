@@ -2395,8 +2395,8 @@
   // with Anyone, round 1 has no teams to wait for - one sentence on what happens there instead
   const joinTimeoutHelp = anyone => 'How long a match waits for all its players.\nThe countdown starts only once a player joins any match,\nso everyone can take a break between rounds.\n\nThen:\n' +
     (state.tTeamSize === 1
-      ? '- one came: that player wins,\n- nobody came: both are out.'
-      : '- more players present: that team wins,\n- equal numbers: it starts as they are,\n- nobody came: both teams are out.') +
+      ? '- nobody came: both are out,\n- one came: that player wins.'
+      : '- nobody came: both teams are out,\n- equal numbers: it starts as they are,\n- more players present: that team wins.') +
     (anyone ? '\n\nRound 1: a player left alone on a server goes on without playing.' : '') +
     '\n\nMatches being played are never touched.';
 
