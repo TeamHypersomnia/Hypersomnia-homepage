@@ -1809,3 +1809,29 @@ footer > a:hover {
   float: right;
   margin-left: 0.6em;
 }
+
+/* NEW! next to an arena marked new (private/new_arenas.json) - the game's rainbow, moving */
+.new-badge {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, #ff4d4d, #ffb84d, #f5f54d, #4dff88, #4dc3ff, #9b6bff, #ff4dd2, #ff4d4d);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: new-badge-rainbow 3s linear infinite;
+}
+
+@keyframes new-badge-rainbow {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .new-badge {
+    animation: none;
+  }
+}

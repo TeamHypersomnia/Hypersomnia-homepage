@@ -7,12 +7,19 @@ const siteData = require('./site_data');
 
 const dirPath = path.resolve(__dirname, '../hosting/arenas');
 const unplayablePath = path.resolve(__dirname, '../private/unplayable.json');
+// A list of names (["de_sapiesz", "de_suspect"]) shown with a NEW! - edited by hand on the server, read again when it changes
+const newArenasPath = path.resolve(__dirname, '../private/new_arenas.json');
 const privateDir = path.dirname(unplayablePath);
 
 let arenas = [];
 
-if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+// a dangling symlink (the game's folder moved): no maps for now, never a crash
+try {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
+} catch (e) {
+    console.error(`[arenas] ${dirPath}: ${e.message} - no maps listed until it's there.`);
 }
 
 if (!fs.existsSync(privateDir)) {
@@ -40,6 +47,15 @@ function getFolderSize(folderPath) {
     }
     calculateSize(folderPath);
     return (totalSize / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+function loadNewArenas() {
+    try {
+        const names = JSON.parse(fs.readFileSync(newArenasPath, 'utf8'));
+        return Array.isArray(names) ? names : [];
+    } catch (e) {
+        return [];
+    }
 }
 
 function loadUnplayableMaps() {
@@ -106,7 +122,17 @@ function arenasSignature() {
         parts.push(fs.statSync(unplayablePath).mtimeMs);
     } catch (e) {}
 
-    for (const d of fs.readdirSync(dirPath, { withFileTypes: true })) {
+    try {
+        parts.push(fs.statSync(newArenasPath).mtimeMs);
+    } catch (e) {}
+
+    let entries = [];
+
+    try {
+        entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    } catch (e) {}
+
+    for (const d of entries) {
         if (!d.isDirectory()) continue;
 
         try {
@@ -120,6 +146,7 @@ function arenasSignature() {
 
 let signature = arenasSignature();
 arenas = loadArenas();
+let newArenas = loadNewArenas();
 
 setInterval(() => {
     const current = arenasSignature();
@@ -127,6 +154,7 @@ setInterval(() => {
     if (current !== signature) {
         signature = current;
         arenas = loadArenas();
+        newArenas = loadNewArenas();
     }
 }, 5000).unref();
 
@@ -140,17 +168,28 @@ function officialArenas() {
         .map(v => ({ ...arenaEntry(v.name, v, v.version_timestamp), miniature: v.miniature, official: true }));
 }
 
+/*
+  How long ago: counted at every view - the list is loaded only when a file changes, so a time counted then stays
+  as it was at that moment ("9 seconds ago" for days).
+*/
+const fresh = v => ({ ...v, updated: timeAgo(v.version_timestamp) });
+
+// The newest first - and those marked new (private/new_arenas.json) with a NEW!
+const newestFirst = list => list.slice().sort((a, b) => b.ts - a.ts);
+const marked = v => ({ ...fresh(v), is_new: newArenas.includes(v.name) });
+
 // The pages only - ?format=json stays as the servers know it
-const shownArenas = () => arenas.map(v => ({ ...v, miniature: `/arenas/${v.name}/miniature.png` }));
+const shownArenas = () => newestFirst(arenas).map(v => ({ ...marked(v), miniature: `/arenas/${v.name}/miniature.png` }));
+const shownOfficialArenas = () => newestFirst(officialArenas()).map(marked);
 
 router.get('/', (req, res) => {
-    if (req.query.format === 'json') return res.json(arenas);
-    res.render('arenas', { page: 'Arenas', user: req.user, arenas: shownArenas(), official: officialArenas() });
+    if (req.query.format === 'json') return res.json(arenas.map(fresh));
+    res.render('arenas', { page: 'Arenas', user: req.user, arenas: shownArenas(), official: shownOfficialArenas() });
 });
 
 router.get('/:arena', (req, res) => {
     // prev and next go through the list the arena is in
-    const list = arenas.some(v => v.name === req.params.arena) ? shownArenas() : officialArenas();
+    const list = arenas.some(v => v.name === req.params.arena) ? shownArenas() : shownOfficialArenas();
     const index = list.findIndex(v => v.name === req.params.arena);
     if (index === -1) return res.redirect('/arenas');
 
@@ -166,5 +205,7 @@ router.get('/:arena', (req, res) => {
 router.hasArena = name => arenas.some(v => v.name === name) || siteData.officialArenas().some(v => v.name === name);
 // For the sitemap: the official arenas' pages too
 router.listArenas = () => [...arenas, ...officialArenas()];
+// the community maps, as ?format=json serves them to the servers
+router.communityArenaNames = () => arenas.map(a => a.name);
 
 module.exports = router;

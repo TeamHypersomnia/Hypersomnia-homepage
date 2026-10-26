@@ -1,6 +1,6 @@
 <%- include('overall_header'); %>
 
-<h1><%= page %></h1>
+<h1><%= page %><% if (arena.is_new) { %> <span class="new-badge">NEW!</span><% } %></h1>
 
 <div class="btn-group">
   <div class="btn">

@@ -17,10 +17,11 @@
     <thead>
       <tr>
         <th class="no-sort"></th>
-        <th class="dir-u">Name</th>
+        <th>Name</th>
         <th>Author</th>
         <th class="no-sort">Description</th>
-        <th>Last updated</th>
+        <!-- the newest first (arenas.js) - a click turns it around -->
+        <th class="dir-u">Last updated</th>
         <th class="sv-hide-mobile">Size</th>
       </tr>
     </thead>
@@ -28,7 +29,7 @@
       <% list.forEach(v => { %>
       <tr>
         <td class="arena-thumb"><a href="/arenas/<%= v.name %>"><img src="<%= v.miniature %>?t=<%= v.ts %>" alt="<%= v.name %>" loading="lazy"></a></td>
-        <td class="arena-title"><a href="/arenas/<%= v.name %>"><%= v.name %></a></td>
+        <td class="arena-title"><a href="/arenas/<%= v.name %>"><%= v.name %></a><% if (v.is_new) { %> <span class="new-badge">NEW!</span><% } %></td>
         <td><%= v.author %></td>
         <td class="arena-desc"><% if (v.short_description !== 'N/A') { %><%= v.short_description %><% } else { %><span class="dimmed">-</span><% } %></td>
         <td data-sort="<%= v.ts %>"><%= v.updated %></td>
@@ -43,7 +44,7 @@
 <% list.forEach(v => { %>
   <a href="/arenas/<%= v.name %>">
     <img src="<%= v.miniature %>?t=<%= v.ts %>" alt="<%= v.name %>" loading="lazy">
-    <div class="arena_name"><%= v.name %></div>
+    <div class="arena_name"><%= v.name %><% if (v.is_new) { %> <span class="new-badge">NEW!</span><% } %></div>
     <div class="arena_author"><%= v.author %></div>
   </a>
 <% }); %>
