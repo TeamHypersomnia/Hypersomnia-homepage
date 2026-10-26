@@ -22,6 +22,15 @@
     mode: '0700'
   become: yes
 
+# 4.3.0 moved the downloaded maps from downloads/arenas to downloads/maps - once, before the new folder is made
+# (made empty first, the game would not move them)
+- name: Move the downloaded maps to downloads/maps
+  command: mv "{{ paths.game_arenas | dirname }}/arenas" "{{ paths.game_arenas }}"
+  args:
+    removes: "{{ paths.game_arenas | dirname }}/arenas"
+    creates: "{{ paths.game_arenas }}"
+  become: yes
+
 - name: Create game downloads directory
   file:
     path: "{{ paths.game_arenas }}"

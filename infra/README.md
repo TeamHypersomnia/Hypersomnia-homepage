@@ -185,7 +185,7 @@ i różnią się etykietą w heartbeacie (`c1`, `c2`, `r1`, `t1`).
 - Start masterservera
 
 ### 8. Gameserver
-- Symlink map (`/var/www/app/hosting/arenas` → `~/.config/Hypersomnia/user/downloads`)
+- Symlink map (`/var/www/app/hosting/arenas` → `~/.config/Hypersomnia/user/downloads/maps`)
 - Systemd service
 - Start gameservera
 
