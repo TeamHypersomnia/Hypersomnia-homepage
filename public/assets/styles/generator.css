@@ -469,11 +469,13 @@ body.gen-page {
   justify-content: space-between;
   gap: 0.6em 2em;
   padding: 1.8em 2em;
-  /* in greys - only the links in colour */
-  background: #050505;
+  /* in greys - only the links in colour; as the tiles of the steps (Advanced: ...) */
+  background: #080808;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   color: rgba(255, 255, 255, 0.45);
-  font-size: 0.95rem;
+  /* as the tournament's live results page's (0.95rem of its 16px) - this page's rem is smaller */
+  font-size: 15.2px;
+  line-height: normal;
 }
 
 .site-footer a {
@@ -851,8 +853,11 @@ footer.site-footer > a {
 .gen-cycle-chips {
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   gap: 6px;
-  min-height: 2.2em;
+  /* room for two rows of chips from the start - adding one never moves what's under it:
+     2 chips of 28px, the gap, the padding and the border (border-box) */
+  min-height: calc(2 * 28px + 6px + 2 * 6px + 2 * 1px);
   padding: 6px;
   border: 1px solid var(--line);
   background: #000;
@@ -909,6 +914,14 @@ footer.site-footer > a {
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 8px;
+  /* the maps to add in a box of their own */
+  padding: 6px;
+  border: 1px dashed var(--line);
+}
+
+/* chosen: out of the pool, the rest close up */
+#config-generator .gen-pool-chip.taken {
+  display: none;
 }
 
 #config-generator .gen-pool-chip {
@@ -961,7 +974,7 @@ footer.site-footer > a {
 
 .gen-row {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 240px 1fr;
   border-bottom: 1px solid var(--line);
 }
 
@@ -1202,12 +1215,12 @@ footer.site-footer > a {
   font-size: 0.85em;
 }
 
-.gen-summary i {
+.gen-summary > i {
   color: var(--dim);
   transition: transform 0.12s;
 }
 
-.gen-row.open .gen-summary i {
+.gen-row.open .gen-summary > i {
   transform: rotate(180deg);
   color: var(--accent);
 }
@@ -1566,6 +1579,16 @@ body.gen-page {
   margin: 0;
   color: var(--faint);
   font-size: 0.85em;
+}
+
+/* the server list off: its warning right of the switch */
+.gen-server-list-warning {
+  flex: 1;
+  min-width: 0;
+}
+
+.gen-server-list-warning[hidden] {
+  display: none;
 }
 
 .gen-port-warning i {
@@ -2434,7 +2457,8 @@ body.gen-page {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    font-size: 0.85em;
+    /* as the settings' labels */
+    font-size: 15px;
     border-left: 1px solid var(--line);
   }
 
@@ -2720,4 +2744,174 @@ body.gen-page {
 
 .gen-t-password:not(:placeholder-shown) + .gen-t-password-hint {
   display: none;
+}
+
+/* a round timeout's minutes: narrow - the line next to it says what they mean */
+#config-generator .gen-table .gen-row-ctl .gen-timeout-select {
+  flex: none;
+  width: 9em;
+}
+
+#config-generator .gen-table .gen-row-ctl .gen-timeout-select[hidden] {
+  display: none;
+}
+
+/* a max wait's lines: a sentence each */
+.gen-timeout-note {
+  white-space: pre-line;
+}
+
+/* community maps chosen: the server downloads them at its start (syncDownloadNote) */
+.gen-download-note {
+  margin: 0.6em 0;
+}
+
+.gen-download-note[hidden] {
+  display: none;
+}
+
+/* information, not a warning: calm */
+.gen-port-warning.gen-download-note i {
+  color: var(--dim);
+}
+
+/* In random order with one map: greyed out, why next to it */
+#config-generator .gen-random-option.gen-option-off {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.gen-one-map-note {
+  margin-left: 0.6em;
+  color: var(--faint);
+}
+
+.gen-one-map-note[hidden] {
+  display: none;
+}
+
+/* "Not on hypersomnia.io?" - I will have my own maps right under it */
+.gen-own-title {
+  margin: 0.8em 0 0.4em;
+}
+
+/* a line kept for what may come in it - empty for now, its height stays */
+.gen-line-empty {
+  visibility: hidden;
+}
+
+/* a time to enter's select and its two texts in one grid: on - the text by the select; off - from the switch on, over
+   the select's place - the inactive one keeps its room, unseen, so switching changes nothing in the row's height */
+.gen-timeout-body {
+  display: inline-grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 12px;
+}
+
+.gen-timeout-body > .gen-timeout-select {
+  grid-area: 1 / 1;
+}
+
+.gen-timeout-body > .gen-timeout-on {
+  grid-area: 1 / 2;
+}
+
+.gen-timeout-body > .gen-timeout-off {
+  grid-area: 1 / 1 / 2 / 3;
+}
+
+.gen-timeout-body > .gen-note-inactive {
+  visibility: hidden;
+}
+
+/* what an admin then has to do - in white */
+.gen-note-white {
+  color: var(--bright);
+}
+
+/* the admin required but switched off - as the other warnings: the icon in the accent */
+.gen-admin-required {
+  color: var(--bright);
+}
+
+.gen-admin-required[hidden] {
+  display: none;
+}
+
+.gen-admin-required i {
+  margin-right: 6px;
+  color: var(--accent);
+}
+
+/* the custom folder's maps at the cycle's end - not a chip to remove or drag */
+#config-generator .gen-chip.gen-chip-custom {
+  cursor: default;
+  border-style: dashed;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+#config-generator .gen-custom-option {
+  margin-top: 10px;
+}
+
+/* a round's custom map, typed in the select's place */
+#config-generator .gen-round-custom[hidden] {
+  display: none;
+}
+
+#config-generator .gen-round-custom {
+  width: 12em;
+}
+
+/* a custom map in the cycle - dashed, as "and all my custom maps" */
+#config-generator .gen-chip.gen-chip-own {
+  border-style: dashed;
+}
+
+/* the folder to upload, as a tree */
+#config-generator .gen-maps-tree {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.9em;
+  margin: 4px 0 10px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--bright);
+  white-space: pre;
+}
+
+/* the firewall's tabs inside its tile - across its whole width */
+#config-generator .gen-firewall-tabs {
+  margin: 0 0 0.8em;
+}
+
+#config-generator .gen-firewall-tabs button {
+  font-size: 1em;
+  padding: 6px 10px;
+}
+
+/* Maximum players under the join password (only with Anyone): the slider and its round 1 in one line */
+#config-generator .gen-row-editor .gen-t-players-row {
+  flex-wrap: nowrap;
+  align-items: center;
+  margin-top: -6px;
+  margin-bottom: 18px;
+}
+
+#config-generator .gen-t-players-row .gen-row-help {
+  margin-left: 0.35em;
+}
+
+.gen-t-players-field {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 16px;
+}
+
+/* the last words and their (?) never apart */
+.gen-nowrap {
+  white-space: nowrap;
 }

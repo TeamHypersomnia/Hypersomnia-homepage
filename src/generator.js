@@ -46,12 +46,27 @@ function generatorTabs() {
   ].join('');
 }
 
+/*
+  Every map on hypersomnia.io (/arenas) - the generator offers only the ones above, but any of these typed in is
+  downloaded like them, never taken for a custom map. Read per request: the list reloads when a map is added.
+*/
+
+function catalogueArenas() {
+  const { communityArenaNames } = require('./arenas');
+
+  // names from uploaded map files - only map names reach the page's <script> (the generator's own rule)
+  return communityArenaNames()
+    .filter(name => /^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,63}$/.test(name))
+    .filter(name => !OFFICIAL_ARENAS.includes(name));
+}
+
 module.exports = (req, res) => {
   res.render('generator', {
     tabs: generatorTabs(),
     arenas: {
       official: OFFICIAL_ARENAS,
-      community: COMMUNITY_ARENAS
+      community: COMMUNITY_ARENAS,
+      catalogue: catalogueArenas()
     }
   });
 };

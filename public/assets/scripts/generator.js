@@ -106,7 +106,7 @@
   */
 
   // account ids aren't secrets - the admins and the spectator stay in a shared profile
-  const SECRET_KEYS = ['password', 'passwordOn', 'webhook', 'tResultsWebhook', 'telegramToken'];
+  const SECRET_KEYS = ['password', 'webhook', 'tResultsWebhook', 'telegramToken'];
 
   // a link to a setup or its group (e.g. /generator#tournament) opens it; otherwise the last one chosen
   const linkedSetup = (() => {
@@ -209,11 +209,12 @@
   const defaults = {
     name: '',
     cycle: ['de_cyberaqua', 'de_silo', 'fy_minilab'],
+    // the server's custom/ folder: every map in it plays after the cycle's - only shows how to put them there
+    customMaps: false,
     cycleRandom: true,
     slots: 16,
     admins: '',
     password: '',
-    passwordOn: false,
     casual: 1,
     port: 8412,
     webPort: 9000,
@@ -234,7 +235,6 @@
     friendlyFire: false,
     freezeTime: true,
     // map_cycle: [ "*" ] - every arena on the server's disk
-    cycleAll: false,
     // the machine's firewall - in the profile, as how the server runs
     firewall: 'none',
     adminOn: false,
@@ -250,7 +250,7 @@
     browser: true,
     tPlayers: 16,
     tTeamSize: 1,
-    tArenas: [],
+    tMaps: [],
     tPairing: 'first',
     tPage: true,
     tPagePort: 0,
@@ -258,10 +258,13 @@
     tTeams: [],
     tIdsText: '',
     tVerify: 'nicknames',
-    tJoinTimeoutOn: true,
-    tJoinTimeout: 10,
+    // how long round 1 waits after you host it, and the break before each next round - in minutes
+    tRound1MaxWaitOn: true,
+    tRound1MaxWait: 30,
+    tNextMaxWaitOn: true,
+    tNextMaxWait: 15,
     // how many others may watch each match - every place takes RAM on its server
-    tSpectatorPlaces: 6,
+    tSpectatorSlots: 6,
     serverWho: 'anyone',
     allowedPlayers: [],
     webhook: '',
@@ -276,10 +279,14 @@
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     Object.assign(state, saved);
 
-    // saved before the password had its switch
-    if (saved.password && saved.passwordOn === undefined) {
-      state.passwordOn = true;
+    // saved while the password had a switch: one switched off is no password
+    if (saved.passwordOn === false) {
+      state.password = '';
     }
+
+    delete state.passwordOn;
+    // names before 4.3.0's release - their settings start anew
+    ['cycleAll', 'ownMaps', 'tJoinTimeout', 'tJoinTimeoutOn', 'tArenas', 'tRound1Timeout', 'tRound1TimeoutOn', 'tNextTimeout', 'tNextTimeoutOn', 'tSpectatorPlaces'].forEach(k => { delete state[k]; });
   }
   catch (e) {}
 
@@ -290,7 +297,7 @@
 
   function sanitizeState(raw) {
     const out = Object.assign({}, defaults);
-    const ranges = { tJoinTimeout: [1, 30], tSpectatorPlaces: [0, 50], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
+    const ranges = { tRound1MaxWait: [1, 10080], tNextMaxWait: [1, 10080], tSpectatorSlots: [0, 50], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
     const decimals = { gameSpeed: [0.5, 1], bulletSpeed: [0.5, 1], zoom: [0.5, 1.5] };
     const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'], serverWho: ['anyone', 'accounts'], botDifficulty: BOT_DIFFICULTIES.map(d => d[0]), service: ['off', 'systemd', 'user'], firewall: ['none', 'ufw', 'firewalld'] };
     // no leading dot: never "." or ".." - a name goes into paths of the commands
@@ -402,7 +409,8 @@
   const refreshInputs = () => refreshers.forEach(f => f());
 
   // the password is behind its switch
-  const password = () => state.passwordOn && !byAccounts() ? state.password : '';
+  // the field empty (or only spaces): no password
+  const password = () => state.password.trim() && !byAccounts() ? state.password : '';
 
   // the teams set up beforehand, every player let in by their account - a join password adds nothing
   function verifiedByAccounts() {
@@ -546,21 +554,24 @@
     randomCheck.checked = state.cycleRandom;
     randomCheck.addEventListener('change', () => { state.cycleRandom = randomCheck.checked; render(); update(); });
 
+    // one map: nothing to shuffle - greyed out, said why
+    const oneMapNote = el('span', { class: 'gen-one-map-note', text: '(just one map forever)' });
     const randomOption = el('label', { class: 'gen-switch gen-random-option' }, [
       randomCheck,
       el('span', { class: 'gen-switch-track' }),
-      document.createTextNode('In random order')
+      document.createTextNode('In random order'),
+      oneMapNote
     ]);
 
-    // every arena on the server's disk ("*"): no list to pick from
-    const allCheck = el('input', { type: 'checkbox' });
-    allCheck.checked = state.cycleAll;
-    allCheck.addEventListener('change', () => { state.cycleAll = allCheck.checked; render(); update(); });
+    // maps of your own: whatever is in the server's custom/ folder plays too - no names to list
+    const customCheck = el('input', { type: 'checkbox' });
+    customCheck.checked = state.customMaps;
+    customCheck.addEventListener('change', () => { state.customMaps = customCheck.checked; render(); update(); });
 
-    const allOption = el('label', { class: 'gen-switch gen-random-option' }, [
-      allCheck,
+    const customOption = el('label', { class: 'gen-switch gen-random-option gen-custom-option' }, [
+      customCheck,
       el('span', { class: 'gen-switch-track' }),
-      document.createTextNode('All arenas on the server\'s disk')
+      document.createTextNode('Add my custom maps')
     ]);
 
     /*
@@ -628,19 +639,19 @@
       return wrap;
     }
 
-    const customHint = el('p', { class: 'gen-field-text gen-custom-hint', html: 'Not on hypersomnia.io? See <a href="#" class="gen-goto-maps">Advanced: Add your own maps</a>' });
+    const customHint = el('p', { class: 'gen-field-text gen-custom-hint', html: 'See <a href="#" class="gen-goto-maps">First: upload your custom maps</a>.' });
 
-    // what "all on disk" is at first - shown with it (the folder by the setup: syncAllNote)
-    const allNote = el('p', { class: 'gen-field-text gen-all-note' });
+    // community maps chosen: the server downloads them when it starts (syncDownloadNote)
+    const downloadNote = el('p', { class: 'gen-port-warning gen-download-note' });
+    // a map typed by + Add that isn't on hypersomnia.io: one of the admin's own - where it goes
+    const customCycleNote = el('p', { class: 'gen-port-warning gen-download-note', html: '<i class="fa-solid fa-circle-info"></i><strong class="gen-note-white">Custom map detected.</strong> See <a href="#" class="gen-goto-maps">First: upload your custom maps</a>.' });
     const selection = el('div', {}, []);
     const cycleList = el('div', {}, [chips]);
 
     const resetButton = el('button', { type: 'button', class: 'gen-reset', text: 'Reset to defaults' });
     resetButton.addEventListener('click', () => {
       state.cycleRandom = true;
-      state.cycleAll = false;
       randomCheck.checked = true;
-      allCheck.checked = false;
       set(defaults.cycle.slice());
     });
 
@@ -652,7 +663,8 @@
 
     function chip(name, i) {
       // the whole chip is the button - a click anywhere on it removes the arena, a drag moves it
-      const c = el('span', { class: 'gen-chip', draggable: 'true', title: 'Click to remove, drag to reorder' }, [
+      // a custom map (not on hypersomnia.io): dashed, as the custom maps' chip
+      const c = el('span', { class: 'gen-chip' + (isCustomMap(name) ? ' gen-chip-own' : ''), draggable: 'true', title: 'Click to remove, drag to reorder' }, [
         el('span', { class: 'gen-chip-no', text: String(i + 1) }),
         el('span', { text: name }),
         el('span', { class: 'gen-chip-remove', html: '&times;' })
@@ -684,25 +696,35 @@
       chips.innerHTML = '';
       state.cycle.forEach((name, i) => chips.appendChild(chip(name, i)));
 
-      if (!state.cycle.length) {
+      if (!state.cycle.length && !state.customMaps) {
         chips.appendChild(el('span', { class: 'gen-cycle-empty', text: 'None - de_cyberaqua only' }));
+      }
+
+      // the custom folder's maps after the rest - not a map to remove or move: the switch below
+      if (state.customMaps) {
+        chips.appendChild(el('span', { class: 'gen-chip gen-chip-custom', text: state.cycle.length ? 'and all my custom maps' : 'all my custom maps' }));
       }
 
       chips.appendChild(addChip());
 
-      allCheck.checked = state.cycleAll;
-      randomOption.hidden = !state.cycleAll && state.cycle.length < 2;
+      customCheck.checked = state.customMaps;
+      customHint.hidden = !state.customMaps;
+
+      const oneMap = state.cycle.length < 2 && !state.customMaps;
+      randomCheck.disabled = oneMap;
+      randomOption.classList.toggle('gen-option-off', oneMap);
+      oneMapNote.hidden = !oneMap;
       randomCheck.checked = state.cycleRandom;
       resetButton.hidden = cycleIsDefault();
 
-      // all on disk: the whole selection goes
-      selection.hidden = state.cycleAll;
-      cycleList.hidden = state.cycleAll;
-      allNote.hidden = !state.cycleAll;
+      syncDownloadNote(downloadNote, state.cycle, customCycleNote, state.cycle.some(isCustomMap));
 
+      // a chosen map leaves the pool - the rest close up
       pool.innerHTML = '';
-      all.filter(name => !state.cycle.includes(name)).forEach(name => {
-        const b = el('button', { type: 'button', class: 'gen-pool-chip' + (official.has(name) ? ' official' : ''), html: `<i class="fa-solid fa-plus"></i>${name}` });
+      all.forEach(name => {
+        const taken = state.cycle.includes(name);
+        const b = el('button', { type: 'button', class: 'gen-pool-chip' + (official.has(name) ? ' official' : '') + (taken ? ' taken' : ''), html: `<i class="fa-solid fa-plus"></i>${name}` });
+        b.disabled = taken;
         b.addEventListener('click', () => set(state.cycle.concat([name])));
         pool.appendChild(b);
       });
@@ -715,9 +737,9 @@
       hypersomnia.io, or a map of your own; then back to the default.
     */
 
-    selection.replaceChildren(pool, el('div', { class: 'gen-cycle-links' }, [browse]), customHint, knownMaps);
-    const box = el('div', {}, [el('div', { class: 'gen-cycle-options' }, [allOption, randomOption]), allNote, cycleList, selection, el('div', { class: 'gen-cycle-links' }, [resetButton])]);
-    box.allNote = allNote;
+    // maps of your own right under the ones from hypersomnia.io
+    selection.replaceChildren(pool, el('div', { class: 'gen-cycle-links' }, [browse]), customOption, customHint, knownMaps);
+    const box = el('div', {}, [el('div', { class: 'gen-cycle-options' }, [randomOption]), cycleList, downloadNote, customCycleNote, selection, el('div', { class: 'gen-cycle-links' }, [resetButton])]);
     box.refresh = render;
     return box;
   }
@@ -733,6 +755,13 @@
   admins.addEventListener('input', () => { state.admins = admins.value; update(); });
 
   const adminWarning = el('div', { class: 'gen-hint' });
+
+  /*
+    A tournament with a time to enter off: a round some team never comes to waits for good - only an admin ends it
+    in the game. The admin is required then, its row up under the time to enter rows.
+  */
+
+  const adminRequired = () => isTournament() && (!state.tRound1MaxWaitOn || !state.tNextMaxWaitOn);
 
   const advancedSet = () =>
     state.timeZone !== '' || state.webhook !== '' || state.telegramToken !== '' || state.telegramChannel !== '' || state.adminOn || state.spectatorOn || state.tResultsWebhook !== '' ||
@@ -775,14 +804,16 @@
 
   const teamsVariable = () => `TEAMS=${singleQuoted(teamsText())}`;
 
-  // the rounds' arenas the same way, one per line
-  const arenasText = () => roundMaps().map(withMode).join('\n');
-  const arenasVariable = () => `ARENAS=${singleQuoted(arenasText())}`;
+  // the rounds' arenas the same way, one per line - always played as bomb defusal, no mode to name
+  const mapsText = () => roundMaps().join('\n');
+  const mapsVariable = () => `MAPS=${singleQuoted(mapsText())}`;
+  // the game's own default (run_tournament.cpp): de_cyberaqua and de_silo by turns - then nothing is written for them
+  const roundMapsDefault = () => roundMaps().every((n, i) => n === (i % 2 === 0 ? 'de_cyberaqua' : 'de_silo'));
 
   // what the startup command's variables are made of - above it
   // each apart by an empty line, and from the command
   const startVariables = () => isTournament()
-    ? [pairedBeforehand() ? teamsVariable() : null, arenasVariable()].filter(Boolean).map(v => v + '\n\n').join('')
+    ? [pairedBeforehand() ? teamsVariable() : null, roundMapsDefault() ? null : mapsVariable()].filter(Boolean).map(v => v + '\n\n').join('')
     : '';
 
   function teamCount() {
@@ -804,13 +835,52 @@
 
   function roundMaps() {
     const rounds = bracketRounds();
-    const out = state.tArenas.slice(0, rounds);
+    const out = state.tMaps.slice(0, rounds);
 
     while (out.length < rounds) {
       out.push(out.length % 2 === 0 ? 'de_cyberaqua' : 'de_silo');
     }
 
     return out;
+  }
+
+  /*
+    Community maps chosen: the setup script downloads them (the one moment the machine surely has the internet -
+    it downloads the server too), so a LAN without internet has them. A map of your own isn't on hypersomnia.io:
+    nothing said for it.
+  */
+
+  // on hypersomnia.io: offered or not (arenas.catalogue - every map there), it's downloaded
+  function onHypersomnia(n) {
+    return arenas.community.includes(n) || (arenas.catalogue || []).includes(n);
+  }
+
+  function communityOf(chosen) {
+    return [...new Set(chosen.map(n => n.split(' ')[0]))].filter(onHypersomnia);
+  }
+
+  // "de_amongus" or "3 maps" - what the setup downloads
+  function downloadedText(community) {
+    return community.length === 1 ? community[0] : `${community.length} maps`;
+  }
+
+
+  /*
+    Its line always kept - empty with no community maps - so choosing one never moves what's under it. A custom map
+    detected: in that line when there's nothing to download, under it otherwise.
+  */
+
+  function syncDownloadNote(note, chosen, customNote, custom) {
+    const community = communityOf(chosen);
+    const customInLine = custom && community.length === 0;
+
+    note.classList.toggle('gen-line-empty', community.length === 0 && !customInLine);
+    note.innerHTML =
+      community.length ? `<i class="fa-solid fa-circle-info"></i><span class="gen-note-white">${downloadedText(community)}</span> will be downloaded during setup.` :
+      customInLine ? customNote.innerHTML :
+      '&nbsp;'
+    ;
+    customNote.hidden = !custom || customInLine;
   }
 
   function rebuildRounds() {
@@ -821,21 +891,88 @@
     }
 
     shownRounds = rounds;
-    state.tArenas = roundMaps();
+    state.tMaps = roundMaps();
     roundsBox.innerHTML = '';
 
-    state.tArenas.forEach((name, i) => {
+    state.tMaps.forEach((name, i) => {
+      /*
+        "Custom..." first: a map of the host's own (custom/maps on the server) - typed in a field in its place,
+        Enter or leaving it puts the select back, showing the name.
+      */
+
       const s = el('select');
+      const custom = el('input', { type: 'text', class: 'gen-round-custom', placeholder: 'map name', hidden: '' });
       const group = (label, names) => el('optgroup', { label }, names.map(n => el('option', { value: n, text: n })));
+      s.appendChild(el('option', { value: '', text: 'Custom...' }));
+
+      if (isCustomMap(name)) {
+        s.appendChild(group('Custom', [name]));
+      }
+
       s.appendChild(group('Official', arenas.official));
       s.appendChild(group('Community', arenas.community));
       s.value = name;
-      s.addEventListener('change', () => { state.tArenas[i] = s.value; update(); });
+
+      const showSelect = () => {
+        custom.hidden = true;
+        s.hidden = false;
+      };
+
+      s.addEventListener('change', () => {
+        if (s.value === '') {
+          s.hidden = true;
+          custom.hidden = false;
+          custom.value = '';
+          custom.focus();
+          return;
+        }
+
+        state.tMaps[i] = s.value;
+        update();
+      });
+
+      const applyCustom = () => {
+        const typed = custom.value.trim();
+
+        if (/^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,63}$/.test(typed)) {
+          state.tMaps[i] = typed;
+          shownRounds = -1;
+          rebuildRounds();
+          update();
+          return;
+        }
+
+        s.value = state.tMaps[i];
+        showSelect();
+      };
+
+      custom.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          applyCustom();
+        }
+        else if (e.key === 'Escape') {
+          s.value = state.tMaps[i];
+          showSelect();
+        }
+      });
+
+      custom.addEventListener('blur', () => {
+        if (!custom.hidden) {
+          applyCustom();
+        }
+      });
 
       const named = rounds - 1 - i < 3;
-      roundsBox.appendChild(el('div', { class: 'gen-round' }, [el('span', { class: 'gen-round-name' + (named ? ' named' : ''), text: roundName(i, rounds) }), s]));
+      roundsBox.appendChild(el('div', { class: 'gen-round' }, [el('span', { class: 'gen-round-name' + (named ? ' named' : ''), text: roundName(i, rounds) }), s, custom]));
     });
   }
+
+  // not on hypersomnia.io nor in the game: one of the host's own, in custom/maps
+  function isCustomMap(name) {
+    return !!name && !arenas.official.includes(name) && !onHypersomnia(name);
+  }
+
+  const customRoundMaps = () => roundMaps().filter(isCustomMap);
 
 
   function teamSizeSelect() {
@@ -1467,7 +1604,8 @@
       text.placeholder = examplePlayers();
       // a tournament's: what the list is for over it, how to fill it under it
       label.innerHTML = !withTeams ? 'Paste all the players at once, or use the widgets below:'
-        : verifiedByAccounts() ? `The ${teamsWord()}:`
+        // one line in both - the list starts at one height whichever is chosen
+        : verifiedByAccounts() ? `The ${teamsWord()} - names only for you, they may <strong>play under any nickname</strong>:`
         : 'Players set these <strong>exact nicknames</strong> to be let in to the correct match:';
 
       hint.innerHTML = withTeams ? `(Paste all the ${teamsWord()} at once, or use the widgets)` : 'A player per line: the nickname, then the account id.';
@@ -1677,13 +1815,24 @@
   let profileBoxReady = false;
   // the contents on the left - made last too
   let tocReady = false;
-  const scriptOptions = { start: true, dataFolder: true };
+  const scriptOptions = { start: true };
 
   // the config's files, and the firewall - remade on every change
   const configResults = el('div');
   const serviceResults = el('div');
   const secretResults = el('div');
   const firewallResults = el('div');
+  let firewallTab = state.firewall === 'firewalld' ? 'firewalld' : 'ufw';
+
+  const firewallTabs = el('div', { class: 'btn-group gen-mode-tabs gen-firewall-tabs' }, [
+    ['ufw', 'ufw (Ubuntu, Debian)', 'fa-brands fa-ubuntu'],
+    ['firewalld', 'firewalld (Fedora, RHEL)', 'fa-brands fa-fedora']
+  ].map(([kind, label, icon]) => {
+    const b = el('button', { type: 'button', html: `<i class="${icon}"></i>${label}` });
+    b.dataset.firewall = kind;
+    b.addEventListener('click', () => { firewallTab = kind; update(); });
+    return el('div', { class: 'btn' }, [b]);
+  }));
   const mapsAddResults = el('div');
   const keyBackupResults = el('div');
   const keySwapResults = el('div');
@@ -1746,7 +1895,7 @@
     service: 'cd ~\nwget -O Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage.new\nmv -f Hypersomnia-Headless.AppImage.new Hypersomnia-Headless.AppImage\nmkdir -p ~/.config/systemd/user',
     // the same, the server running as its own user
     // its home is only its own (700) - no cd into it, the paths in full
-    serviceUser: 'sudo useradd --system --create-home --home-dir /opt/hypersomnia hypersomnia\nsudo chmod 700 /opt/hypersomnia\nsudo -u hypersomnia wget -O /opt/hypersomnia/Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nsudo chmod +x /opt/hypersomnia/Hypersomnia-Headless.AppImage.new\nsudo -u hypersomnia mv -f /opt/hypersomnia/Hypersomnia-Headless.AppImage.new /opt/hypersomnia/Hypersomnia-Headless.AppImage',
+    serviceUser: 'id hypersomnia > /dev/null 2>&1 || sudo useradd --system --create-home --home-dir /opt/hypersomnia hypersomnia\nsudo chown -R hypersomnia: /opt/hypersomnia\nsudo chmod 700 /opt/hypersomnia\nsudo -u hypersomnia wget -O /opt/hypersomnia/Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nsudo chmod +x /opt/hypersomnia/Hypersomnia-Headless.AppImage.new\nsudo -u hypersomnia mv -f /opt/hypersomnia/Hypersomnia-Headless.AppImage.new /opt/hypersomnia/Hypersomnia-Headless.AppImage',
     compose: 'sudo mkdir -p /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia',
     run: 'sudo mkdir -p /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia'
   };
@@ -1824,8 +1973,45 @@
     // the config's folder too, when there's a config: conf.d is there only after the first start
     const { json, secrets } = m === 'terminal' || m === 'service' ? buildSettings() : {};
     const folder = json || secrets ? '\n' + configMkdir() : '';
+    const maps = mapsDownloadText();
 
-    return (BEFORE[key] || '') + folder;
+    return (BEFORE[key] || '') + folder + (maps ? '\n\n' + maps : '');
+  }
+
+  /*
+    The community maps it plays, downloaded during setup - the one moment the machine surely has the internet (it
+    downloads the server too). Named by the same variable the server reads, so the step needs no config yet.
+    Missing or outdated ones only (--download-maps-and-quit); nothing to do when none are chosen.
+  */
+
+  function mapsDownloadText() {
+    const community = communityOf(isTournament() ? roundMaps() : state.cycle);
+
+    if (!community.length) {
+      return '';
+    }
+
+    const variable = `${isTournament() ? 'HYPERSOMNIA_TOURNAMENT_MAPS' : 'HYPERSOMNIA_MAP_CYCLE'}=${singleQuoted(community.join(','))}`;
+    const m = method();
+    const comment = isTournament() ? '# the community maps of your tournament - downloaded now' : '# the community maps in your map cycle - downloaded now';
+
+    if (m === 'compose' || m === 'run') {
+      // the image's own start: the variable makes it download them and quit
+      return [
+        comment,
+        'sudo docker run --rm \\',
+        `  -e ${variable} \\`,
+        '  -e HYPERSOMNIA_DOWNLOAD_MAPS_AND_QUIT=1 \\',
+        '  -v /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user:z \\',
+        '  ghcr.io/teamhypersomnia/hypersomnia-server:latest'
+      ].join('\n');
+    }
+
+    if (state.service === 'user' && m === 'service') {
+      return `${comment}\nsudo -u hypersomnia env ${variable} \\\n  /opt/hypersomnia/Hypersomnia-Headless.AppImage${extractFlag()} --appdata-dir /opt/hypersomnia --download-maps-and-quit`;
+    }
+
+    return `${comment}\n${variable} ./Hypersomnia-Headless.AppImage${extractFlag()} --download-maps-and-quit`;
   }
 
   function updateBefore() {
@@ -1851,7 +2037,7 @@
   }
 
   function cycleIsDefault() {
-    return !state.cycleAll && JSON.stringify(state.cycle) === JSON.stringify(defaults.cycle) && state.cycleRandom;
+    return JSON.stringify(state.cycle) === JSON.stringify(defaults.cycle) && state.cycleRandom;
   }
 
   function browseArenasLink() {
@@ -2070,8 +2256,12 @@
     portWarning
   ]));
 
-  const adminRow = revealRow('Admin', 'adminOn', admins, 'Your account id - in the game: `Settings → Account`.\n\nManage the server in-game: maps, bans...\n\nIn a tournament:\n- watch any match,\n- close round 1 when not everyone came,\n- decide a match someone doesn\'t come to.');
+  const adminRow = revealRow('Admin', 'adminOn', admins, 'Your account id - in the game: `Settings → Account`.\n\nManage the server in-game: maps, bans...\n\nIn a tournament:\n- watch any match,\n- close a round when not everyone came.');
   adminRow.appendChild(el('div', { class: 'gen-row-editor gen-row-note' }, [adminWarning]));
+
+  // required (a time to enter off) but switched off: by the switch, why
+  const adminRequiredNote = el('span', { class: 'gen-switch-note gen-admin-required', html: '' });
+  adminRow.querySelector('.gen-row-ctl').appendChild(adminRequiredNote);
 
   const spectatorInput = textInput('spectator', 'its account id - 0x8aed41f2... or steam_7656119...');
   /*
@@ -2094,15 +2284,16 @@
   const browserOn = () => state.browser && state.serverListOn;
   const browserRow = settingRow('Browser players', [switchInput('browser', () => {}, 'from <a href="https://play.hypersomnia.io" target="_blank">play.hypersomnia.io<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a>')]);
 
-  const serverListWarning = el('p', { class: 'gen-port-warning', html: '<i class="fa-solid fa-triangle-exclamation"></i>Browser players can\'t join - and only those who know its address find the server.' });
+  // off: right of its switch, in the field's place
+  const serverListWarning = el('p', { class: 'gen-port-warning gen-server-list-warning', html: '<i class="fa-solid fa-triangle-exclamation"></i>Only players who know its address can join.' });
 
   const serverListRow = settingRow(
     'Server list',
-    [switchInput('serverListOn', () => {}), serverListInput],
+    [switchInput('serverListOn', () => {}), serverListInput, serverListWarning],
     'Off: only for privacy -\nyour server isn\'t shown to anyone.\n\nOn (recommended):\n- anyone finds it on hypersomnia.io/servers\n  and in Browse servers in the game,\n- anyone finds your tournament\'s\n  live results page as well,\n- players can join right from their web browser,\n  no download - also by a link you send them,\n- a new server is announced on\n  Hypersomnia\'s Discord and Telegram.\n\nAnother address: only if you run\nyour own server list.'
   );
 
-  serverListRow.appendChild(el('div', { class: 'gen-row-editor' }, [serverListWarning, serverListDefault]));
+  serverListRow.appendChild(el('div', { class: 'gen-row-editor' }, [serverListDefault]));
 
   const serverListAddress = () => state.serverListOn ? state.serverList.trim() : '';
   const serverListChanged = () => serverListAddress() !== DEFAULT_SERVER_LIST;
@@ -2111,7 +2302,7 @@
     serverListInput.hidden = !state.serverListOn;
     serverListWarning.hidden = state.serverListOn;
     serverListDefault.hidden = !state.serverListOn || !serverListChanged();
-    serverListRow.classList.toggle('open', !serverListWarning.hidden || !serverListDefault.hidden);
+    serverListRow.classList.toggle('open', !serverListDefault.hidden);
   }
 
   const spectatorRow = revealRow('Spectator', 'spectatorOn', spectatorInput, 'An account that only watches:\na caster, a bot streaming the matches.\n**Participants can already watch.**\n\nAlways gets in:\n- a place kept for it on a full server,\n- no password,\n- into ranked and tournament matches\n  being played.\n\nNever on a team.');
@@ -2137,8 +2328,8 @@
 
     // being played: the final, live on its server
     const final = ongoing
-      ? { name: 'Final', state: 'PLAYING', arena: 'fy_minilab', matches: [{ status: 'live', winner: '', team_a: [alice, bob], team_b: [erin, frank], score_a: 9, score_b: 7, server_name: '[alice, bob] vs [erin, frank]', port: 8412 }], byes: [] }
-      : { name: 'Final', state: 'PLAYED', arena: 'fy_minilab', matches: [done([alice, bob], [erin, frank], 16, 7)], byes: [] };
+      ? { name: 'Final', state: 'PLAYING', map: 'fy_minilab', matches: [{ status: 'live', winner: '', team_a: [alice, bob], team_b: [erin, frank], score_a: 9, score_b: 7, server_name: '[alice, bob] vs [erin, frank]', port: 8412 }], byes: [] }
+      : { name: 'Final', state: 'PLAYED', map: 'fy_minilab', matches: [done([alice, bob], [erin, frank], 16, 7)], byes: [] };
 
     return {
       name: state.tName.trim() || 'My Tournament',
@@ -2146,18 +2337,19 @@
       winner_team: ongoing ? [] : [alice, bob],
       rounds: [
         final,
-        { name: 'Semifinals', state: 'PLAYED', arena: 'de_cyberaqua', matches: [
+        { name: 'Semifinals', state: 'PLAYED', map: 'de_cyberaqua', matches: [
           done([alice, bob], [carol, dave], 16, 14),
           { status: 'walkover', winner: 'a', team_a: [erin, frank], team_b: [gus, hal] }
         ], byes: [] },
-        { name: 'Quarterfinals', state: 'PLAYED', arena: 'de_silo', matches: [done([carol, dave], [ivy, jo], 16, 11)], byes: [[alice, bob], [erin, frank], [gus, hal]] }
+        { name: 'Quarterfinals', state: 'PLAYED', map: 'de_silo', matches: [done([carol, dave], [ivy, jo], 16, 11)], byes: [[alice, bob], [erin, frank], [gus, hal]] }
       ],
       config: {
         who_participates: 'rosters by accounts',
         team_size: 2,
         teams: 5,
-        arenas: ['de_silo', 'de_cyberaqua', 'fy_minilab'],
-        join_timeout_minutes: 10
+        maps: ['de_silo', 'de_cyberaqua', 'fy_minilab'],
+        round_1_max_wait_minutes: 30,
+        next_rounds_max_wait_minutes: 15
       }
     };
   }
@@ -2363,55 +2555,150 @@
   // set up beforehand: the list and how it was understood - the rounds say it better than any explanation
   const nicknamesText = el('p', { class: 'gen-field-text' });
 
-  /*
-    A tournament's join password: empty, none (a LAN) - "empty: any stranger may participate".
-    The hint is drawn over the field, not a placeholder - only its warning in white.
-    The persistent server's own row (Join password) isn't shown for a tournament.
-  */
-
-  const tPassword = el('input', { type: 'text', class: 'gen-t-password', placeholder: ' ', autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' });
-  tPassword.value = state.passwordOn ? state.password : '';
-  tPassword.addEventListener('input', () => {
-    state.password = tPassword.value;
-    state.passwordOn = tPassword.value !== '';
-    update();
-  });
-  refreshers.push(() => { tPassword.value = state.passwordOn ? state.password : ''; });
-  const tPasswordRow = el('label', { class: 'gen-select-row gen-t-password-row' }, [el('span', { text: 'Join password' }), el('span', { class: 'gen-t-password-field' }, [tPassword, el('span', { class: 'gen-t-password-hint', html: 'empty: <span class="gen-warn">any stranger may participate</span>' })])]);
+  const tPasswordRow = passwordField('any stranger may participate');
 
   // listed accounts: in the field's place, as tall as it - nothing below moves between the three
   const tNoPassword = el('div', { class: 'gen-t-no-password gen-security', html: '<i class="fa-solid fa-check gen-secure"></i><strong>Secure, from start to finish.</strong>&nbsp;No password required. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Each participant proves they may enter\nwith an `Ed25519` signature.\n\nNobody can take their place."></i>' });
   const spectateText = el('p', { class: 'gen-field-text gen-after-gap', text: 'Participants can spectate other matches once their own match ends.' });
-  const pairingEditor = el('div', { class: 'gen-row-editor' }, [tPasswordRow, tNoPassword, firstText, teamsRoster, nicknamesText, spectateText]);
+
+  // only with Anyone - under its password, so it's clear whose option it is
+  const playersRow = el('div', { class: 'gen-select-row gen-t-players-row' }, [
+    el('span', {}, [
+      document.createTextNode('Participants'),
+      el('i', { class: 'fa-regular fa-circle-question gen-row-help', tabindex: '0', 'data-tip': 'Not everybody has to show up.\nThe tournament continues regardless.' })
+    ]),
+    el('span', { class: 'gen-t-players-field' }, [playersInput, roundSummary])
+  ]);
+
+  const pairingEditor = el('div', { class: 'gen-row-editor' }, [tPasswordRow, tNoPassword, playersRow, firstText, teamsRoster, nicknamesText, spectateText]);
   pairingRow.appendChild(pairingEditor);
 
-  const playersRow = settingRow('Maximum players', [playersInput, roundSummary], 'Not everybody has to show up.\nThe tournament continues regardless.');
-
   /*
-    Join timeout: a match of any round that hasn't started by then is decided without it - the team that came wins,
-    nobody: both out. With Anyone, round 1's servers close as if Close round 1 were clicked. The matches being played go on.
+    The round timeouts: round 1 from hosting the server, each next round from the previous one's end (the break).
+    Then a team with nobody on its server is out, both teams there play with whoever came; with Anyone, round 1's
+    servers close as if Close the round were clicked. Off: the round waits for an admin. A round never moves on early.
   */
 
-  // with Anyone, round 1 has no teams to wait for - one sentence on what happens there instead
-  const joinTimeoutHelp = anyone => 'How long a match waits for all its players.\nThe countdown starts only once a player joins any match,\nso everyone can take a break between rounds.\n\nThen:\n' +
-    (state.tTeamSize === 1
-      ? '- nobody came: both are out,\n- one came: that player wins.'
-      : '- nobody came: both teams are out,\n- equal numbers: it starts as they are,\n- more players present: that team wins.') +
-    (anyone ? '\n\nRound 1: a player left alone on a server goes on without playing.' : '') +
-    '\n\nMatches being played are never touched.';
+  // what to do first, then what happens
+  // 1v1: a player, not a team
+  const timeoutThen = () => (state.tTeamSize === 1
+    ? '\n\nIf either player is absent for this long, they\'re out.'
+    : '\n\nIf a whole team is absent for this long, they\'re out.\nIf only part of the team shows up, they play.') +
+    '\n\nWaits 2 additional minutes as a grace period.';
+  const round1TimeoutHelp = () => 'If you want the tournament server\nto stay overnight, set it longer.' + timeoutThen();
+  const nextTimeoutHelp = () => `They can always start earlier -\nas soon as both ${state.tTeamSize === 1 ? 'players' : 'teams'} are in.` + timeoutThen();
 
-  const joinTimeoutSelect = el('select', {}, Array.from({ length: 30 }, (_, i) => el('option', { value: String(i + 1), text: `${i + 1} min` })));
+  const minutesText = m => m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} h` : `${Math.floor(m / 60)} h ${m % 60} min`;
 
-  joinTimeoutSelect.addEventListener('change', () => {
-    state.tJoinTimeout = parseInt(joinTimeoutSelect.value, 10);
-    update();
-  });
+  /*
+    A select of minutes, the state's value among them even if it isn't one of the choices.
+    "Custom..." on top turns it into a field for minutes - Enter (or leaving it) puts the select back, showing them.
+  */
 
-  const joinTimeoutRow = settingRow('Join timeout', [switchInput('tJoinTimeoutOn', () => {}), joinTimeoutSelect], joinTimeoutHelp(false));
+  function timeoutRow(label, key, choices, help, onText, offText) {
+    const select = el('select', { class: 'gen-timeout-select' });
+    const custom = el('input', { type: 'number', min: '1', max: '10080', step: '1', class: 'gen-timeout-select', placeholder: 'minutes', hidden: '' });
+    /*
+      Both texts in one place, the other one invisible - and the select only invisible when off: switching it
+      changes nothing in the row's height.
+    */
 
-  // without it, a match someone never comes to waits forever - unless an admin decides it
-  const joinTimeoutAdminHint = el('p', { class: 'gen-field-text gen-hint', text: 'Consider setting an Admin (advanced options) - to decide matches someone doesn\'t come to.' });
-  joinTimeoutRow.appendChild(el('div', { class: 'gen-row-editor' }, [joinTimeoutAdminHint]));
+    const onNote = el('span', { class: 'gen-switch-note gen-timeout-note gen-timeout-on' });
+    const offNote = el('span', { class: 'gen-switch-note gen-timeout-note gen-timeout-off' });
+
+    const showSelect = () => {
+      custom.hidden = true;
+      select.hidden = false;
+      select.style.visibility = state[key + 'On'] ? '' : 'hidden';
+    };
+
+    select.addEventListener('change', () => {
+      if (select.value === 'custom') {
+        select.value = String(state[key]);
+        select.hidden = true;
+        custom.hidden = false;
+        custom.value = String(state[key]);
+        custom.focus();
+        custom.select();
+        return;
+      }
+
+      state[key] = parseInt(select.value, 10);
+      update();
+    });
+
+    const applyCustom = () => {
+      const minutes = parseInt(custom.value, 10);
+
+      if (minutes >= 1 && minutes <= 10080) {
+        state[key] = minutes;
+      }
+
+      showSelect();
+      update();
+    };
+
+    custom.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        applyCustom();
+      }
+      else if (e.key === 'Escape') {
+        showSelect();
+      }
+    });
+
+    custom.addEventListener('blur', () => {
+      if (!custom.hidden) {
+        applyCustom();
+      }
+    });
+
+    // off: its text from right by the switch, over the select's place too
+    const body = el('span', { class: 'gen-timeout-body' }, [select, custom, onNote, offNote]);
+    const row = settingRow(label, [switchInput(key + 'On', () => {}), body], typeof help === 'function' ? help() : help);
+
+    row.sync = () => {
+      const values = [...new Set([...choices, state[key]])].sort((a, b) => a - b);
+      select.innerHTML = '';
+      select.appendChild(el('option', { value: 'custom', text: 'Custom...' }));
+      values.forEach(m => select.appendChild(el('option', { value: String(m), text: minutesText(m) })));
+      select.value = String(state[key]);
+
+      if (custom.hidden) {
+        select.hidden = false;
+        select.style.visibility = state[key + 'On'] ? '' : 'hidden';
+      }
+
+      // texts that depend on the team size - given as functions
+      const text = t => typeof t === 'function' ? t() : t;
+      onNote.textContent = text(onText);
+      offNote.innerHTML = text(offText);
+      onNote.classList.toggle('gen-note-inactive', !state[key + 'On']);
+      offNote.classList.toggle('gen-note-inactive', !!state[key + 'On']);
+      row.querySelector('.gen-row-help').dataset.tip = text(help);
+    };
+
+    return row;
+  }
+
+  // how an admin ends the round: the panel on any of the round's servers
+  const END_ROUND_HELP = '<i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Join any server of the round as an admin,\npress Esc for the administration panel:\n`Maintenance` → `Close the round`."></i>';
+
+  const round1TimeoutRow = timeoutRow(
+    'Time to enter round\u00a01', 'tRound1MaxWait',
+    [5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 360, 480, 600, 720, 1440],
+    round1TimeoutHelp,
+    () => `${state.tTeamSize === 1 ? 'A player who doesn\'t show up is out.' : 'A team that doesn\'t show up is out.'}\nCountdown starts as soon as you host the server.`,
+    () => `Off: if a ${state.tTeamSize === 1 ? 'player' : 'team'} doesn't show up, <span class="gen-note-white">admin has to end the round <span class="gen-nowrap">in-game.&nbsp;${END_ROUND_HELP}</span></span>`
+  );
+
+  const nextTimeoutRow = timeoutRow(
+    'Time to enter next\u00a0round', 'tNextMaxWait',
+    [1, 2, 3, 5, 10, 15, 20, 30, 45, 60],
+    nextTimeoutHelp,
+    () => `${state.tTeamSize === 1 ? 'A player who doesn\'t show up is out.' : 'A team that doesn\'t show up is out.'}\nCountdown starts once the last match of a round ends.`,
+    () => `Off: if a ${state.tTeamSize === 1 ? 'player' : 'team'} doesn't show up, <span class="gen-note-white">admin has to end the round <span class="gen-nowrap">in-game.&nbsp;${END_ROUND_HELP}</span></span>`
+  );
 
   /*
     Places to watch each match: the teams out or waiting watch the others. Every place is a connection the server
@@ -2421,17 +2708,38 @@
   const spectatorPlacesWarning = el('p', { class: 'gen-port-warning' });
   const spectatorPlacesRow = settingRow(
     'Extra spectator slots',
-    [sliderInput('tSpectatorPlaces', 0, 50)],
-    'How many others may watch each match:\nthe participants out or waiting.\n\nIts players always get in,\nthe admins and the spectator account too.'
+    [sliderInput('tSpectatorSlots', 0, 50)],
+    'How many can watch a match at once:\nparticipants who are out or waiting for their next match.\n\nThe admins and the spectator account\nalways get in, on top of these.'
   );
 
-  // under the row, as the join timeout's hint
+  // under the row, a hint
   spectatorPlacesRow.appendChild(el('div', { class: 'gen-row-editor' }, [spectatorPlacesWarning]));
 
   function updateSpectatorPlaces() {
-    const n = state.tSpectatorPlaces;
+    const n = state.tSpectatorSlots;
     spectatorPlacesRow.classList.toggle('open', n > 6);
     spectatorPlacesWarning.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>About ${Math.round(n * 4.4)} MB of RAM on every match's server, taken up front - and upload for each one watching.`;
+  }
+
+  /*
+    The join password, in Who gets in / Who participates: empty, none (a LAN) - "empty: anyone may join".
+    The hint is drawn over the field, not a placeholder - only its warning in white. Both tabs share it.
+  */
+
+  function passwordField(whoGetsIn) {
+    const input = el('input', { type: 'text', class: 'gen-t-password', placeholder: ' ', autocomplete: 'off', 'data-lpignore': 'true', 'data-1p-ignore': 'true', 'data-bwignore': 'true' });
+    const sync = () => { input.value = state.password; };
+
+    input.addEventListener('input', () => {
+      state.password = input.value;
+      update();
+    });
+
+    sync();
+    refreshers.push(sync);
+
+    const hint = el('span', { class: 'gen-t-password-hint', html: `empty: <span class="gen-warn">${whoGetsIn}</span>` });
+    return el('label', { class: 'gen-select-row gen-t-password-row' }, [el('span', { text: 'Join password' }), el('span', { class: 'gen-t-password-field' }, [input, hint])]);
   }
 
   /*
@@ -2456,7 +2764,9 @@
     showIds: () => true
   });
 
-  const serverSecurityText = el('p', { class: 'gen-field-text gen-security' });
+  const serverPasswordRow = passwordField('anyone may join');
+  // listed accounts: in the field's place, as tall as it
+  const serverSecurityText = el('div', { class: 'gen-t-no-password gen-security', html: '<i class="fa-solid fa-check gen-secure"></i>Only your listed players - and your admins. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>' });
   // under "Account ids are public": the accounts are the game's own keys - Steam is one way, not the only one
   const NO_STEAM_NEEDED = '<strong>You no longer need Steam to authenticate!</strong> <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Each player\'s game makes its own key\non the first start: `Ed25519`,\nthe cryptography of SSH.\n\nThe account id is its public half.\n\nOn every join, the game signs\nwith the private half -\nnobody can join in their place.\n\nSteam players can use their\nSteam account too."></i>';
 
@@ -2465,8 +2775,8 @@
   const serverIdImage = accountIdImage();
   const serverPublicText = el('p', { class: 'gen-field-text', html: NO_STEAM_NEEDED + '<br>Account ids are public - safe to share.' });
   const serverNamesText = el('p', { class: 'gen-field-text', html: 'Nicknames are only for your convenience:<br>players may play under any other name. Admins always get in.' });
-  const serverWhoEditor = el('div', { class: 'gen-row-editor' }, [serverSecurityText, serverVerifyText, serverRoster, serverWhereText, serverIdImage, serverPublicText, serverNamesText]);
-  const serverWhoRow = settingRow('Who gets in', [serverWhoSelect], 'Listed accounts:\nonly the players you list get in.\n\nEach proves their account,\nso nobody can join in their place.\n\nAnyone else sees:\n"This server lets in only its listed players".');
+  const serverWhoEditor = el('div', { class: 'gen-row-editor' }, [serverPasswordRow, serverSecurityText, serverVerifyText, serverRoster, serverWhereText, serverIdImage, serverPublicText, serverNamesText]);
+  const serverWhoRow = settingRow('Who gets in', [serverWhoSelect], 'Listed accounts: only your players get in.\n\nAnyone else sees:\n"This server lets in only its listed players".');
   serverWhoRow.appendChild(serverWhoEditor);
 
   /*
@@ -2497,7 +2807,9 @@
   verifyText.classList.add('gen-after-gap');
 
   const defaultRoundMaps = () => roundMaps().map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo');
-  const mapsRow = foldRow('Maps for each stage', '', el('div', {}, [roundsBox, el('div', { class: 'gen-cycle-links' }, [browseArenasLink()])]));
+  const roundsDownloadNote = el('p', { class: 'gen-port-warning gen-download-note' });
+  const roundsCustomNote = el('p', { class: 'gen-port-warning gen-download-note', html: '<i class="fa-solid fa-circle-info"></i><strong class="gen-note-white">Custom map detected.</strong> See <a href="#" class="gen-goto-maps">First: upload your custom maps</a>.' });
+  const mapsRow = foldRow('Maps for each round', '', el('div', {}, [roundsBox, roundsDownloadNote, roundsCustomNote, el('div', { class: 'gen-cycle-links' }, [browseArenasLink()])]));
 
   const serverRows = [];
   const tournamentRows = [];
@@ -2506,9 +2818,6 @@
     return row;
   };
 
-  const passwordNote = el('span', { class: 'gen-switch-note', text: 'Redundant - the players are verified by their account ids.' });
-  const passwordRow = revealRow('Join password', 'passwordOn', textInput('password', 'what players type to join'), 'Without it, anyone can join.\n\nA tournament\'s participants need it\nonly in round 1 - after that,\nthe server knows their accounts.');
-  passwordRow.querySelector('.gen-row-ctl').appendChild(passwordNote);
 
   // one line across the table: what this tab makes
   const introRow = (text) => el('div', { class: 'gen-row gen-row-intro', text });
@@ -2525,15 +2834,14 @@
     only(tournamentRows, settingRow('Tournament name', [textInput('tName', 'e.g. onFOSS November Cup 2026', 100)], 'Shown on the live results page.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again.\nNext time, give it a new name.')),
     only(tournamentRows, settingRow('Team size', [teamSize])),
     only(tournamentRows, pairingRow),
-    only(tournamentRows, playersRow),
-    only(tournamentRows, joinTimeoutRow),
+    only(tournamentRows, round1TimeoutRow),
+    only(tournamentRows, nextTimeoutRow),
     only(tournamentRows, mapsRow),
     only(tournamentRows, tournamentGameVarsRow),
     only(tournamentRows, settingRow('Live results page', [switchInput('tPage', () => {}, '<code>http://&lt;your server&gt;:<span class="gen-page-port"></span>/</code>'), pageExampleButton], 'The bracket with live scores.\n\nServed by the game server itself, over TCP.\n\nAs JSON: `/tournament.json`.')),
     browserRow,
     portsRow,
-    only(serverRows, serverWhoRow),
-    passwordRow
+    only(serverRows, serverWhoRow)
   ]);
 
   // rarely needed - behind one button, open if anything in it is set
@@ -2570,21 +2878,14 @@
     tournamentRows.forEach(r => { r.hidden = !isTournament(); });
     playersRow.hidden = !isTournament() || pairedBeforehand();
 
-    joinTimeoutRow.hidden = !isTournament();
-    joinTimeoutRow.querySelector('.gen-row-help').dataset.tip = joinTimeoutHelp(!pairedBeforehand());
-    joinTimeoutSelect.value = String(state.tJoinTimeout);
-    joinTimeoutSelect.hidden = !state.tJoinTimeoutOn;
-    joinTimeoutRow.classList.toggle('open', !state.tJoinTimeoutOn && !state.adminOn);
-
-    // the join password right under Who gets in, on either tab
-    (isTournament() ? pairingRow : serverWhoRow).after(passwordRow);
+    round1TimeoutRow.sync();
+    nextTimeoutRow.sync();
 
     const serverListed = state.serverWho === 'accounts';
     serverWhoSelect.value = state.serverWho;
     serverWhoRow.classList.add('open');
-    serverSecurityText.innerHTML = serverListed
-      ? '<i class="fa-solid fa-check gen-secure"></i>Only your listed players - and your admins. <i class="fa-regular fa-circle-question gen-row-help" tabindex="0" data-tip="Every player proves who they are\nwith an `Ed25519` signature.\n\nNobody can join in their place."></i>'
-      : 'Anyone who finds the server. A join password keeps strangers out.';
+    serverPasswordRow.hidden = serverListed;
+    serverSecurityText.hidden = !serverListed;
     [serverVerifyText, serverRoster, serverWhereText, serverIdImage, serverPublicText, serverNamesText].forEach(e => { e.hidden = !serverListed; });
 
     if (serverListed) {
@@ -2593,11 +2894,9 @@
     pairingRow.classList.add('open');
     firstText.hidden = pairedBeforehand();
 
-    // right under the list: what its nicknames are for
-    nicknamesText.hidden = !pairedBeforehand();
-    nicknamesText.innerHTML = verifiedByAccounts()
-      ? 'Nicknames are only for your convenience:<br>participants may play under any other name.'
-      : 'From round 2, teams are <strong>locked in</strong>: players are recognized by their accounts.';
+    // right under the list of nicknames: from round 2 they're accounts - listed accounts say what nicknames are over the list
+    nicknamesText.hidden = !pairedBeforehand() || verifiedByAccounts();
+    nicknamesText.innerHTML = 'From round 2, players are recognized by <strong>account</strong>, not nickname.';
 
     firstText.innerHTML = `In round 1, people <strong>pick any match</strong> and <strong>form teams on the spot</strong>.<br>From round 2, teams are <strong>locked in</strong>: players are recognized by their accounts.`;
 
@@ -2618,32 +2917,24 @@
     browserRow.classList.toggle('gen-row-disabled', !state.serverListOn);
     browserRow.querySelectorAll('input').forEach(i => { i.disabled = !state.serverListOn; });
 
-    const verified = byAccounts();
-
-    // a tournament's password is in Who participates - none at all with listed accounts
-    passwordRow.hidden = isTournament();
+    // the password is in Who gets in / Who participates - none at all with listed accounts
+    syncHour();
     tPasswordRow.hidden = verifiedByAccounts();
     tNoPassword.hidden = !verifiedByAccounts();
 
-    passwordRow.classList.toggle('gen-row-disabled', verified);
-    passwordRow.querySelectorAll('input').forEach(i => { i.disabled = verified; });
-    passwordNote.hidden = !verified;
-    passwordRow.querySelector('.gen-row-ctl input[type=text]').hidden = verified || !state.passwordOn;
 
     const maps = roundMaps();
+    syncDownloadNote(roundsDownloadNote, maps, roundsCustomNote, customRoundMaps().length > 0);
     mapsRow.show(maps.join(' <span class="gen-arrow">→</span> '), JSON.stringify(maps) === JSON.stringify(defaultRoundMaps()));
 
-    // where the server's arenas are - its own maps go there
-    cycleBox.allNote.innerHTML = 'See <a href="#" class="gen-goto-maps">Advanced: Add your own maps</a>';
-
-    const orderTag = `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>`;
+    const customTail = state.customMaps ? (state.cycle.length ? ' <span class="gen-arrow">+</span> all my custom maps' : 'all my custom maps') : '';
+    const cycleShuffled = state.cycle.length + (state.customMaps ? 1 : 0) > 1;
 
     cycleRow.show(
-      state.cycleAll ? 'All arenas on disk' + orderTag :
-      state.cycle.length
-        ? state.cycle.join(' <span class="gen-arrow">→</span> ') + (state.cycle.length > 1 ? `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>` : '')
+      state.cycle.length || state.customMaps
+        ? state.cycle.join(' <span class="gen-arrow">→</span> ') + customTail + (cycleShuffled ? `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>` : '')
         : 'de_cyberaqua only',
-      cycleIsDefault()
+      cycleIsDefault() && !state.customMaps
     );
 
     syncBotQuota();
@@ -2680,6 +2971,18 @@
     tableWebHead.style.visibility = browserOn() ? '' : 'hidden';
 
     adminRow.classList.toggle('open', adminWarning.style.display !== 'none' && adminWarning.textContent !== '');
+
+    adminRequiredNote.hidden = !(adminRequired() && !state.adminOn);
+    adminRequiredNote.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>Set it up, or the tournament stalls if a ${state.tTeamSize === 1 ? 'player' : 'team'} doesn't show up.`;
+
+    if (adminRequired()) {
+      if (adminRow.previousElementSibling !== nextTimeoutRow) {
+        nextTimeoutRow.after(adminRow);
+      }
+    }
+    else if (adminRow.parentElement !== serverAdvanced) {
+      spectatorRow.before(adminRow);
+    }
   }
 
   setupListeners.push(() => {
@@ -2737,7 +3040,8 @@
     playersKey: makeStep('For your players: the line to add your server', playersKeyResults, true),
     check: makeStep('Check that it works', checkBlock),
     // behind their own button, after the check: done later, if ever - the server key's backup and its move elsewhere
-    mapsAdd: makeStep('Advanced: Add your own maps', mapsAddResults, true),
+    // the custom maps: before the rest - a tournament can't start without them
+    mapsAdd: makeStep('First: upload your custom maps', mapsAddResults, true),
     keyBackup: makeStep('Advanced: Back up your server key', keyBackupResults, true),
     keySwap: makeStep('Advanced: Restore your server key', keySwapResults, true),
     keyPublic: makeStep('Advanced: Your server\'s public key', keyPublicResults, true)
@@ -2767,22 +3071,17 @@
     After the launch, if ever: steps always in sight, folded - their title opens them.
   */
 
-  // "See Advanced: Add your own maps" in the map cycle: opens the step and goes to it
+  // "See First: upload your custom maps" by the maps: goes to it
   document.addEventListener('click', e => {
     if (!e.target.closest('.gen-goto-maps')) {
       return;
     }
 
     e.preventDefault();
-
-    if (!steps.mapsAdd.el.classList.contains('open')) {
-      steps.mapsAdd.title.parentElement.click();
-    }
-
     steps.mapsAdd.el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  [steps.mapsAdd, steps.keyBackup, steps.keySwap, steps.keyPublic].forEach(st => {
+  [steps.keyBackup, steps.keySwap, steps.keyPublic].forEach(st => {
     // left of the title: pointing at it while folded, down once opened
     const chevron = el('i', { class: 'fa-solid fa-chevron-right gen-fold-chevron' });
     st.el.classList.add('gen-foldable');
@@ -2828,19 +3127,14 @@
   const scriptStartOption = optionSwitch(scriptStartCheck, 'Start it now', '');
   const scriptStartNote = scriptStartOption.querySelector('.gen-switch-note');
 
-  const dataFolderCheck = el('input', { type: 'checkbox' });
-  dataFolderCheck.checked = scriptOptions.dataFolder;
-  dataFolderCheck.addEventListener('change', () => { scriptOptions.dataFolder = dataFolderCheck.checked; update(); });
-  const dataFolderOption = optionSwitch(dataFolderCheck, 'Make the data folder', '/opt/hypersomnia, for the container\'s user');
-
+  const firewallRow = selectRow('Firewall', firewallSelect);
   const scriptOptionsBox = el('div', { class: 'gen-script-options' }, [
-    selectRow('Firewall', firewallSelect),
+    firewallRow,
     scriptStartOption
   ]);
 
 
   const scriptBlock = el('div', { class: 'gen-before-box' }, [
-    scriptOptionsBox,
     el('div', { class: 'guide-code gen-start-code' }, [
       el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' }),
       el('pre', {}, [scriptCode])
@@ -2848,8 +3142,17 @@
   ]);
 
   steps.script = makeStep('Your script', scriptBlock, true);
-  // above the first step - the setup's commands
+
+  /*
+    The script's options in a tile of their own above it - the custom maps' upload depends on them (as a service,
+    as its own user), so it goes between the two (updateScript).
+  */
+
+  steps.options = makeStep('Script options', el('div', { class: 'gen-before-box' }, [scriptOptionsBox]), true);
+
   mount.insertBefore(modeTabs, steps.before.el);
+  mount.insertBefore(steps.options.el, steps.check.el);
+  mount.insertBefore(steps.mapsAdd.el, steps.check.el);
   mount.insertBefore(steps.script.el, steps.check.el);
 
   /*
@@ -2868,15 +3171,29 @@
     [steps.config, steps.secret, steps.before, steps.service, steps.firewall, steps.start, steps.playersKey].forEach(st => st.el.classList.toggle('gen-mode-off', oneShot));
     steps.script.el.hidden = !oneShot;
 
+    steps.options.el.hidden = !oneShot;
+
+    /*
+      The custom maps' upload right after what it depends on (as a service, as its own user): the script - after its
+      options, before it; step by step - after the setup's commands, where the service switch is.
+    */
+
     if (oneShot) {
-      scriptOptionsBox.append(serviceOption, fuseField, dataFolderOption, scriptStartOption);
+      steps.script.el.before(steps.options.el);
+      steps.script.el.before(steps.mapsAdd.el);
+      scriptOptionsBox.append(serviceOption, fuseField, scriptStartOption);
       fuseField.hidden = !(method() === 'terminal' || method() === 'service');
     }
-    else if (serviceOption.parentElement !== beforeBlock) {
-      beforeBlock.prepend(serviceOption);
+    else {
+      steps.before.el.after(steps.mapsAdd.el);
+
+      if (serviceOption.parentElement !== beforeBlock) {
+        beforeBlock.prepend(serviceOption);
+      }
     }
 
-    dataFolderOption.hidden = !(method() === 'compose' || method() === 'run');
+    steps.mapsAdd.title.textContent = oneShot ? 'First: upload your custom maps' : 'Upload your custom maps';
+
     scriptStartNote.textContent = method() === 'service' ? 'otherwise at the next reboot' : 'otherwise the startup command stays commented out';
     scriptCode.textContent = oneShotScript();
     highlight(scriptCode, 'bash');
@@ -2947,18 +3264,21 @@
 
   const shellQuote = v => /^[A-Za-z0-9_.,:\/=+-]+$/.test(v) ? v : "'" + v.replace(/'/g, "'\\''") + "'";
 
-  // the open round's join timeout as written: nothing for the default 10 minutes
-  const joinTimeoutValue = () => {
+  // a round timeout as written: nothing for the game's own default (30 and 15 minutes)
+  const timeoutValue = (key, gameDefault) => {
     if (!isTournament()) {
       return '';
     }
 
-    if (!state.tJoinTimeoutOn) {
+    if (!state[key + 'On']) {
       return 'off';
     }
 
-    return state.tJoinTimeout === 10 ? '' : String(state.tJoinTimeout);
+    return state[key] === gameDefault ? '' : String(state[key]);
   };
+
+  const round1TimeoutValue = () => timeoutValue('tRound1MaxWait', 30);
+  const nextTimeoutValue = () => timeoutValue('tNextMaxWait', 15);
 
   // the tournament as command line flags (the AppImage) or environment variables (Docker)
   function tournamentFlags(quoted = shellQuote) {
@@ -2976,9 +3296,9 @@
       }
     }
 
-    if (isTournament()) {
-      // from the variable above the command (arenasVariable)
-      out.push('--tournament-arenas "$ARENAS"');
+    if (isTournament() && !roundMapsDefault()) {
+      // from the variable above the command (mapsVariable)
+      out.push('--tournament-maps "$MAPS"');
     }
 
     if (isTournament() && state.tName.trim()) {
@@ -2992,14 +3312,16 @@
       out.push(`--tournament-page ${state.tPagePort}`);
     }
 
-    const timeout = joinTimeoutValue();
-
-    if (timeout) {
-      out.push(`--tournament-join-timeout ${timeout}`);
+    if (round1TimeoutValue()) {
+      out.push(`--tournament-round-1-max-wait ${round1TimeoutValue()}`);
     }
 
-    if (state.tSpectatorPlaces !== 6) {
-      out.push(`--tournament-spectators ${state.tSpectatorPlaces}`);
+    if (nextTimeoutValue()) {
+      out.push(`--tournament-next-rounds-max-wait ${nextTimeoutValue()}`);
+    }
+
+    if (state.tSpectatorSlots !== 6) {
+      out.push(`--tournament-spectator-slots ${state.tSpectatorSlots}`);
     }
 
     return out;
@@ -3022,8 +3344,10 @@
   // only map_cycle: the server starts on its first (or a random one of it); one map alone stays
   // the game's own default: the three arenas, shuffled - no line for it
   const cycleOn = () => !isTournament() && !cycleIsDefault();
-  const cycleArenas = () => state.cycleAll ? ['*'] : (state.cycle.length ? state.cycle : ['de_cyberaqua']).map(withMode);
-  const cycleShuffleOff = () => !state.cycleRandom && (state.cycleAll || state.cycle.length > 1);
+  // none listed: de_cyberaqua - or, with the custom maps, only those
+  const cycleArenas = () => (state.cycle.length ? state.cycle : state.customMaps ? [] : ['de_cyberaqua']).map(withMode);
+  const customMapsOn = () => !isTournament() && state.customMaps;
+  const cycleShuffleOff = () => !state.cycleRandom && state.cycle.length > 1;
 
   function buildSettings() {
     const ids = adminIds();
@@ -3107,6 +3431,10 @@
       if (cycleShuffleOff()) {
         server.map_cycle_random = false;
       }
+    }
+
+    if (customMapsOn()) {
+      server.map_cycle_add_custom_maps = true;
     }
 
     if (serverListChanged()) {
@@ -3225,6 +3553,10 @@
       }
     }
 
+    if (customMapsOn()) {
+      put('HYPERSOMNIA_MAP_CYCLE_ADD_CUSTOM_MAPS', 'on');
+    }
+
     if (ids.length) {
       put('HYPERSOMNIA_ADMINS', ids.join(','));
     }
@@ -3321,7 +3653,10 @@
     if (pairedBeforehand()) {
       // a player per line, the teams apart by an empty line
       put('HYPERSOMNIA_TOURNAMENT_TEAMS', teamsText());
-      put('HYPERSOMNIA_TOURNAMENT_ARENAS', arenasText());
+
+      if (!roundMapsDefault()) {
+        put('HYPERSOMNIA_TOURNAMENT_MAPS', mapsText());
+      }
     }
     else if (isTournament()) {
       put('HYPERSOMNIA_TOURNAMENT', String(state.tPlayers));
@@ -3330,7 +3665,9 @@
         put('HYPERSOMNIA_TOURNAMENT_TEAM_SIZE', String(state.tTeamSize));
       }
 
-      put('HYPERSOMNIA_TOURNAMENT_ARENAS', arenasText());
+      if (!roundMapsDefault()) {
+        put('HYPERSOMNIA_TOURNAMENT_MAPS', mapsText());
+      }
     }
 
     if (isTournament() && state.tName.trim()) {
@@ -3348,12 +3685,16 @@
       put('HYPERSOMNIA_TOURNAMENT_PAGE', String(state.tPagePort));
     }
 
-    if (joinTimeoutValue()) {
-      put('HYPERSOMNIA_TOURNAMENT_JOIN_TIMEOUT', joinTimeoutValue());
+    if (round1TimeoutValue()) {
+      put('HYPERSOMNIA_TOURNAMENT_ROUND_1_MAX_WAIT', round1TimeoutValue());
     }
 
-    if (isTournament() && state.tSpectatorPlaces !== 6) {
-      put('HYPERSOMNIA_TOURNAMENT_SPECTATORS', String(state.tSpectatorPlaces));
+    if (nextTimeoutValue()) {
+      put('HYPERSOMNIA_TOURNAMENT_NEXT_ROUNDS_MAX_WAIT', nextTimeoutValue());
+    }
+
+    if (isTournament() && state.tSpectatorSlots !== 6) {
+      put('HYPERSOMNIA_TOURNAMENT_SPECTATOR_SLOTS', String(state.tSpectatorSlots));
     }
 
     return env;
@@ -3385,12 +3726,13 @@
       '    pull_policy: daily',
       '    restart: unless-stopped',
       '    volumes:',
-      '      - /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user',
+      '      - /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user:z',
       '    ports:',
       `      - '${game}:${game}/udp'`,
       pageOn() ? `      - '${pagePort()}:${pagePort()}/tcp'` : null,
       browserOn() ? `      - '${web}:${web}/udp'` : null,
-      '    environment:'
+      // an empty environment: is invalid compose
+      env.length > 0 ? '    environment:' : null
     ].filter(line => line !== null);
 
     env.forEach(([k, v]) => {
@@ -3423,11 +3765,11 @@
       `  --publish ${game}:${game}/udp`,
       pageOn() ? `  --publish ${pagePort()}:${pagePort()}/tcp` : null,
       browserOn() ? `  --publish ${web}:${web}/udp` : null,
-      '  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user'
+      '  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user:z'
     ].filter(line => line !== null);
 
     // the teams from the variable above the command (teamsVariable)
-    const fromVariable = { HYPERSOMNIA_TOURNAMENT_TEAMS: '"$TEAMS"', HYPERSOMNIA_TOURNAMENT_ARENAS: '"$ARENAS"' };
+    const fromVariable = { HYPERSOMNIA_TOURNAMENT_TEAMS: '"$TEAMS"', HYPERSOMNIA_TOURNAMENT_MAPS: '"$MAPS"' };
     env.filter(([k]) => !SECRET_VARS.includes(k)).forEach(([k, v]) => lines.push(`  --env ${k}=${fromVariable[k] || quote(v)}`));
 
     if (runEnvFile()) {
@@ -3639,9 +3981,12 @@
       service: ownUser()
         ? ['On the server, as the user to run it (not root) - the AppImage', 'lands in your home folder.']
         : ['On the server, as a user with sudo - everything goes to', '/opt/hypersomnia, the server runs as the user hypersomnia.'],
-      compose: ['On the server with Docker, in the folder for compose.yaml.'],
-      run: ['On the server with Docker - its data goes to /opt/hypersomnia.']
-    }[method()];
+      compose: ['On the server with Docker - compose.yaml goes to ~/hypersomnia, the data to /opt/hypersomnia.'],
+      run: ['On the server with Docker - its secrets go to ~/hypersomnia, the data to /opt/hypersomnia.']
+    }[method()].concat(
+      isTournament() && method() === 'terminal' ? ['Over SSH: run it inside tmux - closing the terminal stops the tournament.'] : [],
+      isTournament() ? ['It replaces a persistent server set up here before.'] : []
+    );
   }
 
   /*
@@ -3649,44 +3994,49 @@
     (only the server's user may read it), how it's backed up from your computer, and how its public half is printed.
   */
 
-  // the arenas the server has on its disk - the official ones are in the AppImage, these next to them
+  // the server's custom maps: every one in it plays after the cycle's (a dedicated server's own folder)
   function arenasDir() {
     const m = method();
 
     if (m === 'compose' || m === 'run') {
-      return '/opt/hypersomnia/downloads/arenas';
+      return '/opt/hypersomnia/custom/maps';
     }
 
-    return separateUser() ? '/opt/hypersomnia/user/downloads/arenas' : '~/.config/Hypersomnia/user/downloads/arenas';
+    return separateUser() ? '/opt/hypersomnia/user/custom/maps' : '~/.config/Hypersomnia/user/custom/maps';
   }
 
   /*
-    A map of your own onto the server, from your computer: its folder (<map>/<map>.json and the rest) into arenasDir().
-    The server's own user or the container's owns the folder - copied through /tmp, then moved in with sudo.
-    Named by the cycle's first map not on hypersomnia.io, if there is one.
+    The custom maps onto the server, from your computer: the whole folder of them (one folder per map), straight into
+    arenasDir() - before the setup or any time after (sent again whole: new maps added, changed ones replaced). The server's own user or the
+    container's owns the folder: copied through /tmp, then moved in with sudo (ssh -t: it may ask for the password).
+    The container's 999 is a number - set before the setup too; the server's own user only once it exists (the setup
+    hands it the rest).
   */
 
-  function ownMapName() {
-    const known = new Set(arenas.official.concat(arenas.community));
-    return state.cycle.find(name => !known.has(name)) || 'de_mymap';
+  // the custom maps detected (the cycle's or the rounds') as the folder to upload - an example name with none
+  function customMapsTree() {
+    const found = [...new Set(isTournament() ? customRoundMaps() : state.cycle.filter(isCustomMap))];
+    const maps = found.length ? found : ['de_my_map', 'de_my_other_map'];
+    return ['my_custom_maps/'].concat(maps.map((m, i) => `${i === maps.length - 1 ? '└──' : '├──'} ${m}/`)).join('\n');
   }
 
-  function addMapsCommand() {
+  function uploadMapsCommand() {
     const m = method();
     const dir = arenasDir();
-    const map = ownMapName();
 
-    // the map's name once, at the top - in double quotes below, filled in on your computer
-    const name = `MAP=${map}\n\n`;
-
+    // scp and ssh: OpenSSH is everywhere - rsync often isn't (and would be needed on both ends)
     if (dir.startsWith('~/')) {
       const remote = dir.slice(2);
-      return `${name}ssh <your server> 'mkdir -p ${remote}'\nscp -r "$MAP" <your server>:${remote}/`;
+      return `ssh <your server> 'mkdir -p ${remote}' &&\nscp -r my_custom_maps/* <your server>:${remote}/`;
     }
 
-    const owner = m === 'compose' || m === 'run' ? '999:999' : 'hypersomnia:';
-    // copied over an older copy of it (cp merges), the one in /tmp removed after
-    return `${name}scp -r "$MAP" <your server>:/tmp/\nssh <your server> "\n  sudo mkdir -p ${dir} &&\n  sudo cp -r /tmp/$MAP ${dir}/ &&\n  sudo chown -R ${owner} ${dir} &&\n  rm -r /tmp/$MAP"`;
+    const tmp = '/tmp/hs-maps';
+
+    const owner = m === 'compose' || m === 'run'
+      ? `  sudo chown -R 999:999 ${dir.replace(/\/maps$/, '')} &&\n`
+      : `  if id hypersomnia > /dev/null 2>&1; then sudo chown -R hypersomnia: ${dir.replace(/\/maps$/, '')}; fi &&\n`;
+
+    return `ssh <your server> 'rm -rf ${tmp} && mkdir ${tmp}' &&\nscp -r my_custom_maps/* <your server>:${tmp}/ &&\nssh -t <your server> "\n  sudo mkdir -p ${dir} &&\n  sudo cp -r ${tmp}/. ${dir}/ &&\n${owner}  rm -r ${tmp}"`;
   }
 
   function keyPath() {
@@ -3751,7 +4101,7 @@
     const extract = state.fuse ? '' : ' --appimage-extract-and-run';
 
     if (m === 'compose' || m === 'run') {
-      return 'sudo docker run --rm \\\n  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user \\\n  ghcr.io/teamhypersomnia/hypersomnia-server:latest \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-server-key';
+      return 'sudo docker run --rm \\\n  --volume /opt/hypersomnia:/home/hypersomniac/.config/Hypersomnia/user:z \\\n  ghcr.io/teamhypersomnia/hypersomnia-server:latest \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-server-key';
     }
 
     if (separateUser()) {
@@ -3829,16 +4179,18 @@
       ...scriptWhere().map(l => `#   ${l}`),
       '#',
       `# Safe to run again: ${again}.`,
+      '# Changed something in the in-game admin panel? That wins over this script.',
       '#',
       `# Setup:     ${setupLine}`,
-      docker ? `# Data:      /opt/hypersomnia${scriptOptions.dataFolder ? ', made here' : ' - there already'}` : null,
+      docker ? '# Data:      /opt/hypersomnia' : null,
       `# Firewall:  ${firewallText}`,
       `# Start now: ${starts ? 'yes' : m === 'service' ? 'no - it starts at the next reboot' : 'no - the startup command stays commented out'}`,
       '#',
       '# Pasted into a terminal: all in ( ) - a failed step ends the script, not your session,',
       '# and the space before ( keeps it, passwords too, out of the history where the shell skips such lines (Debian, Ubuntu).',
       ' (',
-      'set -euo pipefail'
+      'set -euo pipefail',
+      docker ? '\nmkdir -p ~/hypersomnia && cd ~/hypersomnia' : null
     );
 
     // the data folder's line only with Docker
@@ -3848,17 +4200,16 @@
       }
     }
 
-    const before = docker && !scriptOptions.dataFolder ? '' : beforeText();
+    const before = beforeText();
 
     if (before) {
-      section(m === 'compose' || m === 'run' ? 'The server\'s data folder' : 'The game');
+      section(docker ? 'The server\'s data folder' : 'The game');
 
-      // the user is made only once
-      before.split('\n').forEach(l => cmd(l.startsWith('sudo useradd') ? `id hypersomnia > /dev/null 2>&1 || ${l}` : l));
+      before.split('\n').forEach(l => cmd(l));
     }
 
     if (m === 'compose') {
-      section('compose.yaml and its .env - in this folder');
+      section('compose.yaml and its .env - in ~/hypersomnia');
       write('compose.yaml', compose());
 
       // run again without secrets: the old ones would stay in force
@@ -3871,7 +4222,7 @@
       }
     }
     else if (m === 'run') {
-      section(`The secrets - ${RUN_ENV_FILE}, in this folder`);
+      section(`The secrets - ${RUN_ENV_FILE}, in ~/hypersomnia`);
 
       if (runEnvFile()) {
         write(RUN_ENV_FILE, runEnvFile(), '', true);
@@ -4016,6 +4367,10 @@
       }
     };
 
+    if (adminRequired() && !state.adminOn) {
+      errors.push('Admin: required while a time to enter is off - only an admin can end a round nobody comes to.');
+    }
+
     if (state.adminOn) {
       const ids = adminIds();
       const bad = ids.filter(id => !ACCOUNT_ID.test(id));
@@ -4037,10 +4392,6 @@
 
     if (resultsWebhook() && !/^https?:\/\/\S+$/.test(resultsWebhook())) {
       errors.push('Results webhook: a link starting with https://');
-    }
-
-    if (state.passwordOn && !verifiedByAccounts() && !state.password.trim()) {
-      errors.push('Join password: type it - or switch it off.');
     }
 
     // the game counts the name's bytes - at most 100
@@ -4072,7 +4423,7 @@
     }
 
     if (isTournament() && !pairedBeforehand() && state.tPlayers < 2 * state.tTeamSize) {
-      errors.push(`Maximum players: at least ${2 * state.tTeamSize} for ${state.tTeamSize}v${state.tTeamSize} - two teams.`);
+      errors.push(`Participants: at least ${2 * state.tTeamSize} for ${state.tTeamSize}v${state.tTeamSize} - two teams.`);
     }
 
     const n = instanceCount();
@@ -4235,17 +4586,20 @@
     // a tournament's only: a persistent server's players don't need it
     steps.keyPublic.el.hidden = !isTournament();
 
-    // a tournament plays only the official and community maps - none of your own
-    steps.mapsAdd.el.hidden = isTournament();
+    // a casual server's custom maps switched on - a tournament's custom map chosen for a round
+    steps.mapsAdd.el.hidden = isTournament() ? !customRoundMaps().length : !(state.customMaps || state.cycle.some(isCustomMap));
 
     mapsAddResults.innerHTML = '';
     mapsAddResults.append(
-      el('p', { class: 'gen-field-text', html: `By default, only the official maps are on the disk - the others you provide yourself.<br>The server's maps folder: ${inline(arenasDir() + '/')}<br><br>Run this from your computer, in the folder that holds the map's folder:` }),
+      el('p', { class: 'gen-field-text', html: 'From your computer, next to the folder with all your custom maps, e.g.:' }),
+      el('pre', { class: 'gen-maps-tree', text: customMapsTree() }),
+      el('p', { class: 'gen-field-text', text: 'Run this command:' }),
       resultBox({
         lang: 'bash',
-        text: wrapped(addMapsCommand()),
-        hint: 'The server reads its maps when it starts - restart it.<br>Maps on <a href="/arenas" target="_blank">hypersomnia.io<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a> need none of this: the server downloads them itself.'
-      })
+        text: wrapped(uploadMapsCommand()),
+        hint: 'Run it again any time to add or update maps.'
+      }),
+      el('p', { class: 'gen-field-text', html: `On the server they go to ${inline(arenasDir() + '/')}<br>${!isTournament() && state.customMaps ? 'Every map in it is added to the map cycle.<br>' : ''}<span class="gen-note-white">Players download them from your server</span> as soon as they join.<br><br>Maps on <a href="/arenas" target="_blank">hypersomnia.io<i class="fa-solid fa-arrow-up-right-from-square gen-ext"></i></a> need none of this: the server downloads them when needed.` })
     );
 
     keySwapResults.innerHTML = '';
@@ -4282,10 +4636,12 @@
     }
     steps.playersKey.el.hidden = state.serverListOn;
 
+    // a tab per firewall - the commands of the one the server has, never both in one paste
+    firewallTabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.firewall === firewallTab));
     firewallResults.innerHTML = '';
-    firewallResults.appendChild(resultBox({
+    firewallResults.append(firewallTabs, resultBox({
       lang: 'bash',
-      text: firewall(),
+      text: firewallLines(firewallTab).filter(l => !l.startsWith('# ')).join('\n'),
       hint: `Open ${ports}${forWhat}${page} in the system firewall - and in your cloud provider's panel, if it has one.`
     }));
 
@@ -4301,7 +4657,11 @@
 
     // docker run has no config to copy - everything is in its command, under Your startup command
     steps.config.el.hidden = method() === 'run';
-    startHint.innerHTML = method() === 'run' ? `If it's running already, ${inline('sudo docker rm -f hypersomnia-server')} first.` : '';
+    startHint.innerHTML =
+      method() === 'run' ? `If it's running already, ${inline('sudo docker rm -f hypersomnia-server')} first.` :
+      isTournament() && method() === 'terminal' ? `Over SSH: run it inside ${inline('tmux')} - closing the terminal stops the tournament.` :
+      ''
+    ;
     startHint.hidden = !startHint.innerHTML;
     fillStart(start);
     steps.service.el.hidden = !serviceBox;
@@ -4323,6 +4683,11 @@
     errorBox.hidden = errors.length === 0;
     errorBox.innerHTML = `<div class="gen-errors-title"><i class="fa-solid fa-triangle-exclamation"></i>Fix the errors in the settings first</div><ul>${errors.map(e => `<li>${escaped(e)}</li>`).join('')}</ul>`;
     mount.classList.toggle('gen-has-errors', errors.length > 0);
+
+    // marked again with the page as it is now - the errors hide the configs, so its height changed only now
+    if (tocReady) {
+      markToc();
+    }
 
     // nor as instructions - the button is in the profile's tile, outside what the errors hide
     if (profileBoxReady) {
@@ -4353,7 +4718,7 @@
 
   function fillStart(start) {
     /*
-      Wrapped only between the arguments, never inside one (e.g. at the dash of --tournament-arenas):
+      Wrapped only between the arguments, never inside one (e.g. at the dash of --tournament-maps):
       every argument unbreakable (a quoted one whole), the spaces between them as they are - copying gives the same text.
       Each argument highlighted as bash on its own.
     */
@@ -4497,7 +4862,7 @@
       }
 
       // the maps of the rounds by default go by turns - de_cyberaqua, de_silo...
-      const fallback = k === 'tArenas' ? state.tArenas.map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo') : defaults[k];
+      const fallback = k === 'tMaps' ? state.tMaps.map((_, i) => i % 2 === 0 ? 'de_cyberaqua' : 'de_silo') : defaults[k];
 
       const value = state[k];
 
@@ -4554,7 +4919,7 @@
     const choices = [
       `firewall: ${state.firewall === 'none' ? 'left as it is' : state.firewall}`,
       `start now: ${scriptOptions.start ? 'yes' : 'no'}`
-    ].concat(method() === 'compose' || method() === 'run' ? [`data folder: ${scriptOptions.dataFolder ? 'made' : 'there already'}`] : []);
+    ];
 
     parts.push(block(`Single script (${choices.join(', ')})`, 'bash', oneShotScript()));
 
@@ -4800,7 +5165,7 @@
   // what it is, for someone who sees it the first time
   const PROFILE_HELP = 'Only this generator reads it, never the server.';
 
-  const profileSub = el('p', { class: 'gen-field-text gen-profile-sub', html: 'No need to edit the configs by hand later:<br>save this and come back to tweak the settings.<br><br>Safe to share - no passwords or webhooks.' });
+  const profileSub = el('p', { class: 'gen-field-text gen-profile-sub', html: 'No need to edit the generated configs and scripts by hand:<br>save this profile, load it here later and change any setting above.<br><br>Safe to share - no passwords or webhooks.' });
   const profileApplied = el('p', { class: 'gen-field-text gen-profile-applied' });
   profileApplied.hidden = true;
 
@@ -4953,6 +5318,11 @@
     const line = atEnd ? window.innerHeight : window.innerHeight * 0.3;
 
     tocTargets.forEach((t, i) => {
+      // hidden (the errors hide the configs): nowhere to read - its top would count as passed
+      if (t.offsetParent === null) {
+        return;
+      }
+
       if (t.getBoundingClientRect().top < line) {
         current = i;
       }
