@@ -97,9 +97,10 @@ function findTeamIndexByRoster(teams, roster) {
 function buildStages(state) {
   const teams = state.teams || [];
   const history = state.match_history || [];
-  const currentMatches = state.current_stage_matches || [];
+  // the game's state: bracket_round_* since 4.3.0 - an older archive has stage_*
+  const currentMatches = state.current_bracket_round_matches || state.current_stage_matches || [];
 
-  const stageIndex = state.stage_index || 0;
+  const stageIndex = state.bracket_round_index ?? state.stage_index ?? 0;
   const stages = [];
 
   const eliminatedBeforeStage = new Set();
@@ -107,7 +108,7 @@ function buildStages(state) {
   const completedStageCount = stageIndex;
 
   for (let s = 0; s < completedStageCount; s++) {
-    const entries = history.filter(h => (h.played_in_stage || 0) === s);
+    const entries = history.filter(h => (h.played_in_bracket_round ?? h.played_in_stage ?? 0) === s);
     const matches = [];
     const playedTeamIndices = new Set();
 
