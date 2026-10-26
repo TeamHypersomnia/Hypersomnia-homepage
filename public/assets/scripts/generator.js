@@ -510,7 +510,10 @@
       el('label', { class: 'gen-switch' }, [
         check,
         el('span', { class: 'gen-switch-track' }),
-        el('span', { class: 'gen-switch-label', text: 'FUSE installed?' }),
+        el('span', { class: 'gen-switch-label' }, [
+          document.createTextNode('FUSE installed?'),
+          el('i', { class: 'fa-regular fa-circle-question gen-row-help', tabindex: '0', 'data-tip': 'An AppImage mounts itself with FUSE:\n`/dev/fuse` and `fusermount` (`fuse3`).\nOften missing on a VPS or in a container.\n\nWithout it, the game unpacks itself\nto `/tmp` at every start (about 60 MB,\na fraction of a second) - otherwise the same.\n\nNot sure? Leave it off - it always works.' })
+        ]),
         el('span', { class: 'gen-switch-note', text: 'skips an extract step' })
       ])
     ]);

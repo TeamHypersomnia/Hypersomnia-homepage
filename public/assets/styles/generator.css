@@ -2915,3 +2915,8 @@ body.gen-page {
 .gen-nowrap {
   white-space: nowrap;
 }
+
+/* the FUSE switch: the (?) a space after its label */
+#config-generator .gen-fuse-option .gen-row-help {
+  margin-left: 0.35em;
+}
