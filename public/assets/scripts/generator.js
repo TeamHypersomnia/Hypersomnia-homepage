@@ -3826,6 +3826,9 @@
       '',
       '[Service]',
       ownUser() ? null : 'User=hypersomnia',
+      // its own /tmp: the AppImage unpacks there - another user's copy of the same version can't block it or be run
+      // in its place, and it's cleared at every stop (a user unit can't have it)
+      ownUser() ? null : 'PrivateTmp=yes',
       `WorkingDirectory=${dir}`,
       `ExecStart=${dir}/Hypersomnia-Headless.AppImage${extractFlag()} \\`,
       `    ${flags}`,
