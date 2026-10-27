@@ -1507,6 +1507,17 @@ body.gen-page {
   /* no background - the tabs under it stand out; dashed, as the line over YOUR CONFIGS */
   border: 1px dashed var(--line);
   text-align: center;
+  position: relative;
+}
+
+/* the generator's own version, small in the box's bottom right corner */
+.gen-version {
+  position: absolute;
+  right: 0.7em;
+  bottom: 0.45em;
+  font-size: 0.75em;
+  color: var(--dim);
+  opacity: 0.7;
 }
 
 .gen-page-main .gen-title-box h1.guide-title {
