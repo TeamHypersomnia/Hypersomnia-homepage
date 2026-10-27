@@ -2931,3 +2931,9 @@ body.gen-page {
 #config-generator .gen-fuse-option .gen-row-help {
   margin-left: 0.35em;
 }
+
+/* the AppImage's minimum distros, under its first commands */
+.gen-before-box .gen-distro-note {
+  margin: 0.6em 0 0;
+  font-size: 0.9em;
+}

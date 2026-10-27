@@ -1894,11 +1894,11 @@
 
   const BEFORE = {
     // downloaded next to it, then renamed over it - a running server keeps its file (a download into it: "Text file busy")
-    terminal: 'wget -O Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage.new\nmv -f Hypersomnia-Headless.AppImage.new Hypersomnia-Headless.AppImage',
-    service: 'cd ~\nwget -O Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage.new\nmv -f Hypersomnia-Headless.AppImage.new Hypersomnia-Headless.AppImage\nmkdir -p ~/.config/systemd/user',
+    terminal: 'curl -fL -o Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage.new\nmv -f Hypersomnia-Headless.AppImage.new Hypersomnia-Headless.AppImage',
+    service: 'cd ~\ncurl -fL -o Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nchmod +x Hypersomnia-Headless.AppImage.new\nmv -f Hypersomnia-Headless.AppImage.new Hypersomnia-Headless.AppImage\nmkdir -p ~/.config/systemd/user',
     // the same, the server running as its own user
     // its home is only its own (700) - no cd into it, the paths in full
-    serviceUser: 'id hypersomnia > /dev/null 2>&1 || sudo useradd --system --create-home --home-dir /opt/hypersomnia hypersomnia\nsudo chown -R hypersomnia: /opt/hypersomnia\nsudo chmod 700 /opt/hypersomnia\nsudo -u hypersomnia wget -O /opt/hypersomnia/Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nsudo chmod +x /opt/hypersomnia/Hypersomnia-Headless.AppImage.new\nsudo -u hypersomnia mv -f /opt/hypersomnia/Hypersomnia-Headless.AppImage.new /opt/hypersomnia/Hypersomnia-Headless.AppImage',
+    serviceUser: 'id hypersomnia > /dev/null 2>&1 || sudo useradd --system --create-home --home-dir /opt/hypersomnia hypersomnia\nsudo chown -R hypersomnia: /opt/hypersomnia\nsudo chmod 700 /opt/hypersomnia\nsudo -u hypersomnia curl -fL -o /opt/hypersomnia/Hypersomnia-Headless.AppImage.new \\\n  https://hypersomnia.io/builds/latest/Hypersomnia-Headless.AppImage\nsudo chmod +x /opt/hypersomnia/Hypersomnia-Headless.AppImage.new\nsudo -u hypersomnia mv -f /opt/hypersomnia/Hypersomnia-Headless.AppImage.new /opt/hypersomnia/Hypersomnia-Headless.AppImage',
     compose: 'sudo mkdir -p /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia',
     run: 'sudo mkdir -p /opt/hypersomnia\nsudo chown 999:999 /opt/hypersomnia'
   };
@@ -1943,12 +1943,21 @@
   // the AppImage's executable, or Docker's data folder
   const beforeTitle = () => 'Your setup commands';
 
+  /*
+    The AppImage's minimum: its glibc 2.35 (Debian 11 and Ubuntu 20.04 have 2.31) - everything else it brings along,
+    curl is on these already. Under the AppImage's first commands, in both views.
+  */
+
+  const distroNote = () => el('p', { class: 'gen-hint gen-distro-note', text: 'Requires Ubuntu 22.04+, Debian 12+, Fedora or RHEL 9+.' });
+  const setupDistroNote = distroNote();
+
   const beforeBlock = el('div', { class: 'gen-before-box' }, [
     serviceOption,
     el('div', { class: 'guide-code gen-start-code' }, [
       el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' }),
       el('pre', {}, [beforeCode])
-    ])
+    ]),
+    setupDistroNote
   ]);
 
 
@@ -3137,11 +3146,14 @@
   ]);
 
 
+  const scriptDistroNote = distroNote();
+
   const scriptBlock = el('div', { class: 'gen-before-box' }, [
     el('div', { class: 'guide-code gen-start-code' }, [
       el('button', { type: 'button', class: 'guide-copy', title: 'Copy', html: '<i class="fa-regular fa-copy"></i>' }),
       el('pre', {}, [scriptCode])
     ]),
+    scriptDistroNote
   ]);
 
   steps.script = makeStep('Your script', scriptBlock, true);
@@ -3196,6 +3208,11 @@
     }
 
     steps.mapsAdd.title.textContent = oneShot ? 'First: upload your custom maps' : 'Upload your custom maps';
+
+    // the AppImage's minimum - a container brings its own system
+    const appImage = method() === 'terminal' || method() === 'service';
+    scriptDistroNote.hidden = !appImage;
+    setupDistroNote.hidden = !appImage;
 
     scriptStartNote.textContent = method() === 'service' ? 'otherwise at the next reboot' : 'otherwise the startup command stays commented out';
     scriptCode.textContent = oneShotScript();
