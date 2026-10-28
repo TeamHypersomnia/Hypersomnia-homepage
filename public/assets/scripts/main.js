@@ -232,11 +232,23 @@ function initSortableTables() {
         return isNaN(diff) ? va.localeCompare(vb) : diff;
       };
 
+      const order = (a, b) => {
+        const primary = compare(a, b, colIndex);
+        if (primary !== 0) return ascending ? primary : -primary;
+        return isNaN(tiebreakCol) ? 0 : compare(a, b, tiebreakCol);
+      };
+
       Array.from(table.tBodies).forEach(tbody => {
-        const rows = Array.from(tbody.rows).sort((a, b) => {
-          const primary = compare(a, b, colIndex);
-          if (primary !== 0) return ascending ? primary : -primary;
-          return isNaN(tiebreakCol) ? 0 : compare(a, b, tiebreakCol);
+        // A tournament's matches stay under its row (servers.ejs), sorted among themselves the same way
+        const all = Array.from(tbody.rows);
+        const rows = [];
+
+        all.filter(r => !r.dataset.group).sort(order).forEach(r => {
+          rows.push(r);
+
+          if (r.dataset.tournament) {
+            rows.push(...all.filter(m => m.dataset.group === r.dataset.tournament).sort(order));
+          }
         });
 
         const clone = tbody.cloneNode(false);
@@ -246,6 +258,22 @@ function initSortableTables() {
     } catch (err) {
       console.error("Sortable table error:", err);
     }
+  });
+}
+
+// A tournament's row on /servers: a click expands or collapses its matches - not on its links (Results)
+function initTournamentRows() {
+  document.addEventListener("click", e => {
+    if (e.target.closest("a, button")) return;
+
+    const row = e.target.closest("tr.sv-tournament");
+    if (!row || row.classList.contains("finished")) return;
+
+    const expanded = row.classList.toggle("expanded");
+
+    row.closest("table").querySelectorAll(`tr.sv-match[data-group="${row.dataset.tournament}"]`).forEach(m => {
+      m.classList.toggle("collapsed", !expanded);
+    });
   });
 }
 
@@ -390,6 +418,7 @@ initFirearms();
 initLeaderboard();
 initCopyButtons();
 initSortableTables();
+initTournamentRows();
 initSmoothScroll();
 initLazyImages();
 initArenaViews();

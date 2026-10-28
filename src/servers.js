@@ -47,6 +47,62 @@ async function fetchAndProcessServers() {
   return processed;
 }
 
+// A tournament's stage: the rounds left to its final - the same words as in the game (tournament_stage.h)
+function stageLabel(stage) {
+  if (stage === 0) return 'FINALS';
+  if (stage === 1) return 'SEMIFINALS';
+  if (stage === 2) return 'QUARTERFINALS';
+  return `ROUND OF ${2 ** Math.min(stage + 1, 16)}`;
+}
+
+function isTournamentMatch(s) {
+  return Number.isInteger(s.tournament_stage) && s.tournament_stage >= 0 && Number(s.instance_first_port) > 0;
+}
+
+/*
+  A tournament's matches under one row: the same key, the same IP, the same first port. The rest - a row each,
+  in the list's order (the tournament where its first match was).
+*/
+function groupTournaments(list) {
+  const rows = [];
+  const byId = new Map();
+
+  for (const s of list) {
+    if (!isTournamentMatch(s)) {
+      rows.push({ server: s });
+      continue;
+    }
+
+    s.stage_label = s.finished ? 'FINISHED' : stageLabel(s.tournament_stage);
+
+    const host = String(s.ip || '').replace(/:\d+$/, '');
+    const id = `${s.server_public_key || ''}@${host}:${s.instance_first_port}`;
+
+    if (!byId.has(id)) {
+      const row = { tournament: { id: `t${byId.size}`, host, entries: [] } };
+      byId.set(id, row.tournament);
+      rows.push(row);
+    }
+
+    byId.get(id).entries.push(s);
+  }
+
+  for (const t of byId.values()) {
+    const first = t.entries.find(e => Number(String(e.ip).split(':').pop()) === Number(e.instance_first_port)) || t.entries[0];
+
+    t.name = first.tournament_name || `Tournament ${t.host}`;
+    t.tournament_page = /^https?:\/\//.test(first.tournament_page || '') ? first.tournament_page : '';
+    t.is_official = first.is_official;
+    t.flag = first.flag;
+    t.finished = t.entries.length === 1 && t.entries[0].finished && t.entries[0].tournament_stage === 0;
+    t.humans = t.entries.reduce((n, e) => n + (Number(e.num_online_humans) || 0), 0);
+    t.max_online = t.entries.reduce((n, e) => n + (Number(e.max_online) || 0), 0);
+    t.entries.sort((a, b) => Number(String(a.ip).split(':').pop()) - Number(String(b.ip).split(':').pop()));
+  }
+
+  return rows;
+}
+
 router.get('/', async (req, res) => {
   try {
     const servers = await fetchAndProcessServers();
@@ -65,8 +121,8 @@ router.get('/', async (req, res) => {
     res.render('servers', {
       page: 'Servers',
       user: req.user,
-      official_servers: officialServers,
-      community_servers: communityServers
+      official_servers: groupTournaments(officialServers),
+      community_servers: groupTournaments(communityServers)
     });
   } catch (err) {
     console.error('Error fetching servers:', err.message);

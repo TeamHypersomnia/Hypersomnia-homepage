@@ -1835,3 +1835,20 @@ footer > a:hover {
     animation: none;
   }
 }
+
+/* A tournament's row on /servers - its matches under it, collapsed until it's clicked */
+tr.sv-tournament:not(.finished) {
+  cursor: pointer;
+}
+
+tr.sv-match.collapsed {
+  display: none;
+}
+
+td.sv-flag + td.sv-match-name {
+  padding-left: 2em;
+}
+
+.sv-tag.finished-tag {
+  color: rgb(0, 255, 255);
+}

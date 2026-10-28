@@ -16,24 +16,26 @@
       </tr>
     </thead>
     <tbody>
-      <% if (Object.keys(list).length === 0) { %>
+      <% if (list.length === 0) { %>
       <tr class="empty-row"><td colspan="7">-- no servers online --</td></tr>
       <% } %>
-      <% Object.values(list).forEach(v => { %>
-      <tr>
-        <td class="sv-flag"><%= v.flag %></td>
-        <td data-sort="<%= v.name %>"><% if (showTag) { %><% if (v.is_ranked) { %><span class="sv-tag ranked-tag">RANKED</span><% } else { %><span class="sv-tag">CASUAL</span><% } %> <% } %><% if (v.require_password || v.listed_players_only) { %><span class="sv-tag" title="<%= v.require_password ? 'Password' : 'Only its listed players' %>"><i class="fa-solid fa-lock"></i></span> <% } %><a class="sv-name" href="/servers/<%= v.site_displayed_address %>"><%= v.name %></a><% if (/^https?:\/\//.test(v.tournament_page || "")) { %> <a class="sv-tag sv-results" href="<%= v.tournament_page %>" target="_blank" rel="noopener" title="The tournament's live results"><i class="fa-solid fa-trophy"></i> Results</a><% } %></td>
-        <% const humans = Number(v.num_online_humans) || 0; %>
-        <td data-sort="<%= humans %>" class="<%= humans > 0 ? 'online' : 'dimmed' %>"><%= humans %>/<%= v.max_online %></td>
-        <td class="sv-hide-mobile"><% if (hasArena(v.arena)) { %><a class="arena-link" href="/arenas/<%= v.arena %>"><%= v.arena %></a><% } else { %><%= v.arena %><% } %></td>
-        <td class="sv-hide-mobile"><%= v.game_mode %></td>
-        <% const keyed = (typeof v.server_public_key === 'string' && /^[0-9a-f]{64}$/.test(v.server_public_key)) ? ',' + v.server_public_key : ''; %>
-        <td class="sv-hide-mobile sv-address" data-sort="<%= v.site_displayed_address %>"><button type="button" class="copy-btn" data-copy="<%= shownAddress(v.site_displayed_address) %><%= keyed %>" title="Copy the address with the server's key" aria-label="Copy the address with the server's key"><i class="fa-regular fa-copy"></i></button><span><%= shownAddress(v.site_displayed_address) %></span></td>
-        <td class="sv-actions">
-          <a href="steam://run/2660970//<%= shownAddress(v.site_displayed_address) %><%= keyed %>/" title="Connect via Steam"><i class="fa-brands fa-steam"></i>Steam</a>
-          <a href="https://play.hypersomnia.io/game/<%= v.browser_connect_string %><%= keyed %>" title="Play in Browser"><i class="fa-solid fa-right-to-bracket"></i>Browser</a>
-        </td>
+      <% list.forEach(row => { %>
+      <% if (row.server) { %>
+      <%- include('server_row', { v: row.server, showTag, group: null, colored: false }); %>
+      <% } else { const t = row.tournament; const colored = t.is_official; %>
+      <tr class="sv-tournament<%= t.finished ? ' finished' : '' %>" data-tournament="<%= t.id %>">
+        <td class="sv-flag"><%= t.flag %></td>
+        <td data-sort="<%= t.name %>"><span class="sv-tag<%= t.finished ? ' finished-tag' : (colored ? ' ranked-tag' : '') %>"><%= t.finished ? 'FINISHED' : 'TOURNAMENT' %></span> <span class="sv-name"><%= t.name %></span><% if (t.tournament_page) { %> <a class="sv-tag sv-results" href="<%= t.tournament_page %>" target="_blank" rel="noopener" title="<%= t.tournament_page %>"><i class="fa-solid fa-trophy"></i> Results</a><% } %></td>
+        <td data-sort="<%= t.humans %>" class="<%= t.humans > 0 ? 'online' : 'dimmed' %>"><%= t.humans %>/<%= t.max_online %></td>
+        <td class="sv-hide-mobile"></td>
+        <td class="sv-hide-mobile"></td>
+        <td class="sv-hide-mobile"></td>
+        <td class="sv-actions"></td>
       </tr>
+      <% if (!t.finished) { t.entries.forEach(v => { %>
+      <%- include('server_row', { v, showTag, group: t.id, colored }); %>
+      <% }); } %>
+      <% } %>
       <% }); %>
     </tbody>
   </table>

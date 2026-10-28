@@ -1867,13 +1867,13 @@
 
   function updateCheck() {
     if (isTournament() && state.tPairing === 'beforehand') {
-      checkText.innerHTML = pageCheck() + `Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Players must join the server that mentions their ${state.tTeamSize === 1 ? 'nickname' : 'team'}:`;
-      checkImage.src = '/assets/images/generator/server_browser_tournament.png';
+      checkText.innerHTML = pageCheck() + `Players on your network see your tournament in <code>Browse servers</code> - a click on it shows its matches.<br>Players must join the match that mentions their ${state.tTeamSize === 1 ? 'nickname' : 'team'}:`;
+      checkImage.src = '/assets/images/generator/server_browser_tournament.png?t=20261028';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else if (isTournament()) {
-      checkText.innerHTML = pageCheck() + 'Players on your network see every match under <strong>Ongoing Tournament</strong> in <code>Browse servers</code>.<br>Until it is full, a match says <code>(any pair)</code> - anyone may join it.<br>Then it is named by its players:';
-      checkImage.src = '/assets/images/generator/server_browser_tournament_open.png';
+      checkText.innerHTML = pageCheck() + 'Players on your network see your tournament in <code>Browse servers</code> - a click on it shows its matches.<br>Until it is full, a match says <code>(any pair)</code> - anyone may join it.<br>Then it is named by its players:';
+      checkImage.src = '/assets/images/generator/server_browser_tournament_open.png?t=20261028';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else if (!state.serverListOn) {
