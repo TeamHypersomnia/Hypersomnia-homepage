@@ -74,6 +74,21 @@
   };
   const isTournament = () => currentSetup.startsWith('tournament');
 
+  /*
+    Left empty: today's date - the same settings another day are another tournament (the server doesn't start
+    one played to the end already under the same name).
+  */
+
+  function defaultTournamentName() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return `Tournament ${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  function tournamentName() {
+    return state.tName.trim() || defaultTournamentName();
+  }
+
   function selectSetup(id) {
     const group = groupOf(id);
     currentSetup = id;
@@ -264,7 +279,7 @@
     tNextMaxWaitOn: true,
     tNextMaxWait: 15,
     // how many others may watch each match - every place takes RAM on its server
-    tSpectatorSlots: 6,
+    tSpectatorSlots: 16,
     serverWho: 'anyone',
     allowedPlayers: [],
     webhook: '',
@@ -297,7 +312,7 @@
 
   function sanitizeState(raw) {
     const out = Object.assign({}, defaults);
-    const ranges = { tRound1MaxWait: [1, 10080], tNextMaxWait: [1, 10080], tSpectatorSlots: [0, 50], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
+    const ranges = { tRound1MaxWait: [1, 10080], tNextMaxWait: [1, 10080], tSpectatorSlots: [0, 64], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
     const decimals = { gameSpeed: [0.5, 1], bulletSpeed: [0.5, 1], zoom: [0.5, 1.5] };
     const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'], serverWho: ['anyone', 'accounts'], botDifficulty: BOT_DIFFICULTIES.map(d => d[0]), service: ['off', 'systemd', 'user'], firewall: ['none', 'ufw', 'firewalld'] };
     // no leading dot: never "." or ".." - a name goes into paths of the commands
@@ -2344,7 +2359,7 @@
       : { name: 'Final', state: 'PLAYED', map: 'fy_minilab', matches: [done([alice, bob], [erin, frank], 16, 7)], byes: [] };
 
     return {
-      name: state.tName.trim() || 'My Tournament',
+      name: tournamentName(),
       state: ongoing ? 'ONGOING' : 'FINISHED',
       winner_team: ongoing ? [] : [alice, bob],
       rounds: [
@@ -2720,8 +2735,8 @@
   const spectatorPlacesWarning = el('p', { class: 'gen-port-warning' });
   const spectatorPlacesRow = settingRow(
     'Extra spectator slots',
-    [sliderInput('tSpectatorSlots', 0, 50)],
-    'How many can watch a match at once:\nparticipants who are out or waiting for their next match.\n\nThe admins and the spectator account\nalways get in, on top of these.'
+    [sliderInput('tSpectatorSlots', 0, 64)],
+    'How many can watch at once, per round:\nparticipants who are out or waiting for their next match.\n\nSplit between the round\'s matches -\n16 with 8 matches: 2 on each, the final: all 16.\nAt least 1 on each; 0: nobody watches.\n\nThe admins and the spectator account\nalways get in, on top of these.'
   );
 
   // under the row, a hint
@@ -2729,8 +2744,8 @@
 
   function updateSpectatorPlaces() {
     const n = state.tSpectatorSlots;
-    spectatorPlacesRow.classList.toggle('open', n > 6);
-    spectatorPlacesWarning.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>About ${Math.round(n * 4.4)} MB of RAM on every match's server, taken up front - and upload for each one watching.`;
+    spectatorPlacesRow.classList.toggle('open', n > 16);
+    spectatorPlacesWarning.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>About ${Math.round(n * 4.4)} MB of RAM in all, taken up front - and upload for each one watching.`;
   }
 
   /*
@@ -2843,7 +2858,7 @@
     only(serverRows, settingRow('Server instances', [casualInput], 'Several servers, one after another.\n\nEach takes the next ports.')),
     only(serverRows, serverGameVarsRow),
     only(serverRows, botsRow),
-    only(tournamentRows, settingRow('Tournament name', [textInput('tName', 'e.g. onFOSS November Cup 2026', 100)], 'Shown on the live results page.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again.\nNext time, give it a new name.')),
+    only(tournamentRows, settingRow('Tournament name', [textInput('tName', `empty: ${defaultTournamentName()}`, 100)], 'Shown on the live results page and in Browse servers.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again - left empty, it\'s today\'s date,\nso next time it starts anew.')),
     only(tournamentRows, settingRow('Team size', [teamSize])),
     only(tournamentRows, pairingRow),
     only(tournamentRows, round1TimeoutRow),
@@ -3321,8 +3336,8 @@
       out.push('--tournament-maps "$MAPS"');
     }
 
-    if (isTournament() && state.tName.trim()) {
-      out.push(`--tournament-name ${quoted(state.tName.trim())}`);
+    if (isTournament()) {
+      out.push(`--tournament-name ${quoted(tournamentName())}`);
     }
 
     if (isTournament() && !state.tPage) {
@@ -3340,7 +3355,7 @@
       out.push(`--tournament-next-rounds-max-wait ${nextTimeoutValue()}`);
     }
 
-    if (state.tSpectatorSlots !== 6) {
+    if (state.tSpectatorSlots !== 16) {
       out.push(`--tournament-spectator-slots ${state.tSpectatorSlots}`);
     }
 
@@ -3690,8 +3705,8 @@
       }
     }
 
-    if (isTournament() && state.tName.trim()) {
-      put('HYPERSOMNIA_TOURNAMENT_NAME', state.tName.trim());
+    if (isTournament()) {
+      put('HYPERSOMNIA_TOURNAMENT_NAME', tournamentName());
     }
 
     if (resultsWebhook()) {
@@ -3713,7 +3728,7 @@
       put('HYPERSOMNIA_TOURNAMENT_NEXT_ROUNDS_MAX_WAIT', nextTimeoutValue());
     }
 
-    if (isTournament() && state.tSpectatorSlots !== 6) {
+    if (isTournament() && state.tSpectatorSlots !== 16) {
       put('HYPERSOMNIA_TOURNAMENT_SPECTATOR_SLOTS', String(state.tSpectatorSlots));
     }
 
@@ -4297,14 +4312,8 @@
     */
 
     const playersLine = () => {
-      if (isTournament()) {
-        section('Not on the server list: give your players its address and this key');
-        cmd(printKeyCommand());
-      }
-      else {
-        section('Not on the server list: the line to publish for your players');
-        cmd(printJoinCommand());
-      }
+      section('Not on the server list: the line to publish for your players');
+      cmd(printJoinCommand());
     };
 
     if (!state.serverListOn && !docker) {
@@ -4418,7 +4427,7 @@
     }
 
     // the game counts the name's bytes - at most 100
-    if (isTournament() && new TextEncoder().encode(state.tName.trim()).length > 100) {
+    if (isTournament() && new TextEncoder().encode(tournamentName()).length > 100) {
       errors.push('Tournament name: at most 100 characters (fewer with letters like ą or ł).');
     }
 
@@ -4641,22 +4650,21 @@
 
     playersKeyResults.innerHTML = '';
 
-    if (isTournament()) {
-      playersKeyResults.appendChild(resultBox({
-        lang: 'bash',
-        text: wrapped(printKeyCommand()),
-        hint: `Not on the server list: give your players its address and this key.<br>Each match is a server of its own - ports ${portSpan(state.port)}.`
-      }));
-    }
-    else {
-      const more = instanceCount() > 1 ? '<br>It\'s the first server\'s - the others are on the next ports, with their names.' : '';
+    /*
+      A tournament too: its first match's line brings the whole tournament into the players' favorites.
+    */
 
-      playersKeyResults.appendChild(resultBox({
-        lang: 'bash',
-        text: printJoinCommand(),
-        hint: 'This prints a line like <code>203.0.113.7,My server,0x8aed41f2...</code> - publish it.<br>Players who copy it get your server added to their favorites by the game.' + more
-      }));
-    }
+    const more =
+      isTournament() ? '<br>It\'s the first match\'s - the game shows the whole tournament from it.' :
+      instanceCount() > 1 ? '<br>It\'s the first server\'s - the others are on the next ports, with their names.' :
+      ''
+    ;
+
+    playersKeyResults.appendChild(resultBox({
+      lang: 'bash',
+      text: printJoinCommand(),
+      hint: 'This prints a line like <code>203.0.113.7,My server,0x8aed41f2...</code> - publish it.<br>Players who copy it get your server added to their favorites by the game.' + more
+    }));
     steps.playersKey.el.hidden = state.serverListOn;
 
     // a tab per firewall - the commands of the one the server has, never both in one paste
