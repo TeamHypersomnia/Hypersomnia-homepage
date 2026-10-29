@@ -116,11 +116,9 @@ const isNoindex = typeof noindex !== 'undefined' && noindex;
       <a href="/servers" class="menu-btn<% if(page == 'Servers'){ %> active<% } %>">
         <i class="fa-solid fa-server"></i><span>Servers</span>
       </a>
-      <%# Host a Server - back in the menu with the release that hosts by the generator:
-      <a href="/generator" class="menu-btn">
+      <a href="/generator" class="menu-btn<% if(page == 'Host a Server'){ %> active<% } %>">
         <i class="fa-solid fa-terminal"></i><span>Host a Server</span>
       </a>
-      %>
     </div>
   </nav>
   </div>
