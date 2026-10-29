@@ -1199,10 +1199,6 @@ footer.site-footer > a {
   white-space: nowrap;
 }
 
-.gen-arrow {
-  color: var(--faint);
-}
-
 .gen-summary-tag {
   margin-left: 8px;
   color: var(--faint);
@@ -2359,6 +2355,11 @@ body.gen-page {
   display: grid;
   gap: 0.6em;
   padding-bottom: 1.2em;
+}
+
+/* a long line in the profile (an account id) scrolls inside its box - never widens the tile and pushes its buttons out */
+.gen-profile-box .gen-step-body > * {
+  min-width: 0;
 }
 
 .gen-profile-box .gen-profile-sub {

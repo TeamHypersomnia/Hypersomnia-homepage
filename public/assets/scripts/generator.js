@@ -2205,7 +2205,7 @@
       state.ownZoom ? `Zoom ${speedText(state.zoom)}` : null,
       state.friendlyFire ? 'Friendly fire' : null,
       !state.freezeTime ? 'No freeze time' : null
-    ].filter(Boolean).join(' · ');
+    ].filter(Boolean).join(', ');
   }
 
   const gameVarsRows = [];
@@ -2850,8 +2850,8 @@
   const introRow = (text) => el('div', { class: 'gen-row gen-row-intro', text });
 
   const serverTable = el('div', { class: 'gen-table' }, [
-    only(serverRows, introRow('A server that stays up for weeks and keeps itself updated.')),
-    only(tournamentRows, introRow('Orchestrates the entire tournament from start to finish.')),
+    only(serverRows, introRow('Runs nonstop and updates itself once a day.')),
+    only(tournamentRows, introRow('Pairs the teams, runs every round\'s matches and publishes the results.')),
     only(serverRows, settingRow('Server name', [textInput('name', 'My server')])),
     only(serverRows, cycleRow),
     only(serverRows, settingRow('Slots', [sliderInput('slots', 4, 26)])),
@@ -2952,14 +2952,14 @@
 
     const maps = roundMaps();
     syncDownloadNote(roundsDownloadNote, maps, roundsCustomNote, customRoundMaps().length > 0);
-    mapsRow.show(maps.join(' <span class="gen-arrow">→</span> '), JSON.stringify(maps) === JSON.stringify(defaultRoundMaps()));
+    mapsRow.show(maps.join(', '), JSON.stringify(maps) === JSON.stringify(defaultRoundMaps()));
 
-    const customTail = state.customMaps ? (state.cycle.length ? ' <span class="gen-arrow">+</span> all my custom maps' : 'all my custom maps') : '';
+    const customTail = state.customMaps ? (state.cycle.length ? ', all my custom maps' : 'all my custom maps') : '';
     const cycleShuffled = state.cycle.length + (state.customMaps ? 1 : 0) > 1;
 
     cycleRow.show(
       state.cycle.length || state.customMaps
-        ? state.cycle.join(' <span class="gen-arrow">→</span> ') + customTail + (cycleShuffled ? `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>` : '')
+        ? state.cycle.join(', ') + customTail + (cycleShuffled ? `<span class="gen-summary-tag">${state.cycleRandom ? 'random order' : 'in order'}</span>` : '')
         : 'de_cyberaqua only',
       cycleIsDefault() && !state.customMaps
     );
@@ -2969,7 +2969,7 @@
     gameVarsRows.forEach(r => r.sync());
 
     botsRow.show(
-      state.bots ? `${state.botQuotaOn ? `${state.botQuota} ${state.botQuota > 1 ? 'bots' : 'bot'}` : 'On'} · ${botDifficultyText()}` : 'Off',
+      state.bots ? (state.botQuotaOn ? `${state.botQuota} ${state.botQuota > 1 ? 'bots' : 'bot'}, ${botDifficultyText().toLowerCase()}` : botDifficultyText()) : 'Off',
       botsAtDefault()
     );
 
