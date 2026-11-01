@@ -2851,7 +2851,7 @@
 
   const serverTable = el('div', { class: 'gen-table' }, [
     only(serverRows, introRow('Runs nonstop and updates itself once a day.')),
-    only(tournamentRows, introRow('Pairs the teams, runs every round\'s matches and publishes the results.')),
+    only(tournamentRows, introRow('Orchestrates the entire tournament from start to finish.')),
     only(serverRows, settingRow('Server name', [textInput('name', 'My server')])),
     only(serverRows, cycleRow),
     only(serverRows, settingRow('Slots', [sliderInput('slots', 4, 26)])),
