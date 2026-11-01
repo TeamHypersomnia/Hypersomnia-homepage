@@ -312,7 +312,7 @@
 
   function sanitizeState(raw) {
     const out = Object.assign({}, defaults);
-    const ranges = { tRound1MaxWait: [1, 10080], tNextMaxWait: [1, 10080], tSpectatorSlots: [0, 64], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
+    const ranges = { tRound1MaxWait: [1, 10080], tNextMaxWait: [1, 10080], tSpectatorSlots: [0, 58], botQuota: [1, 16], port: [1024, 65000], webPort: [1024, 65000], tPagePort: [0, 65535], slots: [4, 26], casual: [1, 8], tPlayers: [2, 64], tTeamSize: [1, 5], updateHour: [0, 23.5] };
     const decimals = { gameSpeed: [0.5, 1], bulletSpeed: [0.5, 1], zoom: [0.5, 1.5] };
     const enums = { tPairing: ['first', 'beforehand'], tVerify: ['nicknames', 'accounts'], serverWho: ['anyone', 'accounts'], botDifficulty: BOT_DIFFICULTIES.map(d => d[0]), service: ['off', 'systemd', 'user'], firewall: ['none', 'ufw', 'firewalld'] };
     // no leading dot: never "." or ".." - a name goes into paths of the commands
@@ -1883,12 +1883,12 @@
   function updateCheck() {
     if (isTournament() && state.tPairing === 'beforehand') {
       checkText.innerHTML = pageCheck() + `Players on your network see your tournament in <code>Browse servers</code> - a click on it shows its matches.<br>Players must join the match that mentions their ${state.tTeamSize === 1 ? 'nickname' : 'team'}:`;
-      checkImage.src = '/assets/images/generator/server_browser_tournament.png?t=20261030';
+      checkImage.src = '/assets/images/generator/server_browser_tournament.png?t=20261101';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else if (isTournament()) {
       checkText.innerHTML = pageCheck() + 'Players on your network see your tournament in <code>Browse servers</code> - a click on it shows its matches.<br>Until it is full, a match says <code>(any pair)</code> - anyone may join it.<br>Then it is named by its players:';
-      checkImage.src = '/assets/images/generator/server_browser_tournament_open.png?t=20261030';
+      checkImage.src = '/assets/images/generator/server_browser_tournament_open.png?t=20261101';
       checkImage.alt = 'The tournament\'s matches in Browse servers';
     }
     else if (!state.serverListOn) {
@@ -2735,7 +2735,7 @@
   const spectatorPlacesWarning = el('p', { class: 'gen-port-warning' });
   const spectatorPlacesRow = settingRow(
     'Extra spectator slots',
-    [sliderInput('tSpectatorSlots', 0, 64)],
+    [sliderInput('tSpectatorSlots', 0, 58)],
     'How many can watch at once, per round:\nparticipants who are out or waiting for their next match.\n\nSplit between the round\'s matches -\n16 with 8 matches: 2 on each, the final: all 16.\nAt least 1 on each; 0: nobody watches.\n\nThe admins and the spectator account\nalways get in, on top of these.'
   );
 
@@ -2858,7 +2858,7 @@
     only(serverRows, settingRow('Server instances', [casualInput], 'Several servers, one after another.\n\nEach takes the next ports.')),
     only(serverRows, serverGameVarsRow),
     only(serverRows, botsRow),
-    only(tournamentRows, settingRow('Tournament name', [textInput('tName', `empty: ${defaultTournamentName()}`, 100)], 'Shown on the live results page and in Browse servers.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again - left empty, it\'s today\'s date,\nso next time it starts anew.')),
+    only(tournamentRows, settingRow('Tournament name', [textInput('tName', `empty: ${defaultTournamentName()}`, 60)], 'Shown on the live results page and in Browse servers.\n\nSent with the results to the webhook.\n\nThe same settings under the same name\ndon\'t start again - left empty, it\'s today\'s date,\nso next time it starts anew.\n\nCarrying on another day: use the command\nyou started it with - a new one from here\nhas another date.')),
     only(tournamentRows, settingRow('Team size', [teamSize])),
     only(tournamentRows, pairingRow),
     only(tournamentRows, round1TimeoutRow),
@@ -4166,11 +4166,14 @@
       return 'sudo docker exec hypersomnia-server \\\n  ./Hypersomnia-Headless.AppImage --appimage-extract-and-run --print-join-string';
     }
 
+    // a tournament's line is named after it - Docker's container has its name in its environment already
+    const named = isTournament() ? ` --tournament-name ${shellQuote(tournamentName())}` : '';
+
     if (separateUser()) {
-      return `sudo -u hypersomnia /opt/hypersomnia/Hypersomnia-Headless.AppImage${extract} \\\n  --appdata-dir /opt/hypersomnia --print-join-string`;
+      return `sudo -u hypersomnia /opt/hypersomnia/Hypersomnia-Headless.AppImage${extract} \\\n  --appdata-dir /opt/hypersomnia --print-join-string${named}`;
     }
 
-    return `${m === 'service' ? '~' : '.'}/Hypersomnia-Headless.AppImage${extract} --print-join-string`;
+    return `${m === 'service' ? '~' : '.'}/Hypersomnia-Headless.AppImage${extract} --print-join-string${named}`;
   }
 
   function oneShotScript() {
@@ -4426,9 +4429,9 @@
       errors.push('Results webhook: a link starting with https://');
     }
 
-    // the game counts the name's bytes - at most 100
-    if (isTournament() && new TextEncoder().encode(tournamentName()).length > 100) {
-      errors.push('Tournament name: at most 100 characters (fewer with letters like ą or ł).');
+    // the game counts the name's bytes - at most 60 (whole in the browsers)
+    if (isTournament() && new TextEncoder().encode(tournamentName()).length > 60) {
+      errors.push('Tournament name: at most 60 characters (fewer with letters like ą or ł).');
     }
 
     const token = state.telegramToken.trim();
@@ -4471,7 +4474,9 @@
     if (pairedBeforehand()) {
       const teams = listedTeams();
       const names = [].concat(...teams);
-      const twice = names.filter((n, i) => names.indexOf(n) !== i);
+      // the game takes a listed nickname whatever its case - Kuba and kuba are one
+      const lowered = names.map(n => n.replace(/[A-Z]/g, c => c.toLowerCase()));
+      const twice = names.filter((n, i) => lowered.indexOf(lowered[i]) !== i);
       const wrong = teams.filter(t => t.length !== state.tTeamSize);
       const size = `${state.tTeamSize} ${state.tTeamSize > 1 ? 'players' : 'player'}`;
 
