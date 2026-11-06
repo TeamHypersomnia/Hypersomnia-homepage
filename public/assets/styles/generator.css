@@ -2938,3 +2938,9 @@ body.gen-page {
   margin: 0.6em 0 0;
   font-size: 0.9em;
 }
+
+#config-generator .gen-roster-text:focus,
+#config-generator input.gen-roster-place:focus {
+  border-color: var(--accent);
+  box-shadow: none;
+}
