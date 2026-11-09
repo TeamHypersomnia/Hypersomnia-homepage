@@ -1,6 +1,5 @@
-<%- include('overall_header'); %>
+<%- include('overall_header', { sectionTitle: 'Not Found' }); %>
 
-<h1>Not Found</h1>
 <p>We couldn't find that page — it may be a typo or broken link. Redirecting to the <a href="/">homepage</a> in 5 seconds.</p>
 <script>
 setTimeout(() => location.href = '/', 5000)
