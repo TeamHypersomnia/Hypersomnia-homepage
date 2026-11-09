@@ -147,6 +147,10 @@ h2 {
   margin: 2em 0 0;
 }
 
+.subtagline.pitch {
+  font-size: calc(16.2px * 1.3);
+}
+
 .free-note a {
   font-weight: bold;
   color: var(--white); /* the one link that stays white */
@@ -566,7 +570,7 @@ body:has(.nebula-backdrop) .footer-hero::before {
 }
 
 body:has(.nebula-backdrop) :is(.hero > nav, .footer-band) {
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.42);
 }
 
 body:has(.nebula-backdrop) .footer-hero::before {
@@ -1524,6 +1528,10 @@ footer > a:hover {
   .subtagline,
   .mininav a {
     font-size: 13px;
+  }
+
+  .subtagline.pitch {
+    font-size: calc(13px * 1.3);
   }
 
   .downloads th,
