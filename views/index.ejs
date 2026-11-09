@@ -1,51 +1,52 @@
 <%- include('overall_header'); %>
 
-<main>
-  <div>
-    <h1 class="tagline">The Ultimate Top-down Shooter</h1>
-    <p class="subtagline">It's time to reawaken your competitive spirit.<br>
-    Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.</p>
-    <div class="responsive">
-      <table class="downloads">
-        <thead>
-          <tr>
-            <th>Platform</th>
-            <th>Get it</th>
-            <th>Size</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><i class="fa-solid fa-globe"></i>Browser</td>
-            <td><a href="https://play.hypersomnia.io/" target="_blank">Play!</a></td>
-            <td class="dl-size"></td>
-          </tr>
-          <tr>
-            <td><i class="fa-brands fa-steam"></i>Steam</td>
-            <td><a href="https://store.steampowered.com/app/2660970/Hypersomnia/" target="_blank">Store link</a></td>
-            <td class="dl-size"></td>
-          </tr>
-          <tr>
-            <td><i class="fa-brands fa-windows"></i>Windows</td>
-            <td><a href="https://hypersomnia.io/builds/latest/Hypersomnia-for-Windows.zip" download>Hypersomnia-for-Windows.zip</a></td>
-            <td class="dl-size"><%= buildSizes['Hypersomnia-for-Windows.zip'] || '' %></td>
-          </tr>
-          <tr>
-            <td><i class="fa-brands fa-linux"></i>Linux</td>
-            <td><a href="https://hypersomnia.io/builds/latest/Hypersomnia.AppImage" download>Hypersomnia.AppImage</a></td>
-            <td class="dl-size"><%= buildSizes['Hypersomnia.AppImage'] || '' %></td>
-          </tr>
-          <tr>
-            <td><i class="fa-brands fa-apple"></i>macOS</td>
-            <td><a href="https://hypersomnia.io/builds/latest/Hypersomnia-for-MacOS.dmg" download>Hypersomnia-for-MacOS.dmg</a></td>
-            <td class="dl-size"><%= buildSizes['Hypersomnia-for-MacOS.dmg'] || '' %></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="subtagline free-note">It is completely <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i>free and open-source</a>.</p>
-    <p class="downloads-note">All archives are <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/src/signing_keys.h" target="_blank">digitally signed</a> for authenticity and integrity.<br>Verify them <a href="https://hypersomnia.io/builds/latest/" target="_blank">here</a> using public keys.</p>
+<div class="nebula-backdrop" data-nebula-backdrop="/assets/images/nebula_backdrop/"></div>
+<div>
+  <h1 class="tagline tagline-logo"><img src="/assets/images/tagline_community_top_down_shooter.png" width="914" height="60" alt="The Community Top-Down Shooter"></h1>
+  <p class="subtagline">It's time to reawaken your competitive spirit.<br>
+  Challenge your friend to an intense duel, or gather two clans to fight a spectacular war.</p>
+  <div class="responsive">
+    <table class="downloads">
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Get it</th>
+          <th>Size</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><i class="fa-solid fa-globe"></i>Browser</td>
+          <td><a href="https://play.hypersomnia.io/" target="_blank">Play!</a></td>
+          <td class="dl-size"></td>
+        </tr>
+        <tr>
+          <td><i class="fa-brands fa-steam"></i>Steam</td>
+          <td><a href="https://store.steampowered.com/app/2660970/Hypersomnia/" target="_blank">Store link</a></td>
+          <td class="dl-size"></td>
+        </tr>
+        <tr>
+          <td><i class="fa-brands fa-windows"></i>Windows</td>
+          <td><a href="https://hypersomnia.io/builds/latest/Hypersomnia-for-Windows.zip" download>Hypersomnia-for-Windows.zip</a></td>
+          <td class="dl-size"><%= buildSizes['Hypersomnia-for-Windows.zip'] || '' %></td>
+        </tr>
+        <tr>
+          <td><i class="fa-brands fa-linux"></i>Linux</td>
+          <td><a href="https://hypersomnia.io/builds/latest/Hypersomnia.AppImage" download>Hypersomnia.AppImage</a></td>
+          <td class="dl-size"><%= buildSizes['Hypersomnia.AppImage'] || '' %></td>
+        </tr>
+        <tr>
+          <td><i class="fa-brands fa-apple"></i>macOS</td>
+          <td><a href="https://hypersomnia.io/builds/latest/Hypersomnia-for-MacOS.dmg" download>Hypersomnia-for-MacOS.dmg</a></td>
+          <td class="dl-size"><%= buildSizes['Hypersomnia-for-MacOS.dmg'] || '' %></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-</main>
+  <p class="subtagline free-note">It is completely <a href="https://github.com/TeamHypersomnia/Hypersomnia" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i>free and open-source</a>.</p>
+  <p class="downloads-note">All archives are <a href="https://github.com/TeamHypersomnia/Hypersomnia/blob/master/src/signing_keys.h" target="_blank">digitally signed</a> for authenticity and integrity.<br>Verify them <a href="https://hypersomnia.io/builds/latest/" target="_blank">here</a> using public keys.</p>
+</div>
+
+<script defer src="/assets/scripts/nebula_backdrop.js?t=20261109a"></script>
 
 <%- include('overall_footer'); %>
