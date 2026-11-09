@@ -19,6 +19,7 @@
 }
 
 :root {
+  --nebula-red-rgb: 255, 86, 50;
   --tagline-logo-width: 914px;
   --section-title-logo-height: 49px;
   --container-width: 1080px;
@@ -360,14 +361,24 @@ footer > a:hover > i {
   min-height: calc(100vw * 778 / 3840 * 0.9);
   margin: 0 auto;
   padding: 1.5rem 0 1rem;
+  position: relative;
 }
 
-/* top bar + logo band + menu share one library hero background;
-   the bars get a black overlay */
-.hero {
-  --art-background: #000 url("/assets/images/logo_bg.jpg?v=2") center top / cover no-repeat;
-  background: var(--art-background);
+.logo-center::before {
+  --hero-art-width: max(100vw, 1000px);
+  content: "";
+  position: absolute;
+  top: -100vw;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  background: #000 url("/assets/images/logo_bg.jpg?v=5") center bottom / var(--hero-art-width) auto no-repeat;
   image-rendering: pixelated;
+}
+
+.hero {
+  isolation: isolate;
   overflow-x: clip;
 }
 
@@ -410,10 +421,9 @@ body#top > .container {
   padding: 0.5em 1em;
 }
 
-/* logo: only the four in-game hover corners, green like its glow */
 a.menu-btn-corners {
   --mb-scale: 2; /* chunkier corners, the logo is big */
-  --mb-rgb: 0, 255, 0;
+  --mb-rgb: var(--nebula-red-rgb);
   position: relative;
   isolation: isolate;
   line-height: 0;
@@ -427,7 +437,7 @@ a.menu-btn-corners {
 }
 
 .logo-center > a:hover > .responsive {
-  filter: drop-shadow(0 0 6px rgba(0, 255, 0, 0.8));
+  filter: drop-shadow(0 0 6px rgba(var(--nebula-red-rgb), 0.8));
 }
 
 nav {
@@ -522,7 +532,7 @@ nav a.menu-btn {
 }
 
 nav a.menu-btn.menu-btn-nebula-red {
-  --mb-rgb: 255, 86, 50;
+  --mb-rgb: var(--nebula-red-rgb);
 }
 
 /* ---------- index ---------- */
@@ -541,13 +551,13 @@ body:has(.nebula-backdrop) table {
   background: rgba(3, 3, 3, 0.7);
 }
 
-body:has(.nebula-backdrop) :is(.hero, .footer-hero) {
+body:has(.nebula-backdrop) .footer-hero {
   position: relative;
   isolation: isolate;
   background: none;
 }
 
-body:has(.nebula-backdrop) :is(.hero, .footer-hero)::before {
+body:has(.nebula-backdrop) .footer-hero::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -557,10 +567,6 @@ body:has(.nebula-backdrop) :is(.hero, .footer-hero)::before {
 
 body:has(.nebula-backdrop) :is(.hero > nav, .footer-band) {
   background: rgba(0, 0, 0, 0.35);
-}
-
-body:has(.nebula-backdrop) .hero::before {
-  clip-path: inset(0 0 calc(100% - var(--nebula-band-top, 100%)) 0);
 }
 
 body:has(.nebula-backdrop) .footer-hero::before {
