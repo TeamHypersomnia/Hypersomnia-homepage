@@ -4,6 +4,7 @@
   const FLICKER_STEP_SECS = 1 / 60;
   const LIGHT_BAND_STEP = 85;
   const LIGHT_BAND_LEVELS = 3;
+  const FIRST_VIEW_MILLIS_STORAGE_KEY = "nebulaBackdropFirstViewMillis";
 
   const VERTEX_SHADER = `
     attribute vec2 corner;
@@ -201,9 +202,52 @@
     );
   }
 
+  function secondsSinceFirstViewInThisTab() {
+    const nowMillis = Date.now();
+
+    try {
+      const firstViewMillis = parseFloat(sessionStorage.getItem(FIRST_VIEW_MILLIS_STORAGE_KEY));
+
+      if (Number.isFinite(firstViewMillis)) {
+        return (nowMillis - firstViewMillis) / 1000;
+      }
+
+      sessionStorage.setItem(FIRST_VIEW_MILLIS_STORAGE_KEY, String(nowMillis));
+    } catch {
+      return 0;
+    }
+
+    return 0;
+  }
+
+  function revealBackdropThroughBands(bandsSelector) {
+    if (!bandsSelector) {
+      return;
+    }
+
+    document.querySelectorAll(bandsSelector).forEach((band) => {
+      const art = band.parentElement;
+
+      const measureBandWithinArt = () => {
+        const artTop = art.getBoundingClientRect().top;
+        const bandRect = band.getBoundingClientRect();
+        art.style.setProperty("--nebula-band-top", `${bandRect.top - artTop}px`);
+        art.style.setProperty("--nebula-band-bottom", `${bandRect.bottom - artTop}px`);
+      };
+
+      measureBandWithinArt();
+
+      const observer = new ResizeObserver(measureBandWithinArt);
+      observer.observe(art);
+      observer.observe(band);
+    });
+  }
+
   async function mountNebulaBackdrop(container) {
     const assetsUrl = container.dataset.nebulaBackdrop;
-    const startSeconds = parseFloat(container.dataset.startSeconds || "0");
+    const startSeconds = container.dataset.startSeconds !== undefined
+      ? parseFloat(container.dataset.startSeconds)
+      : secondsSinceFirstViewInThisTab();
     const frozen = container.hasAttribute("data-frozen") || matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const canvas = document.createElement("canvas");
@@ -309,9 +353,11 @@
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
 
+    draw(startSeconds);
+    revealBackdropThroughBands(container.dataset.revealThrough);
+    container.dataset.nebulaBackdropReady = "";
+
     if (frozen) {
-      draw(startSeconds);
-      container.dataset.nebulaBackdropReady = "";
       return;
     }
 
@@ -330,7 +376,6 @@
     };
 
     requestAnimationFrame(tick);
-    container.dataset.nebulaBackdropReady = "";
   }
 
   document.querySelectorAll("[data-nebula-backdrop]").forEach((container) => {

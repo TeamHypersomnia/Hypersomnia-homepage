@@ -1,4 +1,4 @@
-<%- include('overall_header'); %>
+<%- include('overall_header', { sectionTitle: 'Arenas' }); %>
 
 <%# The official arenas first (when the released version's site data is there - see site_data.js), then the community's %>
 <% [['Official Arenas', official], ['Community Arenas', arenas]].filter(([, list]) => list.length > 0).forEach(([title, list], section) => { %>

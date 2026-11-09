@@ -1,4 +1,4 @@
-<%- include('overall_header'); %>
+<%- include('overall_header', { sectionTitle: 'Player' }); %>
 <h1><% if (hasAvatar) { %><img class="avatar" src="/avatar/<%= userid %>.png" alt=""> <% } %><%= nickname %></h1>
 
 <div class="box">
