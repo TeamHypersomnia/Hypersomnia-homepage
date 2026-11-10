@@ -18,7 +18,7 @@ TAGLINES = ["The Community Top-Down Shooter"]
 SECTION_TITLES = [
     "Weapons",
     "Leaderboards",
-    "Matches",
+    "Ranked matches",
     "Arenas",
     "Server list",
     "Privacy",
