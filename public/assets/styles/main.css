@@ -20,6 +20,7 @@
 
 :root {
   --nebula-red-rgb: 255, 86, 50;
+  --nebula-blue-rgb: 77, 142, 255;
   --tagline-logo-width: 914px;
   --section-title-logo-height: 49px;
   --container-width: 1080px;
@@ -489,12 +490,9 @@ footer > a::after {
   color: var(--white);
 }
 
-/* in-game menu buttons (cyan theme), frame drawn by menu_buttons.js.
-   One game pixel = --mb-scale CSS px; padding = the frame's corner sizes
-   (left/top 8, right/bottom 12 game px). */
 nav a.menu-btn {
   --mb-scale: 1;
-  --mb-rgb: 0, 255, 255;
+  --mb-rgb: var(--nebula-blue-rgb);
   position: relative;
   isolation: isolate;
   display: inline-block;
