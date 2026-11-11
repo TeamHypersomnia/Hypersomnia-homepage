@@ -193,6 +193,23 @@ em {
   color: var(--bright);
 }
 
+.nickname {
+  font-style: italic;
+  color: inherit;
+}
+
+a .nickname {
+  color: var(--accent);
+}
+
+.with-link-icons i {
+  margin-right: 0.35em;
+}
+
+.credits-team {
+  font-size: 130%;
+}
+
 ul {
   list-style: none;
   padding-left: 0;
