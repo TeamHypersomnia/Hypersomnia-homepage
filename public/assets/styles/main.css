@@ -193,13 +193,17 @@ em {
   color: var(--bright);
 }
 
-.nickname {
+.credits-team .nickname {
   font-style: italic;
   color: inherit;
 }
 
-a .nickname {
+.credits-team a .nickname {
   color: var(--accent);
+}
+
+.credits-team a:hover .nickname {
+  color: var(--white);
 }
 
 .with-link-icons i {

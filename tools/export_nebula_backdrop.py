@@ -11,7 +11,7 @@ LINEAR_MULT = 10000
 QUADRATIC_MULT = 10000000
 
 SITE_ROOT = Path(__file__).resolve().parent.parent
-OUTPUT_DIR = SITE_ROOT / "public" / "assets" / "images" / "nebula_backdrop"
+OUTPUT_DIR = SITE_ROOT / "public" / "assets" / "images" / "nebula_backdrop_cc0"
 
 
 def calc_core(falloff):
