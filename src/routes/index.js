@@ -33,6 +33,7 @@ module.exports = (app) => {
     buildSizes: buildSizes.get()
   }));
   app.get('/privacy', (req, res) => res.render('privacy', { page: 'Privacy', user: req.user }));
+  app.get('/credits', (req, res) => res.render('credits', { page: 'Credits', user: req.user }));
   // old pages, merged into /privacy
   app.get(['/disclaimer', '/cookie-policy'], (req, res) => res.redirect(301, '/privacy'));
   app.use('/weapons', require('../weapons'));

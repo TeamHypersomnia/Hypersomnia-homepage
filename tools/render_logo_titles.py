@@ -25,6 +25,7 @@ SECTION_TITLES = [
     "Profile",
     "Player",
     "Not Found",
+    "Credits",
 ]
 
 
