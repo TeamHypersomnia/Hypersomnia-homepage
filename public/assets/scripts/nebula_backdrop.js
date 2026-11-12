@@ -264,6 +264,12 @@
     const layers = backdrop.layers.slice(0, MAX_LAYERS);
     const images = await Promise.all(layers.map((layer) => loadImage(assetsUrl + layer.texture)));
 
+    const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+
+    if (images.some((image) => Math.max(image.width, image.height) > maxTextureSize)) {
+      return;
+    }
+
     const program = createProgram(gl);
     gl.useProgram(program);
 
@@ -291,6 +297,7 @@
     const flickers = backdrop.lights.map(createFlickerLikeGame);
 
     container.prepend(canvas);
+    canvas.addEventListener("webglcontextlost", () => canvas.remove());
 
     let viewLeftTop = [0, 0];
     let viewSize = [0, 0];
@@ -358,6 +365,7 @@
     container.dataset.nebulaBackdropReady = "";
 
     if (frozen) {
+      new ResizeObserver(() => draw(startSeconds)).observe(container);
       return;
     }
 
@@ -365,6 +373,10 @@
     let elapsedSecs = 0;
 
     const tick = (millis) => {
+      if (!canvas.isConnected) {
+        return;
+      }
+
       const deltaSecs = lastMillis === null ? 0 : Math.min((millis - lastMillis) / 1000, 0.25);
       lastMillis = millis;
 
@@ -376,6 +388,10 @@
     };
 
     requestAnimationFrame(tick);
+  }
+
+  if (!CSS.supports("selector(:has(*))")) {
+    return;
   }
 
   document.querySelectorAll("[data-nebula-backdrop]").forEach((container) => {
